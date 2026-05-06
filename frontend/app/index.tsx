@@ -10,10 +10,14 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Share,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import DonutChart, { DonutSegment } from "../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
 import { CITIES, City, INDEX_EXPLANATION } from "../src/constants/cities";
@@ -23,6 +27,8 @@ import {
   normalizeText,
   parseNumber,
 } from "../src/utils/finance";
+import { buildAdvice, AdviceItem } from "../src/utils/advice";
+import { generatePdfHtml } from "../src/utils/pdf";
 
 const MONTHS_LONG = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -203,6 +209,20 @@ export default function Index() {
   const remaining = netMensuel - monthlyExpenses;
   const remainingColor = remaining >= 0 ? GOLD : DANGER;
 
+  const advice: AdviceItem[] = useMemo(
+    () =>
+      buildAdvice({
+        netMensuel,
+        rent: rentNum,
+        loansMonthly,
+        besoinsExtra: familyTotals.besoins,
+        loisirs: familyTotals.loisirs,
+        epargne: familyTotals.epargne,
+        remaining,
+      }),
+    [netMensuel, rentNum, loansMonthly, familyTotals, remaining]
+  );
+
   // Donut
   const segments: DonutSegment[] = useMemo(() => {
     const segs: DonutSegment[] = [];
@@ -342,6 +362,61 @@ export default function Index() {
     setAddItemFamily(null);
     setNewItemLabel("");
     setNewItemAmount("0");
+  }
+
+  async function exportPdf() {
+    try {
+      const html = generatePdfHtml({
+        cityName: city.name,
+        cityRegion: city.region,
+        cityIndex: city.index,
+        netMensuel,
+        brutAnnuel: totalBrutAnnuel,
+        rent: rentNum,
+        loansMonthly,
+        besoins: familyTotals.besoins,
+        loisirs: familyTotals.loisirs,
+        epargne: familyTotals.epargne,
+        totalExpenses,
+        remaining,
+        advice,
+      });
+      const { uri } = await Print.printToFileAsync({ html });
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri, {
+          UTI: "com.adobe.pdf",
+          mimeType: "application/pdf",
+          dialogTitle: "Mon budget NETbudget",
+        });
+      } else {
+        Alert.alert("PDF prêt", `Fichier généré : ${uri}`);
+      }
+    } catch (e) {
+      Alert.alert("Erreur", "Impossible de générer le PDF.");
+    }
+  }
+
+  async function shareSummary() {
+    const lines = [
+      `💸 Mon budget NETbudget — ${city.name}`,
+      ``,
+      `Net mensuel estimé : ${formatEuro(netMensuel)}`,
+      `Loyer : ${formatEuro(rentNum)}`,
+      `Prêts : ${formatEuro(loansMonthly)}`,
+      `Besoins : ${formatEuro(familyTotals.besoins)}`,
+      `Loisirs : ${formatEuro(familyTotals.loisirs)}`,
+      `Épargne : ${formatEuro(familyTotals.epargne)}`,
+      ``,
+      `➡️ Reste à vivre : ${formatEuro(remaining)}`,
+      ``,
+      `Calculé avec NETbudget · règle 50/30/20`,
+    ];
+    try {
+      await Share.share({ message: lines.join("\n") });
+    } catch {
+      // user cancelled, ignore
+    }
   }
 
   function askResetAll() {
@@ -726,6 +801,36 @@ export default function Index() {
             />
           </Section>
 
+          {/* === Conseils 50/30/20 === */}
+          <Section title="Conseils d'optimisation">
+            <Text style={styles.familySub}>
+              Basés sur la règle 50/30/20 (Besoins · Loisirs · Épargne)
+            </Text>
+            {advice.map((a, idx) => {
+              const accent =
+                a.tone === "good"
+                  ? "#10B981"
+                  : a.tone === "warn"
+                    ? "#F59E0B"
+                    : a.tone === "danger"
+                      ? "#EF4444"
+                      : "#3B82F6";
+              return (
+                <View
+                  key={idx}
+                  style={[styles.adviceCard, { borderLeftColor: accent }]}
+                  testID={`advice-${idx}`}
+                >
+                  <View style={styles.adviceHeader}>
+                    <Feather name={a.icon as keyof typeof Feather.glyphMap} size={16} color={accent} />
+                    <Text style={[styles.adviceTitle, { color: accent }]}>{a.title}</Text>
+                  </View>
+                  <Text style={styles.adviceMessage}>{a.message}</Text>
+                </View>
+              );
+            })}
+          </Section>
+
           {/* === Résultat : camembert à la fin === */}
           <Section title="Répartition">
             <View style={styles.hero} testID="dashboard-card">
@@ -758,6 +863,28 @@ export default function Index() {
               </LinearGradient>
             </View>
           </Section>
+
+          {/* === Export & Partage === */}
+          <View style={styles.exportRow}>
+            <TouchableOpacity
+              style={[styles.exportBtn, styles.exportBtnPrimary]}
+              onPress={exportPdf}
+              testID="export-pdf"
+              activeOpacity={0.85}
+            >
+              <Feather name="file-text" size={18} color="#000" />
+              <Text style={styles.exportBtnTextDark}>Exporter en PDF</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.exportBtn, styles.exportBtnSecondary]}
+              onPress={shareSummary}
+              testID="share-summary"
+              activeOpacity={0.85}
+            >
+              <Feather name="share-2" size={18} color={GOLD} />
+              <Text style={styles.exportBtnText}>Partager</Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -901,7 +1028,7 @@ export default function Index() {
                 />
                 <Field
                   label="Montant mensuel"
-                  icon={<Feather name="euro-sign" size={18} color={GOLD} />}
+                  icon={<Feather name="dollar-sign" size={18} color={GOLD} />}
                   right="€"
                   value={newItemAmount}
                   onChangeText={setNewItemAmount}
@@ -1414,6 +1541,27 @@ const styles = StyleSheet.create({
     width: 28, height: 28, borderRadius: 14, alignItems: "center",
     justifyContent: "center", marginLeft: 6,
   },
+
+  adviceCard: {
+    backgroundColor: SURFACE, borderRadius: 12, borderLeftWidth: 4,
+    borderTopWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: BORDER,
+    padding: 14, marginBottom: 10,
+  },
+  adviceHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
+  adviceTitle: { fontSize: 14, fontWeight: "800" },
+  adviceMessage: { color: TEXT_2, fontSize: 13, lineHeight: 19 },
+
+  exportRow: { flexDirection: "row", gap: 10, marginTop: 16 },
+  exportBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, paddingVertical: 14, borderRadius: 16,
+  },
+  exportBtnPrimary: { backgroundColor: GOLD },
+  exportBtnSecondary: {
+    backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER,
+  },
+  exportBtnText: { color: GOLD, fontSize: 14, fontWeight: "800" },
+  exportBtnTextDark: { color: "#000", fontSize: 14, fontWeight: "800" },
 
   previewBox: {
     backgroundColor: SURFACE, borderRadius: 16,
