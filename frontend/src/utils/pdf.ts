@@ -132,7 +132,8 @@ export function generatePdfHtml(d: PdfData): string {
 // ============================================================
 
 export function generateShareCardHtml(d: PdfData): string {
-  const restColor = d.remaining >= 0 ? "#10B981" : "#EF4444";
+  // Couleurs pensées pour rester très lisibles sur un fond bleu nuit
+  const restColor = d.remaining >= 0 ? "#86EFAC" : "#FCA5A5";
   const total = d.rent + d.loansMonthly + d.totalExpenses;
   const safeNet = Math.max(d.netMensuel, 1);
 
@@ -184,9 +185,9 @@ export function generateShareCardHtml(d: PdfData): string {
   }
   .stat .label { color: #94A3B8; font-size: 22px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
   .stat .value { color: #FFFFFF; font-size: 46px; font-weight: 800; margin-top: 8px; }
-  .stat.green .value { color: #10B981; }
-  .stat.purple .value { color: #C084FC; }
-  .stat.gold .value { color: #FACC15; }
+  .stat.green .value { color: #86EFAC; }
+  .stat.purple .value { color: #DDD6FE; }
+  .stat.gold .value { color: #FDE68A; }
 
   .breakdown { margin-top: 8px; }
   .row {

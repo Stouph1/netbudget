@@ -968,7 +968,7 @@ export default function Index() {
               activeOpacity={0.85}
             >
               <Feather name="image" size={18} color="#000" />
-              <Text style={styles.exportBtnTextDark}>Carte (story)</Text>
+              <Text style={styles.exportBtnTextDark}>Partager la carte</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.exportBtn, styles.exportBtnSecondary]}
