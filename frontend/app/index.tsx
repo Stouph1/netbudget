@@ -41,32 +41,46 @@ type Loan = {
   years: string;
 };
 
-type Expenses = {
-  alimentation: string;
-  transport: string;
-  loisirs: string;
-  sante: string;
-  abonnements: string;
-  energie: string;
-  autres: string;
+type ExpenseFamily = "besoins" | "loisirs" | "epargne";
+
+type ExpenseItem = {
+  id: string;
+  family: ExpenseFamily;
+  label: string;
+  icon: keyof typeof Feather.glyphMap;
+  color: string;
+  amount: string;
 };
 
-const EXPENSE_KEYS: (keyof Expenses)[] = [
-  "alimentation", "transport", "loisirs", "sante",
-  "abonnements", "energie", "autres",
+const FAMILY_META: Record<
+  ExpenseFamily,
+  { label: string; sub: string; color: string; icon: keyof typeof Feather.glyphMap }
+> = {
+  besoins: { label: "Besoins", sub: "indispensable au quotidien", color: "#3B82F6", icon: "shield" },
+  loisirs: { label: "Loisirs", sub: "plaisirs, sorties, vacances", color: "#A855F7", icon: "music" },
+  epargne: { label: "Épargne / Investissement", sub: "ce que tu mets de côté", color: "#F59E0B", icon: "trending-up" },
+};
+
+const FAMILY_ORDER: ExpenseFamily[] = ["besoins", "loisirs", "epargne"];
+
+const DEFAULT_ITEMS: ExpenseItem[] = [
+  { id: "alimentation", family: "besoins", label: "Alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
+  { id: "transport", family: "besoins", label: "Transport", icon: "navigation", color: "#F59E0B", amount: "0" },
+  { id: "sante", family: "besoins", label: "Santé", icon: "heart", color: "#06B6D4", amount: "0" },
+  { id: "energie", family: "besoins", label: "Énergie & Eau", icon: "zap", color: "#F97316", amount: "0" },
+  { id: "abonnements", family: "besoins", label: "Abonnements (essentiels)", icon: "wifi", color: "#EC4899", amount: "0" },
+  { id: "sorties", family: "loisirs", label: "Sorties / Restos", icon: "coffee", color: "#A855F7", amount: "0" },
+  { id: "vacances", family: "loisirs", label: "Vacances", icon: "sun", color: "#C084FC", amount: "0" },
+  { id: "streaming", family: "loisirs", label: "Streaming / Hobbies", icon: "play", color: "#D946EF", amount: "0" },
+  { id: "livret", family: "epargne", label: "Livret / Épargne", icon: "save", color: "#F59E0B", amount: "0" },
+  { id: "bourse", family: "epargne", label: "PEA / Bourse", icon: "bar-chart-2", color: "#FBBF24", amount: "0" },
+  { id: "av", family: "epargne", label: "Assurance vie", icon: "file-text", color: "#FCD34D", amount: "0" },
 ];
 
-const EXPENSE_META: Record<
-  keyof Expenses,
-  { label: string; icon: keyof typeof Feather.glyphMap; color: string; hint: string }
-> = {
-  alimentation: { label: "Alimentation", icon: "shopping-cart", color: "#10B981", hint: "courses, marché, restaurants" },
-  transport: { label: "Transport", icon: "navigation", color: "#F59E0B", hint: "carburant, péages, transports en commun" },
-  loisirs: { label: "Loisirs", icon: "music", color: "#A855F7", hint: "sorties, sport, vacances" },
-  sante: { label: "Santé", icon: "heart", color: "#06B6D4", hint: "mutuelle, pharmacie, médecin" },
-  abonnements: { label: "Abonnements", icon: "wifi", color: "#EC4899", hint: "internet, mobile, streaming" },
-  energie: { label: "Énergie & Eau", icon: "zap", color: "#F97316", hint: "électricité, gaz, eau" },
-  autres: { label: "Autres", icon: "more-horizontal", color: "#6B7280", hint: "tout le reste" },
+const FAMILY_PALETTE: Record<ExpenseFamily, string[]> = {
+  besoins: ["#10B981", "#06B6D4", "#3B82F6", "#F97316", "#EC4899"],
+  loisirs: ["#A855F7", "#C084FC", "#D946EF", "#8B5CF6", "#E879F9"],
+  epargne: ["#F59E0B", "#FBBF24", "#FCD34D", "#FDE047", "#EAB308"],
 };
 
 const GOLD = "#4ADE80";
@@ -109,16 +123,13 @@ export default function Index() {
   // Logement
   const [rent, setRent] = useState<string>("0");
 
-  // Dépenses mensuelles détaillées
-  const [expenses, setExpenses] = useState<Expenses>({
-    alimentation: "0",
-    transport: "0",
-    loisirs: "0",
-    sante: "0",
-    abonnements: "0",
-    energie: "0",
-    autres: "0",
-  });
+  // Dépenses mensuelles par famille (Besoins / Loisirs / Épargne)
+  const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>(DEFAULT_ITEMS);
+
+  // Modal d'ajout d'une catégorie custom
+  const [addItemFamily, setAddItemFamily] = useState<ExpenseFamily | null>(null);
+  const [newItemLabel, setNewItemLabel] = useState<string>("");
+  const [newItemAmount, setNewItemAmount] = useState<string>("0");
 
   // Ville
   const [city, setCity] = useState<City>(CITIES[0]);
@@ -168,19 +179,25 @@ export default function Index() {
     [loans]
   );
 
-  const expensesByKey: Record<keyof Expenses, number> = useMemo(
+  const itemsByFamily = useMemo<Record<ExpenseFamily, ExpenseItem[]>>(
     () => ({
-      alimentation: parseNumber(expenses.alimentation),
-      transport: parseNumber(expenses.transport),
-      loisirs: parseNumber(expenses.loisirs),
-      sante: parseNumber(expenses.sante),
-      abonnements: parseNumber(expenses.abonnements),
-      energie: parseNumber(expenses.energie),
-      autres: parseNumber(expenses.autres),
+      besoins: expenseItems.filter((it: ExpenseItem) => it.family === "besoins"),
+      loisirs: expenseItems.filter((it: ExpenseItem) => it.family === "loisirs"),
+      epargne: expenseItems.filter((it: ExpenseItem) => it.family === "epargne"),
     }),
-    [expenses]
+    [expenseItems]
   );
-  const totalExpenses = Object.values(expensesByKey).reduce((a, b) => a + b, 0);
+
+  const sumAmounts = (items: ExpenseItem[]): number =>
+    items.reduce((s: number, it: ExpenseItem) => s + parseNumber(it.amount), 0);
+
+  const familyTotals: Record<ExpenseFamily, number> = {
+    besoins: sumAmounts(itemsByFamily.besoins),
+    loisirs: sumAmounts(itemsByFamily.loisirs),
+    epargne: sumAmounts(itemsByFamily.epargne),
+  };
+
+  const totalExpenses = familyTotals.besoins + familyTotals.loisirs + familyTotals.epargne;
 
   const monthlyExpenses = rentNum + loansMonthly + totalExpenses;
   const remaining = netMensuel - monthlyExpenses;
@@ -191,13 +208,13 @@ export default function Index() {
     const segs: DonutSegment[] = [];
     if (rentNum > 0) segs.push({ label: "Loyer", value: rentNum, color: COLOR_LOYER });
     if (loansMonthly > 0) segs.push({ label: "Prêts", value: loansMonthly, color: COLOR_PRETS });
-    for (const k of EXPENSE_KEYS) {
-      const v = expensesByKey[k];
-      if (v > 0) segs.push({ label: EXPENSE_META[k].label, value: v, color: EXPENSE_META[k].color });
+    for (const it of expenseItems) {
+      const v = parseNumber(it.amount);
+      if (v > 0) segs.push({ label: it.label, value: v, color: it.color });
     }
     segs.push({ label: "Reste à vivre", value: remaining > 0 ? remaining : 0, color: GOLD });
     return segs;
-  }, [rentNum, loansMonthly, expensesByKey, remaining]);
+  }, [rentNum, loansMonthly, expenseItems, remaining]);
 
   // Projection mensuelle
   const baseNetMensuelOnly = (baseAnnualNum * netRatio) / 12;
@@ -277,6 +294,56 @@ export default function Index() {
       onConfirm: () => setLoans((ls) => ls.filter((l) => l.id !== id)),
     });
   }
+  function updateItemAmount(id: string, value: string) {
+    setExpenseItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, amount: value } : it))
+    );
+  }
+
+  function deleteItem(id: string) {
+    setExpenseItems((prev) => prev.filter((it) => it.id !== id));
+  }
+
+  function openAddItem(family: ExpenseFamily) {
+    setAddItemFamily(family);
+    setNewItemLabel("");
+    setNewItemAmount("0");
+  }
+
+  function saveNewItem() {
+    if (!addItemFamily) return;
+    const label = newItemLabel.trim();
+    if (!label) {
+      setConfirm({
+        open: true,
+        title: "Nom requis",
+        message: "Donne un nom à ta nouvelle catégorie.",
+        confirmLabel: "OK",
+        onConfirm: () => {},
+      });
+      return;
+    }
+    const palette = FAMILY_PALETTE[addItemFamily];
+    const used = expenseItems
+      .filter((it) => it.family === addItemFamily)
+      .map((it) => it.color);
+    const color = palette.find((c) => !used.includes(c)) || palette[0];
+    setExpenseItems((prev) => [
+      ...prev,
+      {
+        id: `custom-${Date.now()}`,
+        family: addItemFamily,
+        label,
+        icon: "circle",
+        color,
+        amount: newItemAmount || "0",
+      },
+    ]);
+    setAddItemFamily(null);
+    setNewItemLabel("");
+    setNewItemAmount("0");
+  }
+
   function askResetAll() {
     setConfirm({
       open: true,
@@ -292,10 +359,7 @@ export default function Index() {
         setChargesPercent(String(CHARGES_DEFAULT_NON_CADRE));
         setVariableMonth("monthly");
         setRent("0");
-        setExpenses({
-          alimentation: "0", transport: "0", loisirs: "0", sante: "0",
-          abonnements: "0", energie: "0", autres: "0",
-        });
+        setExpenseItems(DEFAULT_ITEMS.map((it) => ({ ...it })));
         setLoans([]);
         setCity(CITIES[0]);
       },
@@ -552,32 +616,68 @@ export default function Index() {
             )}
           </Section>
 
-          {/* Dépenses mensuelles */}
-          <Section title="Dépenses mensuelles">
-            {EXPENSE_KEYS.map((k) => {
-              const meta = EXPENSE_META[k];
-              return (
-                <Field
-                  key={k}
-                  label={meta.label}
-                  icon={<Feather name={meta.icon} size={18} color={meta.color} />}
-                  right="€"
-                  value={expenses[k]}
-                  onChangeText={(t) => setExpenses({ ...expenses, [k]: t })}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  hintText={meta.hint}
-                  testID={`expense-${k}`}
-                />
-              );
-            })}
-            <View style={styles.expensesTotalRow}>
-              <Text style={styles.expensesTotalLabel}>Total dépenses mensuelles</Text>
-              <Text style={styles.expensesTotalValue} testID="expenses-total">
-                {formatEuro(rentNum + loansMonthly + totalExpenses)}
-              </Text>
-            </View>
-          </Section>
+          {/* Dépenses mensuelles — 3 familles */}
+          {FAMILY_ORDER.map((family) => {
+            const meta = FAMILY_META[family];
+            const items = itemsByFamily[family];
+            return (
+              <Section
+                key={family}
+                title={meta.label}
+                action={
+                  <TouchableOpacity
+                    onPress={() => openAddItem(family)}
+                    style={[styles.addBtn, { backgroundColor: meta.color }]}
+                    testID={`add-item-${family}`}
+                    activeOpacity={0.85}
+                  >
+                    <Feather name="plus" size={16} color="#000" />
+                    <Text style={styles.addBtnText}>Ajouter</Text>
+                  </TouchableOpacity>
+                }
+              >
+                <Text style={styles.familySub}>{meta.sub}</Text>
+                {items.length === 0 ? (
+                  <View style={styles.emptyCard}>
+                    <Feather name={meta.icon} size={22} color={TEXT_3} />
+                    <Text style={styles.emptyTitle}>Aucune entrée</Text>
+                    <Text style={styles.emptyText}>
+                      Ajoute une catégorie avec le bouton « Ajouter ».
+                    </Text>
+                  </View>
+                ) : (
+                  items.map((it) => (
+                    <Field
+                      key={it.id}
+                      label={it.label}
+                      icon={<Feather name={it.icon} size={18} color={it.color} />}
+                      right="€"
+                      value={it.amount}
+                      onChangeText={(t) => updateItemAmount(it.id, t)}
+                      onDelete={() => deleteItem(it.id)}
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      testID={`expense-${it.id}`}
+                    />
+                  ))
+                )}
+                <View style={styles.familyTotalRow}>
+                  <Text style={styles.familyTotalLabel}>Total {meta.label.toLowerCase()}</Text>
+                  <Text style={[styles.familyTotalValue, { color: meta.color }]}>
+                    {formatEuro(familyTotals[family])}
+                  </Text>
+                </View>
+              </Section>
+            );
+          })}
+
+          {/* Total général */}
+          <View style={styles.expensesTotalRow}>
+            <Text style={styles.expensesTotalLabel}>Total dépenses mensuelles</Text>
+            <Text style={styles.expensesTotalValue} testID="expenses-total">
+              {formatEuro(rentNum + loansMonthly + totalExpenses)}
+            </Text>
+          </View>
 
           {/* Budget mois par mois */}
           <Section title="Budget mois par mois">
@@ -765,6 +865,64 @@ export default function Index() {
         </View>
       </Modal>
 
+      {/* Add Custom Expense Item Modal */}
+      <Modal
+        visible={addItemFamily !== null}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setAddItemFamily(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ width: "100%" }}
+          >
+            <View style={styles.sheet}>
+              <View style={styles.sheetHandle} />
+              <View style={styles.sheetHeader}>
+                <Text style={styles.sheetTitle}>
+                  Nouvelle catégorie · {addItemFamily ? FAMILY_META[addItemFamily].label : ""}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setAddItemFamily(null)}
+                  testID="close-add-item"
+                >
+                  <Feather name="x" size={22} color={TEXT_2} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <Field
+                  label="Nom"
+                  icon={<Feather name="tag" size={18} color={GOLD} />}
+                  value={newItemLabel}
+                  onChangeText={setNewItemLabel}
+                  placeholder="ex : Salle de sport"
+                  testID="new-item-label"
+                />
+                <Field
+                  label="Montant mensuel"
+                  icon={<Feather name="euro-sign" size={18} color={GOLD} />}
+                  right="€"
+                  value={newItemAmount}
+                  onChangeText={setNewItemAmount}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  testID="new-item-amount"
+                />
+                <TouchableOpacity
+                  onPress={saveNewItem}
+                  style={styles.primaryBtn}
+                  testID="save-new-item"
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.primaryBtnText}>Ajouter</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
       {/* Loan Modal */}
       <Modal
         visible={loanModalOpen}
@@ -927,6 +1085,7 @@ function Field({
   placeholder,
   testID,
   hintText,
+  onDelete,
 }: {
   label: string;
   icon?: React.ReactNode;
@@ -937,6 +1096,7 @@ function Field({
   placeholder?: string;
   testID?: string;
   hintText?: string;
+  onDelete?: () => void;
 }) {
   const [focused, setFocused] = useState(false);
   const handleFocus = () => {
@@ -967,6 +1127,16 @@ function Field({
           />
         </View>
         {right && <Text style={styles.inputRight}>{right}</Text>}
+        {onDelete && (
+          <TouchableOpacity
+            onPress={onDelete}
+            style={styles.fieldDeleteBtn}
+            hitSlop={10}
+            testID={testID ? `${testID}-delete` : undefined}
+          >
+            <Feather name="x" size={14} color={TEXT_3} />
+          </TouchableOpacity>
+        )}
       </View>
       {hintText && <Text style={styles.fieldHint}>{hintText}</Text>}
     </View>
@@ -1229,6 +1399,21 @@ const styles = StyleSheet.create({
   cityEmpty: { paddingVertical: 24, alignItems: "center", gap: 6 },
   cityEmptyTitle: { color: TEXT, fontSize: 14, fontWeight: "700" },
   cityEmptyText: { color: TEXT_3, fontSize: 12, textAlign: "center", lineHeight: 18 },
+
+  familySub: {
+    color: TEXT_3, fontSize: 12, marginTop: -8, marginBottom: 12,
+    fontStyle: "italic",
+  },
+  familyTotalRow: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    marginTop: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: BORDER,
+  },
+  familyTotalLabel: { color: TEXT_2, fontSize: 12, fontWeight: "600" },
+  familyTotalValue: { fontSize: 16, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  fieldDeleteBtn: {
+    width: 28, height: 28, borderRadius: 14, alignItems: "center",
+    justifyContent: "center", marginLeft: 6,
+  },
 
   previewBox: {
     backgroundColor: SURFACE, borderRadius: 16,
