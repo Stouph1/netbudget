@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Platform,
   Share,
   Alert,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -28,7 +29,7 @@ import {
   parseNumber,
 } from "../src/utils/finance";
 import { buildAdvice, AdviceItem } from "../src/utils/advice";
-import { generatePdfHtml } from "../src/utils/pdf";
+import { generatePdfHtml, generateShareCardHtml, PdfData } from "../src/utils/pdf";
 
 const MONTHS_LONG = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -72,14 +73,16 @@ const FAMILY_ORDER: ExpenseFamily[] = ["besoins", "loisirs", "epargne"];
 const DEFAULT_ITEMS: ExpenseItem[] = [
   { id: "alimentation", family: "besoins", label: "Alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
   { id: "transport", family: "besoins", label: "Transport", icon: "navigation", color: "#F59E0B", amount: "0" },
-  { id: "sante", family: "besoins", label: "Santé", icon: "heart", color: "#06B6D4", amount: "0" },
-  { id: "energie", family: "besoins", label: "Énergie & Eau", icon: "zap", color: "#F97316", amount: "0" },
+  { id: "sante", family: "besoins", label: "Santé / Mutuelle", icon: "heart", color: "#06B6D4", amount: "0" },
+  { id: "energie", family: "besoins", label: "Énergie", icon: "zap", color: "#F97316", amount: "0" },
+  { id: "eau", family: "besoins", label: "Eau", icon: "droplet", color: "#38BDF8", amount: "0" },
   { id: "abonnements", family: "besoins", label: "Abonnements (essentiels)", icon: "wifi", color: "#EC4899", amount: "0" },
   { id: "sorties", family: "loisirs", label: "Sorties / Restos", icon: "coffee", color: "#A855F7", amount: "0" },
   { id: "vacances", family: "loisirs", label: "Vacances", icon: "sun", color: "#C084FC", amount: "0" },
   { id: "streaming", family: "loisirs", label: "Streaming / Hobbies", icon: "play", color: "#D946EF", amount: "0" },
-  { id: "livret", family: "epargne", label: "Livret / Épargne", icon: "save", color: "#F59E0B", amount: "0" },
-  { id: "bourse", family: "epargne", label: "PEA / Bourse", icon: "bar-chart-2", color: "#FBBF24", amount: "0" },
+  { id: "livret", family: "epargne", label: "Livret A / LDDS", icon: "save", color: "#F59E0B", amount: "0" },
+  { id: "pea", family: "epargne", label: "PEA", icon: "bar-chart-2", color: "#FBBF24", amount: "0" },
+  { id: "cto", family: "epargne", label: "CTO", icon: "trending-up", color: "#FDE047", amount: "0" },
   { id: "av", family: "epargne", label: "Assurance vie", icon: "file-text", color: "#FCD34D", amount: "0" },
 ];
 
@@ -102,9 +105,24 @@ const SUCCESS = "#10B981";
 const COLOR_LOYER = "#3B82F6";
 const COLOR_PRETS = "#EF4444";
 
-// Estimations approximatives — l'utilisateur peut ajuster manuellement
-const CHARGES_DEFAULT_CADRE = 25;
-const CHARGES_DEFAULT_NON_CADRE = 22;
+// Taux de charges salariales moyens — sources : service-public.fr, urssaf.fr, INSEE.
+// L'utilisateur peut toujours ajuster pour coller à sa propre fiche de paie.
+type ProStatus = "non-cadre" | "cadre" | "fonctionnaire" | "liberal";
+
+const STATUS_LABEL: Record<ProStatus, string> = {
+  "non-cadre": "Non-cadre",
+  "cadre": "Cadre",
+  "fonctionnaire": "Fonctionnaire",
+  "liberal": "Libéral",
+};
+
+// Cotisations salariales (Sécu, retraite, chômage, CSG, CRDS, prévoyance...)
+const STATUS_DEFAULT_CHARGES: Record<ProStatus, number> = {
+  "non-cadre": 22,    // ~22-23 % en CDI privé
+  "cadre": 25,        // + APEC, AGIRC-ARRCO, prévoyance cadre
+  "fonctionnaire": 15, // pas de chômage, retraite RAFP
+  "liberal": 25,      // BNC : URSSAF + cotisations sociales (très variable)
+};
 
 type ConfirmState = {
   open: boolean;
@@ -117,14 +135,52 @@ type ConfirmState = {
 
 export default function Index() {
   // Revenus
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const [salaryMode, setSalaryMode] = useState<"annual" | "monthly">("annual");
   const [baseAnnual, setBaseAnnual] = useState<string>("0");
   const [variableAnnual, setVariableAnnual] = useState<string>("0");
-  const [isCadre, setIsCadre] = useState<boolean>(false);
+  const [proStatus, setProStatus] = useState<ProStatus>("non-cadre");
+  const [timeMode, setTimeMode] = useState<"plein" | "partiel">("plein");
   const [chargesPercent, setChargesPercent] = useState<string>(
-    String(CHARGES_DEFAULT_NON_CADRE)
+    String(STATUS_DEFAULT_CHARGES["non-cadre"])
   );
   const [variableMonth, setVariableMonth] = useState<"monthly" | number>("monthly");
+
+  function changeStatus(s: ProStatus) {
+    setProStatus(s);
+    setChargesPercent(String(STATUS_DEFAULT_CHARGES[s]));
+  }
+
+  function changeSalaryMode(next: "annual" | "monthly") {
+    if (next === salaryMode) return;
+    const factor = next === "monthly" ? 1 / 12 : 12;
+    const convert = (raw: string) => {
+      const n = parseNumber(raw);
+      if (n <= 0) return raw;
+      const out = n * factor;
+      return next === "monthly"
+        ? (Math.round(out * 100) / 100).toString()
+        : Math.round(out).toString();
+    };
+    setBaseAnnual(convert(baseAnnual));
+    setVariableAnnual(convert(variableAnnual));
+    setSalaryMode(next);
+  }
 
   // Logement
   const [rent, setRent] = useState<string>("0");
@@ -157,10 +213,12 @@ export default function Index() {
 
   // ---- Calculs ----
   const baseInputNum = parseNumber(baseAnnual);
-  const variableAnnualNum = parseNumber(variableAnnual);
-  // En mode mensuel, le salaire saisi est multiplié par 12 pour reconstituer l'annuel
+  const variableInputNum = parseNumber(variableAnnual);
+  // En mode mensuel, base et variable saisis sont multipliés par 12 pour reconstituer l'annuel
   const baseAnnualNum =
     salaryMode === "monthly" ? baseInputNum * 12 : baseInputNum;
+  const variableAnnualNum =
+    salaryMode === "monthly" ? variableInputNum * 12 : variableInputNum;
   const totalBrutAnnuel = baseAnnualNum + variableAnnualNum;
   const chargesPercentNum = Math.max(0, Math.min(60, parseNumber(chargesPercent)));
   const netRatio = 1 - chargesPercentNum / 100;
@@ -320,6 +378,12 @@ export default function Index() {
     );
   }
 
+  function updateItemLabel(id: string, label: string) {
+    setExpenseItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, label } : it))
+    );
+  }
+
   function deleteItem(id: string) {
     setExpenseItems((prev) => prev.filter((it) => it.id !== id));
   }
@@ -354,7 +418,7 @@ export default function Index() {
         id: `custom-${Date.now()}`,
         family: addItemFamily,
         label,
-        icon: "circle",
+        icon: "tag",
         color,
         amount: newItemAmount || "0",
       },
@@ -364,36 +428,54 @@ export default function Index() {
     setNewItemAmount("0");
   }
 
+  function buildPdfData(): PdfData {
+    return {
+      cityName: city.name,
+      cityRegion: city.region,
+      cityIndex: city.index,
+      netMensuel,
+      brutAnnuel: totalBrutAnnuel,
+      rent: rentNum,
+      loansMonthly,
+      besoins: familyTotals.besoins,
+      loisirs: familyTotals.loisirs,
+      epargne: familyTotals.epargne,
+      totalExpenses,
+      remaining,
+      advice,
+    };
+  }
+
+  async function shareGeneratedPdf(html: string, dialogTitle: string) {
+    const { uri } = await Print.printToFileAsync({ html });
+    const canShare = await Sharing.isAvailableAsync();
+    if (canShare) {
+      await Sharing.shareAsync(uri, {
+        UTI: "com.adobe.pdf",
+        mimeType: "application/pdf",
+        dialogTitle,
+      });
+    } else {
+      Alert.alert("Document prêt", `Fichier généré : ${uri}`);
+    }
+  }
+
   async function exportPdf() {
     try {
-      const html = generatePdfHtml({
-        cityName: city.name,
-        cityRegion: city.region,
-        cityIndex: city.index,
-        netMensuel,
-        brutAnnuel: totalBrutAnnuel,
-        rent: rentNum,
-        loansMonthly,
-        besoins: familyTotals.besoins,
-        loisirs: familyTotals.loisirs,
-        epargne: familyTotals.epargne,
-        totalExpenses,
-        remaining,
-        advice,
-      });
-      const { uri } = await Print.printToFileAsync({ html });
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(uri, {
-          UTI: "com.adobe.pdf",
-          mimeType: "application/pdf",
-          dialogTitle: "Mon budget NETbudget",
-        });
-      } else {
-        Alert.alert("PDF prêt", `Fichier généré : ${uri}`);
-      }
-    } catch (e) {
+      await shareGeneratedPdf(generatePdfHtml(buildPdfData()), "Mon budget NETbudget");
+    } catch {
       Alert.alert("Erreur", "Impossible de générer le PDF.");
+    }
+  }
+
+  async function shareCard() {
+    try {
+      await shareGeneratedPdf(
+        generateShareCardHtml(buildPdfData()),
+        "Ma carte budget NETbudget"
+      );
+    } catch {
+      Alert.alert("Erreur", "Impossible de générer la carte.");
     }
   }
 
@@ -430,8 +512,9 @@ export default function Index() {
         setSalaryMode("annual");
         setBaseAnnual("0");
         setVariableAnnual("0");
-        setIsCadre(false);
-        setChargesPercent(String(CHARGES_DEFAULT_NON_CADRE));
+        setProStatus("non-cadre");
+        setTimeMode("plein");
+        setChargesPercent(String(STATUS_DEFAULT_CHARGES["non-cadre"]));
         setVariableMonth("monthly");
         setRent("0");
         setExpenseItems(DEFAULT_ITEMS.map((it) => ({ ...it })));
@@ -494,13 +577,13 @@ export default function Index() {
               <StatusPill
                 label="Annuel"
                 active={salaryMode === "annual"}
-                onPress={() => setSalaryMode("annual")}
+                onPress={() => changeSalaryMode("annual")}
                 testID="mode-annual"
               />
               <StatusPill
                 label="Mensuel"
                 active={salaryMode === "monthly"}
-                onPress={() => setSalaryMode("monthly")}
+                onPress={() => changeSalaryMode("monthly")}
                 testID="mode-monthly"
               />
             </View>
@@ -519,7 +602,11 @@ export default function Index() {
               testID="salary-input"
             />
             <Field
-              label="Variable / Primes (annuel)"
+              label={
+                salaryMode === "annual"
+                  ? "Variable / Primes (annuel)"
+                  : "Variable / Primes (mensuel)"
+              }
               icon={<Feather name="trending-up" size={18} color={GOLD} />}
               right="€"
               value={variableAnnual}
@@ -545,24 +632,31 @@ export default function Index() {
                 <Text style={styles.revenusLabel}>Brut mensuel (÷12)</Text>
                 <Text style={styles.revenusTotalMuted}>{formatEuro(brutMensuel)}</Text>
               </View>
+              <Text style={styles.pillSectionLabel}>Statut professionnel</Text>
+              <View style={styles.pillsGrid}>
+                {(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => (
+                  <StatusPill
+                    key={s}
+                    label={STATUS_LABEL[s]}
+                    active={proStatus === s}
+                    onPress={() => changeStatus(s)}
+                    testID={`status-${s}`}
+                  />
+                ))}
+              </View>
+              <Text style={styles.pillSectionLabel}>Quotité de travail</Text>
               <View style={styles.statusToggle}>
                 <StatusPill
-                  label="Non-cadre"
-                  active={!isCadre}
-                  onPress={() => {
-                    setIsCadre(false);
-                    setChargesPercent(String(CHARGES_DEFAULT_NON_CADRE));
-                  }}
-                  testID="toggle-non-cadre"
+                  label="Temps plein"
+                  active={timeMode === "plein"}
+                  onPress={() => setTimeMode("plein")}
+                  testID="time-plein"
                 />
                 <StatusPill
-                  label="Cadre"
-                  active={isCadre}
-                  onPress={() => {
-                    setIsCadre(true);
-                    setChargesPercent(String(CHARGES_DEFAULT_CADRE));
-                  }}
-                  testID="toggle-cadre"
+                  label="Temps partiel"
+                  active={timeMode === "partiel"}
+                  onPress={() => setTimeMode("partiel")}
+                  testID="time-partiel"
                 />
               </View>
               <Field
@@ -573,7 +667,7 @@ export default function Index() {
                 onChangeText={setChargesPercent}
                 keyboardType="decimal-pad"
                 placeholder="22"
-                hintText="Ajuste pour coller à ta fiche de paie (entre 0 et 60%)."
+                hintText={`Défaut ${STATUS_LABEL[proStatus]} ≈ ${STATUS_DEFAULT_CHARGES[proStatus]} %. Ajuste pour coller à ta fiche de paie.`}
                 testID="charges-input"
               />
             </View>
@@ -729,6 +823,7 @@ export default function Index() {
                       right="€"
                       value={it.amount}
                       onChangeText={(t) => updateItemAmount(it.id, t)}
+                      onLabelChange={(t) => updateItemLabel(it.id, t)}
                       onDelete={() => deleteItem(it.id)}
                       keyboardType="decimal-pad"
                       placeholder="0"
@@ -868,27 +963,49 @@ export default function Index() {
           <View style={styles.exportRow}>
             <TouchableOpacity
               style={[styles.exportBtn, styles.exportBtnPrimary]}
+              onPress={shareCard}
+              testID="share-card"
+              activeOpacity={0.85}
+            >
+              <Feather name="image" size={18} color="#000" />
+              <Text style={styles.exportBtnTextDark}>Carte (story)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.exportBtn, styles.exportBtnSecondary]}
               onPress={exportPdf}
               testID="export-pdf"
               activeOpacity={0.85}
             >
-              <Feather name="file-text" size={18} color="#000" />
-              <Text style={styles.exportBtnTextDark}>Exporter en PDF</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.exportBtn, styles.exportBtnSecondary]}
-              onPress={shareSummary}
-              testID="share-summary"
-              activeOpacity={0.85}
-            >
-              <Feather name="share-2" size={18} color={GOLD} />
-              <Text style={styles.exportBtnText}>Partager</Text>
+              <Feather name="file-text" size={18} color={GOLD} />
+              <Text style={styles.exportBtnText}>PDF complet</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            style={styles.shareTextBtn}
+            onPress={shareSummary}
+            testID="share-summary"
+            activeOpacity={0.7}
+          >
+            <Feather name="share-2" size={14} color={TEXT_2} />
+            <Text style={styles.shareTextBtnLabel}>Partager un résumé texte</Text>
+          </TouchableOpacity>
 
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Floating "Terminé" button while keyboard is up */}
+      {keyboardVisible && (
+        <TouchableOpacity
+          style={styles.dismissKbBtn}
+          onPress={() => Keyboard.dismiss()}
+          activeOpacity={0.85}
+          testID="dismiss-keyboard"
+        >
+          <Feather name="check" size={16} color="#000" />
+          <Text style={styles.dismissKbBtnText}>Terminé</Text>
+        </TouchableOpacity>
+      )}
 
       {/* City Picker Modal */}
       <Modal
@@ -898,11 +1015,15 @@ export default function Index() {
         onRequestClose={() => setCityPickerOpen(false)}
       >
         <View style={styles.modalBackdrop}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ width: "100%" }}
+          >
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>Choisir une ville</Text>
-              <TouchableOpacity onPress={() => setCityPickerOpen(false)} testID="close-city-picker">
+              <TouchableOpacity onPress={() => { Keyboard.dismiss(); setCityPickerOpen(false); }} testID="close-city-picker">
                 <Feather name="x" size={22} color={TEXT_2} />
               </TouchableOpacity>
             </View>
@@ -914,13 +1035,24 @@ export default function Index() {
                 onChangeText={setCitySearch}
                 placeholder="Rechercher une ville…"
                 placeholderTextColor={TEXT_3}
+                returnKeyType="search"
                 testID="city-search-input"
               />
+              {citySearch.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setCitySearch("")}
+                  hitSlop={10}
+                  testID="city-search-clear"
+                >
+                  <Feather name="x-circle" size={16} color={TEXT_3} />
+                </TouchableOpacity>
+              )}
             </View>
             <FlatList
               data={filteredCities}
               keyExtractor={(c) => c.id}
               keyboardShouldPersistTaps="handled"
+              style={{ maxHeight: 420 }}
               ListEmptyComponent={
                 <View style={styles.cityEmpty} testID="city-empty">
                   <Feather name="search" size={20} color={TEXT_3} />
@@ -963,6 +1095,7 @@ export default function Index() {
               }}
             />
           </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
@@ -1028,7 +1161,7 @@ export default function Index() {
                 />
                 <Field
                   label="Montant mensuel"
-                  icon={<Feather name="dollar-sign" size={18} color={GOLD} />}
+                  icon={<Text style={styles.euroIcon}>€</Text>}
                   right="€"
                   value={newItemAmount}
                   onChangeText={setNewItemAmount}
@@ -1084,7 +1217,7 @@ export default function Index() {
                 />
                 <Field
                   label="Montant emprunté"
-                  icon={<Feather name="dollar-sign" size={18} color={GOLD} />}
+                  icon={<Text style={styles.euroIcon}>€</Text>}
                   right="€"
                   value={form.principal}
                   onChangeText={(t) => setForm({ ...form, principal: t })}
@@ -1213,6 +1346,7 @@ function Field({
   testID,
   hintText,
   onDelete,
+  onLabelChange,
 }: {
   label: string;
   icon?: React.ReactNode;
@@ -1224,6 +1358,7 @@ function Field({
   testID?: string;
   hintText?: string;
   onDelete?: () => void;
+  onLabelChange?: (next: string) => void;
 }) {
   const [focused, setFocused] = useState(false);
   const handleFocus = () => {
@@ -1239,7 +1374,20 @@ function Field({
       <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
         {icon && <View style={styles.inputIcon}>{icon}</View>}
         <View style={{ flex: 1 }}>
-          <Text style={styles.inputLabel}>{label}</Text>
+          {onLabelChange ? (
+            <TextInput
+              style={[styles.inputLabel, styles.inputLabelEditable]}
+              value={label}
+              onChangeText={onLabelChange}
+              placeholder="Renomme cette catégorie"
+              placeholderTextColor={TEXT_3}
+              selectTextOnFocus
+              returnKeyType="done"
+              testID={testID ? `${testID}-label` : undefined}
+            />
+          ) : (
+            <Text style={styles.inputLabel}>{label}</Text>
+          )}
           <TextInput
             style={styles.inputField}
             value={value}
@@ -1250,6 +1398,7 @@ function Field({
             placeholder={placeholder}
             placeholderTextColor={TEXT_3}
             selectTextOnFocus
+            returnKeyType="done"
             testID={testID}
           />
         </View>
@@ -1379,6 +1528,26 @@ const styles = StyleSheet.create({
     color: TEXT_3, fontSize: 11, letterSpacing: 0.8,
     textTransform: "uppercase", fontWeight: "600", marginBottom: 2,
   },
+  inputLabelEditable: { padding: 0, margin: 0, marginBottom: 2 },
+  euroIcon: { color: GOLD, fontSize: 18, fontWeight: "800" },
+  dismissKbBtn: {
+    position: "absolute",
+    bottom: Platform.OS === "ios" ? 16 : 24,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: GOLD,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  dismissKbBtnText: { color: "#000", fontSize: 13, fontWeight: "800" },
   inputField: {
     color: TEXT, fontSize: 18, fontWeight: "600", padding: 0, margin: 0,
   },
@@ -1415,8 +1584,13 @@ const styles = StyleSheet.create({
   revenusLabel: { color: TEXT_2, fontSize: 13 },
   revenusTotal: { color: TEXT, fontSize: 15, fontWeight: "700" },
   revenusTotalMuted: { color: TEXT_3, fontSize: 14, fontWeight: "500" },
-  statusToggle: { flexDirection: "row", gap: 8, marginTop: 12, marginBottom: 12 },
+  statusToggle: { flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 12 },
   modeToggleRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
+  pillsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 4 },
+  pillSectionLabel: {
+    color: TEXT_3, fontSize: 11, letterSpacing: 1.2, textTransform: "uppercase",
+    fontWeight: "700", marginTop: 14, marginBottom: 8,
+  },
   pill: {
     flex: 1, paddingVertical: 10, paddingHorizontal: 10, borderRadius: 12,
     borderWidth: 1, borderColor: BORDER, alignItems: "center", backgroundColor: SURFACE,
@@ -1562,6 +1736,11 @@ const styles = StyleSheet.create({
   },
   exportBtnText: { color: GOLD, fontSize: 14, fontWeight: "800" },
   exportBtnTextDark: { color: "#000", fontSize: 14, fontWeight: "800" },
+  shareTextBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 6, marginTop: 10, paddingVertical: 12,
+  },
+  shareTextBtnLabel: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
 
   previewBox: {
     backgroundColor: SURFACE, borderRadius: 16,
