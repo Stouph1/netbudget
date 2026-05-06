@@ -121,7 +121,7 @@ export default function Index() {
   });
 
   // Ville
-  const [city, setCity] = useState<City>(CITIES[CITIES.length - 1]);
+  const [city, setCity] = useState<City>(CITIES[0]);
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [cityInfoOpen, setCityInfoOpen] = useState(false);
@@ -297,7 +297,7 @@ export default function Index() {
           abonnements: "0", energie: "0", autres: "0",
         });
         setLoans([]);
-        setCity(CITIES[CITIES.length - 1]);
+        setCity(CITIES[0]);
       },
     });
   }

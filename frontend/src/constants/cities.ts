@@ -29,46 +29,112 @@ const THEMES: Record<string, CityTheme> = {
   nord: { from: "#0F766E", to: "#0A0A0C", accent: "#5EEAD4", label: "Nord" },
   est: { from: "#7C2D12", to: "#0A0A0C", accent: "#FB923C", label: "Grand Est" },
   centre: { from: "#166534", to: "#0A0A0C", accent: "#86EFAC", label: "Centre" },
-  default: { from: "#3F3F46", to: "#0A0F1A", accent: "#4ADE80", label: "France" },
 };
 
 export const CITIES: City[] = [
+  // Île-de-France
   { id: "paris", name: "Paris", region: "Île-de-France", index: 1.28, theme: THEMES.idf },
   { id: "boulogne", name: "Boulogne-Billancourt", region: "Île-de-France", index: 1.22, theme: THEMES.idf },
+  { id: "neuilly", name: "Neuilly-sur-Seine", region: "Île-de-France", index: 1.30, theme: THEMES.idf },
   { id: "versailles", name: "Versailles", region: "Île-de-France", index: 1.18, theme: THEMES.idf },
+  { id: "vincennes", name: "Vincennes", region: "Île-de-France", index: 1.20, theme: THEMES.idf },
+  { id: "saintdenis", name: "Saint-Denis", region: "Île-de-France", index: 1.05, theme: THEMES.idf },
+  { id: "nanterre", name: "Nanterre", region: "Île-de-France", index: 1.12, theme: THEMES.idf },
+  { id: "creteil", name: "Créteil", region: "Île-de-France", index: 1.06, theme: THEMES.idf },
+  { id: "montreuil", name: "Montreuil", region: "Île-de-France", index: 1.10, theme: THEMES.idf },
+  { id: "argenteuil", name: "Argenteuil", region: "Île-de-France", index: 1.02, theme: THEMES.idf },
+  { id: "cergy", name: "Cergy", region: "Île-de-France", index: 1.00, theme: THEMES.idf },
+  { id: "evry", name: "Évry-Courcouronnes", region: "Île-de-France", index: 0.99, theme: THEMES.idf },
+
+  // Auvergne-Rhône-Alpes
   { id: "lyon", name: "Lyon", region: "Auvergne-Rhône-Alpes", index: 1.12, theme: THEMES.alpes },
+  { id: "villeurbanne", name: "Villeurbanne", region: "Auvergne-Rhône-Alpes", index: 1.08, theme: THEMES.alpes },
   { id: "annecy", name: "Annecy", region: "Auvergne-Rhône-Alpes", index: 1.14, theme: THEMES.alpes },
   { id: "grenoble", name: "Grenoble", region: "Auvergne-Rhône-Alpes", index: 1.03, theme: THEMES.alpes },
-  { id: "nice", name: "Nice", region: "PACA", index: 1.15, theme: THEMES.paca },
-  { id: "cannes", name: "Cannes", region: "PACA", index: 1.2, theme: THEMES.paca },
+  { id: "chambery", name: "Chambéry", region: "Auvergne-Rhône-Alpes", index: 1.00, theme: THEMES.alpes },
+  { id: "valence", name: "Valence", region: "Auvergne-Rhône-Alpes", index: 0.94, theme: THEMES.alpes },
+  { id: "clermont", name: "Clermont-Ferrand", region: "Auvergne-Rhône-Alpes", index: 0.92, theme: THEMES.alpes },
+  { id: "saintetienne", name: "Saint-Étienne", region: "Auvergne-Rhône-Alpes", index: 0.88, theme: THEMES.alpes },
+  { id: "roanne", name: "Roanne", region: "Auvergne-Rhône-Alpes", index: 0.86, theme: THEMES.alpes },
+
+  // PACA
   { id: "marseille", name: "Marseille", region: "PACA", index: 1.02, theme: THEMES.paca },
-  { id: "aix", name: "Aix-en-Provence", region: "PACA", index: 1.1, theme: THEMES.paca },
-  { id: "toulouse", name: "Toulouse", region: "Occitanie", index: 1.0, theme: THEMES.occitanie },
+  { id: "nice", name: "Nice", region: "PACA", index: 1.15, theme: THEMES.paca },
+  { id: "cannes", name: "Cannes", region: "PACA", index: 1.20, theme: THEMES.paca },
+  { id: "antibes", name: "Antibes", region: "PACA", index: 1.12, theme: THEMES.paca },
+  { id: "aix", name: "Aix-en-Provence", region: "PACA", index: 1.10, theme: THEMES.paca },
+  { id: "toulon", name: "Toulon", region: "PACA", index: 0.98, theme: THEMES.paca },
+  { id: "avignon", name: "Avignon", region: "PACA", index: 0.96, theme: THEMES.paca },
+  { id: "monaco", name: "Monaco (frontalier)", region: "PACA", index: 1.45, theme: THEMES.paca },
+
+  // Occitanie
+  { id: "toulouse", name: "Toulouse", region: "Occitanie", index: 1.00, theme: THEMES.occitanie },
   { id: "montpellier", name: "Montpellier", region: "Occitanie", index: 1.03, theme: THEMES.occitanie },
+  { id: "nimes", name: "Nîmes", region: "Occitanie", index: 0.92, theme: THEMES.occitanie },
+  { id: "beziers", name: "Béziers", region: "Occitanie", index: 0.86, theme: THEMES.occitanie },
+  { id: "perpignan", name: "Perpignan", region: "Occitanie", index: 0.90, theme: THEMES.occitanie },
+  { id: "albi", name: "Albi", region: "Occitanie", index: 0.88, theme: THEMES.occitanie },
+
+  // Nouvelle-Aquitaine
   { id: "bordeaux", name: "Bordeaux", region: "Nouvelle-Aquitaine", index: 1.08, theme: THEMES.sudouest },
   { id: "biarritz", name: "Biarritz", region: "Nouvelle-Aquitaine", index: 1.13, theme: THEMES.atlantique },
+  { id: "bayonne", name: "Bayonne", region: "Nouvelle-Aquitaine", index: 1.04, theme: THEMES.atlantique },
+  { id: "pau", name: "Pau", region: "Nouvelle-Aquitaine", index: 0.92, theme: THEMES.sudouest },
+  { id: "poitiers", name: "Poitiers", region: "Nouvelle-Aquitaine", index: 0.90, theme: THEMES.sudouest },
+  { id: "larochelle", name: "La Rochelle", region: "Nouvelle-Aquitaine", index: 1.02, theme: THEMES.atlantique },
+  { id: "limoges", name: "Limoges", region: "Nouvelle-Aquitaine", index: 0.88, theme: THEMES.sudouest },
+  { id: "angouleme", name: "Angoulême", region: "Nouvelle-Aquitaine", index: 0.86, theme: THEMES.sudouest },
+
+  // Pays de la Loire
   { id: "nantes", name: "Nantes", region: "Pays de la Loire", index: 1.02, theme: THEMES.atlantique },
-  { id: "rennes", name: "Rennes", region: "Bretagne", index: 1.0, theme: THEMES.atlantique },
+  { id: "saintnazaire", name: "Saint-Nazaire", region: "Pays de la Loire", index: 0.92, theme: THEMES.atlantique },
+  { id: "angers", name: "Angers", region: "Pays de la Loire", index: 0.96, theme: THEMES.atlantique },
+  { id: "lemans", name: "Le Mans", region: "Pays de la Loire", index: 0.90, theme: THEMES.atlantique },
+
+  // Bretagne
+  { id: "rennes", name: "Rennes", region: "Bretagne", index: 1.00, theme: THEMES.atlantique },
   { id: "brest", name: "Brest", region: "Bretagne", index: 0.94, theme: THEMES.atlantique },
+  { id: "quimper", name: "Quimper", region: "Bretagne", index: 0.90, theme: THEMES.atlantique },
+  { id: "lorient", name: "Lorient", region: "Bretagne", index: 0.92, theme: THEMES.atlantique },
+  { id: "vannes", name: "Vannes", region: "Bretagne", index: 0.96, theme: THEMES.atlantique },
+  { id: "saintmalo", name: "Saint-Malo", region: "Bretagne", index: 1.00, theme: THEMES.atlantique },
+
+  // Grand Est
   { id: "strasbourg", name: "Strasbourg", region: "Grand Est", index: 0.99, theme: THEMES.est },
+  { id: "metz", name: "Metz", region: "Grand Est", index: 0.92, theme: THEMES.est },
   { id: "nancy", name: "Nancy", region: "Grand Est", index: 0.93, theme: THEMES.est },
   { id: "reims", name: "Reims", region: "Grand Est", index: 0.95, theme: THEMES.est },
+  { id: "mulhouse", name: "Mulhouse", region: "Grand Est", index: 0.88, theme: THEMES.est },
+  { id: "colmar", name: "Colmar", region: "Grand Est", index: 0.92, theme: THEMES.est },
+  { id: "troyes", name: "Troyes", region: "Grand Est", index: 0.86, theme: THEMES.est },
+
+  // Hauts-de-France
   { id: "lille", name: "Lille", region: "Hauts-de-France", index: 0.98, theme: THEMES.nord },
-  { id: "amiens", name: "Amiens", region: "Hauts-de-France", index: 0.9, theme: THEMES.nord },
+  { id: "amiens", name: "Amiens", region: "Hauts-de-France", index: 0.90, theme: THEMES.nord },
+  { id: "dunkerque", name: "Dunkerque", region: "Hauts-de-France", index: 0.88, theme: THEMES.nord },
+  { id: "calais", name: "Calais", region: "Hauts-de-France", index: 0.86, theme: THEMES.nord },
+  { id: "arras", name: "Arras", region: "Hauts-de-France", index: 0.90, theme: THEMES.nord },
+
+  // Normandie
   { id: "rouen", name: "Rouen", region: "Normandie", index: 0.93, theme: THEMES.nord },
   { id: "caen", name: "Caen", region: "Normandie", index: 0.92, theme: THEMES.nord },
-  { id: "lehavre", name: "Le Havre", region: "Normandie", index: 0.9, theme: THEMES.nord },
+  { id: "lehavre", name: "Le Havre", region: "Normandie", index: 0.90, theme: THEMES.nord },
+  { id: "cherbourg", name: "Cherbourg-en-Cotentin", region: "Normandie", index: 0.86, theme: THEMES.nord },
+
+  // Bourgogne-Franche-Comté
   { id: "dijon", name: "Dijon", region: "Bourgogne-Franche-Comté", index: 0.93, theme: THEMES.est },
-  { id: "clermont", name: "Clermont-Ferrand", region: "Auvergne-Rhône-Alpes", index: 0.92, theme: THEMES.alpes },
+  { id: "besancon", name: "Besançon", region: "Bourgogne-Franche-Comté", index: 0.90, theme: THEMES.est },
+
+  // Centre-Val de Loire
   { id: "tours", name: "Tours", region: "Centre-Val de Loire", index: 0.94, theme: THEMES.centre },
   { id: "orleans", name: "Orléans", region: "Centre-Val de Loire", index: 0.93, theme: THEMES.centre },
-  { id: "limoges", name: "Limoges", region: "Nouvelle-Aquitaine", index: 0.88, theme: THEMES.sudouest },
-  { id: "perpignan", name: "Perpignan", region: "Occitanie", index: 0.9, theme: THEMES.occitanie },
-  { id: "saintetienne", name: "Saint-Étienne", region: "Auvergne-Rhône-Alpes", index: 0.88, theme: THEMES.alpes },
-  { id: "metz", name: "Metz", region: "Grand Est", index: 0.92, theme: THEMES.est },
-  { id: "angers", name: "Angers", region: "Pays de la Loire", index: 0.96, theme: THEMES.atlantique },
-  { id: "lemans", name: "Le Mans", region: "Pays de la Loire", index: 0.9, theme: THEMES.atlantique },
-  { id: "autre", name: "Autre / Moyenne nationale", region: "France", index: 1.0, theme: THEMES.default },
+  { id: "bourges", name: "Bourges", region: "Centre-Val de Loire", index: 0.86, theme: THEMES.centre },
+  { id: "chartres", name: "Chartres", region: "Centre-Val de Loire", index: 0.94, theme: THEMES.centre },
+
+  // Outre-mer
+  { id: "fortdefrance", name: "Fort-de-France", region: "Martinique", index: 1.10, theme: THEMES.atlantique },
+  { id: "pointeapitre", name: "Pointe-à-Pitre", region: "Guadeloupe", index: 1.08, theme: THEMES.atlantique },
+  { id: "saintdenisre", name: "Saint-Denis (La Réunion)", region: "La Réunion", index: 1.06, theme: THEMES.atlantique },
 ];
 
 // Texte d'explication de l'indice (affiché dans la section Localisation)
