@@ -27,3 +27,15 @@ export function parseNumber(value: string): number {
   const n = parseFloat(cleaned);
   return isNaN(n) ? 0 : n;
 }
+
+// Strip diacritics, lowercase, collapse hyphens/spaces — for fuzzy text search
+// "Saint-Étienne" → "saint etienne" so it matches "saint etienne", "Saint Etienne", etc.
+export function normalizeText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[-_/]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}

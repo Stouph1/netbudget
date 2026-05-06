@@ -20,6 +20,7 @@ import { CITIES, City, INDEX_EXPLANATION } from "../src/constants/cities";
 import {
   computeLoanMonthlyPayment,
   formatEuro,
+  normalizeText,
   parseNumber,
 } from "../src/utils/finance";
 
@@ -81,8 +82,9 @@ const SUCCESS = "#10B981";
 const COLOR_LOYER = "#3B82F6";
 const COLOR_PRETS = "#EF4444";
 
-const NET_RATIO_CADRE = 0.75;
-const NET_RATIO_NON_CADRE = 0.78;
+// Estimations approximatives — l'utilisateur peut ajuster manuellement
+const CHARGES_DEFAULT_CADRE = 25;
+const CHARGES_DEFAULT_NON_CADRE = 22;
 
 type ConfirmState = {
   open: boolean;
@@ -95,9 +97,13 @@ type ConfirmState = {
 
 export default function Index() {
   // Revenus
+  const [salaryMode, setSalaryMode] = useState<"annual" | "monthly">("annual");
   const [baseAnnual, setBaseAnnual] = useState<string>("0");
   const [variableAnnual, setVariableAnnual] = useState<string>("0");
   const [isCadre, setIsCadre] = useState<boolean>(false);
+  const [chargesPercent, setChargesPercent] = useState<string>(
+    String(CHARGES_DEFAULT_NON_CADRE)
+  );
   const [variableMonth, setVariableMonth] = useState<"monthly" | number>("monthly");
 
   // Logement
@@ -133,10 +139,14 @@ export default function Index() {
   });
 
   // ---- Calculs ----
-  const baseAnnualNum = parseNumber(baseAnnual);
+  const baseInputNum = parseNumber(baseAnnual);
   const variableAnnualNum = parseNumber(variableAnnual);
+  // En mode mensuel, le salaire saisi est multiplié par 12 pour reconstituer l'annuel
+  const baseAnnualNum =
+    salaryMode === "monthly" ? baseInputNum * 12 : baseInputNum;
   const totalBrutAnnuel = baseAnnualNum + variableAnnualNum;
-  const netRatio = isCadre ? NET_RATIO_CADRE : NET_RATIO_NON_CADRE;
+  const chargesPercentNum = Math.max(0, Math.min(60, parseNumber(chargesPercent)));
+  const netRatio = 1 - chargesPercentNum / 100;
   const netAnnuel = totalBrutAnnuel * netRatio;
   const netMensuel = netAnnuel / 12;
   const brutMensuel = totalBrutAnnuel / 12;
@@ -216,11 +226,12 @@ export default function Index() {
   const currentMonthIndex = new Date().getMonth();
 
   const filteredCities = useMemo(() => {
-    const q = citySearch.trim().toLowerCase();
+    const q = normalizeText(citySearch);
     if (!q) return CITIES;
-    return CITIES.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.region.toLowerCase().includes(q)
-    );
+    return CITIES.filter((c) => {
+      const haystack = normalizeText(`${c.name} ${c.region}`);
+      return haystack.includes(q);
+    });
   }, [citySearch]);
 
   function openAddLoan() {
@@ -274,9 +285,11 @@ export default function Index() {
       danger: true,
       confirmLabel: "Réinitialiser",
       onConfirm: () => {
+        setSalaryMode("annual");
         setBaseAnnual("0");
         setVariableAnnual("0");
         setIsCadre(false);
+        setChargesPercent(String(CHARGES_DEFAULT_NON_CADRE));
         setVariableMonth("monthly");
         setRent("0");
         setExpenses({
@@ -337,9 +350,27 @@ export default function Index() {
           </View>
 
           {/* Revenus */}
-          <Section title="Revenus annuels bruts">
+          <Section title="Revenus bruts">
+            <View style={styles.modeToggleRow}>
+              <StatusPill
+                label="Annuel"
+                active={salaryMode === "annual"}
+                onPress={() => setSalaryMode("annual")}
+                testID="mode-annual"
+              />
+              <StatusPill
+                label="Mensuel"
+                active={salaryMode === "monthly"}
+                onPress={() => setSalaryMode("monthly")}
+                testID="mode-monthly"
+              />
+            </View>
             <Field
-              label="Salaire de base annuel brut"
+              label={
+                salaryMode === "annual"
+                  ? "Salaire de base annuel brut"
+                  : "Salaire de base mensuel brut"
+              }
               icon={<Ionicons name="wallet-outline" size={18} color={GOLD} />}
               right="€"
               value={baseAnnual}
@@ -377,18 +408,35 @@ export default function Index() {
               </View>
               <View style={styles.statusToggle}>
                 <StatusPill
-                  label="Non-cadre (≈22% charges)"
+                  label="Non-cadre"
                   active={!isCadre}
-                  onPress={() => setIsCadre(false)}
+                  onPress={() => {
+                    setIsCadre(false);
+                    setChargesPercent(String(CHARGES_DEFAULT_NON_CADRE));
+                  }}
                   testID="toggle-non-cadre"
                 />
                 <StatusPill
-                  label="Cadre (≈25% charges)"
+                  label="Cadre"
                   active={isCadre}
-                  onPress={() => setIsCadre(true)}
+                  onPress={() => {
+                    setIsCadre(true);
+                    setChargesPercent(String(CHARGES_DEFAULT_CADRE));
+                  }}
                   testID="toggle-cadre"
                 />
               </View>
+              <Field
+                label="Taux de charges salariales"
+                icon={<Feather name="percent" size={18} color={GOLD} />}
+                right="%"
+                value={chargesPercent}
+                onChangeText={setChargesPercent}
+                keyboardType="decimal-pad"
+                placeholder="22"
+                hintText="Ajuste pour coller à ta fiche de paie (entre 0 et 60%)."
+                testID="charges-input"
+              />
             </View>
           </Section>
 
@@ -646,6 +694,15 @@ export default function Index() {
               data={filteredCities}
               keyExtractor={(c) => c.id}
               keyboardShouldPersistTaps="handled"
+              ListEmptyComponent={
+                <View style={styles.cityEmpty} testID="city-empty">
+                  <Feather name="search" size={20} color={TEXT_3} />
+                  <Text style={styles.cityEmptyTitle}>Aucune ville trouvée</Text>
+                  <Text style={styles.cityEmptyText}>
+                    Essaie sans accents ni tirets (ex: « saint etienne »).
+                  </Text>
+                </View>
+              }
               renderItem={({ item }) => {
                 const active = item.id === city.id;
                 return (
@@ -1061,7 +1118,8 @@ const styles = StyleSheet.create({
   revenusLabel: { color: TEXT_2, fontSize: 13 },
   revenusTotal: { color: TEXT, fontSize: 15, fontWeight: "700" },
   revenusTotalMuted: { color: TEXT_3, fontSize: 14, fontWeight: "500" },
-  statusToggle: { flexDirection: "row", gap: 8, marginTop: 12 },
+  statusToggle: { flexDirection: "row", gap: 8, marginTop: 12, marginBottom: 12 },
+  modeToggleRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
   pill: {
     flex: 1, paddingVertical: 10, paddingHorizontal: 10, borderRadius: 12,
     borderWidth: 1, borderColor: BORDER, alignItems: "center", backgroundColor: SURFACE,
@@ -1168,6 +1226,9 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE_2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10,
   },
   cityIndexText: { fontSize: 12, fontWeight: "700" },
+  cityEmpty: { paddingVertical: 24, alignItems: "center", gap: 6 },
+  cityEmptyTitle: { color: TEXT, fontSize: 14, fontWeight: "700" },
+  cityEmptyText: { color: TEXT_3, fontSize: 12, textAlign: "center", lineHeight: 18 },
 
   previewBox: {
     backgroundColor: SURFACE, borderRadius: 16,
