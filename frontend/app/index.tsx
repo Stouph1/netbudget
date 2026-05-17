@@ -1218,11 +1218,11 @@ export default function Index() {
               sont celles utilisées pour calculer le reste à vivre.
             </Text>
             <TouchableOpacity
-              style={styles.confirmOkBtn}
+              style={styles.infoCloseBtn}
               onPress={() => setCityInfoOpen(false)}
               testID="close-city-info"
             >
-              <Text style={styles.confirmOkText}>Compris</Text>
+              <Text style={styles.infoCloseText}>Compris</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1257,11 +1257,11 @@ export default function Index() {
               💡 Si tes besoins explosent au-dessus de 50 %, regarde si tu peux baisser un poste fixe (énergie, mutuelle, abonnements) ou augmenter tes revenus.
             </Text>
             <TouchableOpacity
-              style={styles.confirmOkBtn}
+              style={styles.infoCloseBtn}
               onPress={() => setRuleInfoOpen(false)}
               testID="close-rule-info"
             >
-              <Text style={styles.confirmOkText}>Compris</Text>
+              <Text style={styles.infoCloseText}>Compris</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -2140,6 +2140,12 @@ const styles = StyleSheet.create({
     alignItems: "center", backgroundColor: GOLD, marginTop: 10,
   },
   confirmOkText: { color: "#000", fontWeight: "800", fontSize: 14 },
+  infoCloseBtn: {
+    paddingVertical: 14, paddingHorizontal: 24, borderRadius: 14,
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: GOLD, marginTop: 18,
+  },
+  infoCloseText: { color: "#000", fontWeight: "800", fontSize: 14 },
 
   variableDistribBox: {
     backgroundColor: SURFACE, borderRadius: 16,
