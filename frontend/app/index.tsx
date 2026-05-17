@@ -30,6 +30,22 @@ import {
 } from "../src/utils/finance";
 import { buildAdvice, AdviceItem } from "../src/utils/advice";
 import { generatePdfHtml, generateShareCardHtml, PdfData } from "../src/utils/pdf";
+import {
+  IncomeSource,
+  IncomeType,
+  ProStatus,
+  STATUS_LABEL,
+  STATUS_DEFAULT_CHARGES,
+  TYPE_LABEL,
+  TYPE_ICON,
+  TYPE_DEFAULT_CHARGES,
+  TYPE_HINT,
+  averageMonthlyNet,
+  annualGross,
+  monthlyNetSeries,
+  defaultIncomeSource,
+} from "../src/utils/income";
+import { loadState, saveState } from "../src/utils/storage";
 
 const MONTHS_LONG = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -105,25 +121,6 @@ const SUCCESS = "#10B981";
 const COLOR_LOYER = "#3B82F6";
 const COLOR_PRETS = "#EF4444";
 
-// Taux de charges salariales moyens — sources : service-public.fr, urssaf.fr, INSEE.
-// L'utilisateur peut toujours ajuster pour coller à sa propre fiche de paie.
-type ProStatus = "non-cadre" | "cadre" | "fonctionnaire" | "liberal";
-
-const STATUS_LABEL: Record<ProStatus, string> = {
-  "non-cadre": "Non-cadre",
-  "cadre": "Cadre",
-  "fonctionnaire": "Fonctionnaire",
-  "liberal": "Libéral",
-};
-
-// Cotisations salariales (Sécu, retraite, chômage, CSG, CRDS, prévoyance...)
-const STATUS_DEFAULT_CHARGES: Record<ProStatus, number> = {
-  "non-cadre": 22,    // ~22-23 % en CDI privé
-  "cadre": 25,        // + APEC, AGIRC-ARRCO, prévoyance cadre
-  "fonctionnaire": 15, // pas de chômage, retraite RAFP
-  "liberal": 25,      // BNC : URSSAF + cotisations sociales (très variable)
-};
-
 type ConfirmState = {
   open: boolean;
   title: string;
@@ -151,36 +148,16 @@ export default function Index() {
     };
   }, []);
 
-  const [salaryMode, setSalaryMode] = useState<"annual" | "monthly">("annual");
-  const [baseAnnual, setBaseAnnual] = useState<string>("0");
-  const [variableAnnual, setVariableAnnual] = useState<string>("0");
-  const [proStatus, setProStatus] = useState<ProStatus>("non-cadre");
-  const [timeMode, setTimeMode] = useState<"plein" | "partiel">("plein");
-  const [chargesPercent, setChargesPercent] = useState<string>(
-    String(STATUS_DEFAULT_CHARGES["non-cadre"])
-  );
-  const [variableMonth, setVariableMonth] = useState<"monthly" | number>("monthly");
+  // Hydratation depuis AsyncStorage au démarrage
+  const [hydrated, setHydrated] = useState(false);
 
-  function changeStatus(s: ProStatus) {
-    setProStatus(s);
-    setChargesPercent(String(STATUS_DEFAULT_CHARGES[s]));
-  }
+  // Sources de revenu (v2 multi-sources)
+  const [incomes, setIncomes] = useState<IncomeSource[]>([defaultIncomeSource()]);
 
-  function changeSalaryMode(next: "annual" | "monthly") {
-    if (next === salaryMode) return;
-    const factor = next === "monthly" ? 1 / 12 : 12;
-    const convert = (raw: string) => {
-      const n = parseNumber(raw);
-      if (n <= 0) return raw;
-      const out = n * factor;
-      return next === "monthly"
-        ? (Math.round(out * 100) / 100).toString()
-        : Math.round(out).toString();
-    };
-    setBaseAnnual(convert(baseAnnual));
-    setVariableAnnual(convert(variableAnnual));
-    setSalaryMode(next);
-  }
+  // Modal d'édition d'une source de revenu
+  const [incomeModalOpen, setIncomeModalOpen] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<IncomeSource | null>(null);
+  const [incomeForm, setIncomeForm] = useState<IncomeSource>(defaultIncomeSource());
 
   // Logement
   const [rent, setRent] = useState<string>("0");
@@ -211,19 +188,62 @@ export default function Index() {
     open: false, title: "", message: "",
   });
 
-  // ---- Calculs ----
-  const baseInputNum = parseNumber(baseAnnual);
-  const variableInputNum = parseNumber(variableAnnual);
-  // En mode mensuel, base et variable saisis sont multipliés par 12 pour reconstituer l'annuel
-  const baseAnnualNum =
-    salaryMode === "monthly" ? baseInputNum * 12 : baseInputNum;
-  const variableAnnualNum =
-    salaryMode === "monthly" ? variableInputNum * 12 : variableInputNum;
-  const totalBrutAnnuel = baseAnnualNum + variableAnnualNum;
-  const chargesPercentNum = Math.max(0, Math.min(60, parseNumber(chargesPercent)));
-  const netRatio = 1 - chargesPercentNum / 100;
-  const netAnnuel = totalBrutAnnuel * netRatio;
-  const netMensuel = netAnnuel / 12;
+  // ----- Persistance : load au montage -----
+  useEffect(() => {
+    (async () => {
+      const stored = await loadState();
+      if (stored) {
+        if (Array.isArray(stored.incomes) && stored.incomes.length > 0) {
+          setIncomes(stored.incomes as IncomeSource[]);
+        } else if (stored.baseAnnual || stored.variableAnnual) {
+          // Migration v1 → v2 : reconstruit une source unique depuis les anciens champs
+          const status = (stored.proStatus as ProStatus) || "non-cadre";
+          const base: IncomeSource = {
+            id: `salary-${Date.now()}`,
+            label: "Salaire",
+            type: "salaire",
+            amount: stored.baseAnnual || "0",
+            frequency: stored.salaryMode === "monthly" ? "monthly" : "annual",
+            chargesPercent: stored.chargesPercent || String(STATUS_DEFAULT_CHARGES[status]),
+            proStatus: status,
+            timeMode: stored.timeMode || "plein",
+          };
+          const migrated: IncomeSource[] = [base];
+          if (parseNumber(stored.variableAnnual || "0") > 0) {
+            migrated.push({
+              id: `variable-${Date.now()}`,
+              label: "Variable / Primes",
+              type: "salaire",
+              amount: stored.variableAnnual || "0",
+              frequency:
+                typeof stored.variableMonth === "number" ? "monthOnce" : "annual",
+              variableMonth: typeof stored.variableMonth === "number" ? stored.variableMonth : undefined,
+              chargesPercent: stored.chargesPercent || String(STATUS_DEFAULT_CHARGES[status]),
+              proStatus: status,
+              timeMode: stored.timeMode || "plein",
+            });
+          }
+          setIncomes(migrated);
+        }
+        if (stored.rent !== undefined) setRent(stored.rent as string);
+        if (Array.isArray(stored.expenseItems) && stored.expenseItems.length > 0) {
+          setExpenseItems(stored.expenseItems as ExpenseItem[]);
+        }
+        if (Array.isArray(stored.loans)) setLoans(stored.loans as Loan[]);
+        if (stored.cityId) {
+          const found = CITIES.find((c) => c.id === stored.cityId);
+          if (found) setCity(found);
+        }
+      }
+      setHydrated(true);
+    })();
+  }, []);
+
+  // ---- Calculs revenus (multi-sources) ----
+  const netSeries = useMemo(() => monthlyNetSeries(incomes), [incomes]);
+  const netMensuel = useMemo(() => averageMonthlyNet(incomes), [incomes]);
+  const totalBrutAnnuel = useMemo(() => annualGross(incomes), [incomes]);
+  const netAnnuel = netMensuel * 12;
   const brutMensuel = totalBrutAnnuel / 12;
 
   const rentNum = parseNumber(rent);
@@ -294,26 +314,18 @@ export default function Index() {
     return segs;
   }, [rentNum, loansMonthly, expenseItems, remaining]);
 
-  // Projection mensuelle
-  const baseNetMensuelOnly = (baseAnnualNum * netRatio) / 12;
-  const variableNetAnnuel = variableAnnualNum * netRatio;
-
+  // Projection mensuelle : utilise directement la série de nets calculée par income.ts
   const months: MonthRow[] = useMemo(
     () =>
-      Array.from({ length: 12 }, (_, i) => {
-        let income = baseNetMensuelOnly;
-        if (variableMonth === "monthly") income += variableNetAnnuel / 12;
-        else if (variableMonth === i) income += variableNetAnnuel;
-        return {
-          index: i,
-          name: MONTHS_LONG[i],
-          shortName: MONTHS_SHORT[i],
-          income,
-          expenses: monthlyExpenses,
-          remaining: income - monthlyExpenses,
-        };
-      }),
-    [baseNetMensuelOnly, variableNetAnnuel, variableMonth, monthlyExpenses]
+      netSeries.map((income, i) => ({
+        index: i,
+        name: MONTHS_LONG[i],
+        shortName: MONTHS_SHORT[i],
+        income,
+        expenses: monthlyExpenses,
+        remaining: income - monthlyExpenses,
+      })),
+    [netSeries, monthlyExpenses]
   );
   const annualIncome = months.reduce((s, m) => s + m.income, 0);
   const annualExpenses = monthlyExpenses * 12;
@@ -328,6 +340,18 @@ export default function Index() {
       return haystack.includes(q);
     });
   }, [citySearch]);
+
+  // ----- Persistance : sauvegarde à chaque changement (après hydratation) -----
+  useEffect(() => {
+    if (!hydrated) return;
+    saveState({
+      incomes,
+      rent,
+      expenseItems,
+      loans,
+      cityId: city.id,
+    });
+  }, [hydrated, incomes, rent, expenseItems, loans, city]);
 
   function openAddLoan() {
     setEditingLoan(null);
@@ -372,6 +396,81 @@ export default function Index() {
       onConfirm: () => setLoans((ls) => ls.filter((l) => l.id !== id)),
     });
   }
+  function openAddIncome() {
+    setEditingIncome(null);
+    setIncomeForm({
+      id: `inc-${Date.now()}`,
+      label: "",
+      type: "salaire",
+      amount: "0",
+      frequency: "annual",
+      chargesPercent: String(TYPE_DEFAULT_CHARGES["salaire"]),
+      proStatus: "non-cadre",
+      timeMode: "plein",
+    });
+    setIncomeModalOpen(true);
+  }
+
+  function openEditIncome(src: IncomeSource) {
+    setEditingIncome(src);
+    setIncomeForm({ ...src });
+    setIncomeModalOpen(true);
+  }
+
+  function saveIncome() {
+    const amount = parseNumber(incomeForm.amount);
+    if (amount <= 0) {
+      setConfirm({
+        open: true,
+        title: "Montant requis",
+        message: "Indique un montant supérieur à 0.",
+        confirmLabel: "OK",
+        onConfirm: () => {},
+      });
+      return;
+    }
+    const final: IncomeSource = {
+      ...incomeForm,
+      label: incomeForm.label.trim() || TYPE_LABEL[incomeForm.type],
+    };
+    if (editingIncome) {
+      setIncomes((prev) => prev.map((s) => (s.id === editingIncome.id ? final : s)));
+    } else {
+      setIncomes((prev) => [...prev, final]);
+    }
+    setIncomeModalOpen(false);
+  }
+
+  function askDeleteIncome(id: string) {
+    setConfirm({
+      open: true,
+      title: "Supprimer cette source ?",
+      message: "Tu pourras la rajouter plus tard.",
+      danger: true,
+      confirmLabel: "Supprimer",
+      onConfirm: () => setIncomes((prev) => prev.filter((s) => s.id !== id)),
+    });
+  }
+
+  function changeIncomeType(t: IncomeType) {
+    setIncomeForm((f) => ({
+      ...f,
+      type: t,
+      chargesPercent: String(TYPE_DEFAULT_CHARGES[t]),
+      ...(t === "salaire"
+        ? { proStatus: f.proStatus ?? "non-cadre", timeMode: f.timeMode ?? "plein" }
+        : { proStatus: undefined, timeMode: undefined }),
+    }));
+  }
+
+  function changeIncomeProStatus(s: ProStatus) {
+    setIncomeForm((f) => ({
+      ...f,
+      proStatus: s,
+      chargesPercent: String(STATUS_DEFAULT_CHARGES[s]),
+    }));
+  }
+
   function updateItemAmount(id: string, value: string) {
     setExpenseItems((prev) =>
       prev.map((it) => (it.id === id ? { ...it, amount: value } : it))
@@ -509,13 +608,7 @@ export default function Index() {
       danger: true,
       confirmLabel: "Réinitialiser",
       onConfirm: () => {
-        setSalaryMode("annual");
-        setBaseAnnual("0");
-        setVariableAnnual("0");
-        setProStatus("non-cadre");
-        setTimeMode("plein");
-        setChargesPercent(String(STATUS_DEFAULT_CHARGES["non-cadre"]));
-        setVariableMonth("monthly");
+        setIncomes([defaultIncomeSource()]);
         setRent("0");
         setExpenseItems(DEFAULT_ITEMS.map((it) => ({ ...it })));
         setLoans([]);
@@ -571,50 +664,78 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Revenus */}
-          <Section title="Revenus bruts">
-            <View style={styles.modeToggleRow}>
-              <StatusPill
-                label="Annuel"
-                active={salaryMode === "annual"}
-                onPress={() => changeSalaryMode("annual")}
-                testID="mode-annual"
-              />
-              <StatusPill
-                label="Mensuel"
-                active={salaryMode === "monthly"}
-                onPress={() => changeSalaryMode("monthly")}
-                testID="mode-monthly"
-              />
-            </View>
-            <Field
-              label={
-                salaryMode === "annual"
-                  ? "Salaire de base annuel brut"
-                  : "Salaire de base mensuel brut"
-              }
-              icon={<Ionicons name="wallet-outline" size={18} color={GOLD} />}
-              right="€"
-              value={baseAnnual}
-              onChangeText={setBaseAnnual}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              testID="salary-input"
-            />
-            <Field
-              label={
-                salaryMode === "annual"
-                  ? "Variable / Primes (annuel)"
-                  : "Variable / Primes (mensuel)"
-              }
-              icon={<Feather name="trending-up" size={18} color={GOLD} />}
-              right="€"
-              value={variableAnnual}
-              onChangeText={setVariableAnnual}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              testID="variable-input"
-            />
+          {/* Revenus — multi-sources */}
+          <Section
+            title="Revenus"
+            action={
+              <TouchableOpacity
+                onPress={openAddIncome}
+                style={styles.addBtn}
+                testID="add-income-button"
+                activeOpacity={0.85}
+              >
+                <Feather name="plus" size={16} color="#000" />
+                <Text style={styles.addBtnText}>Ajouter</Text>
+              </TouchableOpacity>
+            }
+          >
+            <Text style={styles.familySub}>
+              Salaire, freelance, locatif, dividendes… chacun avec son propre taux de charges.
+            </Text>
+            {incomes.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Feather name="briefcase" size={22} color={TEXT_3} />
+                <Text style={styles.emptyTitle}>Aucun revenu</Text>
+                <Text style={styles.emptyText}>
+                  Ajoute ton salaire ou une autre source pour démarrer.
+                </Text>
+              </View>
+            ) : (
+              incomes.map((src) => {
+                const monthly = averageMonthlyNet([src]);
+                const freqLabel =
+                  src.frequency === "monthly"
+                    ? "Mensuel"
+                    : src.frequency === "annual"
+                      ? "Annuel"
+                      : `Versé en ${MONTHS_SHORT[src.variableMonth ?? 0]}`;
+                return (
+                  <TouchableOpacity
+                    key={src.id}
+                    style={styles.incomeRow}
+                    onPress={() => openEditIncome(src)}
+                    testID={`income-item-${src.id}`}
+                    activeOpacity={0.85}
+                  >
+                    <View style={styles.incomeIcon}>
+                      <Feather
+                        name={TYPE_ICON[src.type] as keyof typeof Feather.glyphMap}
+                        size={18}
+                        color={GOLD}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.incomeLabel}>{src.label || TYPE_LABEL[src.type]}</Text>
+                      <Text style={styles.incomeMeta}>
+                        {TYPE_LABEL[src.type]} · {freqLabel} · {parseNumber(src.chargesPercent)} % charges
+                      </Text>
+                    </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={styles.incomeNet}>{formatEuro(monthly)}</Text>
+                      <Text style={styles.incomeMetaSmall}>net / mois</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => askDeleteIncome(src.id)}
+                      style={styles.trashBtn}
+                      testID={`delete-income-${src.id}`}
+                      hitSlop={10}
+                    >
+                      <Feather name="trash-2" size={16} color={DANGER} />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                );
+              })
+            )}
             <View style={styles.revenusSummary}>
               <View style={styles.revenusRow}>
                 <Text style={styles.revenusLabel}>Total brut annuel</Text>
@@ -629,47 +750,9 @@ export default function Index() {
                 </Text>
               </View>
               <View style={styles.revenusRow}>
-                <Text style={styles.revenusLabel}>Brut mensuel (÷12)</Text>
+                <Text style={styles.revenusLabel}>Brut mensuel moyen</Text>
                 <Text style={styles.revenusTotalMuted}>{formatEuro(brutMensuel)}</Text>
               </View>
-              <Text style={styles.pillSectionLabel}>Statut professionnel</Text>
-              <View style={styles.pillsGrid}>
-                {(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => (
-                  <StatusPill
-                    key={s}
-                    label={STATUS_LABEL[s]}
-                    active={proStatus === s}
-                    onPress={() => changeStatus(s)}
-                    testID={`status-${s}`}
-                  />
-                ))}
-              </View>
-              <Text style={styles.pillSectionLabel}>Quotité de travail</Text>
-              <View style={styles.statusToggle}>
-                <StatusPill
-                  label="Temps plein"
-                  active={timeMode === "plein"}
-                  onPress={() => setTimeMode("plein")}
-                  testID="time-plein"
-                />
-                <StatusPill
-                  label="Temps partiel"
-                  active={timeMode === "partiel"}
-                  onPress={() => setTimeMode("partiel")}
-                  testID="time-partiel"
-                />
-              </View>
-              <Field
-                label="Taux de charges salariales"
-                icon={<Feather name="percent" size={18} color={GOLD} />}
-                right="%"
-                value={chargesPercent}
-                onChangeText={setChargesPercent}
-                keyboardType="decimal-pad"
-                placeholder="22"
-                hintText={`Défaut ${STATUS_LABEL[proStatus]} ≈ ${STATUS_DEFAULT_CHARGES[proStatus]} %. Ajuste pour coller à ta fiche de paie.`}
-                testID="charges-input"
-              />
             </View>
           </Section>
 
@@ -1122,6 +1205,173 @@ export default function Index() {
               <Text style={styles.confirmOkText}>Compris</Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      {/* Income Source Modal (Add / Edit) */}
+      <Modal
+        visible={incomeModalOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIncomeModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ width: "100%" }}
+          >
+            <View style={styles.sheet}>
+              <View style={styles.sheetHandle} />
+              <View style={styles.sheetHeader}>
+                <Text style={styles.sheetTitle}>
+                  {editingIncome ? "Modifier la source" : "Nouvelle source de revenu"}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => { Keyboard.dismiss(); setIncomeModalOpen(false); }}
+                  testID="close-income-modal"
+                >
+                  <Feather name="x" size={22} color={TEXT_2} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <Text style={styles.pillSectionLabel}>Type de revenu</Text>
+                <View style={styles.pillsGrid}>
+                  {(Object.keys(TYPE_LABEL) as IncomeType[]).map((t) => (
+                    <StatusPill
+                      key={t}
+                      label={TYPE_LABEL[t]}
+                      active={incomeForm.type === t}
+                      onPress={() => changeIncomeType(t)}
+                      testID={`income-type-${t}`}
+                    />
+                  ))}
+                </View>
+
+                <Field
+                  label="Nom"
+                  icon={<Feather name="tag" size={18} color={GOLD} />}
+                  value={incomeForm.label}
+                  onChangeText={(t) => setIncomeForm((f) => ({ ...f, label: t }))}
+                  placeholder={TYPE_LABEL[incomeForm.type]}
+                  testID="income-label"
+                />
+
+                <Field
+                  label="Montant brut"
+                  icon={<Text style={styles.euroIcon}>€</Text>}
+                  right="€"
+                  value={incomeForm.amount}
+                  onChangeText={(t) => setIncomeForm((f) => ({ ...f, amount: t }))}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  testID="income-amount"
+                />
+
+                <Text style={styles.pillSectionLabel}>Fréquence</Text>
+                <View style={styles.pillsGrid}>
+                  <StatusPill
+                    label="Mensuel"
+                    active={incomeForm.frequency === "monthly"}
+                    onPress={() => setIncomeForm((f) => ({ ...f, frequency: "monthly" }))}
+                    testID="income-freq-monthly"
+                  />
+                  <StatusPill
+                    label="Annuel"
+                    active={incomeForm.frequency === "annual"}
+                    onPress={() => setIncomeForm((f) => ({ ...f, frequency: "annual" }))}
+                    testID="income-freq-annual"
+                  />
+                  <StatusPill
+                    label="Versé un mois précis"
+                    active={incomeForm.frequency === "monthOnce"}
+                    onPress={() =>
+                      setIncomeForm((f) => ({
+                        ...f,
+                        frequency: "monthOnce",
+                        variableMonth: f.variableMonth ?? 11,
+                      }))
+                    }
+                    testID="income-freq-monthOnce"
+                  />
+                </View>
+                {incomeForm.frequency === "monthOnce" && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 6, paddingVertical: 8 }}
+                  >
+                    {MONTHS_SHORT.map((m, i) => (
+                      <TouchableOpacity
+                        key={i}
+                        onPress={() => setIncomeForm((f) => ({ ...f, variableMonth: i }))}
+                        style={[styles.distribPill, incomeForm.variableMonth === i && styles.distribPillActive]}
+                        testID={`income-month-${i}`}
+                      >
+                        <Text style={[styles.distribPillText, incomeForm.variableMonth === i && styles.distribPillTextActive]}>
+                          {m}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
+
+                {incomeForm.type === "salaire" && (
+                  <>
+                    <Text style={styles.pillSectionLabel}>Statut professionnel</Text>
+                    <View style={styles.pillsGrid}>
+                      {(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => (
+                        <StatusPill
+                          key={s}
+                          label={STATUS_LABEL[s]}
+                          active={incomeForm.proStatus === s}
+                          onPress={() => changeIncomeProStatus(s)}
+                          testID={`income-status-${s}`}
+                        />
+                      ))}
+                    </View>
+                    <Text style={styles.pillSectionLabel}>Quotité de travail</Text>
+                    <View style={styles.statusToggle}>
+                      <StatusPill
+                        label="Temps plein"
+                        active={incomeForm.timeMode === "plein"}
+                        onPress={() => setIncomeForm((f) => ({ ...f, timeMode: "plein" }))}
+                        testID="income-time-plein"
+                      />
+                      <StatusPill
+                        label="Temps partiel"
+                        active={incomeForm.timeMode === "partiel"}
+                        onPress={() => setIncomeForm((f) => ({ ...f, timeMode: "partiel" }))}
+                        testID="income-time-partiel"
+                      />
+                    </View>
+                  </>
+                )}
+
+                <Field
+                  label="Taux de charges / prélèvements"
+                  icon={<Feather name="percent" size={18} color={GOLD} />}
+                  right="%"
+                  value={incomeForm.chargesPercent}
+                  onChangeText={(t) => setIncomeForm((f) => ({ ...f, chargesPercent: t }))}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  hintText={TYPE_HINT[incomeForm.type]}
+                  testID="income-charges"
+                />
+
+                <TouchableOpacity
+                  onPress={saveIncome}
+                  style={styles.primaryBtn}
+                  testID="save-income"
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.primaryBtnText}>
+                    {editingIncome ? "Enregistrer" : "Ajouter"}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
@@ -1705,6 +1955,21 @@ const styles = StyleSheet.create({
     color: TEXT_3, fontSize: 12, marginTop: -8, marginBottom: 12,
     fontStyle: "italic",
   },
+
+  incomeRow: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: SURFACE, borderRadius: 16, borderWidth: 1, borderColor: BORDER,
+    padding: 14, marginBottom: 10,
+  },
+  incomeIcon: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: SURFACE_2, alignItems: "center", justifyContent: "center",
+    marginRight: 12,
+  },
+  incomeLabel: { color: TEXT, fontSize: 15, fontWeight: "700" },
+  incomeMeta: { color: TEXT_3, fontSize: 11, marginTop: 2 },
+  incomeNet: { color: GOLD, fontSize: 15, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  incomeMetaSmall: { color: TEXT_3, fontSize: 10, marginTop: 2 },
   familyTotalRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     marginTop: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: BORDER,
