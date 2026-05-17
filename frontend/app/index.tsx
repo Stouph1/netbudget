@@ -175,6 +175,7 @@ export default function Index() {
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [cityInfoOpen, setCityInfoOpen] = useState(false);
+  const [ruleInfoOpen, setRuleInfoOpen] = useState(false);
 
   // Prêts
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -640,29 +641,53 @@ export default function Index() {
             </TouchableOpacity>
           </View>
 
-          {/* Résumé rapide en haut */}
-          <View style={styles.topSummary} testID="top-summary">
-            <View style={styles.topSummaryRow}>
-              <View style={styles.topSummaryBlock}>
-                <Text style={styles.topSummaryLabel}>Net mensuel</Text>
-                <Text style={styles.topSummaryValue}>{formatEuro(netMensuel)}</Text>
+          {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
+          {netMensuel <= 0 ? (
+            <View style={styles.onboardingCard} testID="onboarding-card">
+              <View style={styles.onboardingHeader}>
+                <Feather name="compass" size={20} color={GOLD} />
+                <Text style={styles.onboardingTitle}>Comment ça marche</Text>
               </View>
-              <View style={styles.topSummaryDivider} />
-              <View style={styles.topSummaryBlock}>
-                <Text style={styles.topSummaryLabel}>Dépenses</Text>
-                <Text style={[styles.topSummaryValue, { color: TEXT_2 }]}>
-                  {formatEuro(monthlyExpenses)}
-                </Text>
-              </View>
-              <View style={styles.topSummaryDivider} />
-              <View style={styles.topSummaryBlock}>
-                <Text style={styles.topSummaryLabel}>Reste à vivre</Text>
-                <Text style={[styles.topSummaryValue, { color: remainingColor }]} testID="top-reste-value">
-                  {formatEuro(remaining)}
-                </Text>
+              <Text style={styles.onboardingStep}>
+                <Text style={styles.onboardingNum}>1. </Text>
+                Ajoute tes sources de revenu (salaire, freelance, locatif, dividendes…). Chaque source a son taux de charges sociales.
+              </Text>
+              <Text style={styles.onboardingStep}>
+                <Text style={styles.onboardingNum}>2. </Text>
+                Renseigne ton loyer, tes prêts et tes dépenses, classées en 3 familles : <Text style={styles.onboardingHl}>Besoins</Text>, <Text style={styles.onboardingHl}>Loisirs</Text>, <Text style={styles.onboardingHl}>Épargne</Text> (règle 50/30/20).
+              </Text>
+              <Text style={styles.onboardingStep}>
+                <Text style={styles.onboardingNum}>3. </Text>
+                En bas de page : ton <Text style={styles.onboardingHl}>reste à vivre</Text>, tes <Text style={styles.onboardingHl}>conseils personnalisés</Text> et un export PDF / carte à partager.
+              </Text>
+              <Text style={styles.onboardingTip}>
+                💡 Tes données restent sur ton téléphone — rien n'est envoyé sur internet.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.topSummary} testID="top-summary">
+              <View style={styles.topSummaryRow}>
+                <View style={styles.topSummaryBlock}>
+                  <Text style={styles.topSummaryLabel}>Net mensuel</Text>
+                  <Text style={styles.topSummaryValue}>{formatEuro(netMensuel)}</Text>
+                </View>
+                <View style={styles.topSummaryDivider} />
+                <View style={styles.topSummaryBlock}>
+                  <Text style={styles.topSummaryLabel}>Dépenses</Text>
+                  <Text style={[styles.topSummaryValue, { color: TEXT_2 }]}>
+                    {formatEuro(monthlyExpenses)}
+                  </Text>
+                </View>
+                <View style={styles.topSummaryDivider} />
+                <View style={styles.topSummaryBlock}>
+                  <Text style={styles.topSummaryLabel}>Reste à vivre</Text>
+                  <Text style={[styles.topSummaryValue, { color: remainingColor }]} testID="top-reste-value">
+                    {formatEuro(remaining)}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
           {/* Revenus — multi-sources */}
           <Section
@@ -757,7 +782,10 @@ export default function Index() {
           </Section>
 
           {/* Ville */}
-          <Section title="Localisation">
+          <Section
+            title="Localisation"
+            subtitle="L'indice du coût de la vie compare ta ville à la moyenne nationale (1,00). Il est informatif — ce sont tes dépenses saisies qui pilotent le calcul."
+          >
             <TouchableOpacity
               style={styles.inputWrap}
               onPress={() => setCityPickerOpen(true)}
@@ -790,7 +818,10 @@ export default function Index() {
           </Section>
 
           {/* Logement */}
-          <Section title="Logement">
+          <Section
+            title="Logement"
+            subtitle="Loyer charges comprises. Règle classique : viser sous 33 % du net mensuel."
+          >
             <Field
               label="Loyer mensuel (charges comprises)"
               icon={<Feather name="home" size={18} color={COLOR_LOYER} />}
@@ -888,7 +919,20 @@ export default function Index() {
                   </TouchableOpacity>
                 }
               >
-                <Text style={styles.familySub}>{meta.sub}</Text>
+                <View style={styles.familySubRow}>
+                  <Text style={styles.familySub}>{meta.sub}</Text>
+                  {family === "besoins" && (
+                    <TouchableOpacity
+                      onPress={() => setRuleInfoOpen(true)}
+                      hitSlop={10}
+                      style={styles.familyInfoBtn}
+                      testID="open-rule-info"
+                    >
+                      <Feather name="info" size={14} color={GOLD} />
+                      <Text style={styles.familyInfoBtnText}>50/30/20</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
                 {items.length === 0 ? (
                   <View style={styles.emptyCard}>
                     <Feather name={meta.icon} size={22} color={TEXT_3} />
@@ -933,7 +977,10 @@ export default function Index() {
           </View>
 
           {/* Budget mois par mois */}
-          <Section title="Budget mois par mois">
+          <Section
+            title="Budget mois par mois"
+            subtitle="Projection sur 12 mois en tenant compte de la fréquence de chaque revenu (mensuel, annuel ou versé un mois précis)."
+          >
             <Text style={styles.familySub}>
               La fréquence de chaque source de revenu (mensuel, annuel, mois précis) se règle dans la fiche de la source.
             </Text>
@@ -947,7 +994,10 @@ export default function Index() {
           </Section>
 
           {/* === Conseils 50/30/20 === */}
-          <Section title="Conseils d'optimisation">
+          <Section
+            title="Conseils d'optimisation"
+            subtitle="Règles éprouvées : 50/30/20, plafond loyer 33 %, seuil endettement HCSF 35 %, fond d'urgence 3-6 mois."
+          >
             <Text style={styles.familySub}>
               Basés sur la règle 50/30/20 (Besoins · Loisirs · Épargne)
             </Text>
@@ -977,7 +1027,10 @@ export default function Index() {
           </Section>
 
           {/* === Résultat : camembert à la fin === */}
-          <Section title="Répartition">
+          <Section
+            title="Répartition"
+            subtitle="Vue d'ensemble : chaque secteur du camembert = un poste mensuel. Le segment doré, c'est ce qu'il te reste."
+          >
             <View style={styles.hero} testID="dashboard-card">
               <LinearGradient
                 colors={[city.theme.from, city.theme.to]}
@@ -1168,6 +1221,45 @@ export default function Index() {
               style={styles.confirmOkBtn}
               onPress={() => setCityInfoOpen(false)}
               testID="close-city-info"
+            >
+              <Text style={styles.confirmOkText}>Compris</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 50/30/20 Rule Info Modal */}
+      <Modal
+        visible={ruleInfoOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRuleInfoOpen(false)}
+      >
+        <View style={styles.confirmBackdrop}>
+          <View style={styles.confirmBox}>
+            <Text style={styles.confirmTitle}>📚 La règle 50/30/20</Text>
+            <Text style={styles.confirmMessage}>
+              Imaginée par la sénatrice Elizabeth Warren, cette règle répartit ton revenu net mensuel en 3 enveloppes :
+            </Text>
+            <Text style={[styles.confirmMessage, { marginTop: 10 }]}>
+              <Text style={{ color: "#10B981", fontWeight: "800" }}>🛡 50 % Besoins </Text>
+              — loyer, prêts, alimentation, transport, santé, énergie. Tout ce qui est vital ou contraignant.
+            </Text>
+            <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
+              <Text style={{ color: "#A855F7", fontWeight: "800" }}>🎵 30 % Loisirs </Text>
+              — sorties, restos, vacances, streaming. La part « plaisir » sur laquelle tu peux ajuster.
+            </Text>
+            <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
+              <Text style={{ color: "#F59E0B", fontWeight: "800" }}>📈 20 % Épargne </Text>
+              — Livret A, PEA, assurance vie, immobilier locatif. Ce que tu mets de côté pour ton avenir.
+            </Text>
+            <Text style={[styles.confirmMessage, { marginTop: 12, fontStyle: "italic" }]}>
+              💡 Si tes besoins explosent au-dessus de 50 %, regarde si tu peux baisser un poste fixe (énergie, mutuelle, abonnements) ou augmenter tes revenus.
+            </Text>
+            <TouchableOpacity
+              style={styles.confirmOkBtn}
+              onPress={() => setRuleInfoOpen(false)}
+              testID="close-rule-info"
             >
               <Text style={styles.confirmOkText}>Compris</Text>
             </TouchableOpacity>
@@ -1534,10 +1626,12 @@ export default function Index() {
 
 function Section({
   title,
+  subtitle,
   action,
   children,
 }: {
   title: string;
+  subtitle?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -1547,6 +1641,7 @@ function Section({
         <Text style={styles.sectionTitle}>{title}</Text>
         {action}
       </View>
+      {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
       {children}
     </View>
   );
@@ -1694,6 +1789,27 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 24,
   },
+  onboardingCard: {
+    backgroundColor: SURFACE,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 20,
+    marginBottom: 24,
+  },
+  onboardingHeader: {
+    flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 14,
+  },
+  onboardingTitle: { color: TEXT, fontSize: 16, fontWeight: "800" },
+  onboardingStep: {
+    color: TEXT_2, fontSize: 13, lineHeight: 19, marginBottom: 10,
+  },
+  onboardingNum: { color: GOLD, fontWeight: "800" },
+  onboardingHl: { color: TEXT, fontWeight: "700" },
+  onboardingTip: {
+    color: TEXT_3, fontSize: 12, lineHeight: 18, marginTop: 4,
+    fontStyle: "italic",
+  },
   topSummaryRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1718,6 +1834,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: { color: TEXT, fontSize: 17, fontWeight: "700", letterSpacing: 0.2 },
+  sectionSubtitle: {
+    color: TEXT_3, fontSize: 12, lineHeight: 17, marginBottom: 14, marginTop: -4,
+  },
   addBtn: {
     flexDirection: "row", alignItems: "center", backgroundColor: GOLD,
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 4,
@@ -1920,8 +2039,17 @@ const styles = StyleSheet.create({
 
   familySub: {
     color: TEXT_3, fontSize: 12, marginTop: -8, marginBottom: 12,
-    fontStyle: "italic",
+    fontStyle: "italic", flex: 1, paddingRight: 8,
   },
+  familySubRow: {
+    flexDirection: "row", alignItems: "flex-start", marginBottom: 4,
+  },
+  familyInfoBtn: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: SURFACE_2, borderRadius: 12,
+    paddingHorizontal: 8, paddingVertical: 4, marginTop: -6,
+  },
+  familyInfoBtnText: { color: GOLD, fontSize: 11, fontWeight: "700" },
 
   incomeRow: {
     flexDirection: "row", alignItems: "center",
