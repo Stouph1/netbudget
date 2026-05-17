@@ -934,42 +934,9 @@ export default function Index() {
 
           {/* Budget mois par mois */}
           <Section title="Budget mois par mois">
-            <View style={styles.variableDistribBox}>
-              <Text style={styles.variableDistribLabel}>Versement du variable</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 6, paddingVertical: 4 }}
-              >
-                <TouchableOpacity
-                  onPress={() => setVariableMonth("monthly")}
-                  style={[styles.distribPill, variableMonth === "monthly" && styles.distribPillActive]}
-                  testID="variable-monthly"
-                >
-                  <Text style={[styles.distribPillText, variableMonth === "monthly" && styles.distribPillTextActive]}>
-                    Mensualisé
-                  </Text>
-                </TouchableOpacity>
-                {MONTHS_SHORT.map((m, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    onPress={() => setVariableMonth(i)}
-                    style={[styles.distribPill, variableMonth === i && styles.distribPillActive]}
-                    testID={`variable-month-${i}`}
-                  >
-                    <Text style={[styles.distribPillText, variableMonth === i && styles.distribPillTextActive]}>
-                      {m}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              <Text style={styles.hint}>
-                {variableMonth === "monthly"
-                  ? "Le variable est réparti sur 12 mois."
-                  : `Le variable sera versé en ${MONTHS_LONG[variableMonth as number]}.`}
-              </Text>
-            </View>
-
+            <Text style={styles.familySub}>
+              La fréquence de chaque source de revenu (mensuel, annuel, mois précis) se règle dans la fiche de la source.
+            </Text>
             <MonthlyBreakdown
               months={months}
               currentMonthIndex={currentMonthIndex}
