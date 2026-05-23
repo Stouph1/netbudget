@@ -10,6 +10,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
   Alert,
   Keyboard,
 } from "react-native";
@@ -120,6 +121,8 @@ const FAMILY_PALETTE: Record<ExpenseFamily, string[]> = {
   loisirs: ["#A855F7", "#C084FC", "#D946EF", "#8B5CF6", "#E879F9"],
   epargne: ["#F59E0B", "#FBBF24", "#FCD34D", "#FDE047", "#EAB308"],
 };
+
+const SCREEN_H = Dimensions.get("window").height;
 
 const GOLD = "#4ADE80";
 const BG = "#0A0F1A";
@@ -1127,7 +1130,7 @@ export default function Index() {
               data={filteredCities}
               keyExtractor={(c) => c.id}
               keyboardShouldPersistTaps="handled"
-              style={{ maxHeight: 420 }}
+              style={{ flex: 1 }}
               ListEmptyComponent={
                 <View style={styles.cityEmpty} testID="city-empty">
                   <Feather name="search" size={20} color={TEXT_3} />
@@ -2102,8 +2105,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     padding: 20, paddingBottom: 32,
     borderWidth: 1, borderColor: BORDER,
-    minHeight: "55%",
-    maxHeight: "92%",
+    minHeight: Math.round(SCREEN_H * 0.7),
+    maxHeight: Math.round(SCREEN_H * 0.92),
   },
   sheetHandle: {
     alignSelf: "center", width: 44, height: 4, borderRadius: 2,
