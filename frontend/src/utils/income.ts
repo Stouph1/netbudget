@@ -156,7 +156,7 @@ export function monthlyNetSeries(sources: IncomeSource[]): number[] {
 export function defaultIncomeSource(): IncomeSource {
   return {
     id: `salary-${Date.now()}`,
-    label: "Salaire principal",
+    label: "",
     type: "salaire",
     amount: "0",
     frequency: "annual",
