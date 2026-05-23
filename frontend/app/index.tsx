@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
+  SectionList,
   KeyboardAvoidingView,
   Platform,
   Dimensions,
@@ -22,7 +23,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import DonutChart, { DonutSegment } from "../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
-import { CITIES, City } from "../src/constants/cities";
+import { CITIES, City, COUNTRIES, citiesByCountry, getCountry } from "../src/constants/cities";
 import {
   computeLoanMonthlyPayment,
   normalizeText,
@@ -327,6 +328,9 @@ export default function Index() {
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [cityInfoOpen, setCityInfoOpen] = useState(false);
+  // Picker à 2 étapes : "country" puis "city"
+  const [pickerStep, setPickerStep] = useState<"country" | "city">("country");
+  const [pickerCountry, setPickerCountry] = useState<string | null>(null);
   const [ruleInfoOpen, setRuleInfoOpen] = useState(false);
 
   // Prêts
@@ -491,14 +495,22 @@ export default function Index() {
   const annualRemaining = annualIncome - annualExpenses;
   const currentMonthIndex = new Date().getMonth();
 
-  const filteredCities = useMemo(() => {
+  const filteredCountries = useMemo(() => {
     const q = normalizeText(citySearch);
-    if (!q) return CITIES;
-    return CITIES.filter((c) => {
+    if (!q) return COUNTRIES;
+    return COUNTRIES.filter((c) => normalizeText(c.name).includes(q));
+  }, [citySearch]);
+
+  const filteredCities = useMemo(() => {
+    if (!pickerCountry) return [];
+    const list = citiesByCountry(pickerCountry);
+    const q = normalizeText(citySearch);
+    if (!q) return list;
+    return list.filter((c) => {
       const haystack = normalizeText(`${c.name} ${c.region}`);
       return haystack.includes(q);
     });
-  }, [citySearch]);
+  }, [citySearch, pickerCountry]);
 
   // ----- Persistance : sauvegarde à chaque changement (après hydratation) -----
   useEffect(() => {
@@ -923,39 +935,6 @@ export default function Index() {
                 <Text style={styles.revenusTotalMuted}>{fmt(brutMensuel)}</Text>
               </View>
             </View>
-          </Section>
-
-          {/* Ville */}
-          <Section title={t("section.location.title")}>
-            <TouchableOpacity
-              style={styles.inputWrap}
-              onPress={() => setCityPickerOpen(true)}
-              testID="city-picker-button"
-              activeOpacity={0.8}
-            >
-              <View style={styles.inputIcon}>
-                <Feather name="map-pin" size={18} color={city.theme.accent} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>{t("label.cityField")}</Text>
-                <Text style={styles.inputValue}>{city.name}</Text>
-              </View>
-              <View style={[styles.indexBadge, { borderColor: city.theme.accent, borderWidth: 1 }]}>
-                <Text style={[styles.indexBadgeText, { color: city.theme.accent }]}>
-                  ×{city.index.toFixed(2)}
-                </Text>
-              </View>
-              <Feather name="chevron-right" size={20} color={TEXT_3} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setCityInfoOpen(true)}
-              style={styles.infoRow}
-              testID="city-info-button"
-              activeOpacity={0.7}
-            >
-              <Feather name="info" size={14} color={TEXT_3} />
-              <Text style={styles.infoRowText}>{t("info.indexHelp")}</Text>
-            </TouchableOpacity>
           </Section>
 
           {/* Logement */}
@@ -1399,6 +1378,43 @@ export default function Index() {
             </TouchableOpacity>
           </Section>
 
+          <Section title={t("settings.location.title")} subtitle={t("settings.location.hint")}>
+            <TouchableOpacity
+              style={styles.inputWrap}
+              onPress={() => {
+                setPickerCountry(city.countryCode);
+                setPickerStep("country");
+                setCitySearch("");
+                setCityPickerOpen(true);
+              }}
+              testID="city-picker-button"
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.currencyFlag, { marginRight: 12 }]}>
+                {getCountry(city.countryCode)?.flag ?? "🌍"}
+              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.inputLabel}>{city.name}</Text>
+                <Text style={styles.inputValue}>{city.region}</Text>
+              </View>
+              <View style={[styles.indexBadge, { borderColor: city.theme.accent, borderWidth: 1, marginRight: 6 }]}>
+                <Text style={[styles.indexBadgeText, { color: city.theme.accent }]}>
+                  ×{city.index.toFixed(2)}
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={20} color={TEXT_3} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setCityInfoOpen(true)}
+              style={styles.infoRow}
+              testID="city-info-button"
+              activeOpacity={0.7}
+            >
+              <Feather name="info" size={14} color={TEXT_3} />
+              <Text style={styles.infoRowText}>{t("info.indexHelp")}</Text>
+            </TouchableOpacity>
+          </Section>
+
           <Section title={t("settings.danger.title")}>
             <TouchableOpacity
               onPress={askResetAll}
@@ -1621,7 +1637,7 @@ export default function Index() {
         })}
       </View>
 
-      {/* City Picker Modal */}
+      {/* City Picker Modal (2-step : pays → ville) */}
       <Modal
         visible={cityPickerOpen}
         animationType="slide"
@@ -1640,7 +1656,21 @@ export default function Index() {
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>{t("modal.chooseCity")}</Text>
+              {pickerStep === "city" ? (
+                <TouchableOpacity
+                  onPress={() => { setPickerStep("country"); setCitySearch(""); }}
+                  hitSlop={10}
+                  testID="picker-back-to-country"
+                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                >
+                  <Feather name="chevron-left" size={20} color={TEXT_2} />
+                  <Text style={styles.sheetTitle}>
+                    {getCountry(pickerCountry ?? "")?.flag} {getCountry(pickerCountry ?? "")?.name}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.sheetTitle}>{t("modal.chooseCountry")}</Text>
+              )}
               <TouchableOpacity onPress={() => { Keyboard.dismiss(); setCityPickerOpen(false); }} testID="close-city-picker">
                 <Feather name="x" size={22} color={TEXT_2} />
               </TouchableOpacity>
@@ -1651,7 +1681,7 @@ export default function Index() {
                 style={styles.searchInput}
                 value={citySearch}
                 onChangeText={setCitySearch}
-                placeholder={t("btn.search")}
+                placeholder={pickerStep === "country" ? t("btn.searchCountry") : t("btn.search")}
                 placeholderTextColor={TEXT_3}
                 returnKeyType="search"
                 testID="city-search-input"
@@ -1666,52 +1696,101 @@ export default function Index() {
                 </TouchableOpacity>
               )}
             </View>
-            <FlatList
-              data={filteredCities}
-              keyExtractor={(c) => c.id}
-              keyboardShouldPersistTaps="handled"
-              style={{ flex: 1 }}
-              ListEmptyComponent={
-                <View style={styles.cityEmpty} testID="city-empty">
-                  <Feather name="search" size={20} color={TEXT_3} />
-                  <Text style={styles.cityEmptyTitle}>{t("city.noResult")}</Text>
-                  <Text style={styles.cityEmptyText}>
-                    {t("city.noResultHint")}
-                  </Text>
-                </View>
-              }
-              renderItem={({ item }) => {
-                const active = item.id === city.id;
-                return (
-                  <TouchableOpacity
-                    style={[styles.cityRow, active && styles.cityRowActive]}
-                    onPress={() => {
-                      setCity(item);
-                      setCityPickerOpen(false);
-                      setCitySearch("");
-                    }}
-                    testID={`city-option-${item.id}`}
-                  >
-                    <View style={[styles.cityDot, { backgroundColor: item.theme.accent }]} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cityName}>{item.name}</Text>
-                      <Text style={styles.cityRegion}>{item.region}</Text>
-                    </View>
-                    <View style={styles.cityIndex}>
-                      <Text
-                        style={[
-                          styles.cityIndexText,
-                          { color: item.index > 1 ? GOLD : SUCCESS },
-                        ]}
-                      >
-                        ×{item.index.toFixed(2)}
-                      </Text>
-                    </View>
-                    {active && <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />}
-                  </TouchableOpacity>
-                );
-              }}
-            />
+            {pickerStep === "country" ? (
+              <FlatList
+                data={filteredCountries}
+                keyExtractor={(c) => c.code}
+                keyboardShouldPersistTaps="handled"
+                style={{ flex: 1 }}
+                ListEmptyComponent={
+                  <View style={styles.cityEmpty} testID="country-empty">
+                    <Feather name="search" size={20} color={TEXT_3} />
+                    <Text style={styles.cityEmptyTitle}>{t("country.noResult")}</Text>
+                    <Text style={styles.cityEmptyText}>{t("city.noResultHint")}</Text>
+                  </View>
+                }
+                renderItem={({ item }) => {
+                  const active = city.countryCode === item.code;
+                  const count = citiesByCountry(item.code).length;
+                  return (
+                    <TouchableOpacity
+                      style={[styles.cityRow, active && styles.cityRowActive]}
+                      onPress={() => {
+                        setPickerCountry(item.code);
+                        setPickerStep("city");
+                        setCitySearch("");
+                      }}
+                      testID={`country-option-${item.code}`}
+                    >
+                      <Text style={{ fontSize: 24, marginRight: 12 }}>{item.flag}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.cityName}>{item.name}</Text>
+                        <Text style={styles.cityRegion}>{count} {count > 1 ? t("country.cities") : t("country.city")}</Text>
+                      </View>
+                      <Feather name="chevron-right" size={20} color={TEXT_3} />
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            ) : (
+              <SectionList<City, { title: string }>
+                sections={(() => {
+                  const grouped: Record<string, City[]> = {};
+                  for (const c of filteredCities) {
+                    if (!grouped[c.region]) grouped[c.region] = [];
+                    grouped[c.region].push(c);
+                  }
+                  return Object.entries(grouped).map(([region, data]) => ({ title: region, data }));
+                })()}
+                keyExtractor={(c) => c.id}
+                keyboardShouldPersistTaps="handled"
+                style={{ flex: 1 }}
+                stickySectionHeadersEnabled={false}
+                renderSectionHeader={({ section }) => (
+                  <View style={styles.regionHeader}>
+                    <Text style={styles.regionHeaderText}>{section.title}</Text>
+                  </View>
+                )}
+                ListEmptyComponent={
+                  <View style={styles.cityEmpty} testID="city-empty">
+                    <Feather name="search" size={20} color={TEXT_3} />
+                    <Text style={styles.cityEmptyTitle}>{t("city.noResult")}</Text>
+                    <Text style={styles.cityEmptyText}>{t("city.noResultHint")}</Text>
+                  </View>
+                }
+                renderItem={({ item }) => {
+                  const active = item.id === city.id;
+                  return (
+                    <TouchableOpacity
+                      style={[styles.cityRow, active && styles.cityRowActive]}
+                      onPress={() => {
+                        setCity(item);
+                        setCityPickerOpen(false);
+                        setCitySearch("");
+                      }}
+                      testID={`city-option-${item.id}`}
+                    >
+                      <View style={[styles.cityDot, { backgroundColor: item.theme.accent }]} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.cityName}>{item.name}</Text>
+                        <Text style={styles.cityRegion}>{item.region}</Text>
+                      </View>
+                      <View style={styles.cityIndex}>
+                        <Text
+                          style={[
+                            styles.cityIndexText,
+                            { color: item.index > 1 ? GOLD : SUCCESS },
+                          ]}
+                        >
+                          ×{item.index.toFixed(2)}
+                        </Text>
+                      </View>
+                      {active && <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
           </View>
           </KeyboardAvoidingView>
         </View>
@@ -2801,6 +2880,19 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE_2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10,
   },
   cityIndexText: { fontSize: 12, fontWeight: "700" },
+  regionHeader: {
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 6,
+    backgroundColor: "transparent",
+  },
+  regionHeaderText: {
+    color: TEXT_3,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
   cityEmpty: { paddingVertical: 24, alignItems: "center", gap: 6 },
   cityEmptyTitle: { color: TEXT, fontSize: 14, fontWeight: "700" },
   cityEmptyText: { color: TEXT_3, fontSize: 12, textAlign: "center", lineHeight: 18 },
