@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Pressable,
   Alert,
   Keyboard,
 } from "react-native";
@@ -1093,6 +1094,10 @@ export default function Index() {
         onRequestClose={() => setCityPickerOpen(false)}
       >
         <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => { Keyboard.dismiss(); setCityPickerOpen(false); }}
+          />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%" }}
@@ -1185,6 +1190,10 @@ export default function Index() {
         onRequestClose={() => setCityInfoOpen(false)}
       >
         <View style={styles.confirmBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setCityInfoOpen(false)}
+          />
           <View style={styles.confirmBox}>
             <Text style={styles.confirmTitle}>Indice coût de la vie</Text>
             <Text style={styles.confirmMessage}>{INDEX_EXPLANATION}</Text>
@@ -1211,6 +1220,10 @@ export default function Index() {
         onRequestClose={() => setRuleInfoOpen(false)}
       >
         <View style={styles.confirmBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setRuleInfoOpen(false)}
+          />
           <View style={styles.confirmBox}>
             <Text style={styles.confirmTitle}>📚 La règle 50/30/20</Text>
             <Text style={styles.confirmMessage}>
@@ -1250,6 +1263,10 @@ export default function Index() {
         onRequestClose={() => setIncomeModalOpen(false)}
       >
         <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => { Keyboard.dismiss(); setIncomeModalOpen(false); }}
+          />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%" }}
@@ -1425,6 +1442,10 @@ export default function Index() {
         onRequestClose={() => setAddItemFamily(null)}
       >
         <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => { Keyboard.dismiss(); setAddItemFamily(null); }}
+          />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%" }}
@@ -1495,6 +1516,10 @@ export default function Index() {
         onRequestClose={() => setLoanModalOpen(false)}
       >
         <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => { Keyboard.dismiss(); setLoanModalOpen(false); }}
+          />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%" }}
@@ -1859,7 +1884,13 @@ function StatusPill({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    maxWidth: 720,
+    width: "100%",
+    alignSelf: "center",
+  },
 
   header: {
     flexDirection: "row",
@@ -2105,8 +2136,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     padding: 20, paddingBottom: 32,
     borderWidth: 1, borderColor: BORDER,
-    minHeight: Math.round(SCREEN_H * 0.7),
-    maxHeight: Math.round(SCREEN_H * 0.92),
+    height: Math.round(SCREEN_H * 0.85),
+    width: "100%",
+    maxWidth: 640,
+    alignSelf: "center",
   },
   sheetHandle: {
     alignSelf: "center", width: 44, height: 4, borderRadius: 2,
