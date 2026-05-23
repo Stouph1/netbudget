@@ -1,20 +1,24 @@
-// Conseils personnalisés basés sur la règle du 50/30/20 (Elizabeth Warren)
-// + règles classiques de gestion budgétaire France (HCSF, fond d'urgence, etc.).
+// Conseils personnalisés basés sur la regle du 50/30/20 (Elizabeth Warren)
+// + regles classiques de gestion budgetaire France (HCSF, fond d'urgence, etc.).
+//
+// Les chaines passent par le t() (i18n) — chaque carte de conseil porte une cle
+// de traduction (titleKey / messageKey) + des parametres optionnels.
 
 export type AdviceTone = "good" | "warn" | "danger" | "info";
 
 export type AdviceItem = {
   tone: AdviceTone;
   icon: string; // nom Feather
-  title: string;
-  message: string;
+  titleKey: string;
+  messageKey: string;
+  params?: Record<string, string | number>;
 };
 
 export type AdviceInput = {
   netMensuel: number;
   rent: number;
   loansMonthly: number;
-  besoinsExtra: number; // dépenses besoins hors loyer/prêts
+  besoinsExtra: number; // depenses besoins hors loyer/prets
   loisirs: number;
   epargne: number;
   remaining: number;
@@ -28,9 +32,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "info",
       icon: "info",
-      title: "Saisis tes revenus",
-      message:
-        "Renseigne ton salaire et tes dépenses pour obtenir des conseils personnalisés basés sur la règle 50/30/20.",
+      titleKey: "advice.noIncome.title",
+      messageKey: "advice.noIncome.msg",
     });
     return out;
   }
@@ -49,9 +52,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "danger",
       icon: "alert-triangle",
-      title: "Tu dépenses plus que tu ne gagnes",
-      message:
-        "Tes dépenses dépassent ton net mensuel. Coupe d'abord les abonnements non essentiels, puis renégocie les charges (énergie, mutuelle, banque) avant que la dette s'installe.",
+      titleKey: "advice.overspend.title",
+      messageKey: "advice.overspend.msg",
     });
   }
 
@@ -59,19 +61,17 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "danger",
       icon: "credit-card",
-      title: "Endettement au-dessus de 35 %",
-      message: `Tes mensualités de prêt représentent ${Math.round(
-        loansPct
-      )} % de ton net. Le HCSF (Banque de France) fixe le seuil de surendettement à 35 % — au-delà, prudence et anticipe un refinancement.`,
+      titleKey: "advice.debt35.title",
+      messageKey: "advice.debt35.msg",
+      params: { pct: Math.round(loansPct) },
     });
   } else if (loansMonthly > 0 && loansPct > 25) {
     out.push({
       tone: "warn",
       icon: "credit-card",
-      title: "Endettement à surveiller",
-      message: `Tes mensualités sont à ${Math.round(
-        loansPct
-      )} %. Tu approches de la zone risquée (35 %). Évite tout nouveau crédit avant un solde positif robuste.`,
+      titleKey: "advice.debt25.title",
+      messageKey: "advice.debt25.msg",
+      params: { pct: Math.round(loansPct) },
     });
   }
 
@@ -80,139 +80,123 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "warn",
       icon: "home",
-      title: "Loyer élevé",
-      message: `Ton loyer pèse ${Math.round(
-        rentPct
-      )} % de ton net. La règle classique du 1/3 conseille de rester sous 33 %. Pense colocation, déménagement ou négociation de l'augmentation annuelle.`,
+      titleKey: "advice.rentHigh.title",
+      messageKey: "advice.rentHigh.msg",
+      params: { pct: Math.round(rentPct) },
     });
   } else if (rent > 0 && rentPct < 20) {
     out.push({
       tone: "good",
       icon: "home",
-      title: "Loyer maîtrisé",
-      message: `Ton loyer ne représente que ${Math.round(
-        rentPct
-      )} % de ton net — excellente marge pour épargner ou investir.`,
+      titleKey: "advice.rentOk.title",
+      messageKey: "advice.rentOk.msg",
+      params: { pct: Math.round(rentPct) },
     });
   }
 
-  // ----- Règle 50/30/20 : Besoins -----
+  // ----- Regle 50/30/20 : Besoins -----
   if (besoinsPct > 60) {
     out.push({
       tone: "danger",
       icon: "shield",
-      title: "Besoins critiques",
-      message: `Tes besoins fixes (loyer + prêts + dépenses contraintes) montent à ${Math.round(
-        besoinsPct
-      )} % de ton net. Au-dessus de 60 %, la marge de manœuvre disparaît. Renégocie d'abord les contrats récurrents (assurances, mutuelle, énergie, télécoms).`,
+      titleKey: "advice.needsCrit.title",
+      messageKey: "advice.needsCrit.msg",
+      params: { pct: Math.round(besoinsPct) },
     });
   } else if (besoinsPct > 55) {
     out.push({
       tone: "warn",
       icon: "shield",
-      title: "Besoins au-dessus de 50 %",
-      message: `Tes besoins représentent ${Math.round(
-        besoinsPct
-      )} % de ton net. La règle 50/30/20 vise 50 %. Cibler ${formatPct(
-        besoinsPct - 50
-      )} de réduction libère directement de l'épargne.`,
+      titleKey: "advice.needsHigh.title",
+      messageKey: "advice.needsHigh.msg",
+      params: { pct: Math.round(besoinsPct), gap: Math.round(besoinsPct - 50) },
     });
   } else if (besoinsPct > 0 && besoinsPct <= 50) {
     out.push({
       tone: "good",
       icon: "check-circle",
-      title: "Besoins maîtrisés",
-      message: `Tes besoins sont à ${Math.round(
-        besoinsPct
-      )} % — sous le seuil 50 % de la règle 50/30/20. Bonne base pour épargner.`,
+      titleKey: "advice.needsOk.title",
+      messageKey: "advice.needsOk.msg",
+      params: { pct: Math.round(besoinsPct) },
     });
   }
 
-  // ----- Règle 50/30/20 : Loisirs -----
+  // ----- Regle 50/30/20 : Loisirs -----
   if (loisirsPct > 40) {
     out.push({
       tone: "warn",
       icon: "music",
-      title: "Loisirs très élevés",
-      message: `Tu mets ${Math.round(
-        loisirsPct
-      )} % en loisirs (vs 30 % recommandés). Quelques restos en moins peuvent libérer plusieurs centaines d'euros pour épargner ou investir.`,
+      titleKey: "advice.wantsHigh.title",
+      messageKey: "advice.wantsHigh.msg",
+      params: { pct: Math.round(loisirsPct) },
     });
   } else if (loisirsPct > 35) {
     out.push({
       tone: "info",
       icon: "music",
-      title: "Loisirs un peu hauts",
-      message: `Tu es à ${Math.round(
-        loisirsPct
-      )} % de loisirs. Légèrement au-dessus du seuil 30 %, rien d'alarmant tant que l'épargne avance.`,
+      titleKey: "advice.wantsBitHigh.title",
+      messageKey: "advice.wantsBitHigh.msg",
+      params: { pct: Math.round(loisirsPct) },
     });
   } else if (loisirs === 0 && netMensuel > 0) {
     out.push({
       tone: "info",
       icon: "smile",
-      title: "Aucun loisir déclaré",
-      message:
-        "Aucun budget loisirs ? Pense à t'accorder une enveloppe « plaisir » : un budget équilibré tient sur la durée parce qu'il est vivable.",
+      titleKey: "advice.noWants.title",
+      messageKey: "advice.noWants.msg",
     });
   }
 
-  // ----- Règle 50/30/20 : Épargne -----
+  // ----- Regle 50/30/20 : Epargne -----
   if (epargnePct < 5 && netMensuel > 0 && remaining >= 0) {
     out.push({
       tone: "danger",
       icon: "trending-up",
-      title: "Pas d'épargne",
-      message:
-        "Tu épargnes presque rien. Mets en place dès ce mois-ci un virement automatique vers un Livret A (taux 3 %, disponible) — même 50 € / mois, le but c'est l'habitude.",
+      titleKey: "advice.noSavings.title",
+      messageKey: "advice.noSavings.msg",
     });
   } else if (epargnePct < 10) {
     out.push({
       tone: "warn",
       icon: "trending-up",
-      title: "Épargne faible",
-      message: `Tu épargnes ${Math.round(
-        epargnePct
-      )} % de ton net. L'objectif 50/30/20 vise 20 %. Étape 1 : constituer un fond d'urgence de 3 à 6 mois de dépenses sur livrets.`,
+      titleKey: "advice.lowSavings.title",
+      messageKey: "advice.lowSavings.msg",
+      params: { pct: Math.round(epargnePct) },
     });
   } else if (epargnePct < 20) {
     out.push({
       tone: "warn",
       icon: "trending-up",
-      title: "Épargne en construction",
-      message: `Tu épargnes ${Math.round(
-        epargnePct
-      )} %. Pour atteindre 20 %, automatise un virement en début de mois — ce que tu ne vois pas, tu ne le dépenses pas.`,
+      titleKey: "advice.savingsBuilding.title",
+      messageKey: "advice.savingsBuilding.msg",
+      params: { pct: Math.round(epargnePct) },
     });
   } else if (epargnePct >= 20 && epargnePct < 30) {
     out.push({
       tone: "good",
       icon: "award",
-      title: "Excellente épargne",
-      message: `Tu épargnes ${Math.round(
-        epargnePct
-      )} % — au-dessus du seuil 20 %. Diversifie : Livret A pour la sécurité, PEA / CTO pour la croissance long terme.`,
+      titleKey: "advice.goodSavings.title",
+      messageKey: "advice.goodSavings.msg",
+      params: { pct: Math.round(epargnePct) },
     });
   } else if (epargnePct >= 30) {
     out.push({
       tone: "good",
       icon: "award",
-      title: "Épargne maximale",
-      message: `Tu épargnes ${Math.round(
-        epargnePct
-      )} % de ton net — c'est rare. Pense long terme : PER (défiscalisation), assurance vie, immobilier locatif.`,
+      titleKey: "advice.maxSavings.title",
+      messageKey: "advice.maxSavings.msg",
+      params: { pct: Math.round(epargnePct) },
     });
   }
 
-  // ----- Conseils ciblés -----
+  // ----- Conseils cibles -----
   if (remaining > 0 && epargne === 0 && netMensuel > 0) {
     out.push({
       tone: "info",
       icon: "info",
-      title: "Tu as une marge — capture-la",
-      message: `Il te reste ${Math.round(
-        restePct
-      )} % à la fin du mois mais aucune épargne déclarée. Sans automatisation, l'argent disparaît dans des dépenses non-essentielles. Programme un virement.`,
+      titleKey: "advice.captureMargin.title",
+      messageKey: "advice.captureMargin.msg",
+      params: { pct: Math.round(restePct) },
     });
   }
 
@@ -220,10 +204,9 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "warn",
       icon: "tool",
-      title: "Dépenses fixes hors logement",
-      message: `Tes dépenses « besoins » hors loyer/prêts représentent ${Math.round(
-        (besoinsExtra / netMensuel) * 100
-      )} % de ton net. Faire le tour des contrats (énergie, télécom, assurances) une fois par an récupère facilement 30 à 80 € / mois.`,
+      titleKey: "advice.fixedExpenses.title",
+      messageKey: "advice.fixedExpenses.msg",
+      params: { pct: Math.round((besoinsExtra / netMensuel) * 100) },
     });
   }
 
@@ -231,9 +214,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "info",
       icon: "info",
-      title: "Tu cumules loyer et crédit",
-      message:
-        "Avoir loyer + crédit en parallèle est lourd. Si le crédit concerne un bien que tu n'occupes pas, vérifie que les loyers perçus couvrent au moins la mensualité.",
+      titleKey: "advice.rentLoan.title",
+      messageKey: "advice.rentLoan.msg",
     });
   }
 
@@ -241,9 +223,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "info",
       icon: "info",
-      title: "Pense aux dépenses oubliées",
-      message:
-        "Tes dépenses semblent très faibles par rapport à ton revenu. Vérifie que tu as bien renseigné les abonnements, les courses, l'énergie — un budget sous-estimé donne de faux conseils.",
+      titleKey: "advice.lowExpenses.title",
+      messageKey: "advice.lowExpenses.msg",
     });
   }
 
@@ -251,9 +232,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "info",
       icon: "trending-up",
-      title: "Profil propice à l'investissement",
-      message:
-        "Avec ton excédent et un coût de logement contenu, tu peux passer à l'étape suivante : DCA mensuel sur un ETF World via PEA, ou simulation d'investissement locatif.",
+      titleKey: "advice.investProfile.title",
+      messageKey: "advice.investProfile.msg",
     });
   }
 
@@ -264,21 +244,19 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       out.push({
         tone: "info",
         icon: "umbrella",
-        title: "Constitue un fond d'urgence",
-        message:
-          "Vise 3 à 6 mois de dépenses fixes sur livrets liquides (Livret A, LDDS) avant d'investir en bourse. C'est ton airbag financier.",
+        titleKey: "advice.emergency.title",
+        messageKey: "advice.emergency.msg",
       });
     }
   }
 
-  // Tip général si tout va bien
+  // Tip general si tout va bien
   if (besoinsPct <= 50 && loisirsPct <= 30 && epargnePct >= 20 && remaining >= 0) {
     out.push({
       tone: "good",
       icon: "star",
-      title: "Budget exemplaire",
-      message:
-        "Tu coches les 3 cases du 50/30/20 (50/30/20) et tu n'es pas en dépassement. Continue ainsi et pense à faire travailler ton épargne (PEA, AV, immobilier).",
+      titleKey: "advice.perfect.title",
+      messageKey: "advice.perfect.msg",
     });
   }
 
@@ -286,9 +264,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "info",
       icon: "info",
-      title: "Pas encore assez de données",
-      message:
-        "Renseigne plus de catégories pour obtenir des conseils ciblés.",
+      titleKey: "advice.notEnoughData.title",
+      messageKey: "advice.notEnoughData.msg",
     });
   }
 
@@ -302,6 +279,11 @@ function pct(value: number, ref: number): number {
   return (value / ref) * 100;
 }
 
-function formatPct(value: number): string {
-  return `${Math.round(value)} pts`;
+// Remplace {key} dans le template par params[key].
+export function interpolate(template: string, params?: Record<string, string | number>): string {
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (_match, key) => {
+    const v = params[key];
+    return v === undefined || v === null ? `{${key}}` : String(v);
+  });
 }

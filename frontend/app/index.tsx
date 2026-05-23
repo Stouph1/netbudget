@@ -22,7 +22,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import DonutChart, { DonutSegment } from "../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
-import { CITIES, City, INDEX_EXPLANATION } from "../src/constants/cities";
+import { CITIES, City } from "../src/constants/cities";
 import {
   computeLoanMonthlyPayment,
   normalizeText,
@@ -35,7 +35,7 @@ import {
   formatCurrency,
   getCurrency,
 } from "../src/utils/currency";
-import { buildAdvice, AdviceItem } from "../src/utils/advice";
+import { buildAdvice, AdviceItem, interpolate } from "../src/utils/advice";
 import {
   getRates,
   convert,
@@ -67,13 +67,15 @@ import {
 } from "../src/utils/income";
 import { loadState, saveState } from "../src/utils/storage";
 
-const MONTHS_LONG = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+const MONTH_KEYS_LONG = [
+  "month.long.0", "month.long.1", "month.long.2", "month.long.3",
+  "month.long.4", "month.long.5", "month.long.6", "month.long.7",
+  "month.long.8", "month.long.9", "month.long.10", "month.long.11",
 ];
-const MONTHS_SHORT = [
-  "Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
-  "Juil", "Août", "Sep", "Oct", "Nov", "Déc",
+const MONTH_KEYS_SHORT = [
+  "month.short.0", "month.short.1", "month.short.2", "month.short.3",
+  "month.short.4", "month.short.5", "month.short.6", "month.short.7",
+  "month.short.8", "month.short.9", "month.short.10", "month.short.11",
 ];
 
 type LoanMode = "computed" | "direct";
@@ -103,6 +105,7 @@ type ExpenseItem = {
   id: string;
   family: ExpenseFamily;
   label: string;
+  labelKey?: string; // si present, sert de cle i18n pour traduire le label par defaut
   icon: keyof typeof Feather.glyphMap;
   color: string;
   amount: string;
@@ -120,20 +123,27 @@ const FAMILY_META: Record<
 const FAMILY_ORDER: ExpenseFamily[] = ["besoins", "loisirs", "epargne"];
 
 const DEFAULT_ITEMS: ExpenseItem[] = [
-  { id: "alimentation", family: "besoins", label: "Alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
-  { id: "transport", family: "besoins", label: "Transport", icon: "navigation", color: "#F59E0B", amount: "0" },
-  { id: "sante", family: "besoins", label: "Santé / Mutuelle", icon: "heart", color: "#06B6D4", amount: "0" },
-  { id: "energie", family: "besoins", label: "Énergie", icon: "zap", color: "#F97316", amount: "0" },
-  { id: "eau", family: "besoins", label: "Eau", icon: "droplet", color: "#38BDF8", amount: "0" },
-  { id: "abonnements", family: "besoins", label: "Abonnements (essentiels)", icon: "wifi", color: "#EC4899", amount: "0" },
-  { id: "sorties", family: "loisirs", label: "Sorties / Restos", icon: "coffee", color: "#A855F7", amount: "0" },
-  { id: "vacances", family: "loisirs", label: "Vacances", icon: "sun", color: "#C084FC", amount: "0" },
-  { id: "streaming", family: "loisirs", label: "Streaming / Hobbies", icon: "play", color: "#D946EF", amount: "0" },
-  { id: "livret", family: "epargne", label: "Livret A / LDDS", icon: "save", color: "#F59E0B", amount: "0" },
-  { id: "pea", family: "epargne", label: "PEA", icon: "bar-chart-2", color: "#FBBF24", amount: "0" },
-  { id: "cto", family: "epargne", label: "CTO", icon: "trending-up", color: "#FDE047", amount: "0" },
-  { id: "av", family: "epargne", label: "Assurance vie", icon: "file-text", color: "#FCD34D", amount: "0" },
+  { id: "alimentation", family: "besoins", label: "Alimentation", labelKey: "expense.alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
+  { id: "transport", family: "besoins", label: "Transport", labelKey: "expense.transport", icon: "navigation", color: "#F59E0B", amount: "0" },
+  { id: "sante", family: "besoins", label: "Santé / Mutuelle", labelKey: "expense.sante", icon: "heart", color: "#06B6D4", amount: "0" },
+  { id: "energie", family: "besoins", label: "Énergie", labelKey: "expense.energie", icon: "zap", color: "#F97316", amount: "0" },
+  { id: "eau", family: "besoins", label: "Eau", labelKey: "expense.eau", icon: "droplet", color: "#38BDF8", amount: "0" },
+  { id: "abonnements", family: "besoins", label: "Abonnements (essentiels)", labelKey: "expense.abonnements", icon: "wifi", color: "#EC4899", amount: "0" },
+  { id: "sorties", family: "loisirs", label: "Sorties / Restos", labelKey: "expense.sorties", icon: "coffee", color: "#A855F7", amount: "0" },
+  { id: "vacances", family: "loisirs", label: "Vacances", labelKey: "expense.vacances", icon: "sun", color: "#C084FC", amount: "0" },
+  { id: "streaming", family: "loisirs", label: "Streaming / Hobbies", labelKey: "expense.streaming", icon: "play", color: "#D946EF", amount: "0" },
+  { id: "livret", family: "epargne", label: "Livret A / LDDS", labelKey: "expense.livret", icon: "save", color: "#F59E0B", amount: "0" },
+  { id: "pea", family: "epargne", label: "PEA", labelKey: "expense.pea", icon: "bar-chart-2", color: "#FBBF24", amount: "0" },
+  { id: "cto", family: "epargne", label: "CTO", labelKey: "expense.cto", icon: "trending-up", color: "#FDE047", amount: "0" },
+  { id: "av", family: "epargne", label: "Assurance vie", labelKey: "expense.av", icon: "file-text", color: "#FCD34D", amount: "0" },
 ];
+
+// Renvoie le label affiche pour un item : prefere la traduction si labelKey existe,
+// sauf si l'utilisateur a renomme l'item (label != labelKey FR par defaut).
+function displayItemLabel(item: ExpenseItem, tt: (key: string) => string): string {
+  if (item.labelKey) return tt(item.labelKey);
+  return item.label;
+}
 
 const FAMILY_PALETTE: Record<ExpenseFamily, string[]> = {
   besoins: ["#10B981", "#06B6D4", "#3B82F6", "#F97316", "#EC4899"],
@@ -371,7 +381,16 @@ export default function Index() {
         }
         if (stored.rent !== undefined) setRent(stored.rent as string);
         if (Array.isArray(stored.expenseItems) && stored.expenseItems.length > 0) {
-          setExpenseItems(stored.expenseItems as ExpenseItem[]);
+          // Backfill labelKey pour les items par defaut sauvegardes avant l'i18n des labels
+          const items = (stored.expenseItems as ExpenseItem[]).map((it) => {
+            if (it.labelKey) return it;
+            const def = DEFAULT_ITEMS.find((d) => d.id === it.id);
+            if (def && def.labelKey && it.label === def.label) {
+              return { ...it, labelKey: def.labelKey };
+            }
+            return it;
+          });
+          setExpenseItems(items);
         }
         if (Array.isArray(stored.loans)) setLoans(stored.loans as Loan[]);
         if (stored.cityId) {
@@ -444,28 +463,28 @@ export default function Index() {
   // Donut
   const segments: DonutSegment[] = useMemo(() => {
     const segs: DonutSegment[] = [];
-    if (rentNum > 0) segs.push({ label: "Loyer", value: rentNum, color: COLOR_LOYER });
-    if (loansMonthly > 0) segs.push({ label: "Prêts", value: loansMonthly, color: COLOR_PRETS });
+    if (rentNum > 0) segs.push({ label: t("donut.rent"), value: rentNum, color: COLOR_LOYER });
+    if (loansMonthly > 0) segs.push({ label: t("donut.loans"), value: loansMonthly, color: COLOR_PRETS });
     for (const it of expenseItems) {
       const v = parseNumber(it.amount);
-      if (v > 0) segs.push({ label: it.label, value: v, color: it.color });
+      if (v > 0) segs.push({ label: displayItemLabel(it, t), value: v, color: it.color });
     }
-    segs.push({ label: "Reste à vivre", value: remaining > 0 ? remaining : 0, color: GOLD });
+    segs.push({ label: t("donut.remaining"), value: remaining > 0 ? remaining : 0, color: GOLD });
     return segs;
-  }, [rentNum, loansMonthly, expenseItems, remaining]);
+  }, [rentNum, loansMonthly, expenseItems, remaining, lang]);
 
   // Projection mensuelle : utilise directement la série de nets calculée par income.ts
   const months: MonthRow[] = useMemo(
     () =>
       netSeries.map((income, i) => ({
         index: i,
-        name: MONTHS_LONG[i],
-        shortName: MONTHS_SHORT[i],
+        name: t(MONTH_KEYS_LONG[i]),
+        shortName: t(MONTH_KEYS_SHORT[i]),
         income,
         expenses: monthlyExpenses,
         remaining: income - monthlyExpenses,
       })),
-    [netSeries, monthlyExpenses]
+    [netSeries, monthlyExpenses, lang]
   );
   const annualIncome = months.reduce((s, m) => s + m.income, 0);
   const annualExpenses = monthlyExpenses * 12;
@@ -545,17 +564,17 @@ export default function Index() {
       );
     } else {
       const id = Date.now().toString();
-      setLoans((ls) => [...ls, { ...form, id, name: form.name || "Prêt" }]);
+      setLoans((ls) => [...ls, { ...form, id, name: form.name || t("loan.defaultName") }]);
     }
     setLoanModalOpen(false);
   }
   function askDeleteLoan(id: string) {
     setConfirm({
       open: true,
-      title: "Supprimer ce prêt ?",
-      message: "Cette action est définitive.",
+      title: t("confirm.deleteLoan.title"),
+      message: t("confirm.deleteLoan.msg"),
       danger: true,
-      confirmLabel: "Supprimer",
+      confirmLabel: t("btn.delete"),
       onConfirm: () => setLoans((ls) => ls.filter((l) => l.id !== id)),
     });
   }
@@ -607,10 +626,10 @@ export default function Index() {
   function askDeleteIncome(id: string) {
     setConfirm({
       open: true,
-      title: "Supprimer cette source ?",
-      message: "Tu pourras la rajouter plus tard.",
+      title: t("confirm.deleteIncome.title"),
+      message: t("confirm.deleteIncome.msg"),
       danger: true,
-      confirmLabel: "Supprimer",
+      confirmLabel: t("btn.delete"),
       onConfirm: () => setIncomes((prev) => prev.filter((s) => s.id !== id)),
     });
   }
@@ -642,7 +661,7 @@ export default function Index() {
 
   function updateItemLabel(id: string, label: string) {
     setExpenseItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, label } : it))
+      prev.map((it) => (it.id === id ? { ...it, label, labelKey: undefined } : it))
     );
   }
 
@@ -706,6 +725,7 @@ export default function Index() {
       remaining,
       advice,
       currency,
+      t,
     };
   }
 
@@ -719,7 +739,7 @@ export default function Index() {
         dialogTitle,
       });
     } else {
-      Alert.alert("Document prêt", `Fichier généré : ${uri}`);
+      Alert.alert(t("doc.ready.title"), interpolate(t("doc.ready.msg"), { uri }));
     }
   }
 
@@ -727,7 +747,7 @@ export default function Index() {
     try {
       await shareGeneratedPdf(generatePdfHtml(buildPdfData()), "Mon budget NETbudget");
     } catch {
-      Alert.alert("Erreur", "Impossible de générer le PDF.");
+      Alert.alert(t("err.pdf.title"), t("err.pdf.msg"));
     }
   }
 
@@ -844,10 +864,10 @@ export default function Index() {
                 const monthly = averageMonthlyNet([src]);
                 const freqLabel =
                   src.frequency === "monthly"
-                    ? "Mensuel"
+                    ? t("freq.monthly")
                     : src.frequency === "annual"
-                      ? "Annuel"
-                      : `Versé en ${MONTHS_SHORT[src.variableMonth ?? 0]}`;
+                      ? t("freq.annual")
+                      : interpolate(t("income.paidIn"), { month: t(MONTH_KEYS_SHORT[src.variableMonth ?? 0]) });
                 return (
                   <TouchableOpacity
                     key={src.id}
@@ -871,7 +891,7 @@ export default function Index() {
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
                       <Text style={styles.incomeNet}>{fmt(monthly)}</Text>
-                      <Text style={styles.incomeMetaSmall}>net / mois</Text>
+                      <Text style={styles.incomeMetaSmall}>{t("income.netPerMonth")}</Text>
                     </View>
                     <TouchableOpacity
                       onPress={() => askDeleteIncome(src.id)}
@@ -887,19 +907,19 @@ export default function Index() {
             )}
             <View style={styles.revenusSummary}>
               <View style={styles.revenusRow}>
-                <Text style={styles.revenusLabel}>Total brut annuel</Text>
+                <Text style={styles.revenusLabel}>{t("summary.totalBrutAnnual")}</Text>
                 <Text style={styles.revenusTotal} testID="total-brut-annuel">
                   {fmt(totalBrutAnnuel)}
                 </Text>
               </View>
               <View style={styles.revenusRow}>
-                <Text style={styles.revenusLabel}>Net mensuel estimé</Text>
+                <Text style={styles.revenusLabel}>{t("summary.netMonthlyEst")}</Text>
                 <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
                   {fmt(netMensuel)}
                 </Text>
               </View>
               <View style={styles.revenusRow}>
-                <Text style={styles.revenusLabel}>Brut mensuel moyen</Text>
+                <Text style={styles.revenusLabel}>{t("summary.brutMonthlyAvg")}</Text>
                 <Text style={styles.revenusTotalMuted}>{fmt(brutMensuel)}</Text>
               </View>
             </View>
@@ -917,7 +937,7 @@ export default function Index() {
                 <Feather name="map-pin" size={18} color={city.theme.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.inputLabel}>Ville</Text>
+                <Text style={styles.inputLabel}>{t("label.cityField")}</Text>
                 <Text style={styles.inputValue}>{city.name}</Text>
               </View>
               <View style={[styles.indexBadge, { borderColor: city.theme.accent, borderWidth: 1 }]}>
@@ -934,7 +954,7 @@ export default function Index() {
               activeOpacity={0.7}
             >
               <Feather name="info" size={14} color={TEXT_3} />
-              <Text style={styles.infoRowText}>À quoi sert cet indice ?</Text>
+              <Text style={styles.infoRowText}>{t("info.indexHelp")}</Text>
             </TouchableOpacity>
           </Section>
 
@@ -989,16 +1009,16 @@ export default function Index() {
                       <Feather name="credit-card" size={18} color={COLOR_PRETS} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.loanName}>{l.name || "Prêt"}</Text>
+                      <Text style={styles.loanName}>{l.name || t("loan.defaultName")}</Text>
                       <Text style={styles.loanMeta}>
                         {isDirect
-                          ? "Mensualité directe"
-                          : `${fmt(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ans`}
+                          ? t("label.loanDirect")
+                          : `${fmt(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ${t("label.years")}`}
                       </Text>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
                       <Text style={styles.loanAmount}>{fmt(m)}</Text>
-                      <Text style={styles.loanMetaSmall}>/ mois</Text>
+                      <Text style={styles.loanMetaSmall}>{t("label.perMonth")}</Text>
                     </View>
                     <TouchableOpacity
                       onPress={() => askDeleteLoan(l.id)}
@@ -1058,21 +1078,22 @@ export default function Index() {
                   items.map((it) => (
                     <Field
                       key={it.id}
-                      label={it.label}
+                      label={displayItemLabel(it, t)}
                       icon={<Feather name={it.icon} size={18} color={it.color} />}
                       right={getCurrency(currency).symbol}
                       value={it.amount}
-                      onChangeText={(t) => updateItemAmount(it.id, t)}
-                      onLabelChange={(t) => updateItemLabel(it.id, t)}
+                      onChangeText={(v) => updateItemAmount(it.id, v)}
+                      onLabelChange={(v) => updateItemLabel(it.id, v)}
                       onDelete={() => deleteItem(it.id)}
                       keyboardType="decimal-pad"
                       placeholder="0"
+                      renameHint={t("renameHint")}
                       testID={`expense-${it.id}`}
                     />
                   ))
                 )}
                 <View style={styles.familyTotalRow}>
-                  <Text style={styles.familyTotalLabel}>Total {meta.label.toLowerCase()}</Text>
+                  <Text style={styles.familyTotalLabel}>{interpolate(t("items.totalFamily"), { family: t(`family.${family}.label`).toLowerCase() })}</Text>
                   <Text style={[styles.familyTotalValue, { color: meta.color }]}>
                     {fmt(familyTotals[family])}
                   </Text>
@@ -1083,7 +1104,7 @@ export default function Index() {
 
           {/* Total général */}
           <View style={styles.expensesTotalRow}>
-            <Text style={styles.expensesTotalLabel}>Total dépenses mensuelles</Text>
+            <Text style={styles.expensesTotalLabel}>{t("items.totalMonthly")}</Text>
             <Text style={styles.expensesTotalValue} testID="expenses-total">
               {fmt(rentNum + loansMonthly + totalExpenses)}
             </Text>
@@ -1092,7 +1113,7 @@ export default function Index() {
           {/* Budget mois par mois */}
           <Section title={t("section.monthly.title")}>
             <Text style={styles.familySub}>
-              La fréquence de chaque source de revenu (mensuel, annuel, mois précis) se règle dans la fiche de la source.
+              {t("monthly.intro")}
             </Text>
             <MonthlyBreakdown
               months={months}
@@ -1101,13 +1122,24 @@ export default function Index() {
               annualIncome={annualIncome}
               annualExpenses={annualExpenses}
               currency={currency}
+              labels={{
+                netSmall: t("monthly.netSmall"),
+                colMonth: t("monthly.col.month"),
+                colIncome: t("monthly.col.income"),
+                colExpenses: t("monthly.col.expenses"),
+                colRemaining: t("monthly.col.remaining"),
+                totalAnnual: t("monthly.total.annual"),
+                totalIncome: t("monthly.total.income"),
+                totalExpenses: t("monthly.total.expenses"),
+                totalRemaining: t("monthly.total.remaining"),
+              }}
             />
           </Section>
 
           {/* === Conseils 50/30/20 === */}
           <Section title={t("section.advice.title")}>
             <Text style={styles.familySub}>
-              Basés sur la règle 50/30/20 (Besoins · Loisirs · Épargne)
+              {t("advice.intro")}
             </Text>
             {advice.map((a, idx) => {
               const accent =
@@ -1126,9 +1158,9 @@ export default function Index() {
                 >
                   <View style={styles.adviceHeader}>
                     <Feather name={a.icon as keyof typeof Feather.glyphMap} size={16} color={accent} />
-                    <Text style={[styles.adviceTitle, { color: accent }]}>{a.title}</Text>
+                    <Text style={[styles.adviceTitle, { color: accent }]}>{t(a.titleKey)}</Text>
                   </View>
-                  <Text style={styles.adviceMessage}>{a.message}</Text>
+                  <Text style={styles.adviceMessage}>{interpolate(t(a.messageKey), a.params)}</Text>
                 </View>
               );
             })}
@@ -1150,7 +1182,7 @@ export default function Index() {
                   segments={segments}
                   size={240}
                   strokeWidth={28}
-                  centerLabel="Reste à vivre"
+                  centerLabel={t("donut.remaining")}
                   centerValue={fmt(remaining)}
                   centerValueColor={remainingColor}
                 />
@@ -1394,7 +1426,7 @@ export default function Index() {
           testID="dismiss-keyboard"
         >
           <Feather name="check" size={16} color="#000" />
-          <Text style={styles.dismissKbBtnText}>Terminé</Text>
+          <Text style={styles.dismissKbBtnText}>{t("kb.done")}</Text>
         </TouchableOpacity>
       )}
 
@@ -1642,9 +1674,9 @@ export default function Index() {
               ListEmptyComponent={
                 <View style={styles.cityEmpty} testID="city-empty">
                   <Feather name="search" size={20} color={TEXT_3} />
-                  <Text style={styles.cityEmptyTitle}>Aucune ville trouvée</Text>
+                  <Text style={styles.cityEmptyTitle}>{t("city.noResult")}</Text>
                   <Text style={styles.cityEmptyText}>
-                    Essaie sans accents ni tirets (ex: « saint etienne »).
+                    {t("city.noResultHint")}
                   </Text>
                 </View>
               }
@@ -1698,11 +1730,10 @@ export default function Index() {
             onPress={() => setCityInfoOpen(false)}
           />
           <View style={styles.confirmBox}>
-            <Text style={styles.confirmTitle}>Indice coût de la vie</Text>
-            <Text style={styles.confirmMessage}>{INDEX_EXPLANATION}</Text>
+            <Text style={styles.confirmTitle}>{t("info.indexTitle")}</Text>
+            <Text style={styles.confirmMessage}>{t("info.indexBody")}</Text>
             <Text style={[styles.confirmMessage, { marginTop: 6, fontStyle: "italic" }]}>
-              Dans cette app, l'indice est informatif : vos dépenses réelles (loyer, prêts, alimentation…)
-              sont celles utilisées pour calculer le reste à vivre.
+              {t("info.indexFooter")}
             </Text>
             <TouchableOpacity
               style={styles.infoCloseBtn}
@@ -1728,24 +1759,24 @@ export default function Index() {
             onPress={() => setRuleInfoOpen(false)}
           />
           <View style={styles.confirmBox}>
-            <Text style={styles.confirmTitle}>📚 La règle 50/30/20</Text>
+            <Text style={styles.confirmTitle}>{t("rule.title")}</Text>
             <Text style={styles.confirmMessage}>
-              Imaginée par la sénatrice Elizabeth Warren, cette règle répartit ton revenu net mensuel en 3 enveloppes :
+              {t("rule.intro")}
             </Text>
             <Text style={[styles.confirmMessage, { marginTop: 10 }]}>
-              <Text style={{ color: "#10B981", fontWeight: "800" }}>🛡 50 % Besoins </Text>
-              — loyer, prêts, alimentation, transport, santé, énergie. Tout ce qui est vital ou contraignant.
+              <Text style={{ color: "#10B981", fontWeight: "800" }}>{t("rule.needsHead")} </Text>
+              {t("rule.needsBody")}
             </Text>
             <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
-              <Text style={{ color: "#A855F7", fontWeight: "800" }}>🎵 30 % Loisirs </Text>
-              — sorties, restos, vacances, streaming. La part « plaisir » sur laquelle tu peux ajuster.
+              <Text style={{ color: "#A855F7", fontWeight: "800" }}>{t("rule.wantsHead")} </Text>
+              {t("rule.wantsBody")}
             </Text>
             <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
-              <Text style={{ color: "#F59E0B", fontWeight: "800" }}>📈 20 % Épargne </Text>
-              — Livret A, PEA, assurance vie, immobilier locatif. Ce que tu mets de côté pour ton avenir.
+              <Text style={{ color: "#F59E0B", fontWeight: "800" }}>{t("rule.savingsHead")} </Text>
+              {t("rule.savingsBody")}
             </Text>
             <Text style={[styles.confirmMessage, { marginTop: 12, fontStyle: "italic" }]}>
-              💡 Si tes besoins explosent au-dessus de 50 %, regarde si tu peux baisser un poste fixe (énergie, mutuelle, abonnements) ou augmenter tes revenus.
+              {t("rule.tip")}
             </Text>
             <TouchableOpacity
               style={styles.infoCloseBtn}
@@ -1794,7 +1825,7 @@ export default function Index() {
                 showsVerticalScrollIndicator={false}
               >
                 <Dropdown<IncomeType>
-                  label="Type de revenu"
+                  label={t("income.type")}
                   icon={
                     <Feather
                       name={TYPE_ICON[incomeForm.type] as keyof typeof Feather.glyphMap}
@@ -1856,7 +1887,7 @@ export default function Index() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ gap: 6, paddingVertical: 8, paddingHorizontal: 4 }}
                   >
-                    {MONTHS_SHORT.map((m, i) => (
+                    {MONTH_KEYS_SHORT.map((key, i) => (
                       <TouchableOpacity
                         key={i}
                         onPress={() => setIncomeForm((f) => ({ ...f, variableMonth: i }))}
@@ -1864,7 +1895,7 @@ export default function Index() {
                         testID={`income-month-${i}`}
                       >
                         <Text style={[styles.distribPillText, incomeForm.variableMonth === i && styles.distribPillTextActive]}>
-                          {m}
+                          {t(key)}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -2042,8 +2073,8 @@ export default function Index() {
                   label={t("label.loanName")}
                   icon={<Feather name="tag" size={18} color={GOLD} />}
                   value={form.name}
-                  onChangeText={(t) => setForm({ ...form, name: t })}
-                  placeholder="ex : Crédit immobilier"
+                  onChangeText={(v) => setForm({ ...form, name: v })}
+                  placeholder={t("loan.placeholder")}
                   testID="loan-name-input"
                 />
 
@@ -2204,6 +2235,7 @@ function Field({
   hintText,
   onDelete,
   onLabelChange,
+  renameHint,
 }: {
   label: string;
   icon?: React.ReactNode;
@@ -2216,6 +2248,7 @@ function Field({
   hintText?: string;
   onDelete?: () => void;
   onLabelChange?: (next: string) => void;
+  renameHint?: string;
 }) {
   const [focused, setFocused] = useState(false);
   const handleFocus = () => {
@@ -2236,7 +2269,7 @@ function Field({
               style={[styles.inputLabel, styles.inputLabelEditable]}
               value={label}
               onChangeText={onLabelChange}
-              placeholder="Renomme cette catégorie"
+              placeholder={renameHint ?? "Renomme cette catégorie"}
               placeholderTextColor={TEXT_3}
               selectTextOnFocus
               returnKeyType="done"

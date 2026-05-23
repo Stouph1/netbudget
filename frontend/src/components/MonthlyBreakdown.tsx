@@ -28,6 +28,17 @@ type Props = {
   annualIncome: number;
   annualExpenses: number;
   currency: CurrencyCode;
+  labels: {
+    netSmall: string;
+    colMonth: string;
+    colIncome: string;
+    colExpenses: string;
+    colRemaining: string;
+    totalAnnual: string;
+    totalIncome: string;
+    totalExpenses: string;
+    totalRemaining: string;
+  };
 };
 
 export default function MonthlyBreakdown({
@@ -37,6 +48,7 @@ export default function MonthlyBreakdown({
   currency,
   annualIncome,
   annualExpenses,
+  labels,
 }: Props) {
   const fmt = (v: number) => formatCurrency(v, currency);
   const max = Math.max(...months.map((m) => Math.abs(m.remaining)), 1);
@@ -70,7 +82,7 @@ export default function MonthlyBreakdown({
               >
                 {fmt(m.remaining)}
               </Text>
-              <Text style={styles.monthMeta}>net {fmt(m.income)}</Text>
+              <Text style={styles.monthMeta}>{labels.netSmall} {fmt(m.income)}</Text>
               <View style={styles.barTrack}>
                 <View
                   style={[
@@ -90,15 +102,15 @@ export default function MonthlyBreakdown({
       {/* Detailed list */}
       <View style={styles.tableCard}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.th, { flex: 1.1 }]}>Mois</Text>
+          <Text style={[styles.th, { flex: 1.1 }]}>{labels.colMonth}</Text>
           <Text style={[styles.th, { flex: 1.4, textAlign: "right" }]}>
-            Revenu net
+            {labels.colIncome}
           </Text>
           <Text style={[styles.th, { flex: 1.4, textAlign: "right" }]}>
-            Dépenses
+            {labels.colExpenses}
           </Text>
           <Text style={[styles.th, { flex: 1.3, textAlign: "right" }]}>
-            Reste
+            {labels.colRemaining}
           </Text>
         </View>
 
@@ -140,22 +152,22 @@ export default function MonthlyBreakdown({
         })}
 
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total annuel</Text>
+          <Text style={styles.totalLabel}>{labels.totalAnnual}</Text>
           <View style={styles.totalValues}>
             <View style={styles.totalBlock}>
-              <Text style={styles.totalSub}>Revenus</Text>
+              <Text style={styles.totalSub}>{labels.totalIncome}</Text>
               <Text style={[styles.totalNum, { color: SUCCESS }]}>
                 {fmt(annualIncome)}
               </Text>
             </View>
             <View style={styles.totalBlock}>
-              <Text style={styles.totalSub}>Dépenses</Text>
+              <Text style={styles.totalSub}>{labels.totalExpenses}</Text>
               <Text style={[styles.totalNum, { color: TEXT_2 }]}>
                 {fmt(annualExpenses)}
               </Text>
             </View>
             <View style={styles.totalBlock}>
-              <Text style={styles.totalSub}>Reste</Text>
+              <Text style={styles.totalSub}>{labels.totalRemaining}</Text>
               <Text
                 style={[
                   styles.totalNum,
