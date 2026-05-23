@@ -33,6 +33,7 @@ import { generatePdfHtml, generateShareCardHtml, PdfData } from "../src/utils/pd
 import {
   IncomeSource,
   IncomeType,
+  IncomeFrequency,
   ProStatus,
   STATUS_LABEL,
   STATUS_DEFAULT_CHARGES,
@@ -56,13 +57,26 @@ const MONTHS_SHORT = [
   "Juil", "Août", "Sep", "Oct", "Nov", "Déc",
 ];
 
+type LoanMode = "computed" | "direct";
+
 type Loan = {
   id: string;
   name: string;
+  mode?: LoanMode; // undefined = "computed" (rétrocompat v1.2.x)
   principal: string;
   ratePercent: string;
   years: string;
+  directMonthly?: string;
 };
+
+function loanMonthlyPayment(l: Loan): number {
+  if (l.mode === "direct") return parseNumber(l.directMonthly || "0");
+  return computeLoanMonthlyPayment(
+    parseNumber(l.principal),
+    parseNumber(l.ratePercent),
+    parseNumber(l.years)
+  );
+}
 
 type ExpenseFamily = "besoins" | "loisirs" | "epargne";
 
@@ -182,7 +196,8 @@ export default function Index() {
   const [loanModalOpen, setLoanModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
   const [form, setForm] = useState<Loan>({
-    id: "", name: "", principal: "0", ratePercent: "0", years: "0",
+    id: "", name: "", mode: "computed",
+    principal: "0", ratePercent: "0", years: "0", directMonthly: "0",
   });
 
   const [confirm, setConfirm] = useState<ConfirmState>({
@@ -250,17 +265,7 @@ export default function Index() {
   const rentNum = parseNumber(rent);
 
   const loansMonthly = useMemo(
-    () =>
-      loans.reduce(
-        (s, l) =>
-          s +
-          computeLoanMonthlyPayment(
-            parseNumber(l.principal),
-            parseNumber(l.ratePercent),
-            parseNumber(l.years)
-          ),
-        0
-      ),
+    () => loans.reduce((s, l) => s + loanMonthlyPayment(l), 0),
     [loans]
   );
 
@@ -356,7 +361,15 @@ export default function Index() {
 
   function openAddLoan() {
     setEditingLoan(null);
-    setForm({ id: "", name: "", principal: "0", ratePercent: "0", years: "0" });
+    setForm({
+      id: "",
+      name: "",
+      mode: "computed",
+      principal: "0",
+      ratePercent: "0",
+      years: "0",
+      directMonthly: "0",
+    });
     setLoanModalOpen(true);
   }
   function openEditLoan(loan: Loan) {
@@ -365,17 +378,30 @@ export default function Index() {
     setLoanModalOpen(true);
   }
   function saveLoan() {
-    const principal = parseNumber(form.principal);
-    const years = parseNumber(form.years);
-    if (principal <= 0 || years <= 0) {
-      setConfirm({
-        open: true,
-        title: "Informations incomplètes",
-        message: "Renseignez au minimum le montant emprunté et la durée en années.",
-        confirmLabel: "OK",
-        onConfirm: () => {},
-      });
-      return;
+    if (form.mode === "direct") {
+      if (parseNumber(form.directMonthly || "0") <= 0) {
+        setConfirm({
+          open: true,
+          title: "Mensualité requise",
+          message: "Indique le montant que tu rembourses chaque mois.",
+          confirmLabel: "OK",
+          onConfirm: () => {},
+        });
+        return;
+      }
+    } else {
+      const principal = parseNumber(form.principal);
+      const years = parseNumber(form.years);
+      if (principal <= 0 || years <= 0) {
+        setConfirm({
+          open: true,
+          title: "Informations incomplètes",
+          message: "Renseigne au minimum le montant emprunté et la durée en années.",
+          confirmLabel: "OK",
+          onConfirm: () => {},
+        });
+        return;
+      }
     }
     if (editingLoan) {
       setLoans((ls) =>
@@ -836,7 +862,8 @@ export default function Index() {
 
           {/* Prêts */}
           <Section
-            title="Prêts bancaires"
+            title="Prêts"
+            subtitle="Crédits en cours. Tu peux saisir le détail (capital + taux + durée) ou directement la mensualité."
             action={
               <TouchableOpacity
                 onPress={openAddLoan}
@@ -859,11 +886,8 @@ export default function Index() {
               </View>
             ) : (
               loans.map((l) => {
-                const m = computeLoanMonthlyPayment(
-                  parseNumber(l.principal),
-                  parseNumber(l.ratePercent),
-                  parseNumber(l.years)
-                );
+                const m = loanMonthlyPayment(l);
+                const isDirect = l.mode === "direct";
                 return (
                   <TouchableOpacity
                     key={l.id}
@@ -878,7 +902,9 @@ export default function Index() {
                     <View style={{ flex: 1 }}>
                       <Text style={styles.loanName}>{l.name || "Prêt"}</Text>
                       <Text style={styles.loanMeta}>
-                        {formatEuro(parseNumber(l.principal))} · {l.ratePercent || "0"}% · {l.years || "0"} ans
+                        {isDirect
+                          ? "Mensualité directe"
+                          : `${formatEuro(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ans`}
                       </Text>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
@@ -1283,7 +1309,7 @@ export default function Index() {
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
-                  {editingIncome ? "Modifier la source" : "Nouvelle source de revenu"}
+                  {editingIncome ? "Modifier la source" : "Nouvelle source"}
                 </Text>
                 <TouchableOpacity
                   onPress={() => { Keyboard.dismiss(); setIncomeModalOpen(false); }}
@@ -1292,19 +1318,39 @@ export default function Index() {
                   <Feather name="x" size={22} color={TEXT_2} />
                 </TouchableOpacity>
               </View>
-              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <Text style={styles.pillSectionLabel}>Type de revenu</Text>
-                <View style={styles.pillsGrid}>
-                  {(Object.keys(TYPE_LABEL) as IncomeType[]).map((t) => (
-                    <StatusPill
-                      key={t}
-                      label={TYPE_LABEL[t]}
-                      active={incomeForm.type === t}
-                      onPress={() => changeIncomeType(t)}
-                      testID={`income-type-${t}`}
+              <ScrollView
+                style={{ flexGrow: 0 }}
+                contentContainerStyle={{ paddingBottom: 8 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Dropdown<IncomeType>
+                  label="Type de revenu"
+                  icon={
+                    <Feather
+                      name={TYPE_ICON[incomeForm.type] as keyof typeof Feather.glyphMap}
+                      size={18}
+                      color={GOLD}
                     />
-                  ))}
-                </View>
+                  }
+                  value={incomeForm.type}
+                  options={(Object.keys(TYPE_LABEL) as IncomeType[]).map((t) => ({
+                    value: t,
+                    label: TYPE_LABEL[t],
+                    hint:
+                      t === "salaire"
+                        ? "CDI, CDD, fonction publique"
+                        : t === "freelance"
+                          ? "BNC, microentreprise"
+                          : t === "locatif"
+                            ? "Loyers perçus (revenus fonciers)"
+                            : t === "dividendes"
+                              ? "PEA, CTO, dividendes (flat tax 30 %)"
+                              : "Tout autre revenu",
+                  }))}
+                  onChange={changeIncomeType}
+                  testID="income-type-dropdown"
+                />
 
                 <Field
                   label="Nom"
@@ -1326,38 +1372,29 @@ export default function Index() {
                   testID="income-amount"
                 />
 
-                <Text style={styles.pillSectionLabel}>Fréquence</Text>
-                <View style={styles.pillsGrid}>
-                  <StatusPill
-                    label="Mensuel"
-                    active={incomeForm.frequency === "monthly"}
-                    onPress={() => setIncomeForm((f) => ({ ...f, frequency: "monthly" }))}
-                    testID="income-freq-monthly"
-                  />
-                  <StatusPill
-                    label="Annuel"
-                    active={incomeForm.frequency === "annual"}
-                    onPress={() => setIncomeForm((f) => ({ ...f, frequency: "annual" }))}
-                    testID="income-freq-annual"
-                  />
-                  <StatusPill
-                    label="Versé un mois précis"
-                    active={incomeForm.frequency === "monthOnce"}
-                    onPress={() =>
-                      setIncomeForm((f) => ({
-                        ...f,
-                        frequency: "monthOnce",
-                        variableMonth: f.variableMonth ?? 11,
-                      }))
-                    }
-                    testID="income-freq-monthOnce"
-                  />
-                </View>
+                <Dropdown<IncomeFrequency>
+                  label="Fréquence"
+                  icon={<Feather name="calendar" size={18} color={GOLD} />}
+                  value={incomeForm.frequency}
+                  options={[
+                    { value: "monthly", label: "Mensuel", hint: "Chaque mois (ex: salaire net mensuel)" },
+                    { value: "annual", label: "Annuel", hint: "Le total sur 1 an, réparti automatiquement" },
+                    { value: "monthOnce", label: "Versé un mois précis", hint: "Prime, 13e mois, dividende annuel…" },
+                  ]}
+                  onChange={(next) =>
+                    setIncomeForm((f) => ({
+                      ...f,
+                      frequency: next,
+                      variableMonth: next === "monthOnce" ? f.variableMonth ?? 11 : f.variableMonth,
+                    }))
+                  }
+                  testID="income-freq-dropdown"
+                />
                 {incomeForm.frequency === "monthOnce" && (
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: 6, paddingVertical: 8 }}
+                    contentContainerStyle={{ gap: 6, paddingVertical: 8, paddingHorizontal: 4 }}
                   >
                     {MONTHS_SHORT.map((m, i) => (
                       <TouchableOpacity
@@ -1376,33 +1413,29 @@ export default function Index() {
 
                 {incomeForm.type === "salaire" && (
                   <>
-                    <Text style={styles.pillSectionLabel}>Statut professionnel</Text>
-                    <View style={styles.pillsGrid}>
-                      {(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => (
-                        <StatusPill
-                          key={s}
-                          label={STATUS_LABEL[s]}
-                          active={incomeForm.proStatus === s}
-                          onPress={() => changeIncomeProStatus(s)}
-                          testID={`income-status-${s}`}
-                        />
-                      ))}
-                    </View>
-                    <Text style={styles.pillSectionLabel}>Quotité de travail</Text>
-                    <View style={styles.statusToggle}>
-                      <StatusPill
-                        label="Temps plein"
-                        active={incomeForm.timeMode === "plein"}
-                        onPress={() => setIncomeForm((f) => ({ ...f, timeMode: "plein" }))}
-                        testID="income-time-plein"
-                      />
-                      <StatusPill
-                        label="Temps partiel"
-                        active={incomeForm.timeMode === "partiel"}
-                        onPress={() => setIncomeForm((f) => ({ ...f, timeMode: "partiel" }))}
-                        testID="income-time-partiel"
-                      />
-                    </View>
+                    <Dropdown<ProStatus>
+                      label="Statut professionnel"
+                      icon={<Feather name="briefcase" size={18} color={GOLD} />}
+                      value={incomeForm.proStatus ?? "non-cadre"}
+                      options={(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => ({
+                        value: s,
+                        label: STATUS_LABEL[s],
+                        hint: `≈ ${STATUS_DEFAULT_CHARGES[s]} % de charges`,
+                      }))}
+                      onChange={changeIncomeProStatus}
+                      testID="income-status-dropdown"
+                    />
+                    <Dropdown<"plein" | "partiel">
+                      label="Quotité de travail"
+                      icon={<Feather name="clock" size={18} color={GOLD} />}
+                      value={incomeForm.timeMode ?? "plein"}
+                      options={[
+                        { value: "plein", label: "Temps plein" },
+                        { value: "partiel", label: "Temps partiel" },
+                      ]}
+                      onChange={(next) => setIncomeForm((f) => ({ ...f, timeMode: next }))}
+                      testID="income-time-dropdown"
+                    />
                   </>
                 )}
 
@@ -1417,7 +1450,8 @@ export default function Index() {
                   hintText={TYPE_HINT[incomeForm.type]}
                   testID="income-charges"
                 />
-
+              </ScrollView>
+              <View style={styles.sheetFooter}>
                 <TouchableOpacity
                   onPress={saveIncome}
                   style={styles.primaryBtn}
@@ -1428,7 +1462,7 @@ export default function Index() {
                     {editingIncome ? "Enregistrer" : "Ajouter"}
                   </Text>
                 </TouchableOpacity>
-              </ScrollView>
+              </View>
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -1459,7 +1493,12 @@ export default function Index() {
                   <Feather name="x" size={22} color={TEXT_2} />
                 </TouchableOpacity>
               </View>
-              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <ScrollView
+                style={{ flexGrow: 0 }}
+                contentContainerStyle={{ paddingBottom: 8 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
                 <Field
                   label="Nom"
                   icon={<Feather name="tag" size={18} color={GOLD} />}
@@ -1478,6 +1517,8 @@ export default function Index() {
                   placeholder="0"
                   testID="new-item-amount"
                 />
+              </ScrollView>
+              <View style={styles.sheetFooter}>
                 <TouchableOpacity
                   onPress={saveNewItem}
                   style={styles.primaryBtn}
@@ -1486,7 +1527,7 @@ export default function Index() {
                 >
                   <Text style={styles.primaryBtnText}>Ajouter</Text>
                 </TouchableOpacity>
-              </ScrollView>
+              </View>
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -1510,64 +1551,95 @@ export default function Index() {
                 <Text style={styles.sheetTitle}>
                   {editingLoan ? "Modifier le prêt" : "Nouveau prêt"}
                 </Text>
-                <TouchableOpacity onPress={() => setLoanModalOpen(false)} testID="close-loan-modal">
+                <TouchableOpacity
+                  onPress={() => { Keyboard.dismiss(); setLoanModalOpen(false); }}
+                  testID="close-loan-modal"
+                >
                   <Feather name="x" size={22} color={TEXT_2} />
                 </TouchableOpacity>
               </View>
 
-              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <ScrollView
+                style={{ flexGrow: 0 }}
+                contentContainerStyle={{ paddingBottom: 8 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
                 <Field
                   label="Nom du prêt"
                   icon={<Feather name="tag" size={18} color={GOLD} />}
                   value={form.name}
                   onChangeText={(t) => setForm({ ...form, name: t })}
-                  placeholder="ex: Crédit immobilier"
+                  placeholder="ex : Crédit immobilier"
                   testID="loan-name-input"
                 />
-                <Field
-                  label="Montant emprunté"
-                  icon={<Text style={styles.euroIcon}>€</Text>}
-                  right="€"
-                  value={form.principal}
-                  onChangeText={(t) => setForm({ ...form, principal: t })}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  testID="loan-principal-input"
-                />
-                <Field
-                  label="Taux d'intérêt annuel"
-                  icon={<Feather name="percent" size={18} color={GOLD} />}
-                  right="%"
-                  value={form.ratePercent}
-                  onChangeText={(t) => setForm({ ...form, ratePercent: t })}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  testID="loan-rate-input"
-                />
-                <Field
-                  label="Durée"
-                  icon={<Feather name="calendar" size={18} color={GOLD} />}
-                  right="ans"
-                  value={form.years}
-                  onChangeText={(t) => setForm({ ...form, years: t })}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  testID="loan-years-input"
+
+                <Dropdown<LoanMode>
+                  label="Mode de saisie"
+                  icon={<Feather name="sliders" size={18} color={GOLD} />}
+                  value={form.mode ?? "computed"}
+                  options={[
+                    { value: "computed", label: "Calculer la mensualité", hint: "À partir du capital, taux et durée" },
+                    { value: "direct", label: "Mensualité directe", hint: "Tu connais déjà le montant mensuel" },
+                  ]}
+                  onChange={(next) => setForm({ ...form, mode: next })}
+                  testID="loan-mode-dropdown"
                 />
 
-                <View style={styles.previewBox}>
-                  <Text style={styles.previewLabel}>Mensualité estimée</Text>
-                  <Text style={styles.previewValue} testID="loan-preview-monthly">
-                    {formatEuro(
-                      computeLoanMonthlyPayment(
-                        parseNumber(form.principal),
-                        parseNumber(form.ratePercent),
-                        parseNumber(form.years)
-                      )
-                    )}
-                  </Text>
-                </View>
-
+                {(form.mode ?? "computed") === "direct" ? (
+                  <Field
+                    label="Mensualité"
+                    icon={<Text style={styles.euroIcon}>€</Text>}
+                    right="€ / mois"
+                    value={form.directMonthly ?? "0"}
+                    onChangeText={(t) => setForm({ ...form, directMonthly: t })}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    hintText="Saisis le montant exact que tu rembourses chaque mois."
+                    testID="loan-direct-monthly-input"
+                  />
+                ) : (
+                  <>
+                    <Field
+                      label="Montant emprunté"
+                      icon={<Text style={styles.euroIcon}>€</Text>}
+                      right="€"
+                      value={form.principal}
+                      onChangeText={(t) => setForm({ ...form, principal: t })}
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      testID="loan-principal-input"
+                    />
+                    <Field
+                      label="Taux d'intérêt annuel"
+                      icon={<Feather name="percent" size={18} color={GOLD} />}
+                      right="%"
+                      value={form.ratePercent}
+                      onChangeText={(t) => setForm({ ...form, ratePercent: t })}
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      testID="loan-rate-input"
+                    />
+                    <Field
+                      label="Durée"
+                      icon={<Feather name="calendar" size={18} color={GOLD} />}
+                      right="ans"
+                      value={form.years}
+                      onChangeText={(t) => setForm({ ...form, years: t })}
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      testID="loan-years-input"
+                    />
+                    <View style={styles.previewBox}>
+                      <Text style={styles.previewLabel}>Mensualité estimée</Text>
+                      <Text style={styles.previewValue} testID="loan-preview-monthly">
+                        {formatEuro(loanMonthlyPayment(form))}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </ScrollView>
+              <View style={styles.sheetFooter}>
                 <TouchableOpacity
                   style={styles.primaryBtn}
                   onPress={saveLoan}
@@ -1575,10 +1647,10 @@ export default function Index() {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.primaryBtnText}>
-                    {editingLoan ? "Enregistrer les modifications" : "Ajouter le prêt"}
+                    {editingLoan ? "Enregistrer" : "Ajouter"}
                   </Text>
                 </TouchableOpacity>
-              </ScrollView>
+              </View>
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -1728,6 +1800,82 @@ function Field({
       </View>
       {hintText && <Text style={styles.fieldHint}>{hintText}</Text>}
     </View>
+  );
+}
+
+type DropdownOption<T extends string> = { value: T; label: string; hint?: string };
+
+function Dropdown<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+  icon,
+  testID,
+}: {
+  label: string;
+  value: T;
+  options: DropdownOption<T>[];
+  onChange: (next: T) => void;
+  icon?: React.ReactNode;
+  testID?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((o) => o.value === value);
+  return (
+    <>
+      <TouchableOpacity
+        style={styles.inputWrap}
+        onPress={() => setOpen(true)}
+        testID={testID}
+        activeOpacity={0.8}
+      >
+        {icon && <View style={styles.inputIcon}>{icon}</View>}
+        <View style={{ flex: 1 }}>
+          <Text style={styles.inputLabel}>{label}</Text>
+          <Text style={styles.inputValue}>{current?.label ?? "—"}</Text>
+        </View>
+        <Feather name="chevron-down" size={20} color={TEXT_3} />
+      </TouchableOpacity>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.dropdownBackdrop}
+          onPress={() => setOpen(false)}
+        >
+          <View style={styles.dropdownSheet} onStartShouldSetResponder={() => true}>
+            <Text style={styles.dropdownTitle}>{label}</Text>
+            {options.map((opt) => {
+              const active = opt.value === value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.dropdownItem, active && styles.dropdownItemActive]}
+                  onPress={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  testID={testID ? `${testID}-opt-${opt.value}` : undefined}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.dropdownItemText, active && styles.dropdownItemTextActive]}>
+                      {opt.label}
+                    </Text>
+                    {opt.hint && <Text style={styles.dropdownItemHint}>{opt.hint}</Text>}
+                  </View>
+                  {active && <Feather name="check" size={16} color={GOLD} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
   );
 }
 
@@ -2140,6 +2288,33 @@ const styles = StyleSheet.create({
     alignItems: "center", backgroundColor: GOLD, marginTop: 10,
   },
   confirmOkText: { color: "#000", fontWeight: "800", fontSize: 14 },
+
+  dropdownBackdrop: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.7)",
+    alignItems: "center", justifyContent: "center", padding: 24,
+  },
+  dropdownSheet: {
+    width: "100%", maxWidth: 380, backgroundColor: "#141416",
+    borderRadius: 20, padding: 18, borderWidth: 1, borderColor: BORDER,
+  },
+  dropdownTitle: {
+    color: TEXT_3, fontSize: 11, fontWeight: "700", letterSpacing: 1.2,
+    textTransform: "uppercase", marginBottom: 12, paddingHorizontal: 4,
+  },
+  dropdownItem: {
+    flexDirection: "row", alignItems: "center",
+    paddingVertical: 14, paddingHorizontal: 12, borderRadius: 12,
+    marginBottom: 4,
+  },
+  dropdownItemActive: { backgroundColor: SURFACE_2 },
+  dropdownItemText: { color: TEXT, fontSize: 15, fontWeight: "600" },
+  dropdownItemTextActive: { color: GOLD, fontWeight: "800" },
+  dropdownItemHint: { color: TEXT_3, fontSize: 12, marginTop: 2 },
+
+  sheetFooter: {
+    paddingTop: 12, borderTopWidth: 1, borderTopColor: BORDER, marginTop: 4,
+  },
+
   infoCloseBtn: {
     paddingVertical: 14, paddingHorizontal: 24, borderRadius: 14,
     alignItems: "center", justifyContent: "center",
