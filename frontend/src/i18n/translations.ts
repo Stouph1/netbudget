@@ -619,7 +619,7 @@ const de: Catalog = {
   "loans.empty.title": "Keine Kredite",
   "loans.empty.text": "Füge deine Kredite hinzu, um die Monatsrate automatisch zu berechnen.",
   "family.empty.title": "Keine Einträge",
-  "family.empty.text": "Füge eine Kategorie über „Hinzufügen" hinzu.",
+  "family.empty.text": "Füge eine Kategorie über den «Hinzufügen»-Knopf hinzu.",
   "modal.newIncome": "Neue Quelle",
   "modal.editIncome": "Quelle bearbeiten",
   "modal.newLoan": "Neuer Kredit",
