@@ -42,6 +42,12 @@ import {
   isFresh,
   RatesPayload,
 } from "../src/utils/exchangeRates";
+import {
+  Lang,
+  LANGUAGES,
+  DEFAULT_LANG,
+  t as tr,
+} from "../src/i18n/translations";
 import { generatePdfHtml, PdfData } from "../src/utils/pdf";
 import {
   IncomeSource,
@@ -185,6 +191,11 @@ export default function Index() {
   const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
   const fmt = (v: number) => formatCurrency(v, currency);
 
+  // Langue
+  const [lang, setLang] = useState<Lang>(DEFAULT_LANG);
+  const [langPickerOpen, setLangPickerOpen] = useState(false);
+  const t = (k: string) => tr(k, lang);
+
   // Convertisseur de devise
   const [convFrom, setConvFrom] = useState<CurrencyCode>("EUR");
   const [convTo, setConvTo] = useState<CurrencyCode>("USD");
@@ -306,6 +317,9 @@ export default function Index() {
         if (stored.currency) {
           setCurrency(stored.currency as CurrencyCode);
         }
+        if (stored.lang) {
+          setLang(stored.lang as Lang);
+        }
       }
       setHydrated(true);
     })();
@@ -413,8 +427,9 @@ export default function Index() {
       loans,
       cityId: city.id,
       currency,
+      lang,
     });
-  }, [hydrated, incomes, rent, expenseItems, loans, city, currency]);
+  }, [hydrated, incomes, rent, expenseItems, loans, city, currency, lang]);
 
   function openAddLoan() {
     setEditingLoan(null);
@@ -684,10 +699,19 @@ export default function Index() {
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.eyebrow}>Budget · {getCurrency(currency).flag} {getCurrency(currency).code}</Text>
+              <Text style={styles.eyebrow}>{t("header.eyebrow")} · {getCurrency(currency).flag} {getCurrency(currency).code}</Text>
               <Text style={styles.title}>NETbudget</Text>
             </View>
             <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => setLangPickerOpen(true)}
+                style={styles.headerBtn}
+                testID="lang-button"
+              >
+                <Text style={styles.headerBtnText}>
+                  {LANGUAGES.find((l) => l.code === lang)?.flag ?? "🌐"}
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setCurrencyPickerOpen(true)}
                 style={styles.headerBtn}
@@ -706,41 +730,39 @@ export default function Index() {
             <View style={styles.onboardingCard} testID="onboarding-card">
               <View style={styles.onboardingHeader}>
                 <Feather name="compass" size={20} color={GOLD} />
-                <Text style={styles.onboardingTitle}>Comment ça marche</Text>
+                <Text style={styles.onboardingTitle}>{t("onboarding.title")}</Text>
               </View>
               <Text style={styles.onboardingStep}>
                 <Text style={styles.onboardingNum}>1. </Text>
-                Ajoute tes sources de revenu (salaire, freelance, locatif, dividendes…). Chaque source a son taux de charges sociales.
+                {t("onboarding.step1")}
               </Text>
               <Text style={styles.onboardingStep}>
                 <Text style={styles.onboardingNum}>2. </Text>
-                Renseigne ton loyer, tes prêts et tes dépenses, classées en 3 familles : <Text style={styles.onboardingHl}>Besoins</Text>, <Text style={styles.onboardingHl}>Loisirs</Text>, <Text style={styles.onboardingHl}>Épargne</Text> (règle 50/30/20).
+                {t("onboarding.step2")}
               </Text>
               <Text style={styles.onboardingStep}>
                 <Text style={styles.onboardingNum}>3. </Text>
-                En bas de page : ton <Text style={styles.onboardingHl}>reste à vivre</Text>, tes <Text style={styles.onboardingHl}>conseils personnalisés</Text> et un export PDF / carte à partager.
+                {t("onboarding.step3")}
               </Text>
-              <Text style={styles.onboardingTip}>
-                💡 Tes données restent sur ton téléphone — rien n'est envoyé sur internet.
-              </Text>
+              <Text style={styles.onboardingTip}>{t("onboarding.tip")}</Text>
             </View>
           ) : (
             <View style={styles.topSummary} testID="top-summary">
               <View style={styles.topSummaryRow}>
                 <View style={styles.topSummaryBlock}>
-                  <Text style={styles.topSummaryLabel}>Net mensuel</Text>
+                  <Text style={styles.topSummaryLabel}>{t("top.netMonthly")}</Text>
                   <Text style={styles.topSummaryValue}>{fmt(netMensuel)}</Text>
                 </View>
                 <View style={styles.topSummaryDivider} />
                 <View style={styles.topSummaryBlock}>
-                  <Text style={styles.topSummaryLabel}>Dépenses</Text>
+                  <Text style={styles.topSummaryLabel}>{t("top.expenses")}</Text>
                   <Text style={[styles.topSummaryValue, { color: TEXT_2 }]}>
                     {fmt(monthlyExpenses)}
                   </Text>
                 </View>
                 <View style={styles.topSummaryDivider} />
                 <View style={styles.topSummaryBlock}>
-                  <Text style={styles.topSummaryLabel}>Reste à vivre</Text>
+                  <Text style={styles.topSummaryLabel}>{t("top.remaining")}</Text>
                   <Text style={[styles.topSummaryValue, { color: remainingColor }]} testID="top-reste-value">
                     {fmt(remaining)}
                   </Text>
@@ -751,7 +773,8 @@ export default function Index() {
 
           {/* Revenus — multi-sources */}
           <Section
-            title="Revenus"
+            title={t("section.income.title")}
+            subtitle={t("section.income.subtitle")}
             action={
               <TouchableOpacity
                 onPress={openAddIncome}
@@ -760,13 +783,10 @@ export default function Index() {
                 activeOpacity={0.85}
               >
                 <Feather name="plus" size={16} color="#000" />
-                <Text style={styles.addBtnText}>Ajouter</Text>
+                <Text style={styles.addBtnText}>{t("btn.add")}</Text>
               </TouchableOpacity>
             }
           >
-            <Text style={styles.familySub}>
-              Salaire, freelance, locatif, dividendes… chacun avec son propre taux de charges.
-            </Text>
             {incomes.length === 0 ? (
               <View style={styles.emptyCard}>
                 <Feather name="briefcase" size={22} color={TEXT_3} />
@@ -842,10 +862,7 @@ export default function Index() {
           </Section>
 
           {/* Ville */}
-          <Section
-            title="Localisation"
-            subtitle="L'indice du coût de la vie compare ta ville à la moyenne nationale (1,00). Il est informatif — ce sont tes dépenses saisies qui pilotent le calcul."
-          >
+          <Section title={t("section.location.title")}>
             <TouchableOpacity
               style={styles.inputWrap}
               onPress={() => setCityPickerOpen(true)}
@@ -878,10 +895,7 @@ export default function Index() {
           </Section>
 
           {/* Logement */}
-          <Section
-            title="Logement"
-            subtitle="Loyer charges comprises. Règle classique : viser sous 33 % du net mensuel."
-          >
+          <Section title={t("section.housing.title")}>
             <Field
               label="Loyer mensuel (charges comprises)"
               icon={<Feather name="home" size={18} color={COLOR_LOYER} />}
@@ -896,8 +910,7 @@ export default function Index() {
 
           {/* Prêts */}
           <Section
-            title="Prêts"
-            subtitle="Crédits en cours. Tu peux saisir le détail (capital + taux + durée) ou directement la mensualité."
+            title={t("section.loans.title")}
             action={
               <TouchableOpacity
                 onPress={openAddLoan}
@@ -1037,10 +1050,7 @@ export default function Index() {
           </View>
 
           {/* Budget mois par mois */}
-          <Section
-            title="Budget mois par mois"
-            subtitle="Projection sur 12 mois en tenant compte de la fréquence de chaque revenu (mensuel, annuel ou versé un mois précis)."
-          >
+          <Section title={t("section.monthly.title")}>
             <Text style={styles.familySub}>
               La fréquence de chaque source de revenu (mensuel, annuel, mois précis) se règle dans la fiche de la source.
             </Text>
@@ -1055,10 +1065,7 @@ export default function Index() {
           </Section>
 
           {/* === Conseils 50/30/20 === */}
-          <Section
-            title="Conseils d'optimisation"
-            subtitle="Règles éprouvées : 50/30/20, plafond loyer 33 %, seuil endettement HCSF 35 %, fond d'urgence 3-6 mois."
-          >
+          <Section title={t("section.advice.title")}>
             <Text style={styles.familySub}>
               Basés sur la règle 50/30/20 (Besoins · Loisirs · Épargne)
             </Text>
@@ -1089,8 +1096,7 @@ export default function Index() {
 
           {/* === Convertisseur de devise temps réel === */}
           <Section
-            title="Convertisseur de devise"
-            subtitle="Taux temps réel (rafraîchis automatiquement toutes les 6 h). Inclut le franc CFA (XOF / XAF), fixé à 655,957 pour 1 €."
+            title={t("section.converter.title")}
             action={
               <TouchableOpacity
                 onPress={() => refreshRates(true)}
@@ -1104,7 +1110,7 @@ export default function Index() {
             }
           >
             <Dropdown<CurrencyCode>
-              label="De"
+              label={t("converter.from")}
               icon={<Text style={styles.currencyFlag}>{getCurrency(convFrom).flag}</Text>}
               value={convFrom}
               options={CURRENCIES.map((c) => ({
@@ -1116,7 +1122,7 @@ export default function Index() {
               testID="conv-from"
             />
             <Field
-              label="Montant"
+              label={t("converter.amount")}
               icon={<Text style={styles.euroIcon}>{getCurrency(convFrom).symbol}</Text>}
               right={getCurrency(convFrom).code}
               value={convAmount}
@@ -1126,7 +1132,7 @@ export default function Index() {
               testID="conv-amount"
             />
             <Dropdown<CurrencyCode>
-              label="Vers"
+              label={t("converter.to")}
               icon={<Text style={styles.currencyFlag}>{getCurrency(convTo).flag}</Text>}
               value={convTo}
               options={CURRENCIES.map((c) => ({
@@ -1138,25 +1144,22 @@ export default function Index() {
               testID="conv-to"
             />
             <View style={styles.convResultBox}>
-              <Text style={styles.convResultLabel}>Résultat</Text>
+              <Text style={styles.convResultLabel}>{t("converter.result")}</Text>
               <Text style={styles.convResultValue} testID="conv-result">
                 {formatCurrency(convResult, convTo)}
               </Text>
               <Text style={styles.convResultMeta}>
                 {rates
-                  ? `Taux mis à jour ${formatRelativeAgo(rates.fetchedAt)}${
-                      isFresh(rates) ? "" : " · cache expiré"
+                  ? `${t("converter.updated")} ${formatRelativeAgo(rates.fetchedAt)}${
+                      isFresh(rates) ? "" : ` · ${t("converter.cacheExpired")}`
                     }`
-                  : "Chargement des taux…"}
+                  : t("converter.loading")}
               </Text>
             </View>
           </Section>
 
           {/* === Résultat : camembert à la fin === */}
-          <Section
-            title="Répartition"
-            subtitle="Vue d'ensemble : chaque secteur du camembert = un poste mensuel. Le segment doré, c'est ce qu'il te reste."
-          >
+          <Section title={t("section.breakdown.title")}>
             <View style={styles.hero} testID="dashboard-card">
               <LinearGradient
                 colors={[city.theme.from, city.theme.to]}
@@ -1196,7 +1199,7 @@ export default function Index() {
             activeOpacity={0.85}
           >
             <Feather name="file-text" size={18} color="#000" />
-            <Text style={styles.exportBtnTextDark}>Exporter en PDF</Text>
+            <Text style={styles.exportBtnTextDark}>{t("btn.exportPdf")}</Text>
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />
@@ -1216,6 +1219,57 @@ export default function Index() {
         </TouchableOpacity>
       )}
 
+      {/* Language Picker Modal */}
+      <Modal
+        visible={langPickerOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setLangPickerOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setLangPickerOpen(false)}
+          />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{t("modal.chooseLanguage")}</Text>
+              <TouchableOpacity
+                onPress={() => setLangPickerOpen(false)}
+                testID="close-lang-picker"
+              >
+                <Feather name="x" size={22} color={TEXT_2} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              {LANGUAGES.map((l) => {
+                const active = l.code === lang;
+                return (
+                  <TouchableOpacity
+                    key={l.code}
+                    style={[styles.currencyRow, active && styles.currencyRowActive]}
+                    onPress={() => {
+                      setLang(l.code);
+                      setLangPickerOpen(false);
+                    }}
+                    testID={`lang-option-${l.code}`}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.currencyFlag}>{l.flag}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.currencyName}>{l.label}</Text>
+                      <Text style={styles.currencyMeta}>{l.code.toUpperCase()}</Text>
+                    </View>
+                    {active && <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       {/* Currency Picker Modal */}
       <Modal
         visible={currencyPickerOpen}
@@ -1231,7 +1285,7 @@ export default function Index() {
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Choisir la devise</Text>
+              <Text style={styles.sheetTitle}>{t("modal.chooseCurrency")}</Text>
               <TouchableOpacity
                 onPress={() => setCurrencyPickerOpen(false)}
                 testID="close-currency-picker"
@@ -1289,7 +1343,7 @@ export default function Index() {
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Choisir une ville</Text>
+              <Text style={styles.sheetTitle}>{t("modal.chooseCity")}</Text>
               <TouchableOpacity onPress={() => { Keyboard.dismiss(); setCityPickerOpen(false); }} testID="close-city-picker">
                 <Feather name="x" size={22} color={TEXT_2} />
               </TouchableOpacity>
@@ -1300,7 +1354,7 @@ export default function Index() {
                 style={styles.searchInput}
                 value={citySearch}
                 onChangeText={setCitySearch}
-                placeholder="Rechercher une ville…"
+                placeholder={t("btn.search")}
                 placeholderTextColor={TEXT_3}
                 returnKeyType="search"
                 testID="city-search-input"
@@ -1459,7 +1513,7 @@ export default function Index() {
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
-                  {editingIncome ? "Modifier la source" : "Nouvelle source"}
+                  {editingIncome ? t("modal.editIncome") : t("modal.newIncome")}
                 </Text>
                 <TouchableOpacity
                   onPress={() => { Keyboard.dismiss(); setIncomeModalOpen(false); }}
@@ -1712,7 +1766,7 @@ export default function Index() {
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
-                  {editingLoan ? "Modifier le prêt" : "Nouveau prêt"}
+                  {editingLoan ? t("modal.editLoan") : t("modal.newLoan")}
                 </Text>
                 <TouchableOpacity
                   onPress={() => { Keyboard.dismiss(); setLoanModalOpen(false); }}

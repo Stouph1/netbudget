@@ -25,6 +25,7 @@ export type PersistedState = {
   loans?: unknown[];
   cityId?: string;
   currency?: string;
+  lang?: string;
 };
 
 export async function loadState(): Promise<PersistedState | null> {
