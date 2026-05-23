@@ -90,6 +90,69 @@ const fr: Catalog = {
   "converter.loading": "Chargement des taux…",
   "converter.updated": "Taux mis à jour",
   "converter.cacheExpired": "cache expiré",
+
+  // Tabs
+  "tab.settings": "Réglages",
+  "tab.budget": "Budget",
+  "tab.converter": "Devises",
+
+  // Settings tab
+  "settings.title": "Réglages",
+  "settings.intro": "Configure les préférences par défaut de l'application.",
+  "settings.currency.title": "Devise affichée",
+  "settings.currency.hint": "Tous les montants de l'app utilisent cette devise.",
+  "settings.language.title": "Langue de l'app",
+  "settings.language.hint": "Choisis la langue d'affichage de l'interface.",
+  "settings.danger.title": "Zone de danger",
+  "settings.reset.btn": "Réinitialiser toutes les données",
+
+  // Common labels
+  "label.rent": "Loyer mensuel (charges comprises)",
+  "label.loanName": "Nom du prêt",
+  "label.loanMode": "Mode de saisie",
+  "label.loanComputed": "Calculer la mensualité",
+  "label.loanComputedHint": "À partir du capital, taux et durée",
+  "label.loanDirect": "Mensualité directe",
+  "label.loanDirectHint": "Tu connais déjà le montant mensuel",
+  "label.loanPrincipal": "Montant emprunté",
+  "label.loanRate": "Taux d'intérêt annuel",
+  "label.loanDuration": "Durée",
+  "label.loanMonthly": "Mensualité",
+  "label.loanMonthlyHint": "Saisis le montant exact que tu rembourses chaque mois.",
+  "label.loanPreview": "Mensualité estimée",
+  "label.years": "ans",
+  "label.perMonth": "/ mois",
+
+  // Frequencies
+  "freq.monthly": "Mensuel",
+  "freq.monthlyHint": "Chaque mois (ex: salaire net mensuel)",
+  "freq.annual": "Annuel",
+  "freq.annualHint": "Le total sur 1 an, réparti automatiquement",
+  "freq.monthOnce": "Versé un mois précis",
+  "freq.monthOnceHint": "Prime, 13e mois, dividende annuel…",
+
+  // Time mode
+  "time.full": "Temps plein",
+  "time.part": "Temps partiel",
+
+  // Reset confirm
+  "reset.title": "Réinitialiser ?",
+  "reset.message": "Toutes les données saisies seront effacées.",
+
+  // Validation errors
+  "error.amountRequired": "Montant requis",
+  "error.amountRequiredHint": "Indique un montant supérieur à 0.",
+  "error.nameRequired": "Nom requis",
+  "error.nameRequiredHint": "Donne un nom à ta nouvelle catégorie.",
+  "error.loanMonthlyRequired": "Mensualité requise",
+  "error.loanMonthlyRequiredHint": "Indique le montant que tu rembourses chaque mois.",
+  "error.loanIncomplete": "Informations incomplètes",
+  "error.loanIncompleteHint": "Renseigne au minimum le montant emprunté et la durée en années.",
+
+  // Misc
+  "renameHint": "Renomme cette catégorie",
+  "newCategoryName": "Nom de la catégorie",
+  "loans.add": "Ajouter",
 };
 
 const en: Catalog = {
@@ -153,6 +216,53 @@ const en: Catalog = {
   "converter.loading": "Loading rates…",
   "converter.updated": "Rates updated",
   "converter.cacheExpired": "cache expired",
+  "tab.settings": "Settings",
+  "tab.budget": "Budget",
+  "tab.converter": "FX",
+  "settings.title": "Settings",
+  "settings.intro": "Configure the app's default preferences.",
+  "settings.currency.title": "Display currency",
+  "settings.currency.hint": "All amounts in the app use this currency.",
+  "settings.language.title": "App language",
+  "settings.language.hint": "Choose the language of the interface.",
+  "settings.danger.title": "Danger zone",
+  "settings.reset.btn": "Reset all data",
+  "label.rent": "Monthly rent (charges included)",
+  "label.loanName": "Loan name",
+  "label.loanMode": "Input mode",
+  "label.loanComputed": "Compute payment",
+  "label.loanComputedHint": "From principal, rate and duration",
+  "label.loanDirect": "Direct monthly",
+  "label.loanDirectHint": "You already know the monthly amount",
+  "label.loanPrincipal": "Principal",
+  "label.loanRate": "Annual interest rate",
+  "label.loanDuration": "Duration",
+  "label.loanMonthly": "Monthly payment",
+  "label.loanMonthlyHint": "Enter the exact amount you repay each month.",
+  "label.loanPreview": "Estimated monthly payment",
+  "label.years": "years",
+  "label.perMonth": "/ month",
+  "freq.monthly": "Monthly",
+  "freq.monthlyHint": "Every month (e.g. net monthly salary)",
+  "freq.annual": "Annual",
+  "freq.annualHint": "The total over 1 year, automatically split",
+  "freq.monthOnce": "Paid a specific month",
+  "freq.monthOnceHint": "Bonus, 13th month, annual dividend…",
+  "time.full": "Full-time",
+  "time.part": "Part-time",
+  "reset.title": "Reset?",
+  "reset.message": "All entered data will be erased.",
+  "error.amountRequired": "Amount required",
+  "error.amountRequiredHint": "Enter an amount greater than 0.",
+  "error.nameRequired": "Name required",
+  "error.nameRequiredHint": "Give a name to your new category.",
+  "error.loanMonthlyRequired": "Monthly amount required",
+  "error.loanMonthlyRequiredHint": "Enter the amount you repay each month.",
+  "error.loanIncomplete": "Incomplete information",
+  "error.loanIncompleteHint": "Provide at least the principal and the duration in years.",
+  "renameHint": "Rename this category",
+  "newCategoryName": "Category name",
+  "loans.add": "Add",
 };
 
 // Pour ES/PT/DE/IT/AR : fallback automatique sur FR tant que les catalogues ne sont pas remplis.

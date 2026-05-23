@@ -196,6 +196,10 @@ export default function Index() {
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const t = (k: string) => tr(k, lang);
 
+  // Navigation par onglet (bottom tabs)
+  type Tab = "settings" | "budget" | "converter";
+  const [tab, setTab] = useState<Tab>("budget");
+
   // Convertisseur de devise
   const [convFrom, setConvFrom] = useState<CurrencyCode>("EUR");
   const [convTo, setConvTo] = useState<CurrencyCode>("USD");
@@ -454,9 +458,9 @@ export default function Index() {
       if (parseNumber(form.directMonthly || "0") <= 0) {
         setConfirm({
           open: true,
-          title: "Mensualité requise",
-          message: "Indique le montant que tu rembourses chaque mois.",
-          confirmLabel: "OK",
+          title: t("error.loanMonthlyRequired"),
+          message: t("error.loanMonthlyRequiredHint"),
+          confirmLabel: t("btn.ok"),
           onConfirm: () => {},
         });
         return;
@@ -467,9 +471,9 @@ export default function Index() {
       if (principal <= 0 || years <= 0) {
         setConfirm({
           open: true,
-          title: "Informations incomplètes",
-          message: "Renseigne au minimum le montant emprunté et la durée en années.",
-          confirmLabel: "OK",
+          title: t("error.loanIncomplete"),
+          message: t("error.loanIncompleteHint"),
+          confirmLabel: t("btn.ok"),
           onConfirm: () => {},
         });
         return;
@@ -521,9 +525,9 @@ export default function Index() {
     if (amount <= 0) {
       setConfirm({
         open: true,
-        title: "Montant requis",
-        message: "Indique un montant supérieur à 0.",
-        confirmLabel: "OK",
+        title: t("error.amountRequired"),
+        message: t("error.amountRequiredHint"),
+        confirmLabel: t("btn.ok"),
         onConfirm: () => {},
       });
       return;
@@ -598,9 +602,9 @@ export default function Index() {
     if (!label) {
       setConfirm({
         open: true,
-        title: "Nom requis",
-        message: "Donne un nom à ta nouvelle catégorie.",
-        confirmLabel: "OK",
+        title: t("error.nameRequired"),
+        message: t("error.nameRequiredHint"),
+        confirmLabel: t("btn.ok"),
         onConfirm: () => {},
       });
       return;
@@ -670,10 +674,10 @@ export default function Index() {
   function askResetAll() {
     setConfirm({
       open: true,
-      title: "Réinitialiser ?",
-      message: "Toutes les données saisies seront effacées.",
+      title: t("reset.title"),
+      message: t("reset.message"),
       danger: true,
-      confirmLabel: "Réinitialiser",
+      confirmLabel: t("btn.reset"),
       onConfirm: () => {
         setIncomes([defaultIncomeSource()]);
         setRent("0");
@@ -690,6 +694,7 @@ export default function Index() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
+        {tab === "budget" && (
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -699,29 +704,10 @@ export default function Index() {
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.eyebrow}>{t("header.eyebrow")} · {getCurrency(currency).flag} {getCurrency(currency).code}</Text>
+              <Text style={styles.eyebrow}>
+                {t("tab.budget")} · {getCurrency(currency).flag} {getCurrency(currency).code}
+              </Text>
               <Text style={styles.title}>NETbudget</Text>
-            </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity
-                onPress={() => setLangPickerOpen(true)}
-                style={styles.headerBtn}
-                testID="lang-button"
-              >
-                <Text style={styles.headerBtnText}>
-                  {LANGUAGES.find((l) => l.code === lang)?.flag ?? "🌐"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setCurrencyPickerOpen(true)}
-                style={styles.headerBtn}
-                testID="currency-button"
-              >
-                <Text style={styles.headerBtnText}>{getCurrency(currency).symbol}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={askResetAll} style={styles.headerBtn} testID="reset-button">
-                <Feather name="refresh-ccw" size={16} color={TEXT_2} />
-              </TouchableOpacity>
             </View>
           </View>
 
@@ -790,10 +776,8 @@ export default function Index() {
             {incomes.length === 0 ? (
               <View style={styles.emptyCard}>
                 <Feather name="briefcase" size={22} color={TEXT_3} />
-                <Text style={styles.emptyTitle}>Aucun revenu</Text>
-                <Text style={styles.emptyText}>
-                  Ajoute ton salaire ou une autre source pour démarrer.
-                </Text>
+                <Text style={styles.emptyTitle}>{t("income.empty.title")}</Text>
+                <Text style={styles.emptyText}>{t("income.empty.text")}</Text>
               </View>
             ) : (
               incomes.map((src) => {
@@ -897,9 +881,9 @@ export default function Index() {
           {/* Logement */}
           <Section title={t("section.housing.title")}>
             <Field
-              label="Loyer mensuel (charges comprises)"
+              label={t("label.rent")}
               icon={<Feather name="home" size={18} color={COLOR_LOYER} />}
-              right="€"
+              right={getCurrency(currency).symbol}
               value={rent}
               onChangeText={setRent}
               keyboardType="decimal-pad"
@@ -919,17 +903,15 @@ export default function Index() {
                 activeOpacity={0.8}
               >
                 <Feather name="plus" size={16} color="#000" />
-                <Text style={styles.addBtnText}>Ajouter</Text>
+                <Text style={styles.addBtnText}>{t("btn.add")}</Text>
               </TouchableOpacity>
             }
           >
             {loans.length === 0 ? (
               <View style={styles.emptyCard}>
                 <Feather name="credit-card" size={24} color={TEXT_3} />
-                <Text style={styles.emptyTitle}>Aucun prêt</Text>
-                <Text style={styles.emptyText}>
-                  Ajoutez vos crédits (immobilier, auto, conso…) pour calculer la mensualité automatiquement.
-                </Text>
+                <Text style={styles.emptyTitle}>{t("loans.empty.title")}</Text>
+                <Text style={styles.emptyText}>{t("loans.empty.text")}</Text>
               </View>
             ) : (
               loans.map((l) => {
@@ -988,7 +970,7 @@ export default function Index() {
                     activeOpacity={0.85}
                   >
                     <Feather name="plus" size={16} color="#000" />
-                    <Text style={styles.addBtnText}>Ajouter</Text>
+                    <Text style={styles.addBtnText}>{t("btn.add")}</Text>
                   </TouchableOpacity>
                 }
               >
@@ -1009,10 +991,8 @@ export default function Index() {
                 {items.length === 0 ? (
                   <View style={styles.emptyCard}>
                     <Feather name={meta.icon} size={22} color={TEXT_3} />
-                    <Text style={styles.emptyTitle}>Aucune entrée</Text>
-                    <Text style={styles.emptyText}>
-                      Ajoute une catégorie avec le bouton « Ajouter ».
-                    </Text>
+                    <Text style={styles.emptyTitle}>{t("family.empty.title")}</Text>
+                    <Text style={styles.emptyText}>{t("family.empty.text")}</Text>
                   </View>
                 ) : (
                   items.map((it) => (
@@ -1020,7 +1000,7 @@ export default function Index() {
                       key={it.id}
                       label={it.label}
                       icon={<Feather name={it.icon} size={18} color={it.color} />}
-                      right="€"
+                      right={getCurrency(currency).symbol}
                       value={it.amount}
                       onChangeText={(t) => updateItemAmount(it.id, t)}
                       onLabelChange={(t) => updateItemLabel(it.id, t)}
@@ -1094,70 +1074,6 @@ export default function Index() {
             })}
           </Section>
 
-          {/* === Convertisseur de devise temps réel === */}
-          <Section
-            title={t("section.converter.title")}
-            action={
-              <TouchableOpacity
-                onPress={() => refreshRates(true)}
-                style={styles.headerBtn}
-                testID="refresh-rates"
-                activeOpacity={0.85}
-                disabled={ratesLoading}
-              >
-                <Feather name="refresh-cw" size={14} color={ratesLoading ? TEXT_3 : GOLD} />
-              </TouchableOpacity>
-            }
-          >
-            <Dropdown<CurrencyCode>
-              label={t("converter.from")}
-              icon={<Text style={styles.currencyFlag}>{getCurrency(convFrom).flag}</Text>}
-              value={convFrom}
-              options={CURRENCIES.map((c) => ({
-                value: c.code,
-                label: `${c.flag} ${c.name}`,
-                hint: c.code,
-              }))}
-              onChange={setConvFrom}
-              testID="conv-from"
-            />
-            <Field
-              label={t("converter.amount")}
-              icon={<Text style={styles.euroIcon}>{getCurrency(convFrom).symbol}</Text>}
-              right={getCurrency(convFrom).code}
-              value={convAmount}
-              onChangeText={setConvAmount}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              testID="conv-amount"
-            />
-            <Dropdown<CurrencyCode>
-              label={t("converter.to")}
-              icon={<Text style={styles.currencyFlag}>{getCurrency(convTo).flag}</Text>}
-              value={convTo}
-              options={CURRENCIES.map((c) => ({
-                value: c.code,
-                label: `${c.flag} ${c.name}`,
-                hint: c.code,
-              }))}
-              onChange={setConvTo}
-              testID="conv-to"
-            />
-            <View style={styles.convResultBox}>
-              <Text style={styles.convResultLabel}>{t("converter.result")}</Text>
-              <Text style={styles.convResultValue} testID="conv-result">
-                {formatCurrency(convResult, convTo)}
-              </Text>
-              <Text style={styles.convResultMeta}>
-                {rates
-                  ? `${t("converter.updated")} ${formatRelativeAgo(rates.fetchedAt)}${
-                      isFresh(rates) ? "" : ` · ${t("converter.cacheExpired")}`
-                    }`
-                  : t("converter.loading")}
-              </Text>
-            </View>
-          </Section>
-
           {/* === Résultat : camembert à la fin === */}
           <Section title={t("section.breakdown.title")}>
             <View style={styles.hero} testID="dashboard-card">
@@ -1204,6 +1120,150 @@ export default function Index() {
 
           <View style={{ height: 40 }} />
         </ScrollView>
+        )}
+
+        {/* ====== Converter tab ====== */}
+        {tab === "converter" && (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.eyebrow}>{t("tab.converter")}</Text>
+              <Text style={styles.title}>{t("section.converter.title")}</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => refreshRates(true)}
+              style={styles.headerBtn}
+              testID="refresh-rates"
+              activeOpacity={0.85}
+              disabled={ratesLoading}
+            >
+              <Feather name="refresh-cw" size={16} color={ratesLoading ? TEXT_3 : GOLD} />
+            </TouchableOpacity>
+          </View>
+          <Dropdown<CurrencyCode>
+            label={t("converter.from")}
+            icon={<Text style={styles.currencyFlag}>{getCurrency(convFrom).flag}</Text>}
+            value={convFrom}
+            options={CURRENCIES.map((c) => ({
+              value: c.code,
+              label: `${c.flag} ${c.name}`,
+              hint: c.code,
+            }))}
+            onChange={setConvFrom}
+            testID="conv-from"
+          />
+          <Field
+            label={t("converter.amount")}
+            icon={<Text style={styles.euroIcon}>{getCurrency(convFrom).symbol}</Text>}
+            right={getCurrency(convFrom).code}
+            value={convAmount}
+            onChangeText={setConvAmount}
+            keyboardType="decimal-pad"
+            placeholder="0"
+            testID="conv-amount"
+          />
+          <Dropdown<CurrencyCode>
+            label={t("converter.to")}
+            icon={<Text style={styles.currencyFlag}>{getCurrency(convTo).flag}</Text>}
+            value={convTo}
+            options={CURRENCIES.map((c) => ({
+              value: c.code,
+              label: `${c.flag} ${c.name}`,
+              hint: c.code,
+            }))}
+            onChange={setConvTo}
+            testID="conv-to"
+          />
+          <View style={styles.convResultBox}>
+            <Text style={styles.convResultLabel}>{t("converter.result")}</Text>
+            <Text style={styles.convResultValue} testID="conv-result">
+              {formatCurrency(convResult, convTo)}
+            </Text>
+            <Text style={styles.convResultMeta}>
+              {rates
+                ? `${t("converter.updated")} ${formatRelativeAgo(rates.fetchedAt)}${
+                    isFresh(rates) ? "" : ` · ${t("converter.cacheExpired")}`
+                  }`
+                : t("converter.loading")}
+            </Text>
+          </View>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+        )}
+
+        {/* ====== Settings tab ====== */}
+        {tab === "settings" && (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.eyebrow}>{t("tab.settings")}</Text>
+              <Text style={styles.title}>{t("settings.title")}</Text>
+            </View>
+          </View>
+          <Text style={styles.sectionSubtitle}>{t("settings.intro")}</Text>
+
+          <Section title={t("settings.currency.title")} subtitle={t("settings.currency.hint")}>
+            <TouchableOpacity
+              style={styles.inputWrap}
+              onPress={() => setCurrencyPickerOpen(true)}
+              testID="open-currency-picker"
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.currencyFlag, { marginRight: 12 }]}>{getCurrency(currency).flag}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.inputLabel}>{getCurrency(currency).code}</Text>
+                <Text style={styles.inputValue}>{getCurrency(currency).name}</Text>
+              </View>
+              <Feather name="chevron-right" size={20} color={TEXT_3} />
+            </TouchableOpacity>
+          </Section>
+
+          <Section title={t("settings.language.title")} subtitle={t("settings.language.hint")}>
+            <TouchableOpacity
+              style={styles.inputWrap}
+              onPress={() => setLangPickerOpen(true)}
+              testID="open-lang-picker"
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.currencyFlag, { marginRight: 12 }]}>
+                {LANGUAGES.find((l) => l.code === lang)?.flag ?? "🌐"}
+              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.inputLabel}>{lang.toUpperCase()}</Text>
+                <Text style={styles.inputValue}>
+                  {LANGUAGES.find((l) => l.code === lang)?.label ?? lang}
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={20} color={TEXT_3} />
+            </TouchableOpacity>
+          </Section>
+
+          <Section title={t("settings.danger.title")}>
+            <TouchableOpacity
+              onPress={askResetAll}
+              style={[styles.exportBtn, { backgroundColor: DANGER }]}
+              testID="settings-reset"
+              activeOpacity={0.85}
+            >
+              <Feather name="trash-2" size={18} color="#fff" />
+              <Text style={[styles.exportBtnTextDark, { color: "#fff" }]}>
+                {t("settings.reset.btn")}
+              </Text>
+            </TouchableOpacity>
+          </Section>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+        )}
       </KeyboardAvoidingView>
 
       {/* Floating "Terminé" button while keyboard is up */}
@@ -1323,6 +1383,31 @@ export default function Index() {
           </View>
         </View>
       </Modal>
+
+      {/* Bottom Tab Bar */}
+      <View style={styles.tabBar}>
+        {([
+          { key: "settings", icon: "settings" },
+          { key: "budget", icon: "pie-chart" },
+          { key: "converter", icon: "refresh-cw" },
+        ] as { key: Tab; icon: keyof typeof Feather.glyphMap }[]).map((it) => {
+          const active = tab === it.key;
+          return (
+            <TouchableOpacity
+              key={it.key}
+              onPress={() => setTab(it.key)}
+              style={styles.tabBtn}
+              testID={`tab-${it.key}`}
+              activeOpacity={0.7}
+            >
+              <Feather name={it.icon} size={22} color={active ? GOLD : TEXT_3} />
+              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                {t(`tab.${it.key}`)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {/* City Picker Modal */}
       <Modal
@@ -1444,7 +1529,7 @@ export default function Index() {
               onPress={() => setCityInfoOpen(false)}
               testID="close-city-info"
             >
-              <Text style={styles.infoCloseText}>Compris</Text>
+              <Text style={styles.infoCloseText}>{t("btn.understood")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1487,7 +1572,7 @@ export default function Index() {
               onPress={() => setRuleInfoOpen(false)}
               testID="close-rule-info"
             >
-              <Text style={styles.infoCloseText}>Compris</Text>
+              <Text style={styles.infoCloseText}>{t("btn.understood")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1557,18 +1642,18 @@ export default function Index() {
                 />
 
                 <Field
-                  label="Nom"
+                  label={t("income.name")}
                   icon={<Feather name="tag" size={18} color={GOLD} />}
                   value={incomeForm.label}
-                  onChangeText={(t) => setIncomeForm((f) => ({ ...f, label: t }))}
+                  onChangeText={(v) => setIncomeForm((f) => ({ ...f, label: v }))}
                   placeholder={TYPE_LABEL[incomeForm.type]}
                   testID="income-label"
                 />
 
                 <Field
-                  label="Montant brut"
-                  icon={<Text style={styles.euroIcon}>€</Text>}
-                  right="€"
+                  label={t("income.amount")}
+                  icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
+                  right={getCurrency(currency).symbol}
                   value={incomeForm.amount}
                   onChangeText={(t) => setIncomeForm((f) => ({ ...f, amount: t }))}
                   keyboardType="decimal-pad"
@@ -1577,13 +1662,13 @@ export default function Index() {
                 />
 
                 <Dropdown<IncomeFrequency>
-                  label="Fréquence"
+                  label={t("income.frequency")}
                   icon={<Feather name="calendar" size={18} color={GOLD} />}
                   value={incomeForm.frequency}
                   options={[
-                    { value: "monthly", label: "Mensuel", hint: "Chaque mois (ex: salaire net mensuel)" },
-                    { value: "annual", label: "Annuel", hint: "Le total sur 1 an, réparti automatiquement" },
-                    { value: "monthOnce", label: "Versé un mois précis", hint: "Prime, 13e mois, dividende annuel…" },
+                    { value: "monthly", label: t("freq.monthly"), hint: t("freq.monthlyHint") },
+                    { value: "annual", label: t("freq.annual"), hint: t("freq.annualHint") },
+                    { value: "monthOnce", label: t("freq.monthOnce"), hint: t("freq.monthOnceHint") },
                   ]}
                   onChange={(next) =>
                     setIncomeForm((f) => ({
@@ -1618,7 +1703,7 @@ export default function Index() {
                 {incomeForm.type === "salaire" && (
                   <>
                     <Dropdown<ProStatus>
-                      label="Statut professionnel"
+                      label={t("income.status")}
                       icon={<Feather name="briefcase" size={18} color={GOLD} />}
                       value={incomeForm.proStatus ?? "non-cadre"}
                       options={(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => ({
@@ -1630,12 +1715,12 @@ export default function Index() {
                       testID="income-status-dropdown"
                     />
                     <Dropdown<"plein" | "partiel">
-                      label="Quotité de travail"
+                      label={t("income.timeMode")}
                       icon={<Feather name="clock" size={18} color={GOLD} />}
                       value={incomeForm.timeMode ?? "plein"}
                       options={[
-                        { value: "plein", label: "Temps plein" },
-                        { value: "partiel", label: "Temps partiel" },
+                        { value: "plein", label: t("time.full") },
+                        { value: "partiel", label: t("time.part") },
                       ]}
                       onChange={(next) => setIncomeForm((f) => ({ ...f, timeMode: next }))}
                       testID="income-time-dropdown"
@@ -1644,7 +1729,7 @@ export default function Index() {
                 )}
 
                 <Field
-                  label="Taux de charges / prélèvements"
+                  label={t("income.charges")}
                   icon={<Feather name="percent" size={18} color={GOLD} />}
                   right="%"
                   value={incomeForm.chargesPercent}
@@ -1663,7 +1748,7 @@ export default function Index() {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.primaryBtnText}>
-                    {editingIncome ? "Enregistrer" : "Ajouter"}
+                    {editingIncome ? t("btn.save") : t("btn.add")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1713,17 +1798,17 @@ export default function Index() {
                 showsVerticalScrollIndicator={false}
               >
                 <Field
-                  label="Nom"
+                  label={t("income.name")}
                   icon={<Feather name="tag" size={18} color={GOLD} />}
                   value={newItemLabel}
                   onChangeText={setNewItemLabel}
-                  placeholder="Nom de la catégorie"
+                  placeholder={t("newCategoryName")}
                   testID="new-item-label"
                 />
                 <Field
-                  label="Montant mensuel"
-                  icon={<Text style={styles.euroIcon}>€</Text>}
-                  right="€"
+                  label={`${t("converter.amount")} · ${t("freq.monthly")}`}
+                  icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
+                  right={getCurrency(currency).symbol}
                   value={newItemAmount}
                   onChangeText={setNewItemAmount}
                   keyboardType="decimal-pad"
@@ -1738,7 +1823,7 @@ export default function Index() {
                   testID="save-new-item"
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.primaryBtnText}>Ajouter</Text>
+                  <Text style={styles.primaryBtnText}>{t("btn.add")}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1783,7 +1868,7 @@ export default function Index() {
                 showsVerticalScrollIndicator={false}
               >
                 <Field
-                  label="Nom du prêt"
+                  label={t("label.loanName")}
                   icon={<Feather name="tag" size={18} color={GOLD} />}
                   value={form.name}
                   onChangeText={(t) => setForm({ ...form, name: t })}
@@ -1792,12 +1877,12 @@ export default function Index() {
                 />
 
                 <Dropdown<LoanMode>
-                  label="Mode de saisie"
+                  label={t("label.loanMode")}
                   icon={<Feather name="sliders" size={18} color={GOLD} />}
                   value={form.mode ?? "computed"}
                   options={[
-                    { value: "computed", label: "Calculer la mensualité", hint: "À partir du capital, taux et durée" },
-                    { value: "direct", label: "Mensualité directe", hint: "Tu connais déjà le montant mensuel" },
+                    { value: "computed", label: t("label.loanComputed"), hint: t("label.loanComputedHint") },
+                    { value: "direct", label: t("label.loanDirect"), hint: t("label.loanDirectHint") },
                   ]}
                   onChange={(next) => setForm({ ...form, mode: next })}
                   testID="loan-mode-dropdown"
@@ -1805,50 +1890,50 @@ export default function Index() {
 
                 {(form.mode ?? "computed") === "direct" ? (
                   <Field
-                    label="Mensualité"
-                    icon={<Text style={styles.euroIcon}>€</Text>}
-                    right="€ / mois"
+                    label={t("label.loanMonthly")}
+                    icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
+                    right={`${getCurrency(currency).symbol} ${t("label.perMonth")}`}
                     value={form.directMonthly ?? "0"}
-                    onChangeText={(t) => setForm({ ...form, directMonthly: t })}
+                    onChangeText={(v) => setForm({ ...form, directMonthly: v })}
                     keyboardType="decimal-pad"
                     placeholder="0"
-                    hintText="Saisis le montant exact que tu rembourses chaque mois."
+                    hintText={t("label.loanMonthlyHint")}
                     testID="loan-direct-monthly-input"
                   />
                 ) : (
                   <>
                     <Field
-                      label="Montant emprunté"
-                      icon={<Text style={styles.euroIcon}>€</Text>}
-                      right="€"
+                      label={t("label.loanPrincipal")}
+                      icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
+                      right={getCurrency(currency).symbol}
                       value={form.principal}
-                      onChangeText={(t) => setForm({ ...form, principal: t })}
+                      onChangeText={(v) => setForm({ ...form, principal: v })}
                       keyboardType="decimal-pad"
                       placeholder="0"
                       testID="loan-principal-input"
                     />
                     <Field
-                      label="Taux d'intérêt annuel"
+                      label={t("label.loanRate")}
                       icon={<Feather name="percent" size={18} color={GOLD} />}
                       right="%"
                       value={form.ratePercent}
-                      onChangeText={(t) => setForm({ ...form, ratePercent: t })}
+                      onChangeText={(v) => setForm({ ...form, ratePercent: v })}
                       keyboardType="decimal-pad"
                       placeholder="0"
                       testID="loan-rate-input"
                     />
                     <Field
-                      label="Durée"
+                      label={t("label.loanDuration")}
                       icon={<Feather name="calendar" size={18} color={GOLD} />}
-                      right="ans"
+                      right={t("label.years")}
                       value={form.years}
-                      onChangeText={(t) => setForm({ ...form, years: t })}
+                      onChangeText={(v) => setForm({ ...form, years: v })}
                       keyboardType="decimal-pad"
                       placeholder="0"
                       testID="loan-years-input"
                     />
                     <View style={styles.previewBox}>
-                      <Text style={styles.previewLabel}>Mensualité estimée</Text>
+                      <Text style={styles.previewLabel}>{t("label.loanPreview")}</Text>
                       <Text style={styles.previewValue} testID="loan-preview-monthly">
                         {fmt(loanMonthlyPayment(form))}
                       </Text>
@@ -1864,7 +1949,7 @@ export default function Index() {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.primaryBtnText}>
-                    {editingLoan ? "Enregistrer" : "Ajouter"}
+                    {editingLoan ? t("btn.save") : t("btn.add")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1890,7 +1975,7 @@ export default function Index() {
                 onPress={() => setConfirm({ ...confirm, open: false })}
                 testID="confirm-cancel"
               >
-                <Text style={styles.confirmCancelText}>Annuler</Text>
+                <Text style={styles.confirmCancelText}>{t("btn.cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.confirmOkBtn, confirm.danger && { backgroundColor: DANGER }]}
@@ -1902,7 +1987,7 @@ export default function Index() {
                 testID="confirm-ok"
               >
                 <Text style={[styles.confirmOkText, confirm.danger && { color: "#fff" }]}>
-                  {confirm.confirmLabel || "Confirmer"}
+                  {confirm.confirmLabel || t("btn.confirm")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2186,6 +2271,19 @@ const styles = StyleSheet.create({
   },
   convResultValue: { color: GOLD, fontSize: 28, fontWeight: "800", fontVariant: ["tabular-nums"] },
   convResultMeta: { color: TEXT_3, fontSize: 11, marginTop: 8 },
+
+  tabBar: {
+    flexDirection: "row",
+    paddingVertical: 8,
+    paddingBottom: Platform.OS === "ios" ? 24 : 12,
+    paddingHorizontal: 8,
+    backgroundColor: "#0F0F12",
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
+  },
+  tabBtn: { flex: 1, alignItems: "center", paddingVertical: 6, gap: 4 },
+  tabLabel: { color: TEXT_3, fontSize: 11, fontWeight: "600" },
+  tabLabelActive: { color: GOLD, fontWeight: "800" },
 
   topSummary: {
     backgroundColor: SURFACE,
