@@ -36,6 +36,12 @@ import {
   getCurrency,
 } from "../src/utils/currency";
 import { buildAdvice, AdviceItem } from "../src/utils/advice";
+import {
+  getRates,
+  convert,
+  isFresh,
+  RatesPayload,
+} from "../src/utils/exchangeRates";
 import { generatePdfHtml, PdfData } from "../src/utils/pdf";
 import {
   IncomeSource,
@@ -178,6 +184,39 @@ export default function Index() {
   const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
   const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
   const fmt = (v: number) => formatCurrency(v, currency);
+
+  // Convertisseur de devise
+  const [convFrom, setConvFrom] = useState<CurrencyCode>("EUR");
+  const [convTo, setConvTo] = useState<CurrencyCode>("USD");
+  const [convAmount, setConvAmount] = useState<string>("100");
+  const [rates, setRates] = useState<RatesPayload | null>(null);
+  const [ratesLoading, setRatesLoading] = useState(false);
+
+  async function refreshRates(force = false) {
+    setRatesLoading(true);
+    const r = await getRates(force);
+    if (r) setRates(r);
+    setRatesLoading(false);
+  }
+
+  useEffect(() => {
+    refreshRates(false);
+  }, []);
+
+  const convResult = useMemo(
+    () => convert(parseNumber(convAmount), convFrom, convTo, rates),
+    [convAmount, convFrom, convTo, rates]
+  );
+
+  function formatRelativeAgo(ts: number): string {
+    const diffMin = Math.round((Date.now() - ts) / 60000);
+    if (diffMin < 1) return "à l'instant";
+    if (diffMin < 60) return `il y a ${diffMin} min`;
+    const diffH = Math.round(diffMin / 60);
+    if (diffH < 24) return `il y a ${diffH} h`;
+    const diffD = Math.round(diffH / 24);
+    return `il y a ${diffD} j`;
+  }
 
   // Sources de revenu (v2 multi-sources)
   const [incomes, setIncomes] = useState<IncomeSource[]>([defaultIncomeSource()]);
@@ -1046,6 +1085,71 @@ export default function Index() {
                 </View>
               );
             })}
+          </Section>
+
+          {/* === Convertisseur de devise temps réel === */}
+          <Section
+            title="Convertisseur de devise"
+            subtitle="Taux temps réel (rafraîchis automatiquement toutes les 6 h). Inclut le franc CFA (XOF / XAF), fixé à 655,957 pour 1 €."
+            action={
+              <TouchableOpacity
+                onPress={() => refreshRates(true)}
+                style={styles.headerBtn}
+                testID="refresh-rates"
+                activeOpacity={0.85}
+                disabled={ratesLoading}
+              >
+                <Feather name="refresh-cw" size={14} color={ratesLoading ? TEXT_3 : GOLD} />
+              </TouchableOpacity>
+            }
+          >
+            <Dropdown<CurrencyCode>
+              label="De"
+              icon={<Text style={styles.currencyFlag}>{getCurrency(convFrom).flag}</Text>}
+              value={convFrom}
+              options={CURRENCIES.map((c) => ({
+                value: c.code,
+                label: `${c.flag} ${c.name}`,
+                hint: c.code,
+              }))}
+              onChange={setConvFrom}
+              testID="conv-from"
+            />
+            <Field
+              label="Montant"
+              icon={<Text style={styles.euroIcon}>{getCurrency(convFrom).symbol}</Text>}
+              right={getCurrency(convFrom).code}
+              value={convAmount}
+              onChangeText={setConvAmount}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              testID="conv-amount"
+            />
+            <Dropdown<CurrencyCode>
+              label="Vers"
+              icon={<Text style={styles.currencyFlag}>{getCurrency(convTo).flag}</Text>}
+              value={convTo}
+              options={CURRENCIES.map((c) => ({
+                value: c.code,
+                label: `${c.flag} ${c.name}`,
+                hint: c.code,
+              }))}
+              onChange={setConvTo}
+              testID="conv-to"
+            />
+            <View style={styles.convResultBox}>
+              <Text style={styles.convResultLabel}>Résultat</Text>
+              <Text style={styles.convResultValue} testID="conv-result">
+                {formatCurrency(convResult, convTo)}
+              </Text>
+              <Text style={styles.convResultMeta}>
+                {rates
+                  ? `Taux mis à jour ${formatRelativeAgo(rates.fetchedAt)}${
+                      isFresh(rates) ? "" : " · cache expiré"
+                    }`
+                  : "Chargement des taux…"}
+              </Text>
+            </View>
           </Section>
 
           {/* === Résultat : camembert à la fin === */}
@@ -2016,6 +2120,18 @@ const styles = StyleSheet.create({
     borderRadius: 10, minWidth: 50, alignItems: "center",
   },
   currencySymbolText: { color: GOLD, fontSize: 13, fontWeight: "700" },
+
+  convResultBox: {
+    backgroundColor: SURFACE, borderRadius: 16,
+    borderWidth: 1, borderColor: BORDER,
+    padding: 18, marginTop: 8, alignItems: "center",
+  },
+  convResultLabel: {
+    color: TEXT_3, fontSize: 11, letterSpacing: 1.2,
+    textTransform: "uppercase", fontWeight: "700", marginBottom: 8,
+  },
+  convResultValue: { color: GOLD, fontSize: 28, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  convResultMeta: { color: TEXT_3, fontSize: 11, marginTop: 8 },
 
   topSummary: {
     backgroundColor: SURFACE,
