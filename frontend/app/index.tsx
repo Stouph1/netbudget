@@ -10,7 +10,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Share,
   Alert,
   Keyboard,
 } from "react-native";
@@ -29,7 +28,7 @@ import {
   parseNumber,
 } from "../src/utils/finance";
 import { buildAdvice, AdviceItem } from "../src/utils/advice";
-import { generatePdfHtml, generateShareCardHtml, PdfData } from "../src/utils/pdf";
+import { generatePdfHtml, PdfData } from "../src/utils/pdf";
 import {
   IncomeSource,
   IncomeType,
@@ -594,39 +593,6 @@ export default function Index() {
     }
   }
 
-  async function shareCard() {
-    try {
-      await shareGeneratedPdf(
-        generateShareCardHtml(buildPdfData()),
-        "Ma carte budget NETbudget"
-      );
-    } catch {
-      Alert.alert("Erreur", "Impossible de générer la carte.");
-    }
-  }
-
-  async function shareSummary() {
-    const lines = [
-      `💸 Mon budget NETbudget — ${city.name}`,
-      ``,
-      `Net mensuel estimé : ${formatEuro(netMensuel)}`,
-      `Loyer : ${formatEuro(rentNum)}`,
-      `Prêts : ${formatEuro(loansMonthly)}`,
-      `Besoins : ${formatEuro(familyTotals.besoins)}`,
-      `Loisirs : ${formatEuro(familyTotals.loisirs)}`,
-      `Épargne : ${formatEuro(familyTotals.epargne)}`,
-      ``,
-      `➡️ Reste à vivre : ${formatEuro(remaining)}`,
-      ``,
-      `Calculé avec NETbudget · règle 50/30/20`,
-    ];
-    try {
-      await Share.share({ message: lines.join("\n") });
-    } catch {
-      // user cancelled, ignore
-    }
-  }
-
   function askResetAll() {
     setConfirm({
       open: true,
@@ -1088,35 +1054,15 @@ export default function Index() {
             </View>
           </Section>
 
-          {/* === Export & Partage === */}
-          <View style={styles.exportRow}>
-            <TouchableOpacity
-              style={[styles.exportBtn, styles.exportBtnPrimary]}
-              onPress={shareCard}
-              testID="share-card"
-              activeOpacity={0.85}
-            >
-              <Feather name="image" size={18} color="#000" />
-              <Text style={styles.exportBtnTextDark}>Partager la carte</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.exportBtn, styles.exportBtnSecondary]}
-              onPress={exportPdf}
-              testID="export-pdf"
-              activeOpacity={0.85}
-            >
-              <Feather name="file-text" size={18} color={GOLD} />
-              <Text style={styles.exportBtnText}>PDF complet</Text>
-            </TouchableOpacity>
-          </View>
+          {/* === Export PDF === */}
           <TouchableOpacity
-            style={styles.shareTextBtn}
-            onPress={shareSummary}
-            testID="share-summary"
-            activeOpacity={0.7}
+            style={[styles.exportBtn, styles.exportBtnPrimary, { marginTop: 16 }]}
+            onPress={exportPdf}
+            testID="export-pdf"
+            activeOpacity={0.85}
           >
-            <Feather name="share-2" size={14} color={TEXT_2} />
-            <Text style={styles.shareTextBtnLabel}>Partager un résumé texte</Text>
+            <Feather name="file-text" size={18} color="#000" />
+            <Text style={styles.exportBtnTextDark}>Exporter en PDF</Text>
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />
@@ -2233,22 +2179,12 @@ const styles = StyleSheet.create({
   adviceTitle: { fontSize: 14, fontWeight: "800" },
   adviceMessage: { color: TEXT_2, fontSize: 13, lineHeight: 19 },
 
-  exportRow: { flexDirection: "row", gap: 10, marginTop: 16 },
   exportBtn: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
     gap: 8, paddingVertical: 14, borderRadius: 16,
   },
   exportBtnPrimary: { backgroundColor: GOLD },
-  exportBtnSecondary: {
-    backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER,
-  },
-  exportBtnText: { color: GOLD, fontSize: 14, fontWeight: "800" },
   exportBtnTextDark: { color: "#000", fontSize: 14, fontWeight: "800" },
-  shareTextBtn: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center",
-    gap: 6, marginTop: 10, paddingVertical: 12,
-  },
-  shareTextBtnLabel: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
 
   previewBox: {
     backgroundColor: SURFACE, borderRadius: 16,

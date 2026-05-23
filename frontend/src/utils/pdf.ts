@@ -1,5 +1,5 @@
 // Génère du HTML stylisé prêt à être imprimé en PDF par expo-print.
-// Deux formats : rapport complet (A4-like) et carte verticale 9:16 pour partage story.
+// Format : rapport complet (A4-like) avec totaux + table + conseils.
 
 import type { AdviceItem } from "./advice";
 import { formatEuro } from "./finance";
@@ -123,114 +123,6 @@ export function generatePdfHtml(d: PdfData): string {
   ${adviceHtml || `<p style="color:#6B7280;font-size:12px;">Aucun conseil pour le moment.</p>`}
 
   <footer>Généré par NETbudget · règle 50/30/20</footer>
-</body>
-</html>`;
-}
-
-// ============================================================
-// Carte de partage verticale (story 9:16)
-// ============================================================
-
-export function generateShareCardHtml(d: PdfData): string {
-  // Couleurs pensées pour rester très lisibles sur un fond bleu nuit
-  const restColor = d.remaining >= 0 ? "#86EFAC" : "#FCA5A5";
-  const total = d.rent + d.loansMonthly + d.totalExpenses;
-  const safeNet = Math.max(d.netMensuel, 1);
-
-  const besoinsTotal = d.rent + d.loansMonthly + d.besoins;
-  const besoinsPct = Math.round((besoinsTotal / safeNet) * 100);
-  const loisirsPct = Math.round((d.loisirs / safeNet) * 100);
-  const epargnePct = Math.round((d.epargne / safeNet) * 100);
-  const restePct = Math.round((d.remaining / safeNet) * 100);
-
-  return `<!doctype html>
-<html lang="fr">
-<head>
-<meta charset="utf-8" />
-<title>NETbudget — Carte</title>
-<style>
-  @page { size: 1080px 1920px; margin: 0; }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    width: 1080px; height: 1920px;
-    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(160deg, #0F172A 0%, #020617 100%);
-    color: #FFFFFF;
-    padding: 80px 70px;
-  }
-  .brand {
-    color: #FACC15; font-size: 28px; letter-spacing: 6px;
-    text-transform: uppercase; font-weight: 700; margin-bottom: 14px;
-  }
-  .city {
-    font-size: 72px; font-weight: 800; line-height: 1.05;
-    color: #FFFFFF; margin-bottom: 6px;
-  }
-  .region { color: #94A3B8; font-size: 28px; margin-bottom: 60px; }
-
-  .reste-block { margin-bottom: 60px; }
-  .reste-label {
-    color: #94A3B8; font-size: 26px; letter-spacing: 4px; text-transform: uppercase;
-    margin-bottom: 18px; font-weight: 600;
-  }
-  .reste-value { color: ${restColor}; font-size: 160px; font-weight: 900; line-height: 1; letter-spacing: -3px; }
-  .reste-pct { color: ${restColor}; font-size: 36px; font-weight: 700; margin-top: 14px; }
-
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 60px; }
-  .stat {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 24px; padding: 26px 30px;
-  }
-  .stat .label { color: #94A3B8; font-size: 22px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
-  .stat .value { color: #FFFFFF; font-size: 46px; font-weight: 800; margin-top: 8px; }
-  .stat.green .value { color: #86EFAC; }
-  .stat.purple .value { color: #DDD6FE; }
-  .stat.gold .value { color: #FDE68A; }
-
-  .breakdown { margin-top: 8px; }
-  .row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 22px 0; border-bottom: 1px solid rgba(255,255,255,0.10);
-  }
-  .row:last-child { border-bottom: none; }
-  .row .label { color: #CBD5E1; font-size: 30px; font-weight: 600; }
-  .row .pct { color: #FFFFFF; font-size: 30px; font-weight: 800; }
-
-  .footer {
-    position: absolute; left: 70px; right: 70px; bottom: 80px;
-    display: flex; justify-content: space-between; align-items: center;
-    color: #64748B; font-size: 22px; letter-spacing: 2px;
-  }
-</style>
-</head>
-<body>
-  <div class="brand">NETbudget</div>
-  <div class="city">${escapeHtml(d.cityName)}</div>
-  <div class="region">${escapeHtml(d.cityRegion)} · ×${d.cityIndex.toFixed(2)}</div>
-
-  <div class="reste-block">
-    <div class="reste-label">Reste à vivre / mois</div>
-    <div class="reste-value">${escapeHtml(formatEuro(d.remaining))}</div>
-    <div class="reste-pct">${restePct} % de mon net</div>
-  </div>
-
-  <div class="stats">
-    <div class="stat"><div class="label">Net mensuel</div><div class="value">${escapeHtml(formatEuro(d.netMensuel))}</div></div>
-    <div class="stat"><div class="label">Total dépenses</div><div class="value">${escapeHtml(formatEuro(total))}</div></div>
-  </div>
-
-  <div class="breakdown">
-    <div class="row"><div class="label">🛡️ Besoins</div><div class="pct">${besoinsPct} %</div></div>
-    <div class="row"><div class="label">🎵 Loisirs</div><div class="pct">${loisirsPct} %</div></div>
-    <div class="row"><div class="label">📈 Épargne</div><div class="pct">${epargnePct} %</div></div>
-  </div>
-
-  <div class="footer">
-    <span>Règle 50/30/20</span>
-    <span>NETbudget · 🇫🇷</span>
-  </div>
 </body>
 </html>`;
 }
