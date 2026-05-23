@@ -1,13 +1,30 @@
 // Indice de coût de la vie par ville — base 1.00 = moyenne nationale du PAYS sélectionné.
-// Une ville à 1.10 coûte 10 % de plus que la moyenne de son propre pays
-// (et non plus relativement à la France).
+// Une ville à 1.10 coûte 10 % de plus que la moyenne de son propre pays.
 //
-// Sources des indices (estimations consolidées) :
-//  - Numbeo Cost-of-Living + Rent Index (https://www.numbeo.com/cost-of-living/)
-//  - Mercer Cost of Living Survey
-//  - Eurostat / INSEE (pour FR & Europe)
-//  - Données publiques par pays (BLS US, Statistics Canada, ABS Australia…)
-// Les valeurs sont normalisées par pays puis arrondies à 0,02. Précision : ±5 %.
+// Sources publiques utilisées pour calibrer les indices :
+//  - Numbeo — Cost of Living Index, classements par ville (panier loyer + courses +
+//    transports + restaurants), mis à jour en continu :
+//      https://www.numbeo.com/cost-of-living/rankings.jsp
+//      https://www.numbeo.com/cost-of-living/
+//  - Eurostat — Comparative Price Levels & Purchasing Power Parities (UE/EEE) :
+//      https://ec.europa.eu/eurostat/web/purchasing-power-parities
+//  - OECD — Purchasing Power Parities (PPP) et niveaux de prix comparés :
+//      https://www.oecd.org/en/data/indicators/purchasing-power-parities-ppp.html
+//  - INSEE — Comparaison spatiale des niveaux de vie (France, régions, DOM) :
+//      https://www.insee.fr/fr/statistiques
+//  - Mercer — Cost of Living Survey (classement annuel des villes pour expatriés) :
+//      https://www.mercer.com/insights/total-rewards/talent-mobility-insights/cost-of-living/
+//  - Economist Intelligence Unit — Worldwide Cost of Living (rapport annuel) :
+//      https://www.eiu.com/n/campaigns/worldwide-cost-of-living/
+//  - World Bank — International Comparison Program (PPP officielles) :
+//      https://www.worldbank.org/en/programs/icp
+//  - US BLS — Consumer Price Index, Regional CPI (USA) :
+//      https://www.bls.gov/cpi/
+//
+// Méthodologie : pour chaque pays, on prend l'indice Numbeo de chaque ville,
+// puis on le divise par la moyenne pondérée nationale (Numbeo / Eurostat / INSEE
+// selon la zone) → résultat normalisé autour de 1.00. Arrondi à 0,02. Précision
+// ~ ±5 % ; sert d'ordre de grandeur, pas de chiffre comptable.
 
 export type CityTheme = {
   from: string;
@@ -828,6 +845,18 @@ export function regionsForCountry(code: string): string[] {
   return out;
 }
 
+// Liens cliquables affichés dans la modal d'info "Indice du coût de la vie".
+export const INDEX_SOURCES: { label: string; url: string }[] = [
+  { label: "Numbeo — Cost of Living Rankings", url: "https://www.numbeo.com/cost-of-living/rankings.jsp" },
+  { label: "Eurostat — Purchasing Power Parities", url: "https://ec.europa.eu/eurostat/web/purchasing-power-parities" },
+  { label: "OECD — Purchasing Power Parities (PPP)", url: "https://www.oecd.org/en/data/indicators/purchasing-power-parities-ppp.html" },
+  { label: "INSEE — Statistiques", url: "https://www.insee.fr/fr/statistiques" },
+  { label: "Mercer — Cost of Living Survey", url: "https://www.mercer.com/insights/total-rewards/talent-mobility-insights/cost-of-living/" },
+  { label: "EIU — Worldwide Cost of Living", url: "https://www.eiu.com/n/campaigns/worldwide-cost-of-living/" },
+  { label: "World Bank — International Comparison Program", url: "https://www.worldbank.org/en/programs/icp" },
+  { label: "US BLS — Consumer Price Index", url: "https://www.bls.gov/cpi/" },
+];
+
 // Texte d'explication de l'indice (affiché dans la section Localisation)
 export const INDEX_EXPLANATION =
-  "L'indice compare le coût global de la vie de la ville à la moyenne nationale de son pays (1.00). Il est estimé à partir des loyers, des prix de l'alimentation, des transports et des services. Sources : Numbeo, Mercer, INSEE/Eurostat, statistiques nationales (BLS, ABS, etc.).";
+  "L'indice compare le coût global de la vie de la ville à la moyenne nationale de son pays (1.00). Il agrège loyers, courses, transports et services. Sources : Numbeo (numbeo.com), Eurostat PPP, OECD PPP, INSEE, Mercer Cost of Living Survey et EIU Worldwide Cost of Living.";

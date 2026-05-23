@@ -15,6 +15,7 @@ import {
   Pressable,
   Alert,
   Keyboard,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -23,7 +24,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import DonutChart, { DonutSegment } from "../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
-import { CITIES, City, COUNTRIES, citiesByCountry, getCountry } from "../src/constants/cities";
+import { CITIES, City, COUNTRIES, INDEX_SOURCES, citiesByCountry, getCountry } from "../src/constants/cities";
 import {
   computeLoanMonthlyPayment,
   normalizeText,
@@ -1811,9 +1812,21 @@ export default function Index() {
           <View style={styles.confirmBox}>
             <Text style={styles.confirmTitle}>{t("info.indexTitle")}</Text>
             <Text style={styles.confirmMessage}>{t("info.indexBody")}</Text>
-            <Text style={[styles.confirmMessage, { marginTop: 6, fontStyle: "italic" }]}>
+            <Text style={[styles.confirmMessage, { marginTop: 10, fontWeight: "700" }]}>
               {t("info.indexFooter")}
             </Text>
+            {INDEX_SOURCES.map((src) => (
+              <TouchableOpacity
+                key={src.url}
+                onPress={() => Linking.openURL(src.url)}
+                style={styles.sourceLinkRow}
+                activeOpacity={0.7}
+                testID={`source-link-${src.url}`}
+              >
+                <Feather name="external-link" size={13} color={GOLD} />
+                <Text style={styles.sourceLinkText}>{src.label}</Text>
+              </TouchableOpacity>
+            ))}
             <TouchableOpacity
               style={styles.infoCloseBtn}
               onPress={() => setCityInfoOpen(false)}
@@ -2892,6 +2905,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.6,
     textTransform: "uppercase",
+  },
+  sourceLinkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 6,
+  },
+  sourceLinkText: {
+    color: GOLD,
+    fontSize: 13,
+    textDecorationLine: "underline",
+    flexShrink: 1,
   },
   cityEmpty: { paddingVertical: 24, alignItems: "center", gap: 6 },
   cityEmptyTitle: { color: TEXT, fontSize: 14, fontWeight: "700" },
