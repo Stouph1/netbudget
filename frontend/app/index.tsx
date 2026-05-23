@@ -206,6 +206,55 @@ export default function Index() {
   const [convAmount, setConvAmount] = useState<string>("100");
   const [rates, setRates] = useState<RatesPayload | null>(null);
   const [ratesLoading, setRatesLoading] = useState(false);
+  const [convPickerFor, setConvPickerFor] = useState<"from" | "to" | null>(null);
+
+  type ConvHistoryItem = {
+    id: string;
+    from: CurrencyCode;
+    to: CurrencyCode;
+    amount: number;
+    result: number;
+    timestamp: number;
+  };
+  const [convHistory, setConvHistory] = useState<ConvHistoryItem[]>([]);
+
+  function swapConv() {
+    const f = convFrom;
+    const tCode = convTo;
+    setConvFrom(tCode);
+    setConvTo(f);
+  }
+
+  function pushHistory(amount: number, result: number) {
+    if (amount <= 0 || result <= 0) return;
+    setConvHistory((prev) => {
+      // Évite les doublons immédiats
+      if (
+        prev[0] &&
+        prev[0].from === convFrom &&
+        prev[0].to === convTo &&
+        prev[0].amount === amount
+      )
+        return prev;
+      return [
+        {
+          id: `${Date.now()}`,
+          from: convFrom,
+          to: convTo,
+          amount,
+          result,
+          timestamp: Date.now(),
+        },
+        ...prev,
+      ].slice(0, 15);
+    });
+  }
+
+  function restoreHistory(h: ConvHistoryItem) {
+    setConvFrom(h.from);
+    setConvTo(h.to);
+    setConvAmount(String(h.amount));
+  }
 
   async function refreshRates(force = false) {
     setRatesLoading(true);
@@ -217,6 +266,17 @@ export default function Index() {
   useEffect(() => {
     refreshRates(false);
   }, []);
+
+  // Enregistre automatiquement dans l'historique 1,5 s après que l'utilisateur ait fini de taper
+  useEffect(() => {
+    if (tab !== "converter") return;
+    const amt = parseNumber(convAmount);
+    const res = convert(amt, convFrom, convTo, rates);
+    if (amt <= 0 || res <= 0) return;
+    const timeoutId = setTimeout(() => pushHistory(amt, res), 1500);
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convAmount, convFrom, convTo, rates, tab]);
 
   const convResult = useMemo(
     () => convert(parseNumber(convAmount), convFrom, convTo, rates),
@@ -534,7 +594,7 @@ export default function Index() {
     }
     const final: IncomeSource = {
       ...incomeForm,
-      label: incomeForm.label.trim() || TYPE_LABEL[incomeForm.type],
+      label: incomeForm.label.trim() || t(`incomeType.${incomeForm.type}`),
     };
     if (editingIncome) {
       setIncomes((prev) => prev.map((s) => (s.id === editingIncome.id ? final : s)));
@@ -804,9 +864,9 @@ export default function Index() {
                       />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.incomeLabel}>{src.label || TYPE_LABEL[src.type]}</Text>
+                      <Text style={styles.incomeLabel}>{src.label || t(`incomeType.${src.type}`)}</Text>
                       <Text style={styles.incomeMeta}>
-                        {TYPE_LABEL[src.type]} · {freqLabel} · {parseNumber(src.chargesPercent)} % charges
+                        {t(`incomeType.${src.type}`)} · {freqLabel} · {parseNumber(src.chargesPercent)} %
                       </Text>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
@@ -961,7 +1021,7 @@ export default function Index() {
             return (
               <Section
                 key={family}
-                title={meta.label}
+                title={t(`family.${family}.label`)}
                 action={
                   <TouchableOpacity
                     onPress={() => openAddItem(family)}
@@ -975,7 +1035,7 @@ export default function Index() {
                 }
               >
                 <View style={styles.familySubRow}>
-                  <Text style={styles.familySub}>{meta.sub}</Text>
+                  <Text style={styles.familySub}>{t(`family.${family}.sub`)}</Text>
                   {family === "besoins" && (
                     <TouchableOpacity
                       onPress={() => setRuleInfoOpen(true)}
@@ -1122,7 +1182,7 @@ export default function Index() {
         </ScrollView>
         )}
 
-        {/* ====== Converter tab ====== */}
+        {/* ====== Converter tab (Google Translate style) ====== */}
         {tab === "converter" && (
         <ScrollView
           style={styles.scroll}
@@ -1145,52 +1205,111 @@ export default function Index() {
               <Feather name="refresh-cw" size={16} color={ratesLoading ? TEXT_3 : GOLD} />
             </TouchableOpacity>
           </View>
-          <Dropdown<CurrencyCode>
-            label={t("converter.from")}
-            icon={<Text style={styles.currencyFlag}>{getCurrency(convFrom).flag}</Text>}
-            value={convFrom}
-            options={CURRENCIES.map((c) => ({
-              value: c.code,
-              label: `${c.flag} ${c.name}`,
-              hint: c.code,
-            }))}
-            onChange={setConvFrom}
-            testID="conv-from"
-          />
-          <Field
-            label={t("converter.amount")}
-            icon={<Text style={styles.euroIcon}>{getCurrency(convFrom).symbol}</Text>}
-            right={getCurrency(convFrom).code}
-            value={convAmount}
-            onChangeText={setConvAmount}
-            keyboardType="decimal-pad"
-            placeholder="0"
-            testID="conv-amount"
-          />
-          <Dropdown<CurrencyCode>
-            label={t("converter.to")}
-            icon={<Text style={styles.currencyFlag}>{getCurrency(convTo).flag}</Text>}
-            value={convTo}
-            options={CURRENCIES.map((c) => ({
-              value: c.code,
-              label: `${c.flag} ${c.name}`,
-              hint: c.code,
-            }))}
-            onChange={setConvTo}
-            testID="conv-to"
-          />
-          <View style={styles.convResultBox}>
-            <Text style={styles.convResultLabel}>{t("converter.result")}</Text>
-            <Text style={styles.convResultValue} testID="conv-result">
+
+          {/* From card */}
+          <View style={styles.convCard}>
+            <TouchableOpacity
+              style={styles.convChip}
+              onPress={() => setConvPickerFor("from")}
+              testID="conv-from-chip"
+              activeOpacity={0.85}
+            >
+              <Text style={styles.convChipFlag}>{getCurrency(convFrom).flag}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.convChipCode}>{getCurrency(convFrom).code}</Text>
+                <Text style={styles.convChipName}>{getCurrency(convFrom).name}</Text>
+              </View>
+              <Feather name="chevron-down" size={20} color={TEXT_3} />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.convBigInput}
+              value={convAmount}
+              onChangeText={setConvAmount}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor={TEXT_3}
+              selectTextOnFocus
+              returnKeyType="done"
+              testID="conv-amount"
+            />
+            <Text style={styles.convSymbolHint}>{getCurrency(convFrom).symbol}</Text>
+          </View>
+
+          {/* Swap button */}
+          <View style={styles.convSwapWrap}>
+            <View style={styles.convDivider} />
+            <TouchableOpacity
+              onPress={swapConv}
+              style={styles.convSwapBtn}
+              testID="conv-swap"
+              activeOpacity={0.85}
+            >
+              <Feather name="repeat" size={20} color="#000" />
+            </TouchableOpacity>
+            <View style={styles.convDivider} />
+          </View>
+
+          {/* To card */}
+          <View style={[styles.convCard, styles.convCardResult]}>
+            <TouchableOpacity
+              style={styles.convChip}
+              onPress={() => setConvPickerFor("to")}
+              testID="conv-to-chip"
+              activeOpacity={0.85}
+            >
+              <Text style={styles.convChipFlag}>{getCurrency(convTo).flag}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.convChipCode}>{getCurrency(convTo).code}</Text>
+                <Text style={styles.convChipName}>{getCurrency(convTo).name}</Text>
+              </View>
+              <Feather name="chevron-down" size={20} color={TEXT_3} />
+            </TouchableOpacity>
+            <Text style={styles.convBigResult} testID="conv-result">
               {formatCurrency(convResult, convTo)}
             </Text>
-            <Text style={styles.convResultMeta}>
+            <Text style={styles.convRateMeta}>
               {rates
-                ? `${t("converter.updated")} ${formatRelativeAgo(rates.fetchedAt)}${
-                    isFresh(rates) ? "" : ` · ${t("converter.cacheExpired")}`
-                  }`
+                ? `1 ${convFrom} ≈ ${formatCurrency(
+                    convert(1, convFrom, convTo, rates),
+                    convTo
+                  )} · ${t("converter.updated")} ${formatRelativeAgo(rates.fetchedAt)}`
                 : t("converter.loading")}
             </Text>
+          </View>
+
+          {/* History */}
+          <View style={{ marginTop: 24 }}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.sectionTitle}>{t("converter.history")}</Text>
+              {convHistory.length > 0 && (
+                <TouchableOpacity onPress={() => setConvHistory([])} testID="clear-history">
+                  <Text style={styles.historyClear}>{t("converter.clearHistory")}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            {convHistory.length === 0 ? (
+              <Text style={styles.familySub}>{t("converter.historyEmpty")}</Text>
+            ) : (
+              convHistory.map((h) => (
+                <TouchableOpacity
+                  key={h.id}
+                  style={styles.historyRow}
+                  onPress={() => restoreHistory(h)}
+                  testID={`history-${h.id}`}
+                  activeOpacity={0.85}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.historyMain}>
+                      {formatCurrency(h.amount, h.from)} → {formatCurrency(h.result, h.to)}
+                    </Text>
+                    <Text style={styles.historyMeta}>
+                      {h.from} → {h.to} · {formatRelativeAgo(h.timestamp)}
+                    </Text>
+                  </View>
+                  <Feather name="corner-up-left" size={16} color={TEXT_3} />
+                </TouchableOpacity>
+              ))
+            )}
           </View>
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -1278,6 +1397,67 @@ export default function Index() {
           <Text style={styles.dismissKbBtnText}>Terminé</Text>
         </TouchableOpacity>
       )}
+
+      {/* Converter Currency Picker Modal */}
+      <Modal
+        visible={convPickerFor !== null}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setConvPickerFor(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setConvPickerFor(null)}
+          />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>
+                {convPickerFor === "from" ? t("converter.from") : t("converter.to")} ·{" "}
+                {t("modal.chooseCurrency")}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setConvPickerFor(null)}
+                testID="close-conv-picker"
+              >
+                <Feather name="x" size={22} color={TEXT_2} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              {CURRENCIES.map((c) => {
+                const current = convPickerFor === "from" ? convFrom : convTo;
+                const active = c.code === current;
+                return (
+                  <TouchableOpacity
+                    key={c.code}
+                    style={[styles.currencyRow, active && styles.currencyRowActive]}
+                    onPress={() => {
+                      if (convPickerFor === "from") setConvFrom(c.code);
+                      else setConvTo(c.code);
+                      setConvPickerFor(null);
+                    }}
+                    testID={`conv-currency-${c.code}`}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.currencyFlag}>{c.flag}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.currencyName}>{c.name}</Text>
+                      <Text style={styles.currencyMeta}>{c.code}</Text>
+                    </View>
+                    <View style={styles.currencySymbol}>
+                      <Text style={styles.currencySymbolText}>{c.symbol}</Text>
+                    </View>
+                    {active && (
+                      <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Language Picker Modal */}
       <Modal
@@ -1623,19 +1803,10 @@ export default function Index() {
                     />
                   }
                   value={incomeForm.type}
-                  options={(Object.keys(TYPE_LABEL) as IncomeType[]).map((t) => ({
-                    value: t,
-                    label: TYPE_LABEL[t],
-                    hint:
-                      t === "salaire"
-                        ? "CDI, CDD, fonction publique"
-                        : t === "freelance"
-                          ? "BNC, microentreprise"
-                          : t === "locatif"
-                            ? "Loyers perçus (revenus fonciers)"
-                            : t === "dividendes"
-                              ? "PEA, CTO, dividendes (flat tax 30 %)"
-                              : "Tout autre revenu",
+                  options={(Object.keys(TYPE_LABEL) as IncomeType[]).map((code) => ({
+                    value: code,
+                    label: t(`incomeType.${code}`),
+                    hint: t(`incomeType.${code}Hint`),
                   }))}
                   onChange={changeIncomeType}
                   testID="income-type-dropdown"
@@ -1646,7 +1817,7 @@ export default function Index() {
                   icon={<Feather name="tag" size={18} color={GOLD} />}
                   value={incomeForm.label}
                   onChangeText={(v) => setIncomeForm((f) => ({ ...f, label: v }))}
-                  placeholder={TYPE_LABEL[incomeForm.type]}
+                  placeholder={t(`incomeType.${incomeForm.type}`)}
                   testID="income-label"
                 />
 
@@ -1708,8 +1879,8 @@ export default function Index() {
                       value={incomeForm.proStatus ?? "non-cadre"}
                       options={(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => ({
                         value: s,
-                        label: STATUS_LABEL[s],
-                        hint: `≈ ${STATUS_DEFAULT_CHARGES[s]} % de charges`,
+                        label: t(`status.${s}`),
+                        hint: `≈ ${STATUS_DEFAULT_CHARGES[s]} %`,
                       }))}
                       onChange={changeIncomeProStatus}
                       testID="income-status-dropdown"
@@ -1777,11 +1948,11 @@ export default function Index() {
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
-                  Nouvelle catégorie ·{" "}
+                  {t("btn.add")} ·{" "}
                   {addItemFamily === "epargne"
-                    ? "Épargne"
+                    ? t("family.epargne.short")
                     : addItemFamily
-                      ? FAMILY_META[addItemFamily].label
+                      ? t(`family.${addItemFamily}.label`)
                       : ""}
                 </Text>
                 <TouchableOpacity
@@ -2271,6 +2442,62 @@ const styles = StyleSheet.create({
   },
   convResultValue: { color: GOLD, fontSize: 28, fontWeight: "800", fontVariant: ["tabular-nums"] },
   convResultMeta: { color: TEXT_3, fontSize: 11, marginTop: 8 },
+
+  // Google-Translate-like converter
+  convCard: {
+    backgroundColor: SURFACE,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 20,
+    marginTop: 12,
+  },
+  convCardResult: { backgroundColor: SURFACE_2 },
+  convChip: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingBottom: 14, marginBottom: 8,
+    borderBottomWidth: 1, borderBottomColor: BORDER,
+  },
+  convChipFlag: { fontSize: 30 },
+  convChipCode: { color: TEXT, fontSize: 14, fontWeight: "800", letterSpacing: 1 },
+  convChipName: { color: TEXT_3, fontSize: 12, marginTop: 2 },
+  convBigInput: {
+    color: TEXT, fontSize: 38, fontWeight: "800",
+    padding: 0, margin: 0, fontVariant: ["tabular-nums"],
+  },
+  convBigResult: {
+    color: GOLD, fontSize: 38, fontWeight: "800",
+    fontVariant: ["tabular-nums"], marginTop: 2,
+  },
+  convSymbolHint: {
+    color: TEXT_3, fontSize: 13, fontWeight: "600", marginTop: 4,
+  },
+  convRateMeta: {
+    color: TEXT_3, fontSize: 12, marginTop: 10,
+  },
+  convSwapWrap: {
+    flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4,
+  },
+  convDivider: { flex: 1, height: 1, backgroundColor: BORDER },
+  convSwapBtn: {
+    width: 48, height: 48, borderRadius: 24, backgroundColor: GOLD,
+    alignItems: "center", justifyContent: "center",
+    shadowColor: "#000", shadowOpacity: 0.3, shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 }, elevation: 6,
+  },
+
+  historyHeader: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  historyClear: { color: DANGER, fontSize: 12, fontWeight: "700" },
+  historyRow: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: SURFACE, borderRadius: 14, padding: 14,
+    borderWidth: 1, borderColor: BORDER, marginBottom: 8,
+  },
+  historyMain: { color: TEXT, fontSize: 14, fontWeight: "700" },
+  historyMeta: { color: TEXT_3, fontSize: 11, marginTop: 4 },
 
   tabBar: {
     flexDirection: "row",
