@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { formatEuro } from "../utils/finance";
+import { CurrencyCode, formatCurrency } from "../utils/currency";
 
 export type MonthRow = {
   index: number;
@@ -27,15 +27,18 @@ type Props = {
   annualRemaining: number;
   annualIncome: number;
   annualExpenses: number;
+  currency: CurrencyCode;
 };
 
 export default function MonthlyBreakdown({
   months,
   currentMonthIndex,
   annualRemaining,
+  currency,
   annualIncome,
   annualExpenses,
 }: Props) {
+  const fmt = (v: number) => formatCurrency(v, currency);
   const max = Math.max(...months.map((m) => Math.abs(m.remaining)), 1);
 
   return (
@@ -65,9 +68,9 @@ export default function MonthlyBreakdown({
                   { color: positive ? GOLD : DANGER },
                 ]}
               >
-                {formatEuro(m.remaining)}
+                {fmt(m.remaining)}
               </Text>
-              <Text style={styles.monthMeta}>net {formatEuro(m.income)}</Text>
+              <Text style={styles.monthMeta}>net {fmt(m.income)}</Text>
               <View style={styles.barTrack}>
                 <View
                   style={[
@@ -115,10 +118,10 @@ export default function MonthlyBreakdown({
                 </Text>
               </View>
               <Text style={[styles.tdNum, { flex: 1.4 }]}>
-                {formatEuro(m.income)}
+                {fmt(m.income)}
               </Text>
               <Text style={[styles.tdNum, { flex: 1.4, color: TEXT_3 }]}>
-                - {formatEuro(m.expenses)}
+                - {fmt(m.expenses)}
               </Text>
               <Text
                 style={[
@@ -130,7 +133,7 @@ export default function MonthlyBreakdown({
                   },
                 ]}
               >
-                {formatEuro(m.remaining)}
+                {fmt(m.remaining)}
               </Text>
             </View>
           );
@@ -142,13 +145,13 @@ export default function MonthlyBreakdown({
             <View style={styles.totalBlock}>
               <Text style={styles.totalSub}>Revenus</Text>
               <Text style={[styles.totalNum, { color: SUCCESS }]}>
-                {formatEuro(annualIncome)}
+                {fmt(annualIncome)}
               </Text>
             </View>
             <View style={styles.totalBlock}>
               <Text style={styles.totalSub}>Dépenses</Text>
               <Text style={[styles.totalNum, { color: TEXT_2 }]}>
-                {formatEuro(annualExpenses)}
+                {fmt(annualExpenses)}
               </Text>
             </View>
             <View style={styles.totalBlock}>
@@ -160,7 +163,7 @@ export default function MonthlyBreakdown({
                 ]}
                 testID="annual-remaining-value"
               >
-                {formatEuro(annualRemaining)}
+                {fmt(annualRemaining)}
               </Text>
             </View>
           </View>

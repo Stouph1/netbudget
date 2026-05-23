@@ -2,7 +2,7 @@
 // Format : rapport complet (A4-like) avec totaux + table + conseils.
 
 import type { AdviceItem } from "./advice";
-import { formatEuro } from "./finance";
+import { CurrencyCode, formatCurrency } from "./currency";
 
 export type PdfData = {
   cityName: string;
@@ -18,6 +18,7 @@ export type PdfData = {
   totalExpenses: number;
   remaining: number;
   advice: AdviceItem[];
+  currency: CurrencyCode;
 };
 
 // Couleurs lisibles sur fond clair
@@ -33,6 +34,7 @@ const TONE_COLORS = {
 // ============================================================
 
 export function generatePdfHtml(d: PdfData): string {
+  const fmt = (v: number) => formatCurrency(v, d.currency);
   // Texte sur fond clair → couleurs foncées contrastées
   const restColor = d.remaining >= 0 ? TONE_COLORS.good : TONE_COLORS.danger;
   const restBg = d.remaining >= 0 ? "#ECFDF5" : "#FEF2F2";
@@ -83,26 +85,26 @@ export function generatePdfHtml(d: PdfData): string {
 
   <div class="hero">
     <div class="label">Reste à vivre mensuel</div>
-    <div class="value">${escapeHtml(formatEuro(d.remaining))}</div>
+    <div class="value">${escapeHtml(fmt(d.remaining))}</div>
     <div class="meta">Indice coût de la vie ×${d.cityIndex.toFixed(2)}</div>
   </div>
 
   <div class="grid">
     <div class="card">
       <div class="label">Net mensuel estimé</div>
-      <div class="value">${escapeHtml(formatEuro(d.netMensuel))}</div>
+      <div class="value">${escapeHtml(fmt(d.netMensuel))}</div>
     </div>
     <div class="card">
       <div class="label">Brut annuel</div>
-      <div class="value">${escapeHtml(formatEuro(d.brutAnnuel))}</div>
+      <div class="value">${escapeHtml(fmt(d.brutAnnuel))}</div>
     </div>
     <div class="card">
       <div class="label">Loyer</div>
-      <div class="value">${escapeHtml(formatEuro(d.rent))}</div>
+      <div class="value">${escapeHtml(fmt(d.rent))}</div>
     </div>
     <div class="card">
       <div class="label">Mensualités prêts</div>
-      <div class="value">${escapeHtml(formatEuro(d.loansMonthly))}</div>
+      <div class="value">${escapeHtml(fmt(d.loansMonthly))}</div>
     </div>
   </div>
 
@@ -112,10 +114,10 @@ export function generatePdfHtml(d: PdfData): string {
       <tr><th>Catégorie</th><th class="amount">Montant</th></tr>
     </thead>
     <tbody>
-      <tr><td>Besoins (loyer + prêts + fixes)</td><td class="amount">${escapeHtml(formatEuro(d.rent + d.loansMonthly + d.besoins))}</td></tr>
-      <tr><td>Loisirs</td><td class="amount">${escapeHtml(formatEuro(d.loisirs))}</td></tr>
-      <tr><td>Épargne / Investissement</td><td class="amount">${escapeHtml(formatEuro(d.epargne))}</td></tr>
-      <tr><td><strong>Total dépenses</strong></td><td class="amount"><strong>${escapeHtml(formatEuro(d.rent + d.loansMonthly + d.totalExpenses))}</strong></td></tr>
+      <tr><td>Besoins (loyer + prêts + fixes)</td><td class="amount">${escapeHtml(fmt(d.rent + d.loansMonthly + d.besoins))}</td></tr>
+      <tr><td>Loisirs</td><td class="amount">${escapeHtml(fmt(d.loisirs))}</td></tr>
+      <tr><td>Épargne / Investissement</td><td class="amount">${escapeHtml(fmt(d.epargne))}</td></tr>
+      <tr><td><strong>Total dépenses</strong></td><td class="amount"><strong>${escapeHtml(fmt(d.rent + d.loansMonthly + d.totalExpenses))}</strong></td></tr>
     </tbody>
   </table>
 

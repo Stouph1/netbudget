@@ -25,10 +25,16 @@ import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
 import { CITIES, City, INDEX_EXPLANATION } from "../src/constants/cities";
 import {
   computeLoanMonthlyPayment,
-  formatEuro,
   normalizeText,
   parseNumber,
 } from "../src/utils/finance";
+import {
+  CurrencyCode,
+  CURRENCIES,
+  DEFAULT_CURRENCY,
+  formatCurrency,
+  getCurrency,
+} from "../src/utils/currency";
 import { buildAdvice, AdviceItem } from "../src/utils/advice";
 import { generatePdfHtml, PdfData } from "../src/utils/pdf";
 import {
@@ -168,6 +174,11 @@ export default function Index() {
   // Hydratation depuis AsyncStorage au démarrage
   const [hydrated, setHydrated] = useState(false);
 
+  // Devise
+  const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
+  const fmt = (v: number) => formatCurrency(v, currency);
+
   // Sources de revenu (v2 multi-sources)
   const [incomes, setIncomes] = useState<IncomeSource[]>([defaultIncomeSource()]);
 
@@ -252,6 +263,9 @@ export default function Index() {
         if (stored.cityId) {
           const found = CITIES.find((c) => c.id === stored.cityId);
           if (found) setCity(found);
+        }
+        if (stored.currency) {
+          setCurrency(stored.currency as CurrencyCode);
         }
       }
       setHydrated(true);
@@ -359,8 +373,9 @@ export default function Index() {
       expenseItems,
       loans,
       cityId: city.id,
+      currency,
     });
-  }, [hydrated, incomes, rent, expenseItems, loans, city]);
+  }, [hydrated, incomes, rent, expenseItems, loans, city, currency]);
 
   function openAddLoan() {
     setEditingLoan(null);
@@ -572,6 +587,7 @@ export default function Index() {
       totalExpenses,
       remaining,
       advice,
+      currency,
     };
   }
 
@@ -629,12 +645,21 @@ export default function Index() {
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.eyebrow}>Budget France</Text>
+              <Text style={styles.eyebrow}>Budget · {getCurrency(currency).flag} {getCurrency(currency).code}</Text>
               <Text style={styles.title}>NETbudget</Text>
             </View>
-            <TouchableOpacity onPress={askResetAll} style={styles.resetBtn} testID="reset-button">
-              <Feather name="refresh-ccw" size={16} color={TEXT_2} />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => setCurrencyPickerOpen(true)}
+                style={styles.headerBtn}
+                testID="currency-button"
+              >
+                <Text style={styles.headerBtnText}>{getCurrency(currency).symbol}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={askResetAll} style={styles.headerBtn} testID="reset-button">
+                <Feather name="refresh-ccw" size={16} color={TEXT_2} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
@@ -665,20 +690,20 @@ export default function Index() {
               <View style={styles.topSummaryRow}>
                 <View style={styles.topSummaryBlock}>
                   <Text style={styles.topSummaryLabel}>Net mensuel</Text>
-                  <Text style={styles.topSummaryValue}>{formatEuro(netMensuel)}</Text>
+                  <Text style={styles.topSummaryValue}>{fmt(netMensuel)}</Text>
                 </View>
                 <View style={styles.topSummaryDivider} />
                 <View style={styles.topSummaryBlock}>
                   <Text style={styles.topSummaryLabel}>Dépenses</Text>
                   <Text style={[styles.topSummaryValue, { color: TEXT_2 }]}>
-                    {formatEuro(monthlyExpenses)}
+                    {fmt(monthlyExpenses)}
                   </Text>
                 </View>
                 <View style={styles.topSummaryDivider} />
                 <View style={styles.topSummaryBlock}>
                   <Text style={styles.topSummaryLabel}>Reste à vivre</Text>
                   <Text style={[styles.topSummaryValue, { color: remainingColor }]} testID="top-reste-value">
-                    {formatEuro(remaining)}
+                    {fmt(remaining)}
                   </Text>
                 </View>
               </View>
@@ -742,7 +767,7 @@ export default function Index() {
                       </Text>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
-                      <Text style={styles.incomeNet}>{formatEuro(monthly)}</Text>
+                      <Text style={styles.incomeNet}>{fmt(monthly)}</Text>
                       <Text style={styles.incomeMetaSmall}>net / mois</Text>
                     </View>
                     <TouchableOpacity
@@ -761,18 +786,18 @@ export default function Index() {
               <View style={styles.revenusRow}>
                 <Text style={styles.revenusLabel}>Total brut annuel</Text>
                 <Text style={styles.revenusTotal} testID="total-brut-annuel">
-                  {formatEuro(totalBrutAnnuel)}
+                  {fmt(totalBrutAnnuel)}
                 </Text>
               </View>
               <View style={styles.revenusRow}>
                 <Text style={styles.revenusLabel}>Net mensuel estimé</Text>
                 <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
-                  {formatEuro(netMensuel)}
+                  {fmt(netMensuel)}
                 </Text>
               </View>
               <View style={styles.revenusRow}>
                 <Text style={styles.revenusLabel}>Brut mensuel moyen</Text>
-                <Text style={styles.revenusTotalMuted}>{formatEuro(brutMensuel)}</Text>
+                <Text style={styles.revenusTotalMuted}>{fmt(brutMensuel)}</Text>
               </View>
             </View>
           </Section>
@@ -874,11 +899,11 @@ export default function Index() {
                       <Text style={styles.loanMeta}>
                         {isDirect
                           ? "Mensualité directe"
-                          : `${formatEuro(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ans`}
+                          : `${fmt(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ans`}
                       </Text>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
-                      <Text style={styles.loanAmount}>{formatEuro(m)}</Text>
+                      <Text style={styles.loanAmount}>{fmt(m)}</Text>
                       <Text style={styles.loanMetaSmall}>/ mois</Text>
                     </View>
                     <TouchableOpacity
@@ -957,7 +982,7 @@ export default function Index() {
                 <View style={styles.familyTotalRow}>
                   <Text style={styles.familyTotalLabel}>Total {meta.label.toLowerCase()}</Text>
                   <Text style={[styles.familyTotalValue, { color: meta.color }]}>
-                    {formatEuro(familyTotals[family])}
+                    {fmt(familyTotals[family])}
                   </Text>
                 </View>
               </Section>
@@ -968,7 +993,7 @@ export default function Index() {
           <View style={styles.expensesTotalRow}>
             <Text style={styles.expensesTotalLabel}>Total dépenses mensuelles</Text>
             <Text style={styles.expensesTotalValue} testID="expenses-total">
-              {formatEuro(rentNum + loansMonthly + totalExpenses)}
+              {fmt(rentNum + loansMonthly + totalExpenses)}
             </Text>
           </View>
 
@@ -986,6 +1011,7 @@ export default function Index() {
               annualRemaining={annualRemaining}
               annualIncome={annualIncome}
               annualExpenses={annualExpenses}
+              currency={currency}
             />
           </Section>
 
@@ -1042,7 +1068,7 @@ export default function Index() {
                   size={240}
                   strokeWidth={28}
                   centerLabel="Reste à vivre"
-                  centerValue={formatEuro(remaining)}
+                  centerValue={fmt(remaining)}
                   centerValueColor={remainingColor}
                 />
                 <View style={styles.legendWrap}>
@@ -1050,7 +1076,7 @@ export default function Index() {
                     <View key={s.label} style={styles.legendItem}>
                       <View style={[styles.legendDot, { backgroundColor: s.color }]} />
                       <Text style={styles.legendText}>{s.label}</Text>
-                      <Text style={styles.legendValue}>{formatEuro(s.value)}</Text>
+                      <Text style={styles.legendValue}>{fmt(s.value)}</Text>
                     </View>
                   ))}
                 </View>
@@ -1085,6 +1111,60 @@ export default function Index() {
           <Text style={styles.dismissKbBtnText}>Terminé</Text>
         </TouchableOpacity>
       )}
+
+      {/* Currency Picker Modal */}
+      <Modal
+        visible={currencyPickerOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setCurrencyPickerOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setCurrencyPickerOpen(false)}
+          />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Choisir la devise</Text>
+              <TouchableOpacity
+                onPress={() => setCurrencyPickerOpen(false)}
+                testID="close-currency-picker"
+              >
+                <Feather name="x" size={22} color={TEXT_2} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              {CURRENCIES.map((c) => {
+                const active = c.code === currency;
+                return (
+                  <TouchableOpacity
+                    key={c.code}
+                    style={[styles.currencyRow, active && styles.currencyRowActive]}
+                    onPress={() => {
+                      setCurrency(c.code);
+                      setCurrencyPickerOpen(false);
+                    }}
+                    testID={`currency-option-${c.code}`}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.currencyFlag}>{c.flag}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.currencyName}>{c.name}</Text>
+                      <Text style={styles.currencyMeta}>{c.code}</Text>
+                    </View>
+                    <View style={styles.currencySymbol}>
+                      <Text style={styles.currencySymbolText}>{c.symbol}</Text>
+                    </View>
+                    {active && <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* City Picker Modal */}
       <Modal
@@ -1612,7 +1692,7 @@ export default function Index() {
                     <View style={styles.previewBox}>
                       <Text style={styles.previewLabel}>Mensualité estimée</Text>
                       <Text style={styles.previewValue} testID="loan-preview-monthly">
-                        {formatEuro(loanMonthlyPayment(form))}
+                        {fmt(loanMonthlyPayment(form))}
                       </Text>
                     </View>
                   </>
@@ -1913,6 +1993,29 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER,
     alignItems: "center", justifyContent: "center",
   },
+  headerActions: { flexDirection: "row", gap: 8 },
+  headerBtn: {
+    minWidth: 40, height: 40, paddingHorizontal: 10,
+    borderRadius: 20, backgroundColor: SURFACE,
+    borderWidth: 1, borderColor: BORDER,
+    alignItems: "center", justifyContent: "center",
+  },
+  headerBtnText: { color: TEXT, fontSize: 14, fontWeight: "800" },
+
+  currencyRow: {
+    flexDirection: "row", alignItems: "center",
+    paddingVertical: 14, paddingHorizontal: 8,
+    borderBottomWidth: 1, borderBottomColor: BORDER, gap: 12,
+  },
+  currencyRowActive: { backgroundColor: SURFACE },
+  currencyFlag: { fontSize: 24 },
+  currencyName: { color: TEXT, fontSize: 15, fontWeight: "600" },
+  currencyMeta: { color: TEXT_3, fontSize: 12, marginTop: 2 },
+  currencySymbol: {
+    backgroundColor: SURFACE_2, paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: 10, minWidth: 50, alignItems: "center",
+  },
+  currencySymbolText: { color: GOLD, fontSize: 13, fontWeight: "700" },
 
   topSummary: {
     backgroundColor: SURFACE,

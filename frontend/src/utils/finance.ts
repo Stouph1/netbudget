@@ -15,6 +15,7 @@ export function computeLoanMonthlyPayment(
   return m;
 }
 
+// @deprecated — kept for backwards compatibility. Préfère `formatCurrency` (utils/currency).
 export function formatEuro(value: number): string {
   if (!isFinite(value)) return "0 €";
   const rounded = Math.round(value);
