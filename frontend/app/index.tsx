@@ -1265,7 +1265,7 @@ export default function Index() {
                 </TouchableOpacity>
               </View>
               <ScrollView
-                style={{ flexGrow: 0 }}
+                style={{ flex: 1 }}
                 contentContainerStyle={{ paddingBottom: 8 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
@@ -1430,7 +1430,12 @@ export default function Index() {
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
-                  Nouvelle catégorie · {addItemFamily ? FAMILY_META[addItemFamily].label : ""}
+                  Nouvelle catégorie ·{" "}
+                  {addItemFamily === "epargne"
+                    ? "Épargne"
+                    : addItemFamily
+                      ? FAMILY_META[addItemFamily].label
+                      : ""}
                 </Text>
                 <TouchableOpacity
                   onPress={() => setAddItemFamily(null)}
@@ -1440,7 +1445,7 @@ export default function Index() {
                 </TouchableOpacity>
               </View>
               <ScrollView
-                style={{ flexGrow: 0 }}
+                style={{ flex: 1 }}
                 contentContainerStyle={{ paddingBottom: 8 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
@@ -1450,7 +1455,7 @@ export default function Index() {
                   icon={<Feather name="tag" size={18} color={GOLD} />}
                   value={newItemLabel}
                   onChangeText={setNewItemLabel}
-                  placeholder="ex : Salle de sport"
+                  placeholder="Nom de la catégorie"
                   testID="new-item-label"
                 />
                 <Field
@@ -1506,7 +1511,7 @@ export default function Index() {
               </View>
 
               <ScrollView
-                style={{ flexGrow: 0 }}
+                style={{ flex: 1 }}
                 contentContainerStyle={{ paddingBottom: 8 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
@@ -2096,7 +2101,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#0F0F12",
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     padding: 20, paddingBottom: 32,
-    borderWidth: 1, borderColor: BORDER, maxHeight: "85%",
+    borderWidth: 1, borderColor: BORDER,
+    minHeight: "55%",
+    maxHeight: "92%",
   },
   sheetHandle: {
     alignSelf: "center", width: 44, height: 4, borderRadius: 2,
@@ -2106,7 +2113,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between",
     alignItems: "center", marginBottom: 16,
   },
-  sheetTitle: { color: TEXT, fontSize: 20, fontWeight: "800" },
+  sheetTitle: { color: TEXT, fontSize: 20, fontWeight: "800", flex: 1, marginRight: 12 },
   searchWrap: {
     flexDirection: "row", alignItems: "center",
     backgroundColor: SURFACE, borderRadius: 12,
