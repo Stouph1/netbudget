@@ -145,6 +145,8 @@ const fr: Catalog = {
   // Footer
   "footer.tagline": "Calcul de reste à vivre, règle 50/30/20, conseils sur-mesure.",
   "footer.madeby": "Conçu et développé par",
+  "footer.links": "Liens",
+  "footer.follow": "Suivre",
   "footer.privacy": "Politique de confidentialité",
   "footer.terms": "Conditions d'utilisation",
   "footer.contact": "Contact",
@@ -327,6 +329,8 @@ const en: Catalog = {
   // Footer
   "footer.tagline": "Disposable income, 50/30/20 rule, tailored advice.",
   "footer.madeby": "Designed and built by",
+  "footer.links": "Links",
+  "footer.follow": "Follow",
   "footer.privacy": "Privacy policy",
   "footer.terms": "Terms of use",
   "footer.contact": "Contact",

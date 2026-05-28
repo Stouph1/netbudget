@@ -10,21 +10,87 @@ const t = useTranslations(locale);
 
 <footer class="border-t border-white/[0.06] bg-ink-900/60 backdrop-blur">
   <div class="container-app py-12">
-    <div class="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr]">
+    <div class="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
       <div>
         <a href={localizedPath(locale, "/")} class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-mint-400 to-mint-600 text-ink-900 font-bold">N</span>
+          <img
+            src="/logo.png"
+            alt="NETbudget"
+            width="32"
+            height="32"
+            class="h-8 w-8 rounded-lg shadow-lg shadow-mint-500/20"
+          />
           <span class="font-bold tracking-tight text-text-1">NETbudget</span>
         </a>
         <p class="mt-4 max-w-sm text-sm text-text-2">{t("footer.tagline")}</p>
+        <!-- Social icons sous la tagline -->
+        <div class="mt-5 flex items-center gap-2">
+          <a
+            href="https://www.instagram.com/netbudget.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram NETbudget"
+            class="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-text-2 transition hover:border-mint-500/40 hover:text-mint-400"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+          </a>
+          <a
+            href="mailto:stephane.pizeuil@gmail.com"
+            aria-label="Email"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-text-2 transition hover:border-mint-500/40 hover:text-mint-400"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </a>
+        </div>
       </div>
 
       <div>
-        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">Liens</h4>
+        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.links")}</h4>
         <ul class="mt-4 space-y-2 text-sm">
           <li><a href={localizedPath(locale, "/privacy/")} class="text-text-2 hover:text-text-1 transition">{t("footer.privacy")}</a></li>
           <li><a href={localizedPath(locale, "/terms/")} class="text-text-2 hover:text-text-1 transition">{t("footer.terms")}</a></li>
           <li><a href="mailto:stephane.pizeuil@gmail.com" class="text-text-2 hover:text-text-1 transition">{t("footer.contact")}</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.follow")}</h4>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li>
+            <a
+              href="https://www.instagram.com/netbudget.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 text-text-2 hover:text-text-1 transition"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+              </svg>
+              Instagram
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://apps.apple.com/app/netbudget/id6763551701"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 text-text-2 hover:text-text-1 transition"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.05 14.44c.02 2.15 1.94 2.76 1.95 2.78-.02.05-.33 1.13-1.08 2.24-.64.95-1.31 1.9-2.37 1.92-1.07.02-1.38-.65-2.59-.65-1.21 0-1.56.63-2.57.67-1.03.04-1.81-1.03-2.46-1.97C6.59 16.48 5.59 12.99 6.97 10.61c.69-1.17 1.92-1.92 3.25-1.95 1.02-.02 1.97.69 2.59.69.62 0 1.78-.85 3-.72.5.02 1.94.21 2.85 1.54-.07.05-1.71.96-1.69 3.27zM14.77 7.34c.55-.67.91-1.6.81-2.51-.78.03-1.73.52-2.29 1.2-.52.6-.96 1.54-.85 2.43.88.07 1.77-.47 2.33-1.12z"/>
+              </svg>
+              App Store
+            </a>
+          </li>
         </ul>
       </div>
 
