@@ -1,20 +1,13 @@
 // Catalogues de traduction pour le site marketing.
-// Langues complètes : fr, en. Les autres tombent en fallback EN si une clé manque
-// (voir utils.ts) — il suffit d'ajouter les clés au fur et à mesure.
+// Volontairement limités au FR et EN pour le lancement.
 
-export type Locale = "fr" | "en" | "es" | "pt" | "de" | "it" | "ar" | "ja";
+export type Locale = "fr" | "en";
 
 export const DEFAULT_LOCALE: Locale = "fr";
 
 export const LOCALES: { code: Locale; label: string; flag: string; rtl?: boolean }[] = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
   { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "pt", label: "Português", flag: "🇵🇹" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
-  { code: "it", label: "Italiano", flag: "🇮🇹" },
-  { code: "ar", label: "العربية", flag: "🇸🇦", rtl: true },
-  { code: "ja", label: "日本語", flag: "🇯🇵" },
 ];
 
 type Catalog = Record<string, string>;
@@ -27,14 +20,11 @@ const fr: Catalog = {
   "nav.privacy": "Confidentialité",
   "nav.download": "Télécharger",
 
-  // Reviews
-  "reviews.eyebrow": "Ils utilisent NETbudget",
-  "reviews.title": "Ce qu'en pensent les utilisateurs",
-  "reviews.subtitle": "Avis publics récupérés directement depuis l'App Store, mis à jour à chaque build du site.",
-
   // Hero
   "hero.eyebrow": "Version 1.6 disponible",
-  "hero.title": "Combien te reste-t-il vraiment chaque mois ?",
+  "hero.title": "Sache ce qu'il te reste",
+  "hero.title.accent": "vraiment",
+  "hero.title.suffix": " chaque mois.",
   "hero.subtitle":
     "NETbudget calcule ton reste à vivre, applique la règle 50/30/20 et te donne des conseils sur-mesure. 100 % sur ton téléphone, sans compte, sans cloud, sans publicité.",
   "hero.cta.appstore": "Télécharger sur l'App Store",
@@ -47,9 +37,17 @@ const fr: Catalog = {
   "stats.cities": "villes",
   "stats.countries": "pays",
 
+  // Screens gallery
+  "screens.eyebrow": "Aperçu de l'app",
+  "screens.title": "Conçu pour aller à l'essentiel",
+  "screens.subtitle": "Trois onglets, zéro friction. Tu calcules ton budget, tu convertis tes devises, tu règles tes préférences.",
+  "screens.budget": "Budget",
+  "screens.converter": "Convertisseur",
+  "screens.settings": "Réglages",
+
   // Features
   "features.eyebrow": "Pensé pour ta vie",
-  "features.title": "Un seul écran te dit tout ce qui compte",
+  "features.title": "Tout ce qui compte sur un seul écran",
   "features.subtitle":
     "Saisis tes revenus, ton loyer, tes prêts et tes dépenses. NETbudget fait le reste.",
 
@@ -106,6 +104,11 @@ const fr: Catalog = {
   "whatsnew.item5.text": "Budget, Convertisseur et Réglages — un tap pour passer de l'un à l'autre.",
   "whatsnew.item6.title": "Conseils traduits",
   "whatsnew.item6.text": "23 cartes de conseil personnalisées, traduites dans les 8 langues.",
+
+  // Reviews
+  "reviews.eyebrow": "Ils utilisent NETbudget",
+  "reviews.title": "Ce qu'en pensent les utilisateurs",
+  "reviews.subtitle": "Avis publics récupérés directement depuis l'App Store, mis à jour à chaque build du site.",
 
   // Privacy
   "privacy.eyebrow": "Vie privée par défaut",
@@ -194,14 +197,11 @@ const en: Catalog = {
   "nav.privacy": "Privacy",
   "nav.download": "Download",
 
-  // Reviews
-  "reviews.eyebrow": "They use NETbudget",
-  "reviews.title": "What users say",
-  "reviews.subtitle": "Public reviews pulled directly from the App Store, refreshed at every site build.",
-
   // Hero
   "hero.eyebrow": "Version 1.6 out now",
-  "hero.title": "How much do you really have left each month?",
+  "hero.title": "Know what you",
+  "hero.title.accent": "really",
+  "hero.title.suffix": " have left each month.",
   "hero.subtitle":
     "NETbudget computes your disposable income, applies the 50/30/20 rule and gives tailored advice. 100% on your phone — no account, no cloud, no ads.",
   "hero.cta.appstore": "Download on the App Store",
@@ -214,9 +214,17 @@ const en: Catalog = {
   "stats.cities": "cities",
   "stats.countries": "countries",
 
+  // Screens gallery
+  "screens.eyebrow": "App preview",
+  "screens.title": "Designed to get to the point",
+  "screens.subtitle": "Three tabs, zero friction. Compute your budget, convert currencies, tune your preferences.",
+  "screens.budget": "Budget",
+  "screens.converter": "Converter",
+  "screens.settings": "Settings",
+
   // Features
   "features.eyebrow": "Built for real life",
-  "features.title": "One screen tells you everything that matters",
+  "features.title": "Everything that matters on a single screen",
   "features.subtitle":
     "Enter your income, rent, loans and expenses. NETbudget handles the rest.",
 
@@ -273,6 +281,11 @@ const en: Catalog = {
   "whatsnew.item5.text": "Budget, Converter and Settings — one tap to switch.",
   "whatsnew.item6.title": "Translated advice",
   "whatsnew.item6.text": "23 personalised tip cards translated across all 8 languages.",
+
+  // Reviews
+  "reviews.eyebrow": "They use NETbudget",
+  "reviews.title": "What users say",
+  "reviews.subtitle": "Public reviews pulled directly from the App Store, refreshed at every site build.",
 
   // Privacy
   "privacy.eyebrow": "Privacy by default",
@@ -353,13 +366,4 @@ const en: Catalog = {
   "back.home": "Back to home",
 };
 
-// Stubs : pour les 6 autres langues on prend EN comme fallback.
-// Au fur et à mesure que tu traduis, remplace par un objet partiel ou complet.
-const es: Catalog = { ...en };
-const pt: Catalog = { ...en };
-const de: Catalog = { ...en };
-const it: Catalog = { ...en };
-const ar: Catalog = { ...en };
-const ja: Catalog = { ...en };
-
-export const CATALOGS: Record<Locale, Catalog> = { fr, en, es, pt, de, it, ar, ja };
+export const CATALOGS: Record<Locale, Catalog> = { fr, en };

@@ -18,8 +18,3 @@ pnpm-debug.log*
 # macOS
 .DS_Store
 
-# Photos personnelles (présentes en local seulement)
-public/avatar.jpg
-public/avatar.jpeg
-public/avatar.png
-public/avatar.webp

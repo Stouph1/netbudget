@@ -1,5 +1,5 @@
 ---
-import AppMockup from "./AppMockup.astro";
+import Phone from "./Phone.astro";
 import { useTranslations, type Locale } from "../i18n/utils";
 
 interface Props {
@@ -10,18 +10,21 @@ const t = useTranslations(locale);
 ---
 
 <section class="relative overflow-hidden">
-  <!-- Soft conic gradient background -->
-  <div aria-hidden="true" class="absolute inset-0 -z-10 opacity-60">
-    <div class="absolute -top-32 left-1/2 h-[600px] w-[1200px] -translate-x-1/2 rounded-full bg-gradient-radial from-mint-500/20 via-cyan-400/5 to-transparent blur-3xl"></div>
+  <!-- Glow radial doux vert + cyan -->
+  <div aria-hidden="true" class="absolute inset-0 -z-10">
+    <div class="absolute -top-40 left-1/2 h-[700px] w-[1300px] -translate-x-1/2 rounded-full bg-gradient-radial from-mint-500/25 via-cyan-400/10 to-transparent blur-3xl"></div>
   </div>
 
   <div class="container-app pt-12 pb-16 md:pt-24 md:pb-24">
     <div class="grid items-center gap-12 md:grid-cols-2 md:gap-16">
       <div class="space-y-7 text-center md:text-left">
         <span class="eyebrow">{t("hero.eyebrow")}</span>
-        <h1 class="heading-1 text-balance">
-          <span set:html={t("hero.title").replace("?", '<span class="gradient-text">?</span>')} />
+
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl leading-[1.05] text-balance">
+          {t("hero.title")}{" "}
+          <span class="gradient-text">{t("hero.title.accent")}</span>{t("hero.title.suffix")}
         </h1>
+
         <p class="body-lg max-w-xl text-balance md:max-w-none">{t("hero.subtitle")}</p>
 
         <div class="flex flex-wrap items-center justify-center gap-3 md:justify-start">
@@ -40,7 +43,7 @@ const t = useTranslations(locale);
       </div>
 
       <div class="flex justify-center md:justify-end">
-        <AppMockup />
+        <Phone src="/screens/hero.png" alt="NETbudget — écran principal" size="lg" />
       </div>
     </div>
   </div>

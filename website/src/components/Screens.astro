@@ -1,0 +1,35 @@
+---
+import Phone from "./Phone.astro";
+import { useTranslations, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const screens = [
+  { src: "/screens/budget.png", alt: "Onglet Budget", tilt: "left" as const, label: t("screens.budget") },
+  { src: "/screens/converter.png", alt: "Onglet Convertisseur", tilt: "none" as const, label: t("screens.converter") },
+  { src: "/screens/settings.png", alt: "Onglet Réglages", tilt: "right" as const, label: t("screens.settings") },
+];
+---
+
+<section id="screens" class="relative overflow-hidden">
+  <div class="container-app py-20 md:py-28">
+    <div class="mx-auto max-w-3xl text-center reveal">
+      <span class="eyebrow">{t("screens.eyebrow")}</span>
+      <h2 class="heading-2 mt-4 text-balance">{t("screens.title")}</h2>
+      <p class="body-lg mt-4 text-balance">{t("screens.subtitle")}</p>
+    </div>
+
+    <div class="mt-14 grid items-end gap-8 md:grid-cols-3 md:gap-4">
+      {screens.map((s, i) => (
+        <div class="flex flex-col items-center gap-4 reveal" style={`animation-delay: ${i * 100}ms`}>
+          <Phone src={s.src} alt={s.alt} tilt={s.tilt} size={i === 1 ? "lg" : "md"} />
+          <span class="text-sm font-semibold text-text-2">{s.label}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
