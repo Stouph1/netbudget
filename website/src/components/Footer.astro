@@ -49,8 +49,19 @@ const t = useTranslations(locale);
       </div>
     </div>
 
-    <div class="mt-10 border-t border-white/[0.06] pt-6 text-xs text-text-3 text-center">
-      {t("footer.copyright")}
+    <div class="mt-10 flex flex-col items-center gap-2 border-t border-white/[0.06] pt-6 text-xs text-text-3 sm:flex-row sm:justify-between">
+      <span>{t("footer.copyright")}</span>
+      <span class="flex items-center gap-1.5">
+        {t("footer.madeby")}
+        <a
+          href="https://www.linkedin.com/in/stephane-p-aa6122186/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-medium text-text-2 hover:text-gold-400 transition"
+        >
+          Stéphane Pizeuil
+        </a>
+      </span>
     </div>
   </div>
 </footer>

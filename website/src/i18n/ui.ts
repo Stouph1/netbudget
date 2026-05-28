@@ -116,8 +116,21 @@ const fr: Catalog = {
   "cta.subtitle": "Télécharge NETbudget et compte ton reste à vivre en moins de 5 minutes.",
   "cta.button": "Télécharger sur l'App Store",
 
+  // Maker
+  "maker.eyebrow": "Derrière l'application",
+  "maker.name": "Stéphane Pizeuil",
+  "maker.role": "Créateur indépendant · Ingénieur logiciel",
+  "maker.bio":
+    "J'ai conçu, codé et lancé NETbudget en solo. L'objectif : un outil de budget personnel simple, honnête, qui respecte ta vie privée et fonctionne partout dans le monde. Pas de modèle économique caché — pas de pub, pas de vente de données, pas d'abonnement.",
+  "maker.stat1": "Solo maker",
+  "maker.stat2": "Sur l'App Store",
+  "maker.stat3": "100 % indépendant",
+  "maker.linkedin": "Voir mon LinkedIn",
+  "maker.email": "M'écrire",
+
   // Footer
   "footer.tagline": "Calcul de reste à vivre, règle 50/30/20, conseils sur-mesure.",
+  "footer.madeby": "Conçu et développé par",
   "footer.privacy": "Politique de confidentialité",
   "footer.terms": "Conditions d'utilisation",
   "footer.contact": "Contact",
@@ -264,8 +277,21 @@ const en: Catalog = {
   "cta.subtitle": "Download NETbudget and count your disposable income in under 5 minutes.",
   "cta.button": "Download on the App Store",
 
+  // Maker
+  "maker.eyebrow": "Behind the app",
+  "maker.name": "Stéphane Pizeuil",
+  "maker.role": "Indie maker · Software engineer",
+  "maker.bio":
+    "I designed, built and launched NETbudget on my own. The goal: a simple, honest personal-budgeting tool that respects your privacy and works anywhere in the world. No hidden business model — no ads, no data selling, no subscription.",
+  "maker.stat1": "Solo maker",
+  "maker.stat2": "On the App Store",
+  "maker.stat3": "100% independent",
+  "maker.linkedin": "View my LinkedIn",
+  "maker.email": "Email me",
+
   // Footer
   "footer.tagline": "Disposable income, 50/30/20 rule, tailored advice.",
+  "footer.madeby": "Designed and built by",
   "footer.privacy": "Privacy policy",
   "footer.terms": "Terms of use",
   "footer.contact": "Contact",

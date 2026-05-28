@@ -1,0 +1,75 @@
+---
+import { useTranslations, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const LINKEDIN_URL = "https://www.linkedin.com/in/stephane-p-aa6122186/";
+const EMAIL = "stephane.pizeuil@gmail.com";
+
+const stats = [t("maker.stat1"), t("maker.stat2"), t("maker.stat3")];
+---
+
+<section id="maker" class="relative">
+  <div class="container-app py-20 md:py-24">
+    <div class="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-transparent p-8 md:p-14">
+      <div class="grid items-center gap-10 md:grid-cols-[auto_1fr] md:gap-14">
+        <!-- Avatar -->
+        <div class="reveal flex justify-center md:justify-start">
+          <div class="relative">
+            <div class="absolute -inset-4 rounded-full bg-gradient-to-br from-gold-500/40 to-amber-500/10 blur-2xl"></div>
+            <div class="relative grid h-32 w-32 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-ink-700 to-ink-800 text-3xl font-bold text-gold-400 shadow-2xl md:h-40 md:w-40 md:text-4xl">
+              SP
+            </div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="reveal text-center md:text-left">
+          <span class="eyebrow">{t("maker.eyebrow")}</span>
+          <h2 class="mt-4 text-2xl font-bold tracking-tight text-text-1 md:text-3xl">{t("maker.name")}</h2>
+          <p class="mt-1 text-sm font-medium text-gold-400">{t("maker.role")}</p>
+          <p class="mt-5 max-w-2xl text-base leading-relaxed text-text-2">{t("maker.bio")}</p>
+
+          <!-- Stats -->
+          <div class="mt-6 flex flex-wrap justify-center gap-2 md:justify-start">
+            {stats.map((s) => (
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-text-2">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                {s}
+              </span>
+            ))}
+          </div>
+
+          <!-- Liens -->
+          <div class="mt-7 flex flex-wrap items-center justify-center gap-3 md:justify-start">
+            <a
+              href={LINKEDIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 rounded-full bg-[#0A66C2] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0958A8] active:scale-95"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/>
+              </svg>
+              {t("maker.linkedin")}
+            </a>
+            <a
+              href={`mailto:${EMAIL}`}
+              class="btn-secondary !py-2.5 !px-5 text-sm"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              {t("maker.email")}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
