@@ -20,10 +20,16 @@ const stats = [t("maker.stat1"), t("maker.stat2"), t("maker.stat3")];
         <!-- Avatar -->
         <div class="reveal flex justify-center md:justify-start">
           <div class="relative">
-            <div class="absolute -inset-4 rounded-full bg-gradient-to-br from-gold-500/40 to-amber-500/10 blur-2xl"></div>
-            <div class="relative grid h-32 w-32 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-ink-700 to-ink-800 text-3xl font-bold text-gold-400 shadow-2xl md:h-40 md:w-40 md:text-4xl">
-              SP
-            </div>
+            <div class="absolute -inset-4 rounded-full bg-gradient-to-br from-mint-500/40 to-cyan-400/10 blur-2xl"></div>
+            <img
+              src="/avatar.jpg"
+              alt={t("maker.name")}
+              width="160"
+              height="160"
+              loading="lazy"
+              decoding="async"
+              class="relative h-32 w-32 rounded-full border border-white/15 object-cover shadow-2xl md:h-40 md:w-40"
+            />
           </div>
         </div>
 
@@ -31,7 +37,7 @@ const stats = [t("maker.stat1"), t("maker.stat2"), t("maker.stat3")];
         <div class="reveal text-center md:text-left">
           <span class="eyebrow">{t("maker.eyebrow")}</span>
           <h2 class="mt-4 text-2xl font-bold tracking-tight text-text-1 md:text-3xl">{t("maker.name")}</h2>
-          <p class="mt-1 text-sm font-medium text-gold-400">{t("maker.role")}</p>
+          <p class="mt-1 text-sm font-medium text-mint-400">{t("maker.role")}</p>
           <p class="mt-5 max-w-2xl text-base leading-relaxed text-text-2">{t("maker.bio")}</p>
 
           <!-- Stats -->

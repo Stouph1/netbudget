@@ -10,10 +10,21 @@ export default {
           700: "#1A1A1F",
           600: "#27272D",
         },
-        gold: {
-          400: "#FBBF24",
-          500: "#F59E0B",
-          600: "#D97706",
+        midnight: {
+          900: "#0A1224",
+          800: "#0F1E3D",
+          700: "#162B53",
+          600: "#1E3A6B",
+        },
+        mint: {
+          300: "#6EE7B7",
+          400: "#34D399",
+          500: "#10B981",
+          600: "#059669",
+        },
+        cyan: {
+          300: "#67E8F9",
+          400: "#22D3EE",
         },
         text: {
           1: "#FAFAFA",
@@ -47,6 +58,8 @@ export default {
         "fade-in": "fade-in 0.6s ease-out forwards",
         "shimmer": "shimmer 8s linear infinite",
         "float": "float 6s ease-in-out infinite",
+        "marquee": "marquee 60s linear infinite",
+        "marquee-slow": "marquee 90s linear infinite",
       },
       keyframes: {
         "fade-up": {
@@ -64,6 +77,10 @@ export default {
         "float": {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
+        },
+        "marquee": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
       backgroundImage: {

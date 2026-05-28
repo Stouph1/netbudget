@@ -23,8 +23,14 @@ const fr: Catalog = {
   // Nav
   "nav.features": "Fonctionnalités",
   "nav.whatsnew": "Nouveautés",
+  "nav.reviews": "Avis",
   "nav.privacy": "Confidentialité",
   "nav.download": "Télécharger",
+
+  // Reviews
+  "reviews.eyebrow": "Ils utilisent NETbudget",
+  "reviews.title": "Ce qu'en pensent les utilisateurs",
+  "reviews.subtitle": "Avis publics récupérés directement depuis l'App Store, mis à jour à chaque build du site.",
 
   // Hero
   "hero.eyebrow": "Version 1.6 disponible",
@@ -184,8 +190,14 @@ const en: Catalog = {
   // Nav
   "nav.features": "Features",
   "nav.whatsnew": "What's new",
+  "nav.reviews": "Reviews",
   "nav.privacy": "Privacy",
   "nav.download": "Download",
+
+  // Reviews
+  "reviews.eyebrow": "They use NETbudget",
+  "reviews.title": "What users say",
+  "reviews.subtitle": "Public reviews pulled directly from the App Store, refreshed at every site build.",
 
   // Hero
   "hero.eyebrow": "Version 1.6 out now",

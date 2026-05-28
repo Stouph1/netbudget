@@ -14,8 +14,14 @@ const home = localizedPath(locale, "/");
 <header class="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-ink-900/70 backdrop-blur-xl">
   <div class="container-app flex h-16 items-center justify-between">
     <a href={home} class="flex items-center gap-2.5 group">
-      <span class="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 text-ink-900 font-bold shadow-lg shadow-gold-500/20">N</span>
-      <span class="font-bold tracking-tight text-text-1 group-hover:text-gold-400 transition">NETbudget</span>
+      <img
+        src="/logo.png"
+        alt="NETbudget"
+        width="32"
+        height="32"
+        class="h-8 w-8 rounded-lg shadow-lg shadow-mint-500/20"
+      />
+      <span class="font-bold tracking-tight text-text-1 group-hover:text-mint-400 transition">NETbudget</span>
     </a>
 
     <nav class="hidden md:flex items-center gap-7 text-sm">
@@ -23,6 +29,7 @@ const home = localizedPath(locale, "/");
         <>
           <a href="#features" class="text-text-2 hover:text-text-1 transition">{t("nav.features")}</a>
           <a href="#whatsnew" class="text-text-2 hover:text-text-1 transition">{t("nav.whatsnew")}</a>
+          <a href="#reviews" class="text-text-2 hover:text-text-1 transition">{t("nav.reviews")}</a>
           <a href="#privacy" class="text-text-2 hover:text-text-1 transition">{t("nav.privacy")}</a>
         </>
       )}
@@ -48,7 +55,12 @@ const home = localizedPath(locale, "/");
           ))}
         </div>
       </details>
-      <a href="#download" class="hidden sm:inline-flex btn-primary !py-2 !px-4 text-xs">
+      <a
+        href="https://apps.apple.com/app/netbudget/id6763551701"
+        target="_blank"
+        rel="noopener"
+        class="hidden sm:inline-flex btn-primary !py-2 !px-4 text-xs"
+      >
         {t("nav.download")}
       </a>
     </div>

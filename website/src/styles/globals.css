@@ -10,13 +10,13 @@
   body {
     @apply bg-ink-900 text-text-1 antialiased min-h-screen;
     background-image:
-      radial-gradient(1200px 600px at 80% -10%, rgba(245, 158, 11, 0.08), transparent 60%),
-      radial-gradient(900px 500px at -10% 20%, rgba(99, 102, 241, 0.06), transparent 60%),
-      radial-gradient(800px 600px at 50% 110%, rgba(245, 158, 11, 0.05), transparent 60%);
+      radial-gradient(1200px 600px at 80% -10%, rgba(52, 211, 153, 0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(15, 30, 61, 0.55), transparent 60%),
+      radial-gradient(800px 600px at 50% 110%, rgba(34, 211, 238, 0.06), transparent 60%);
     background-attachment: fixed;
   }
   ::selection {
-    @apply bg-gold-500 text-ink-900;
+    @apply bg-mint-500 text-ink-900;
   }
 }
 
@@ -25,7 +25,7 @@
     @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
   }
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-full bg-gold-500 px-6 py-3 text-sm font-semibold text-ink-900 transition hover:bg-gold-400 active:scale-95;
+    @apply inline-flex items-center gap-2 rounded-full bg-mint-500 px-6 py-3 text-sm font-semibold text-ink-900 transition hover:bg-mint-400 active:scale-95;
   }
   .btn-secondary {
     @apply inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-text-1 backdrop-blur transition hover:bg-white/10;
@@ -46,7 +46,7 @@
     @apply text-base text-text-2 sm:text-lg;
   }
   .gradient-text {
-    @apply bg-gradient-to-r from-gold-400 via-gold-500 to-amber-300 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-mint-400 via-mint-500 to-cyan-300 bg-clip-text text-transparent;
   }
   .reveal {
     @apply opacity-0;

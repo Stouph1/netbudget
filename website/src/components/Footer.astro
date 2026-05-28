@@ -13,7 +13,7 @@ const t = useTranslations(locale);
     <div class="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr]">
       <div>
         <a href={localizedPath(locale, "/")} class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 text-ink-900 font-bold">N</span>
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-mint-400 to-mint-600 text-ink-900 font-bold">N</span>
           <span class="font-bold tracking-tight text-text-1">NETbudget</span>
         </a>
         <p class="mt-4 max-w-sm text-sm text-text-2">{t("footer.tagline")}</p>
@@ -37,7 +37,7 @@ const t = useTranslations(locale);
               class:list={[
                 "rounded-full border px-2.5 py-1 text-xs transition",
                 l.code === locale
-                  ? "border-gold-500/40 bg-gold-500/10 text-gold-400"
+                  ? "border-mint-500/40 bg-mint-500/10 text-mint-400"
                   : "border-white/10 bg-white/[0.03] text-text-2 hover:text-text-1",
               ]}
               hreflang={l.code}
@@ -57,7 +57,7 @@ const t = useTranslations(locale);
           href="https://www.linkedin.com/in/stephane-p-aa6122186/"
           target="_blank"
           rel="noopener noreferrer"
-          class="font-medium text-text-2 hover:text-gold-400 transition"
+          class="font-medium text-text-2 hover:text-mint-400 transition"
         >
           Stéphane Pizeuil
         </a>
