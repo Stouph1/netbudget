@@ -82,7 +82,13 @@ function truncate(s: string, n: number) {
       </div>
     ) : (
       <div class="container-app mt-12">
-        <div class="mx-auto grid max-w-4xl gap-5 sm:grid-cols-2">
+        <div class:list={[
+          "mx-auto grid gap-5",
+          count === 1 && "max-w-md",
+          count === 2 && "max-w-4xl sm:grid-cols-2",
+          count === 3 && "max-w-5xl md:grid-cols-3",
+          count >= 4 && "max-w-4xl sm:grid-cols-2",
+        ]}>
           {reviews.map((r, i) => (
             <article class="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-left transition hover:border-mint-500/30 reveal" style={`animation-delay: ${i * 80}ms`}>
               <div class="flex items-center justify-between">

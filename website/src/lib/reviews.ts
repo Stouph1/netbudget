@@ -13,8 +13,22 @@ export interface Review {
 }
 
 const APP_ID = "6763551701";
-// On fetch plusieurs stores pour montrer la couverture mondiale et avoir plus de matière.
-const COUNTRIES = ["fr", "us", "gb", "de", "es", "it", "jp", "br"];
+// Apple plafonne chaque tri à ~2 avis pour les fiches peu commentées. On
+// interroge donc DEUX tris par store puis on déduplique → on récupère plus
+// d'avis qu'avec un seul appel.
+const SORTS = ["mostRecent", "mostHelpful"] as const;
+// Liste large pour aller chercher des avis dans tous les marchés.
+const COUNTRIES = [
+  "fr", "be", "ch", "ca", "mc", "lu",
+  "us", "gb", "au", "nz", "ie",
+  "de", "at",
+  "es", "mx", "ar", "co", "cl", "pe",
+  "it",
+  "pt", "br",
+  "jp", "kr", "hk", "tw", "sg", "my", "th", "id", "ph", "vn", "in",
+  "ae", "sa", "il", "tr", "eg", "ma",
+  "nl", "se", "no", "dk", "fi", "pl", "cz", "ro", "hu", "gr",
+];
 
 interface RssEntry {
   id?: { label?: string };
@@ -25,12 +39,12 @@ interface RssEntry {
   updated?: { label?: string };
 }
 
-async function fetchOne(country: string): Promise<Review[]> {
-  const url = `https://itunes.apple.com/${country}/rss/customerreviews/id=${APP_ID}/sortBy=mostRecent/page=1/json`;
+async function fetchOne(country: string, sort: string): Promise<Review[]> {
+  const url = `https://itunes.apple.com/${country}/rss/customerreviews/id=${APP_ID}/sortBy=${sort}/page=1/json`;
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": "NETbudget-Website/1.0" },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return [];
     const data = (await res.json()) as { feed?: { entry?: RssEntry | RssEntry[] } };
@@ -58,13 +72,24 @@ let cache: Review[] | null = null;
 
 export async function getReviews(): Promise<Review[]> {
   if (cache) return cache;
-  const all = (await Promise.all(COUNTRIES.map(fetchOne))).flat();
+  // Cross-product : chaque pays × chaque tri.
+  const tasks: Promise<Review[]>[] = [];
+  for (const c of COUNTRIES) for (const s of SORTS) tasks.push(fetchOne(c, s));
+  const all = (await Promise.all(tasks)).flat();
+  // Déduplication par ID (un avis trouvé via plusieurs tris ne compte qu'une fois).
+  const seen = new Set<string>();
+  const unique: Review[] = [];
+  for (const r of all) {
+    if (seen.has(r.id)) continue;
+    seen.add(r.id);
+    unique.push(r);
+  }
   // Tri : note décroissante, puis date la plus récente.
-  all.sort((a, b) => {
+  unique.sort((a, b) => {
     if (b.rating !== a.rating) return b.rating - a.rating;
     return (b.date ?? "").localeCompare(a.date ?? "");
   });
-  cache = all;
-  return all;
+  cache = unique;
+  return unique;
 }
 
