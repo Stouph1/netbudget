@@ -125,6 +125,11 @@ const fr: Catalog = {
   "cta.subtitle": "Télécharge NETbudget et compte ton reste à vivre en moins de 5 minutes.",
   "cta.button": "Télécharger sur l'App Store",
 
+  // Scripture
+  "scripture.verse":
+    "« Garde-toi de dire en ton cœur : ma force et la puissance de ma main m'ont acquis ces richesses. Souviens-toi de l'Éternel, ton Dieu, car c'est lui qui te donnera de la force pour les acquérir, afin de confirmer, comme il le fait aujourd'hui, son alliance qu'il a jurée à tes pères. »",
+  "scripture.ref": "Deutéronome 8 : 17-18",
+
   // Maker
   "maker.eyebrow": "Derrière l'application",
   "maker.name": "Stéphane Pizeuil",
@@ -301,6 +306,11 @@ const en: Catalog = {
   "cta.title": "Ready to take back control of your money?",
   "cta.subtitle": "Download NETbudget and count your disposable income in under 5 minutes.",
   "cta.button": "Download on the App Store",
+
+  // Scripture
+  "scripture.verse":
+    "\"You may say to yourself, 'My power and the strength of my hands have produced this wealth for me.' But remember the LORD your God, for it is he who gives you the ability to produce wealth, and so confirms his covenant, which he swore to your ancestors, as it is today.\"",
+  "scripture.ref": "Deuteronomy 8 : 17-18",
 
   // Maker
   "maker.eyebrow": "Behind the app",

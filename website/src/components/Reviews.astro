@@ -1,6 +1,6 @@
 ---
 import { useTranslations, type Locale } from "../i18n/utils";
-import { getReviews, FALLBACK_REVIEWS, type Review } from "../lib/reviews";
+import { getReviews, type Review } from "../lib/reviews";
 
 interface Props {
   locale: Locale;
@@ -8,20 +8,24 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// Fetch au build. Si vide → fallback statique pour ne jamais afficher de section vide.
+// Fetch au build. On n'affiche que de VRAIS avis App Store, jamais de fakes.
 let reviews: Review[] = [];
 try {
   reviews = await getReviews();
 } catch {
   reviews = [];
 }
-if (reviews.length < 6) {
-  reviews = [...reviews, ...FALLBACK_REVIEWS].slice(0, 12);
-}
 
-// On dédouble la liste pour l'effet marquee infini (le translate-x de -50 % atterrit
-// pile sur la 2e copie, qui est identique à la 1re → boucle invisible).
-const loop = [...reviews, ...reviews];
+const count = reviews.length;
+// On affiche dès qu'il y a au moins 1 avis.
+const show = count >= 1;
+// Marquee horizontal infini seulement si on a assez d'avis pour rendre la boucle
+// non répétitive (sinon le visiteur verrait juste les 2 mêmes cartes passer en
+// boucle). Sous ce seuil, on bascule sur une grille statique centrée.
+const useMarquee = count >= 6;
+
+// Dédoublage pour le marquee infini (translate-x:-50 % atterrit pile sur la 2e copie).
+const loop = useMarquee ? [...reviews, ...reviews] : reviews;
 
 // Drapeau emoji à partir du code pays ISO-2.
 function flag(cc: string): string {
@@ -35,6 +39,7 @@ function truncate(s: string, n: number) {
 }
 ---
 
+{show && (
 <section id="reviews" class="relative overflow-hidden">
   <div class="py-20 md:py-24">
     <div class="container-app text-center reveal">
@@ -43,43 +48,74 @@ function truncate(s: string, n: number) {
       <p class="body-lg mx-auto mt-4 max-w-2xl text-balance">{t("reviews.subtitle")}</p>
     </div>
 
-    <!-- Marquee à 2 lignes, sens opposés pour effet dynamique -->
-    <div
-      class="relative mt-12 [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)] [mask-mode:luminance]"
-      data-marquee-root
-    >
-      <div class="flex w-max gap-4 animate-marquee" data-marquee-track style="animation-direction: normal;">
-        {loop.map((r, i) => (
-          <article class="w-[300px] shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left transition hover:border-mint-500/30">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-mint-500/30 to-cyan-400/20 text-xs font-bold text-mint-300">
-                  {(r.author || "?").slice(0, 1).toUpperCase()}
+    {useMarquee ? (
+      <div
+        class="relative mt-12 [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)] [mask-mode:luminance]"
+        data-marquee-root
+      >
+        <div class="flex w-max gap-4 animate-marquee" data-marquee-track>
+          {loop.map((r) => (
+            <article class="w-[300px] shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left transition hover:border-mint-500/30">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-mint-500/30 to-cyan-400/20 text-xs font-bold text-mint-300">
+                    {(r.author || "?").slice(0, 1).toUpperCase()}
+                  </div>
+                  <div>
+                    <div class="text-sm font-semibold text-text-1">{r.author}</div>
+                    <div class="text-[11px] text-text-3">{flag(r.countryCode)} {r.countryCode}</div>
+                  </div>
                 </div>
-                <div>
-                  <div class="text-sm font-semibold text-text-1">{r.author}</div>
-                  <div class="text-[11px] text-text-3">{flag(r.countryCode)} {r.countryCode}</div>
+                <div class="flex gap-0.5 text-cyan-300">
+                  {Array.from({ length: 5 }).map((_, k) => (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill={k < r.rating ? "currentColor" : "none"} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
                 </div>
               </div>
-              <div class="flex gap-0.5 text-cyan-300">
-                {Array.from({ length: 5 }).map((_, k) => (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill={k < r.rating ? "currentColor" : "none"} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                ))}
-              </div>
-            </div>
-            {r.title && <div class="mt-3 text-sm font-semibold text-text-1">{r.title}</div>}
-            <p class="mt-2 text-sm leading-relaxed text-text-2">{truncate(r.text, 180)}</p>
-          </article>
-        ))}
+              {r.title && <div class="mt-3 text-sm font-semibold text-text-1">{r.title}</div>}
+              <p class="mt-2 text-sm leading-relaxed text-text-2">{truncate(r.text, 180)}</p>
+            </article>
+          ))}
+        </div>
       </div>
-    </div>
+    ) : (
+      <div class="container-app mt-12">
+        <div class="mx-auto grid max-w-4xl gap-5 sm:grid-cols-2">
+          {reviews.map((r, i) => (
+            <article class="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-left transition hover:border-mint-500/30 reveal" style={`animation-delay: ${i * 80}ms`}>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-mint-500/30 to-cyan-400/20 text-sm font-bold text-mint-300">
+                    {(r.author || "?").slice(0, 1).toUpperCase()}
+                  </div>
+                  <div>
+                    <div class="text-sm font-semibold text-text-1">{r.author}</div>
+                    <div class="text-[11px] text-text-3">{flag(r.countryCode)} {r.countryCode}</div>
+                  </div>
+                </div>
+                <div class="flex gap-0.5 text-cyan-300">
+                  {Array.from({ length: 5 }).map((_, k) => (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill={k < r.rating ? "currentColor" : "none"} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
+              {r.title && <div class="mt-4 text-base font-semibold text-text-1">{r.title}</div>}
+              <p class="mt-2 text-sm leading-relaxed text-text-2">{r.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
 </section>
+)}
 
 <script>
-  // Pause au survol / focus clavier pour l'accessibilité
+  // Pause au survol / focus clavier pour l'accessibilité (marquee uniquement)
   const root = document.querySelector("[data-marquee-root]");
   const track = document.querySelector<HTMLElement>("[data-marquee-track]");
   if (root && track) {
