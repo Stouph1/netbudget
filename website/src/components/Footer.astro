@@ -1,0 +1,56 @@
+---
+import { useTranslations, localizedPath, LOCALES, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<footer class="border-t border-white/[0.06] bg-ink-900/60 backdrop-blur">
+  <div class="container-app py-12">
+    <div class="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr]">
+      <div>
+        <a href={localizedPath(locale, "/")} class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 text-ink-900 font-bold">N</span>
+          <span class="font-bold tracking-tight text-text-1">NETbudget</span>
+        </a>
+        <p class="mt-4 max-w-sm text-sm text-text-2">{t("footer.tagline")}</p>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">Liens</h4>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li><a href={localizedPath(locale, "/privacy/")} class="text-text-2 hover:text-text-1 transition">{t("footer.privacy")}</a></li>
+          <li><a href={localizedPath(locale, "/terms/")} class="text-text-2 hover:text-text-1 transition">{t("footer.terms")}</a></li>
+          <li><a href="mailto:stephane.pizeuil@gmail.com" class="text-text-2 hover:text-text-1 transition">{t("footer.contact")}</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.lang")}</h4>
+        <div class="mt-4 flex flex-wrap gap-2">
+          {LOCALES.map((l) => (
+            <a
+              href={localizedPath(l.code, "/")}
+              class:list={[
+                "rounded-full border px-2.5 py-1 text-xs transition",
+                l.code === locale
+                  ? "border-gold-500/40 bg-gold-500/10 text-gold-400"
+                  : "border-white/10 bg-white/[0.03] text-text-2 hover:text-text-1",
+              ]}
+              hreflang={l.code}
+            >
+              {l.flag} <span class="ml-1 uppercase">{l.code}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-10 border-t border-white/[0.06] pt-6 text-xs text-text-3 text-center">
+      {t("footer.copyright")}
+    </div>
+  </div>
+</footer>

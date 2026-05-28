@@ -1,0 +1,20 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Hero from "../../components/Hero.astro";
+import Stats from "../../components/Stats.astro";
+import Features from "../../components/Features.astro";
+import WhatsNew from "../../components/WhatsNew.astro";
+import Privacy from "../../components/Privacy.astro";
+import FinalCTA from "../../components/FinalCTA.astro";
+
+const locale = "es" as const;
+---
+
+<Layout locale={locale}>
+  <Hero locale={locale} />
+  <Stats locale={locale} />
+  <Features locale={locale} />
+  <WhatsNew locale={locale} />
+  <Privacy locale={locale} />
+  <FinalCTA locale={locale} />
+</Layout>

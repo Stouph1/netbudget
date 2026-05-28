@@ -1,0 +1,10 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import LegalPage from "../../components/LegalPage.astro";
+
+const locale = "es" as const;
+---
+
+<Layout locale={locale} pageKind="page">
+  <LegalPage locale={locale} kind="privacy" updated="2026-05-28" />
+</Layout>

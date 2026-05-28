@@ -1,0 +1,36 @@
+---
+import { useTranslations, localizedPath, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+  kind: "privacy" | "terms";
+  updated: string;
+}
+
+const { locale, kind, updated } = Astro.props;
+const t = useTranslations(locale);
+const sections = ["section1", "section2", "section3", "section4", kind === "privacy" ? "section5" : ""].filter(Boolean);
+---
+
+<section class="container-app pb-24 pt-10">
+  <a href={localizedPath(locale, "/")} class="inline-flex items-center gap-2 text-sm text-text-2 hover:text-text-1 transition">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+    {t("back.home")}
+  </a>
+
+  <article class="prose prose-invert mt-8 max-w-3xl">
+    <h1 class="heading-2 text-balance">{t(`page.${kind}.title`)}</h1>
+    <p class="body-lg mt-4">{t(`page.${kind}.intro`)}</p>
+
+    <div class="mt-10 space-y-8">
+      {sections.map((s) => (
+        <div>
+          <h2 class="text-xl font-semibold text-text-1">{t(`page.${kind}.${s}.title`)}</h2>
+          <p class="mt-2 text-text-2 leading-relaxed">{t(`page.${kind}.${s}.body`)}</p>
+        </div>
+      ))}
+    </div>
+
+    <p class="mt-12 text-xs text-text-3">{t(`page.${kind}.updated`)} : {updated}</p>
+  </article>
+</section>

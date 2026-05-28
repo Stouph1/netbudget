@@ -1,0 +1,77 @@
+---
+// Mock visuel d'écran d'app — pas une vraie capture, mais une représentation
+// stylisée en SVG/HTML pour le hero. Donne une idée du look sans dépendre
+// d'un fichier image.
+---
+
+<div class="relative mx-auto w-[260px] sm:w-[300px] md:w-[320px]">
+  <!-- Glow derrière le téléphone -->
+  <div class="absolute -inset-10 -z-10 rounded-full bg-gradient-to-br from-gold-500/30 via-amber-500/15 to-transparent blur-3xl animate-float"></div>
+
+  <!-- Bezel iPhone -->
+  <div class="relative rounded-[44px] border border-white/15 bg-ink-800 p-2 shadow-[0_30px_80px_-20px_rgba(245,158,11,0.35),0_10px_40px_-10px_rgba(0,0,0,0.6)]">
+    <div class="rounded-[36px] overflow-hidden bg-ink-900 aspect-[9/19.5] relative">
+      <!-- Notch -->
+      <div class="absolute left-1/2 top-3 z-10 h-6 w-24 -translate-x-1/2 rounded-full bg-black/90"></div>
+
+      <!-- Écran simulé -->
+      <div class="absolute inset-0 flex flex-col p-5 pt-10 gap-4">
+        <!-- Header -->
+        <div class="space-y-1">
+          <div class="text-[9px] uppercase tracking-[0.18em] text-text-3">Budget</div>
+          <div class="text-lg font-bold text-text-1">Reste à vivre</div>
+        </div>
+
+        <!-- Carte montant principal -->
+        <div class="rounded-2xl border border-white/10 bg-gradient-to-br from-gold-500/15 to-amber-500/5 p-4">
+          <div class="text-[10px] text-text-2 uppercase tracking-wider">Mensuel</div>
+          <div class="text-3xl font-bold gradient-text">1 248 €</div>
+          <div class="text-[10px] text-text-2 mt-1">sur 3 200 € nets</div>
+        </div>
+
+        <!-- Donut simulé -->
+        <div class="flex items-center gap-3">
+          <svg viewBox="0 0 36 36" class="h-16 w-16">
+            <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4" />
+            <circle cx="18" cy="18" r="14" fill="none" stroke="#10B981" stroke-width="4" stroke-dasharray="44 88" stroke-dashoffset="0" transform="rotate(-90 18 18)" />
+            <circle cx="18" cy="18" r="14" fill="none" stroke="#A855F7" stroke-width="4" stroke-dasharray="22 88" stroke-dashoffset="-44" transform="rotate(-90 18 18)" />
+            <circle cx="18" cy="18" r="14" fill="none" stroke="#F59E0B" stroke-width="4" stroke-dasharray="22 88" stroke-dashoffset="-66" transform="rotate(-90 18 18)" />
+          </svg>
+          <div class="space-y-1 text-[10px]">
+            <div class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span><span class="text-text-2">Besoins 50 %</span></div>
+            <div class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-purple-500"></span><span class="text-text-2">Loisirs 25 %</span></div>
+            <div class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span><span class="text-text-2">Épargne 25 %</span></div>
+          </div>
+        </div>
+
+        <!-- Cartes conseils -->
+        <div class="space-y-2">
+          <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+            <div class="text-[10px] font-bold text-emerald-300">Budget exemplaire</div>
+            <div class="text-[9px] text-text-2 mt-0.5">Tu coches les 3 cases du 50/30/20.</div>
+          </div>
+          <div class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5">
+            <div class="text-[10px] font-bold text-amber-300">Excellente épargne · 22 %</div>
+            <div class="text-[9px] text-text-2 mt-0.5">Au-dessus du seuil 20 %. Diversifie.</div>
+          </div>
+        </div>
+
+        <!-- Tabbar -->
+        <div class="mt-auto flex items-center justify-around border-t border-white/10 pt-2 -mx-5 px-5">
+          <div class="flex flex-col items-center gap-0.5 text-gold-400">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+            <span class="text-[8px] font-semibold">Budget</span>
+          </div>
+          <div class="flex flex-col items-center gap-0.5 text-text-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" /></svg>
+            <span class="text-[8px]">Convertir</span>
+          </div>
+          <div class="flex flex-col items-center gap-0.5 text-text-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+            <span class="text-[8px]">Réglages</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

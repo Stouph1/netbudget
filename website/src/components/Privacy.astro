@@ -1,0 +1,32 @@
+---
+import { useTranslations, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const points = ["privacy.point1", "privacy.point2", "privacy.point3", "privacy.point4"];
+---
+
+<section id="privacy" class="relative">
+  <div class="container-app py-20 md:py-28">
+    <div class="mx-auto max-w-3xl text-center reveal">
+      <span class="eyebrow">{t("privacy.eyebrow")}</span>
+      <h2 class="heading-2 mt-4 text-balance">{t("privacy.title")}</h2>
+      <p class="body-lg mt-4 text-balance">{t("privacy.text")}</p>
+    </div>
+
+    <div class="mx-auto mt-12 grid max-w-3xl gap-3 sm:grid-cols-2">
+      {points.map((p, i) => (
+        <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 reveal" style={`animation-delay: ${i * 60}ms`}>
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          </span>
+          <span class="text-sm font-medium text-text-1">{t(p)}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

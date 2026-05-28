@@ -1,0 +1,57 @@
+---
+import { useTranslations, localizedPath, LOCALES, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+  pageKind?: "home" | "page";
+}
+
+const { locale, pageKind = "home" } = Astro.props;
+const t = useTranslations(locale);
+const home = localizedPath(locale, "/");
+---
+
+<header class="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-ink-900/70 backdrop-blur-xl">
+  <div class="container-app flex h-16 items-center justify-between">
+    <a href={home} class="flex items-center gap-2.5 group">
+      <span class="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 text-ink-900 font-bold shadow-lg shadow-gold-500/20">N</span>
+      <span class="font-bold tracking-tight text-text-1 group-hover:text-gold-400 transition">NETbudget</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-7 text-sm">
+      {pageKind === "home" && (
+        <>
+          <a href="#features" class="text-text-2 hover:text-text-1 transition">{t("nav.features")}</a>
+          <a href="#whatsnew" class="text-text-2 hover:text-text-1 transition">{t("nav.whatsnew")}</a>
+          <a href="#privacy" class="text-text-2 hover:text-text-1 transition">{t("nav.privacy")}</a>
+        </>
+      )}
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <details class="relative">
+        <summary class="cursor-pointer list-none rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-text-2 hover:text-text-1 transition flex items-center gap-1.5">
+          {LOCALES.find((l) => l.code === locale)?.flag} <span class="uppercase">{locale}</span>
+        </summary>
+        <div class="absolute right-0 mt-2 w-44 rounded-xl border border-white/10 bg-ink-800/95 p-1.5 shadow-2xl backdrop-blur-xl">
+          {LOCALES.map((l) => (
+            <a
+              href={localizedPath(l.code, "/")}
+              class:list={[
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition",
+                l.code === locale ? "bg-white/10 text-text-1" : "text-text-2 hover:bg-white/5 hover:text-text-1",
+              ]}
+            >
+              <span>{l.flag}</span>
+              <span>{l.label}</span>
+            </a>
+          ))}
+        </div>
+      </details>
+      <a href="#download" class="hidden sm:inline-flex btn-primary !py-2 !px-4 text-xs">
+        {t("nav.download")}
+      </a>
+    </div>
+  </div>
+</header>
+<div class="h-16"></div>
