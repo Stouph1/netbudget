@@ -370,6 +370,12 @@ const fr: Catalog = {
   "country.noResult": "Aucun pays trouvé",
   "country.city": "ville",
   "country.cities": "villes",
+  "country.citySuggestions": "Villes correspondantes",
+  "country.allCountries": "Tous les pays",
+  "update.title": "Mise à jour disponible",
+  "update.message": "Une nouvelle version est disponible sur l'App Store (de {current} à {latest}). Profite des derniers correctifs et fonctionnalités.",
+  "update.later": "Plus tard",
+  "update.now": "Mettre à jour",
 };
 
 const en: Catalog = {
@@ -674,6 +680,12 @@ const en: Catalog = {
   "country.noResult": "No country found",
   "country.city": "city",
   "country.cities": "cities",
+  "country.citySuggestions": "Matching cities",
+  "country.allCountries": "All countries",
+  "update.title": "Update available",
+  "update.message": "A new version is available on the App Store ({current} → {latest}). Get the latest fixes and features.",
+  "update.later": "Later",
+  "update.now": "Update",
 };
 
 const es: Catalog = {
@@ -978,6 +990,12 @@ const es: Catalog = {
   "country.noResult": "Ningún país encontrado",
   "country.city": "ciudad",
   "country.cities": "ciudades",
+  "country.citySuggestions": "Ciudades coincidentes",
+  "country.allCountries": "Todos los países",
+  "update.title": "Actualización disponible",
+  "update.message": "Una nueva versión está disponible en la App Store ({current} → {latest}). Disfruta de las últimas correcciones y novedades.",
+  "update.later": "Más tarde",
+  "update.now": "Actualizar",
 };
 
 const pt: Catalog = {
@@ -1282,6 +1300,12 @@ const pt: Catalog = {
   "country.noResult": "Nenhum país encontrado",
   "country.city": "cidade",
   "country.cities": "cidades",
+  "country.citySuggestions": "Cidades correspondentes",
+  "country.allCountries": "Todos os países",
+  "update.title": "Atualização disponível",
+  "update.message": "Uma nova versão está disponível na App Store ({current} → {latest}). Aproveita as últimas correções e novidades.",
+  "update.later": "Mais tarde",
+  "update.now": "Atualizar",
 };
 
 const de: Catalog = {
@@ -1586,6 +1610,12 @@ const de: Catalog = {
   "country.noResult": "Kein Land gefunden",
   "country.city": "Stadt",
   "country.cities": "Städte",
+  "country.citySuggestions": "Passende Städte",
+  "country.allCountries": "Alle Länder",
+  "update.title": "Update verfügbar",
+  "update.message": "Eine neue Version ist im App Store verfügbar ({current} → {latest}). Hol dir die neuesten Fixes und Features.",
+  "update.later": "Später",
+  "update.now": "Aktualisieren",
 };
 
 const it: Catalog = {
@@ -1890,6 +1920,12 @@ const it: Catalog = {
   "country.noResult": "Nessun paese trovato",
   "country.city": "città",
   "country.cities": "città",
+  "country.citySuggestions": "Città corrispondenti",
+  "country.allCountries": "Tutti i paesi",
+  "update.title": "Aggiornamento disponibile",
+  "update.message": "Una nuova versione è disponibile sull'App Store ({current} → {latest}). Approfitta delle ultime correzioni e novità.",
+  "update.later": "Più tardi",
+  "update.now": "Aggiorna",
 };
 
 const ar: Catalog = {
@@ -2194,6 +2230,12 @@ const ar: Catalog = {
   "country.noResult": "لم يتم العثور على بلد",
   "country.city": "مدينة",
   "country.cities": "مدن",
+  "country.citySuggestions": "المدن المطابقة",
+  "country.allCountries": "جميع البلدان",
+  "update.title": "تحديث متوفر",
+  "update.message": "إصدار جديد متاح على App Store ({current} → {latest}). احصل على أحدث الإصلاحات والميزات.",
+  "update.later": "لاحقًا",
+  "update.now": "تحديث",
 };
 
 const ja: Catalog = {
@@ -2498,6 +2540,12 @@ const ja: Catalog = {
   "country.noResult": "該当する国がありません",
   "country.city": "都市",
   "country.cities": "都市",
+  "country.citySuggestions": "一致する都市",
+  "country.allCountries": "すべての国",
+  "update.title": "アップデートが利用可能",
+  "update.message": "App Storeに新しいバージョン（{current} → {latest}）があります。最新の修正と機能をお試しください。",
+  "update.later": "後で",
+  "update.now": "更新",
 };
 
 export const CATALOGS: Record<Lang, Catalog> = { fr, en, es, pt, de, it, ar, ja };

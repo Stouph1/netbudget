@@ -29,6 +29,31 @@ export function parseNumber(value: string): number {
   return isNaN(n) ? 0 : n;
 }
 
+// Distance de Levenshtein — utile pour suggérer la ville la plus proche en cas
+// de faute de frappe : "marsille" → "Marseille" (distance 1).
+export function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  // Tableau roulant pour économiser la mémoire.
+  let prev = new Array(b.length + 1);
+  let curr = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(
+        prev[j] + 1,        // suppression
+        curr[j - 1] + 1,    // insertion
+        prev[j - 1] + cost, // substitution
+      );
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
 // Strip diacritics, lowercase, collapse hyphens/spaces — for fuzzy text search
 // "Saint-Étienne" → "saint etienne" so it matches "saint etienne", "Saint Etienne", etc.
 export function normalizeText(value: string): string {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -16,18 +16,25 @@ import {
   Alert,
   Keyboard,
   Linking,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import * as StoreReview from "expo-store-review";
+import * as Application from "expo-application";
+import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import DonutChart, { DonutSegment } from "../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
 import { CITIES, City, COUNTRIES, INDEX_SOURCES, citiesByCountry, getCountry } from "../src/constants/cities";
 import {
   computeLoanMonthlyPayment,
   normalizeText,
+  levenshtein,
   parseNumber,
 } from "../src/utils/finance";
 import {
@@ -178,22 +185,41 @@ type ConfirmState = {
 };
 
 export default function Index() {
+  // Insets pour éviter que les modales remontent sous la barre de statut iOS
+  // quand le clavier s'ouvre (cf. KeyboardAvoidingView dans chaque modal).
+  const insets = useSafeAreaInsets();
+
   // Revenus
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   useEffect(() => {
     const showSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      () => setKeyboardVisible(true)
+      (e) => {
+        setKeyboardVisible(true);
+        setKeyboardHeight(e?.endCoordinates?.height ?? 0);
+      }
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => setKeyboardVisible(false)
+      () => {
+        setKeyboardVisible(false);
+        setKeyboardHeight(0);
+      }
     );
     return () => {
       showSub.remove();
       hideSub.remove();
     };
   }, []);
+
+  // Hauteur dynamique du sheet : si le clavier est ouvert, on rétrécit la modale
+  // pour qu'elle ne déborde plus sous la barre de statut iOS. Sinon, 85 % comme avant.
+  const sheetHeight =
+    keyboardHeight > 0
+      ? Math.max(220, SCREEN_H - insets.top - keyboardHeight - 16)
+      : Math.round(SCREEN_H * 0.85);
+
 
   // Hydratation depuis AsyncStorage au démarrage
   const [hydrated, setHydrated] = useState(false);
@@ -318,6 +344,55 @@ export default function Index() {
 
   // Dépenses mensuelles par famille (Besoins / Loisirs / Épargne)
   const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>(DEFAULT_ITEMS);
+
+  // Modal "Mise à jour disponible" : vérification au lancement contre l'App Store.
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  useEffect(() => {
+    (async () => {
+      const installed = Application.nativeApplicationVersion ?? "0.0.0";
+      const info = await checkForUpdate(installed);
+      if (info) setUpdateInfo(info);
+    })();
+  }, []);
+
+  // Prompt de note App Store : se déclenche une seule fois, quand l'utilisateur
+  // scrolle jusqu'en bas de l'onglet Budget après avoir rempli quelques données.
+  const RATE_KEY = "netbudget:ratePromptShown";
+  const ratePromptShownRef = useRef(false);
+  useEffect(() => {
+    (async () => {
+      try {
+        const v = await AsyncStorage.getItem(RATE_KEY);
+        ratePromptShownRef.current = v === "1";
+      } catch {}
+    })();
+  }, []);
+  const maybePromptRate = useCallback(async () => {
+    if (ratePromptShownRef.current) return;
+    const hasData =
+      incomes.some((s) => parseNumber(s.amount) > 0) ||
+      parseNumber(rent) > 0 ||
+      expenseItems.some((e) => parseNumber(e.amount) > 0);
+    if (!hasData) return;
+    try {
+      const ok = await StoreReview.isAvailableAsync();
+      if (!ok) return;
+      ratePromptShownRef.current = true;
+      await AsyncStorage.setItem(RATE_KEY, "1");
+      await StoreReview.requestReview();
+    } catch {
+      // silencieux : le prompt est non-essentiel
+    }
+  }, [incomes, rent, expenseItems]);
+  const onBudgetScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+      const reachedBottom =
+        contentOffset.y + layoutMeasurement.height >= contentSize.height - 120;
+      if (reachedBottom) maybePromptRate();
+    },
+    [maybePromptRate],
+  );
 
   // Modal d'ajout d'une catégorie custom
   const [addItemFamily, setAddItemFamily] = useState<ExpenseFamily | null>(null);
@@ -502,15 +577,46 @@ export default function Index() {
     return COUNTRIES.filter((c) => normalizeText(c.name).includes(q));
   }, [citySearch]);
 
+  // Suggestions GLOBALES de villes affichées sur l'étape "pays" :
+  // si le user tape "argenteuil" sans avoir sélectionné un pays, on lui montre
+  // quand même les villes correspondantes (avec fuzzy match en bonus).
+  const globalCitySuggestions = useMemo(() => {
+    const q = normalizeText(citySearch);
+    if (q.length < 2) return [] as City[];
+    // 1) Substring match exact sur nom OU région
+    const exact = CITIES.filter((c) =>
+      normalizeText(`${c.name} ${c.region}`).includes(q),
+    );
+    if (exact.length > 0) return exact.slice(0, 12);
+    // 2) Sinon : fuzzy Levenshtein sur le nom seul, tolérance proportionnelle.
+    const tolerance = Math.max(1, Math.floor(q.length / 4));
+    const scored = CITIES.map((c) => ({
+      c,
+      d: levenshtein(normalizeText(c.name), q),
+    })).filter((x) => x.d <= tolerance);
+    scored.sort((a, b) => a.d - b.d);
+    return scored.slice(0, 8).map((x) => x.c);
+  }, [citySearch]);
+
   const filteredCities = useMemo(() => {
     if (!pickerCountry) return [];
     const list = citiesByCountry(pickerCountry);
     const q = normalizeText(citySearch);
     if (!q) return list;
-    return list.filter((c) => {
+    // 1) Substring match exact (comportement original)
+    const exact = list.filter((c) => {
       const haystack = normalizeText(`${c.name} ${c.region}`);
       return haystack.includes(q);
     });
+    if (exact.length > 0) return exact;
+    // 2) Aucun match exact dans ce pays → on suggère via Levenshtein.
+    const tolerance = Math.max(1, Math.floor(q.length / 4));
+    return list
+      .map((c) => ({ c, d: levenshtein(normalizeText(c.name), q) }))
+      .filter((x) => x.d <= tolerance)
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 8)
+      .map((x) => x.c);
   }, [citySearch, pickerCountry]);
 
   // ----- Persistance : sauvegarde à chaque changement (après hydratation) -----
@@ -793,6 +899,8 @@ export default function Index() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          onScroll={onBudgetScroll}
+          scrollEventThrottle={400}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -1459,7 +1567,7 @@ export default function Index() {
             style={StyleSheet.absoluteFillObject}
             onPress={() => setConvPickerFor(null)}
           />
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { height: sheetHeight }]}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>
@@ -1520,7 +1628,7 @@ export default function Index() {
             style={StyleSheet.absoluteFillObject}
             onPress={() => setLangPickerOpen(false)}
           />
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { height: sheetHeight }]}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{t("modal.chooseLanguage")}</Text>
@@ -1571,7 +1679,7 @@ export default function Index() {
             style={StyleSheet.absoluteFillObject}
             onPress={() => setCurrencyPickerOpen(false)}
           />
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { height: sheetHeight }]}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{t("modal.chooseCurrency")}</Text>
@@ -1652,9 +1760,10 @@ export default function Index() {
           />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
+            keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
             style={{ width: "100%" }}
           >
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { height: sheetHeight }]}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               {pickerStep === "city" ? (
@@ -1703,12 +1812,56 @@ export default function Index() {
                 keyExtractor={(c) => c.code}
                 keyboardShouldPersistTaps="handled"
                 style={{ flex: 1 }}
+                ListHeaderComponent={
+                  globalCitySuggestions.length > 0 ? (
+                    <View>
+                      <View style={styles.regionHeader}>
+                        <Text style={styles.regionHeaderText}>{t("country.citySuggestions")}</Text>
+                      </View>
+                      {globalCitySuggestions.map((sug) => {
+                        const country = COUNTRIES.find((c) => c.code === sug.countryCode);
+                        return (
+                          <TouchableOpacity
+                            key={sug.id}
+                            style={styles.cityRow}
+                            onPress={() => {
+                              setCity(sug);
+                              setCityPickerOpen(false);
+                              setCitySearch("");
+                            }}
+                            testID={`city-suggestion-${sug.id}`}
+                          >
+                            <Text style={{ fontSize: 20, marginRight: 12 }}>{country?.flag ?? "🌍"}</Text>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.cityName}>{sug.name}</Text>
+                              <Text style={styles.cityRegion}>
+                                {country?.name ?? sug.countryCode} · {sug.region}
+                              </Text>
+                            </View>
+                            <View style={styles.cityIndex}>
+                              <Text style={[styles.cityIndexText, { color: sug.index > 1 ? GOLD : SUCCESS }]}>
+                                ×{sug.index.toFixed(2)}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                      {filteredCountries.length > 0 && (
+                        <View style={[styles.regionHeader, { marginTop: 8 }]}>
+                          <Text style={styles.regionHeaderText}>{t("country.allCountries")}</Text>
+                        </View>
+                      )}
+                    </View>
+                  ) : null
+                }
                 ListEmptyComponent={
-                  <View style={styles.cityEmpty} testID="country-empty">
-                    <Feather name="search" size={20} color={TEXT_3} />
-                    <Text style={styles.cityEmptyTitle}>{t("country.noResult")}</Text>
-                    <Text style={styles.cityEmptyText}>{t("city.noResultHint")}</Text>
-                  </View>
+                  globalCitySuggestions.length === 0 ? (
+                    <View style={styles.cityEmpty} testID="country-empty">
+                      <Feather name="search" size={20} color={TEXT_3} />
+                      <Text style={styles.cityEmptyTitle}>{t("country.noResult")}</Text>
+                      <Text style={styles.cityEmptyText}>{t("city.noResultHint")}</Text>
+                    </View>
+                  ) : null
                 }
                 renderItem={({ item }) => {
                   const active = city.countryCode === item.code;
@@ -1895,9 +2048,10 @@ export default function Index() {
           />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
+            keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
             style={{ width: "100%" }}
           >
-            <View style={styles.sheet}>
+            <View style={[styles.sheet, { height: sheetHeight }]}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
@@ -2065,9 +2219,10 @@ export default function Index() {
           />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
+            keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
             style={{ width: "100%" }}
           >
-            <View style={styles.sheet}>
+            <View style={[styles.sheet, { height: sheetHeight }]}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
@@ -2139,9 +2294,10 @@ export default function Index() {
           />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
+            keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
             style={{ width: "100%" }}
           >
-            <View style={styles.sheet}>
+            <View style={[styles.sheet, { height: sheetHeight }]}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
@@ -2283,6 +2439,62 @@ export default function Index() {
                 <Text style={[styles.confirmOkText, confirm.danger && { color: "#fff" }]}>
                   {confirm.confirmLabel || t("btn.confirm")}
                 </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal : nouvelle version disponible sur l'App Store */}
+      <Modal
+        visible={!!updateInfo}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setUpdateInfo(null)}
+      >
+        <View style={styles.confirmBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setUpdateInfo(null)}
+          />
+          <View style={styles.confirmBox}>
+            <View style={{ alignItems: "center", marginBottom: 8 }}>
+              <View style={{
+                width: 56, height: 56, borderRadius: 28,
+                backgroundColor: "rgba(16,185,129,0.15)",
+                alignItems: "center", justifyContent: "center",
+                borderWidth: 1, borderColor: "rgba(16,185,129,0.4)",
+              }}>
+                <Feather name="download" size={26} color="#10B981" />
+              </View>
+            </View>
+            <Text style={styles.confirmTitle}>{t("update.title")}</Text>
+            <Text style={styles.confirmMessage}>
+              {interpolate(t("update.message"), {
+                current: updateInfo?.installedVersion ?? "",
+                latest: updateInfo?.storeVersion ?? "",
+              })}
+            </Text>
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 18 }}>
+              <TouchableOpacity
+                style={[styles.infoCloseBtn, { flex: 1, backgroundColor: "rgba(255,255,255,0.06)" }]}
+                onPress={async () => {
+                  if (updateInfo) await dismissUpdate(updateInfo.storeVersion);
+                  setUpdateInfo(null);
+                }}
+                testID="update-later"
+              >
+                <Text style={styles.infoCloseText}>{t("update.later")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.infoCloseBtn, { flex: 1, backgroundColor: "#10B981" }]}
+                onPress={() => {
+                  if (updateInfo?.appStoreUrl) Linking.openURL(updateInfo.appStoreUrl);
+                  setUpdateInfo(null);
+                }}
+                testID="update-now"
+              >
+                <Text style={[styles.infoCloseText, { color: "#0A0A0C" }]}>{t("update.now")}</Text>
               </TouchableOpacity>
             </View>
           </View>
