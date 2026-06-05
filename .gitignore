@@ -46,6 +46,7 @@ __pycache__/
 *.pyc
 venv/
 .venv/
+.venv
 
 # Notebooks
 .ipynb_checkpoints/
@@ -85,7 +86,7 @@ skills-lock.json
 
 # Marketing project local artifacts
 marketing/**/.piper-models/
-marketing/**/.test-music/
+marketing/**/.test-music
 marketing/**/.frames/
 marketing/**/work-*/
 marketing/**/narration-raw.wav

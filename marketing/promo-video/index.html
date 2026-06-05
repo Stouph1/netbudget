@@ -1,0 +1,1530 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>NETbudget — Promo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #0A1224;
+        font-family: "Inter", sans-serif;
+        color: #FAFAFA;
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: "tnum", "ss01";
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        background: #0F1E3D;
+        overflow: hidden;
+      }
+      /* Persistent background glow (all scenes share this look) */
+      .bg-glow {
+        position: absolute;
+        width: 1400px;
+        height: 1400px;
+        left: -160px;
+        top: 260px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(110, 231, 183, 0.18), rgba(110, 231, 183, 0));
+        pointer-events: none;
+        filter: blur(20px);
+      }
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.06;
+        mix-blend-mode: overlay;
+        pointer-events: none;
+        background-image: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4) 1px, transparent 1px),
+                          radial-gradient(circle at 80% 60%, rgba(255,255,255,0.3) 1px, transparent 1px),
+                          radial-gradient(circle at 40% 80%, rgba(255,255,255,0.35) 1px, transparent 1px);
+        background-size: 220px 220px, 260px 260px, 180px 180px;
+      }
+      .hairline {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        height: 2px;
+        background: #1E3A6B;
+      }
+      .top-hairline { top: 180px; }
+      .bottom-hairline { bottom: 180px; }
+      .corner-meta {
+        position: absolute;
+        top: 120px;
+        left: 80px;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+      }
+      .corner-meta .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #6EE7B7;
+        margin-right: 14px;
+        vertical-align: 2px;
+      }
+
+      /* ============================ Scene 1 — Hook + Problem ============================ */
+      #s1 .ghost-currency {
+        position: absolute;
+        font-size: 560px;
+        font-weight: 900;
+        color: #162B53;
+        opacity: 0.45;
+        line-height: 1;
+      }
+      #s1 .ghost-1 { top: 1380px; left: -40px; }
+      #s1 .ghost-2 { top: 1280px; right: -60px; font-size: 460px; color: #1E3A6B; opacity: 0.45; }
+      #s1 .sad-character {
+        position: absolute;
+        top: 320px;
+        left: 0;
+        right: 0;
+        height: 520px;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+        line-height: 1;
+      }
+      #s1 .sad-character .emoji-face {
+        font-size: 320px;
+        line-height: 0.9;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.45));
+      }
+      #s1 .sad-character .emoji-phone {
+        font-size: 140px;
+        margin-top: 30px;
+        line-height: 1;
+        filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
+      }
+      #s1 .floating-coins {
+        position: absolute;
+        top: 380px;
+        left: 0;
+        right: 0;
+        height: 360px;
+        pointer-events: none;
+      }
+      #s1 .coin {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+        border: 4px solid #92400E;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 28px;
+        color: #92400E;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      }
+      #s1 .coin-1 { top: 30px; left: 130px; }
+      #s1 .coin-2 { top: 90px; right: 140px; }
+      #s1 .coin-3 { top: 240px; left: 100px; }
+      #s1 .coin-4 { top: 200px; right: 170px; }
+      #s1 .s1-hook-1 {
+        position: absolute;
+        top: 880px;
+        left: 80px;
+        right: 80px;
+        font-size: 76px;
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: #FAFAFA;
+      }
+      #s1 .s1-hook-2 {
+        position: absolute;
+        top: 1000px;
+        left: 80px;
+        right: 80px;
+        font-size: 88px;
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.025em;
+        color: #6EE7B7;
+      }
+      #s1 .s1-cant {
+        position: absolute;
+        left: 80px;
+        font-size: 64px;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        color: #FAFAFA;
+      }
+      #s1 .s1-cant strike {
+        text-decoration: line-through;
+        text-decoration-color: #6EE7B7;
+        text-decoration-thickness: 6px;
+      }
+      #s1 .s1-cant-1 { top: 1280px; }
+      #s1 .s1-cant-2 { top: 1400px; color: #A1A1AA; }
+      #s1 .s1-cant-3 { top: 1520px; color: #71717A; }
+
+      /* Hand/cursor used on the iPhone screen in scene 2 */
+      .hand-cursor {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 96px;
+        height: 96px;
+        z-index: 5;
+        pointer-events: none;
+        filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+        will-change: transform;
+      }
+      .hand-cursor svg { width: 100%; height: 100%; }
+      .tap-ripple {
+        position: absolute;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        border: 4px solid #6EE7B7;
+        z-index: 4;
+        pointer-events: none;
+        opacity: 0;
+      }
+      .emoji-chip {
+        display: inline-block;
+        margin-right: 12px;
+      }
+
+      /* ============================ Scene 2 — App Reveal ============================ */
+      #s2 .phone-wrap {
+        position: absolute;
+        top: 220px;
+        left: 220px;
+        width: 640px;
+        height: 1385px;
+        border-radius: 70px;
+        background: #0A1224;
+        border: 6px solid #1E3A6B;
+        box-shadow: 0 60px 120px rgba(0, 0, 0, 0.5), 0 0 80px rgba(110, 231, 183, 0.18);
+        overflow: hidden;
+      }
+      #s2 .phone-screen {
+        position: absolute;
+        inset: 8px;
+        border-radius: 62px;
+        overflow: hidden;
+        background: #0F1E3D;
+      }
+      #s2 .phone-screen img,
+      #s2 .phone-screen video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #s2 .s2-headline {
+        position: absolute;
+        bottom: 180px;
+        left: 80px;
+        right: 80px;
+        font-size: 64px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        color: #FAFAFA;
+        text-align: left;
+      }
+      #s2 .s2-headline .accent { color: #6EE7B7; }
+      #s2 .left-amount {
+        position: absolute;
+        top: 760px;
+        right: 60px;
+        background: #0A1224;
+        border: 2px solid #6EE7B7;
+        border-radius: 24px;
+        padding: 22px 32px;
+        font-size: 56px;
+        font-weight: 800;
+        color: #6EE7B7;
+        box-shadow: 0 0 50px rgba(110, 231, 183, 0.35);
+        z-index: 4;
+      }
+      #s2 .left-amount .lbl {
+        display: block;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      /* ============================ Scene 3 — Values + Method ============================ */
+      #s3 .s3-stamps {
+        position: absolute;
+        top: 380px;
+        left: 80px;
+        right: 80px;
+      }
+      #s3 .s3-stamp {
+        font-size: 124px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin-bottom: 28px;
+      }
+      #s3 .s3-stamp .em {
+        color: #6EE7B7;
+      }
+      #s3 .s3-stamp-1 { color: #FAFAFA; }
+      #s3 .s3-stamp-2 { color: #FAFAFA; }
+      #s3 .s3-stamp-3 { color: #FAFAFA; }
+      #s3 .donut-wrap {
+        position: absolute;
+        top: 380px;
+        left: 240px;
+        width: 600px;
+        height: 600px;
+      }
+      #s3 .donut-wrap svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+      #s3 .donut-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      #s3 .donut-center .pct {
+        font-size: 96px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #FAFAFA;
+        line-height: 1;
+      }
+      #s3 .donut-center .lbl {
+        margin-top: 14px;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+      }
+      #s3 .donut-legend {
+        position: absolute;
+        top: 1080px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      #s3 .leg-item {
+        flex: 1;
+        text-align: center;
+      }
+      #s3 .leg-item .swatch {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        margin-right: 12px;
+        vertical-align: 1px;
+      }
+      #s3 .leg-item .name {
+        font-size: 30px;
+        font-weight: 600;
+        color: #FAFAFA;
+      }
+      #s3 .leg-item .pct {
+        font-size: 56px;
+        font-weight: 800;
+        color: #FAFAFA;
+        margin-top: 8px;
+        letter-spacing: -0.02em;
+      }
+      #s3 .leg-1 .swatch { background: #6EE7B7; }
+      #s3 .leg-2 .swatch { background: #67E8F9; }
+      #s3 .leg-3 .swatch { background: #FBBF24; }
+      #s3 .advice-stack {
+        position: absolute;
+        top: 1340px;
+        left: 80px;
+        right: 80px;
+      }
+      #s3 .advice-card {
+        background: #162B53;
+        border: 2px solid #1E3A6B;
+        border-radius: 22px;
+        padding: 22px 28px 22px 36px;
+        margin-bottom: 16px;
+        position: relative;
+        font-size: 28px;
+        font-weight: 500;
+        color: #FAFAFA;
+        line-height: 1.25;
+      }
+      #s3 .advice-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 14px;
+        bottom: 14px;
+        width: 5px;
+        border-radius: 3px;
+        background: #6EE7B7;
+      }
+      #s3 .advice-card .lbl {
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: #6EE7B7;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      /* ============================ Scene 4 — Projection + PDF ============================ */
+      #s4 .s4-title {
+        position: absolute;
+        top: 280px;
+        left: 80px;
+        right: 80px;
+        font-size: 72px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        color: #FAFAFA;
+      }
+      #s4 .s4-title .em { color: #6EE7B7; }
+      #s4 .s4-subtitle {
+        position: absolute;
+        top: 400px;
+        left: 80px;
+        right: 80px;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+      }
+      #s4 .bar-chart {
+        position: absolute;
+        top: 540px;
+        left: 80px;
+        right: 80px;
+        height: 360px;
+        display: flex;
+        align-items: flex-end;
+        gap: 18px;
+      }
+      #s4 .bar {
+        flex: 1;
+        background: linear-gradient(180deg, #6EE7B7 0%, #34D399 100%);
+        border-radius: 10px;
+        transform-origin: bottom;
+        position: relative;
+      }
+      #s4 .bar::after {
+        content: attr(data-month);
+        position: absolute;
+        bottom: -36px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        color: #A1A1AA;
+        letter-spacing: 0.08em;
+      }
+      #s4 .pdf-row {
+        position: absolute;
+        top: 1020px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        gap: 28px;
+        align-items: center;
+      }
+      #s4 .pdf-icon {
+        width: 180px;
+        height: 220px;
+        position: relative;
+        flex-shrink: 0;
+        filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 50px rgba(110, 231, 183, 0.25));
+      }
+      #s4 .pdf-icon svg { width: 100%; height: 100%; display: block; }
+      #s4 .pdf-info {
+        flex: 1;
+      }
+      #s4 .pdf-title {
+        font-size: 44px;
+        font-weight: 700;
+        color: #FAFAFA;
+        letter-spacing: -0.01em;
+        line-height: 1.1;
+        margin-bottom: 12px;
+      }
+      #s4 .pdf-desc {
+        font-size: 28px;
+        font-weight: 400;
+        color: #A1A1AA;
+        line-height: 1.35;
+      }
+      #s4 .share-targets {
+        position: absolute;
+        bottom: 280px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        gap: 24px;
+        justify-content: space-between;
+      }
+      #s4 .target-pill {
+        flex: 1;
+        background: #162B53;
+        border: 2px solid #1E3A6B;
+        border-radius: 16px;
+        padding: 22px 24px;
+        font-size: 30px;
+        font-weight: 600;
+        color: #FAFAFA;
+        text-align: center;
+      }
+
+      /* ============================ Scene 5 — Global ============================ */
+      #s5 .s5-stats {
+        position: absolute;
+        top: 280px;
+        left: 80px;
+        right: 80px;
+      }
+      #s5 .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 32px 0;
+        border-bottom: 2px solid #1E3A6B;
+      }
+      #s5 .stat-row .lbl {
+        font-size: 30px;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+      }
+      #s5 .stat-row .val {
+        font-size: 96px;
+        font-weight: 900;
+        color: #6EE7B7;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      #s5 .stat-row .val .small {
+        font-size: 36px;
+        font-weight: 600;
+        color: #FAFAFA;
+        letter-spacing: 0;
+      }
+      #s5 .s5-cities {
+        position: absolute;
+        top: 920px;
+        left: 80px;
+        right: 80px;
+      }
+      #s5 .city-label {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+        margin-bottom: 30px;
+      }
+      #s5 .currency-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      #s5 .currency-row {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        background: #162B53;
+        border-radius: 18px;
+        padding: 26px 32px;
+        border: 2px solid #1E3A6B;
+      }
+      #s5 .currency-row .city-name {
+        flex: 1;
+        font-size: 38px;
+        font-weight: 700;
+        color: #FAFAFA;
+        letter-spacing: -0.01em;
+      }
+      #s5 .currency-row .amount {
+        font-size: 44px;
+        font-weight: 700;
+        color: #6EE7B7;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+      }
+      #s5 .currency-row .from {
+        font-size: 24px;
+        font-weight: 500;
+        color: #A1A1AA;
+        margin-right: 4px;
+      }
+
+      /* ============================ Scene 6 — Privacy ============================ */
+      #s6 .lock-icon {
+        position: absolute;
+        top: 380px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+      }
+      #s6 .lock-icon svg {
+        width: 200px;
+        height: 240px;
+        filter: drop-shadow(0 0 60px rgba(110, 231, 183, 0.4));
+      }
+      #s6 .s6-no {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        font-size: 104px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: #FAFAFA;
+        display: flex;
+        gap: 28px;
+        align-items: baseline;
+      }
+      #s6 .s6-no .no {
+        color: #6EE7B7;
+        font-size: 124px;
+      }
+      #s6 .s6-no-1 { top: 760px; }
+      #s6 .s6-no-2 { top: 920px; }
+      #s6 .s6-no-3 { top: 1080px; }
+      #s6 .s6-foundation {
+        position: absolute;
+        bottom: 280px;
+        left: 80px;
+        right: 80px;
+        text-align: left;
+      }
+      #s6 .s6-foundation .line1 {
+        font-size: 40px;
+        font-weight: 500;
+        color: #A1A1AA;
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+      }
+      #s6 .s6-foundation .line2 {
+        font-size: 60px;
+        font-weight: 800;
+        color: #6EE7B7;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+
+      /* ============================ Scene 7 — CTA ============================ */
+      #s7 .s7-brand {
+        position: absolute;
+        top: 320px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 124px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: #FAFAFA;
+      }
+      #s7 .s7-brand .em { color: #6EE7B7; }
+      #s7 .s7-subhead {
+        position: absolute;
+        top: 510px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+        font-size: 30px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+      }
+      #s7 .badge {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        height: 200px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        padding: 0 50px;
+        gap: 36px;
+      }
+      #s7 .badge-as {
+        top: 820px;
+        background: #FAFAFA;
+        box-shadow: 0 30px 80px rgba(110, 231, 183, 0.3), 0 0 60px rgba(110, 231, 183, 0.2);
+      }
+      #s7 .badge-gp {
+        top: 1060px;
+        background: transparent;
+        border: 3px solid #1E3A6B;
+      }
+      #s7 .badge .logo-glyph {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      #s7 .badge-as .logo-glyph svg { fill: #0A1224; }
+      #s7 .badge-gp .logo-glyph svg { fill: #A1A1AA; }
+      #s7 .badge-text {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      #s7 .badge-text .top {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      #s7 .badge-text .bottom {
+        font-size: 56px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      #s7 .badge-as .badge-text .top { color: #71717A; }
+      #s7 .badge-as .badge-text .bottom { color: #0A1224; }
+      #s7 .badge-gp .badge-text .top { color: #6EE7B7; }
+      #s7 .badge-gp .badge-text .bottom { color: #A1A1AA; }
+      #s7 .coming-tag {
+        position: absolute;
+        top: 1030px;
+        right: 110px;
+        background: #6EE7B7;
+        color: #0A1224;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        padding: 8px 18px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        z-index: 5;
+      }
+      #s7 .rating-badge {
+        position: absolute;
+        top: 600px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 30px;
+        font-weight: 600;
+        color: #FAFAFA;
+        letter-spacing: 0.03em;
+        line-height: 1.2;
+      }
+      #s7 .rating-badge .stars {
+        display: block;
+        font-size: 56px;
+        letter-spacing: 6px;
+        color: #FBBF24;
+        margin-bottom: 8px;
+      }
+      #s7 .rating-badge .meta {
+        font-size: 22px;
+        color: #A1A1AA;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      /* ============================ Scene 8 — Lockup ============================ */
+      #s8 {
+        background: #0A1224;
+      }
+      #s8 .logo-wrap {
+        position: absolute;
+        top: 460px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+      }
+      #s8 .logo-wrap img {
+        width: 320px;
+        height: 320px;
+        border-radius: 80px;
+        box-shadow: 0 60px 100px rgba(0, 0, 0, 0.6), 0 0 100px rgba(110, 231, 183, 0.35);
+      }
+      #s8 .s8-brand {
+        position: absolute;
+        top: 860px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 110px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        color: #FAFAFA;
+      }
+      #s8 .s8-tagline {
+        position: absolute;
+        top: 1040px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+        font-size: 56px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        line-height: 1.15;
+        color: #6EE7B7;
+      }
+      #s8 .s8-url {
+        position: absolute;
+        top: 1300px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 36px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        color: #A1A1AA;
+      }
+      #s8 .s8-tagcta {
+        position: absolute;
+        top: 1480px;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+      }
+      #s8 .s8-tagcta .pill {
+        background: #162B53;
+        border: 2px solid #6EE7B7;
+        color: #FAFAFA;
+        padding: 16px 28px;
+        border-radius: 999px;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.005em;
+      }
+      #s8 .s8-tagcta .pill.ghost {
+        border-color: #1E3A6B;
+        color: #A1A1AA;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="52"
+      data-width="1080"
+      data-height="1920"
+    >
+      <!-- Audio narration -->
+      <audio
+        id="narration-audio"
+        data-start="0"
+        data-duration="47"
+        data-track-index="9"
+        data-volume="1"
+        src="narration.wav"
+      ></audio>
+
+      <!-- Background music bed — upbeat 110 BPM, C-G-Am-F progression -->
+      <audio
+        id="music-bed-audio"
+        data-start="0"
+        data-duration="52"
+        data-track-index="10"
+        data-volume="0.5"
+        src="music-bed.wav"
+      ></audio>
+
+      <!-- ======================= Scene 1: Hook + Problem (0–5.7) ======================= -->
+      <div
+        id="s1"
+        class="scene clip"
+        data-composition-id="s1"
+        data-start="0"
+        data-duration="5.7"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:1"
+      >
+        <div class="bg-glow s1-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="ghost-currency ghost-1" data-layout-allow-overflow data-layout-ignore>€</div>
+        <div class="ghost-currency ghost-2" data-layout-allow-overflow data-layout-ignore>$</div>
+        <div class="grain"></div>
+        <div class="hairline top-hairline"></div>
+        <div class="hairline bottom-hairline"></div>
+        <div class="corner-meta"><span class="dot"></span>MONTH 12 · BALANCE</div>
+
+        <!-- Sad character — single Apple emoji set, clean & polished -->
+        <div class="sad-character" data-layout-allow-overflow>
+          <span class="emoji-face">😩</span>
+          <span class="emoji-phone">📱</span>
+        </div>
+
+        <!-- Coins flying away around the character -->
+        <div class="floating-coins" data-layout-allow-overflow>
+          <div class="coin coin-1">€</div>
+          <div class="coin coin-2">$</div>
+          <div class="coin coin-3">£</div>
+          <div class="coin coin-4">¥</div>
+        </div>
+
+        <div class="s1-hook-1">End of the month, again.</div>
+        <div class="s1-hook-2">Where did your money go?</div>
+
+        <div class="s1-cant s1-cant-1">You can't <strike>plan</strike>.</div>
+        <div class="s1-cant s1-cant-2">You can't <strike>save</strike>.</div>
+        <div class="s1-cant s1-cant-3">You can't <strike>breathe</strike>.</div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s1 .s1-glow", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.4, ease: "power2.out" }, 0);
+            tl.to("#s1 .s1-glow", { scale: 1.08, duration: 2.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.5);
+            tl.fromTo("#s1 .ghost-1", { y: -40, opacity: 0 }, { y: 0, opacity: 0.5, duration: 1.6, ease: "power3.out" }, 0.1);
+            tl.fromTo("#s1 .ghost-2", { y: 60, opacity: 0 }, { y: 0, opacity: 0.5, duration: 1.6, ease: "power3.out" }, 0.3);
+            tl.to("#s1 .ghost-1", { y: 14, duration: 1.8, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.8);
+            tl.to("#s1 .ghost-2", { y: -18, duration: 2.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.95);
+
+            tl.fromTo("#s1 .corner-meta", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.25);
+            tl.fromTo("#s1 .top-hairline", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.8, ease: "expo.out" }, 0.15);
+            tl.fromTo("#s1 .bottom-hairline", { scaleX: 0, transformOrigin: "right center" }, { scaleX: 1, duration: 0.8, ease: "expo.out" }, 0.3);
+
+            tl.fromTo("#s1 .s1-hook-1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.2);
+            tl.fromTo("#s1 .s1-hook-2", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "expo.out" }, 1.1);
+
+            tl.fromTo("#s1 .s1-cant-1", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.5);
+            tl.fromTo("#s1 .s1-cant-2", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 4.2);
+            tl.fromTo("#s1 .s1-cant-3", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 4.85);
+
+            // Sad character entrance + slow breathing slump
+            tl.fromTo("#s1 .sad-character", { y: 40, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.9, ease: "power3.out" }, 0.2);
+            tl.to("#s1 .sad-character", { y: 12, duration: 2.2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.2);
+
+            // Coins fly upward and fade (money escaping)
+            tl.fromTo("#s1 .coin-1", { y: 60, opacity: 0, rotation: -20 }, { y: -240, opacity: 1, rotation: 30, duration: 2.5, ease: "power1.out" }, 0.4);
+            tl.fromTo("#s1 .coin-2", { y: 60, opacity: 0, rotation: 25 }, { y: -260, opacity: 1, rotation: -20, duration: 2.6, ease: "power1.out" }, 0.7);
+            tl.fromTo("#s1 .coin-3", { y: 60, opacity: 0, rotation: -10 }, { y: -200, opacity: 1, rotation: 40, duration: 2.4, ease: "power1.out" }, 1.0);
+            tl.fromTo("#s1 .coin-4", { y: 60, opacity: 0, rotation: 15 }, { y: -220, opacity: 1, rotation: -35, duration: 2.5, ease: "power1.out" }, 1.3);
+            tl.to(["#s1 .coin-1", "#s1 .coin-2", "#s1 .coin-3", "#s1 .coin-4"], { opacity: 0, duration: 0.8, ease: "power2.in", stagger: 0.15 }, 2.8);
+
+            tl.set("#s1", { opacity: 1 }, 5.65);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s1"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ======================= Scene 2: App Reveal (5.5–12.5) ======================= -->
+      <div
+        id="s2"
+        class="scene clip"
+        data-composition-id="s2"
+        data-start="5.5"
+        data-duration="7"
+        data-track-index="2"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:2"
+      >
+        <div class="bg-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="grain"></div>
+        <div class="hairline top-hairline"></div>
+        <div class="corner-meta"><span class="dot"></span>NETBUDGET · BUDGET</div>
+
+        <div class="phone-wrap">
+          <div class="phone-screen">
+            <video
+              id="s2-app-video"
+              src="assets/app-demo.mp4"
+              data-start="5.5"
+              data-duration="7"
+              data-track-index="3"
+              data-media-start="2"
+              muted
+              playsinline
+              crossorigin="anonymous"
+            ></video>
+          </div>
+        </div>
+
+        <div class="left-amount">
+          <span class="lbl">💚 Left this month</span>
+          640 €
+        </div>
+
+        <div class="s2-headline">
+          See exactly what stays in <span class="accent">your pocket</span>.
+        </div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s2 .corner-meta", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.1);
+            tl.fromTo("#s2 .top-hairline", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.7, ease: "expo.out" }, 0.1);
+            tl.fromTo("#s2 .phone-wrap", { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 1.0, ease: "power4.out" }, 0.15);
+            tl.fromTo("#s2 .s2-headline", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.8);
+            tl.fromTo(
+              "#s2 .left-amount",
+              { x: 80, opacity: 0, scale: 0.85 },
+              { x: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" },
+              3.0
+            );
+            // Slight scale breathe on the left-amount callout to draw the eye
+            tl.to("#s2 .left-amount", { scale: 1.03, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 4.0);
+            tl.set("#s2", { opacity: 1 }, 6.95);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s2"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ======================= Scene 3: Values + Method (12.3–22.9) ======================= -->
+      <div
+        id="s3"
+        class="scene clip"
+        data-composition-id="s3"
+        data-start="12.3"
+        data-duration="10.6"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:3"
+      >
+        <div class="bg-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="grain"></div>
+        <div class="hairline top-hairline"></div>
+        <div class="corner-meta"><span class="dot"></span>FIFTY · THIRTY · TWENTY</div>
+
+        <div class="s3-stamps">
+          <div class="s3-stamp s3-stamp-1"><span class="em">Real</span> numbers.</div>
+          <div class="s3-stamp s3-stamp-2"><span class="em">Real</span> clarity.</div>
+          <div class="s3-stamp s3-stamp-3"><span class="em">Real</span> you.</div>
+        </div>
+
+        <div class="donut-wrap">
+          <svg viewBox="0 0 200 200">
+            <!-- Track -->
+            <circle cx="100" cy="100" r="80" stroke="#162B53" stroke-width="22" fill="none" />
+            <!-- 50% needs (half circle) -->
+            <circle id="seg-needs" cx="100" cy="100" r="80" stroke="#6EE7B7" stroke-width="22" fill="none" stroke-linecap="butt"
+              stroke-dasharray="502.65" stroke-dashoffset="502.65"
+              style="transform-origin: 100px 100px;" />
+            <!-- 30% wants -->
+            <circle id="seg-wants" cx="100" cy="100" r="80" stroke="#67E8F9" stroke-width="22" fill="none" stroke-linecap="butt"
+              stroke-dasharray="502.65" stroke-dashoffset="502.65"
+              style="transform-origin: 100px 100px; transform: rotate(180deg);" />
+            <!-- 20% savings -->
+            <circle id="seg-savings" cx="100" cy="100" r="80" stroke="#FBBF24" stroke-width="22" fill="none" stroke-linecap="butt"
+              stroke-dasharray="502.65" stroke-dashoffset="502.65"
+              style="transform-origin: 100px 100px; transform: rotate(288deg);" />
+          </svg>
+          <div class="donut-center">
+            <div class="pct">50/30/20</div>
+            <div class="lbl">The rule</div>
+          </div>
+        </div>
+
+        <div class="donut-legend">
+          <div class="leg-item leg-1"><span class="swatch"></span><span class="name">Needs</span><div class="pct">50%</div></div>
+          <div class="leg-item leg-2"><span class="swatch"></span><span class="name">Wants</span><div class="pct">30%</div></div>
+          <div class="leg-item leg-3"><span class="swatch"></span><span class="name">Savings</span><div class="pct">20%</div></div>
+        </div>
+
+        <div class="advice-stack">
+          <div class="advice-card adv-1"><span class="lbl">🎯 Personal tip</span>Build an emergency fund. Three months of expenses, and you sleep better.</div>
+          <div class="advice-card adv-2"><span class="lbl">💸 Personal tip</span>Cut one subscription you forgot you had. Most people find two.</div>
+        </div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s3 .corner-meta", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.05);
+            tl.fromTo("#s3 .top-hairline", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.7, ease: "expo.out" }, 0);
+
+            // Phase A: REAL stamps (0–2.0s of scene)
+            tl.fromTo("#s3 .s3-stamp-1", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.1);
+            tl.fromTo("#s3 .s3-stamp-2", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.7);
+            tl.fromTo("#s3 .s3-stamp-3", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 1.3);
+
+            // Hide stamps before donut shows
+            tl.to("#s3 .s3-stamp-1", { x: 30, opacity: 0, duration: 0.3, ease: "power2.in" }, 2.0);
+            tl.to("#s3 .s3-stamp-2", { x: 30, opacity: 0, duration: 0.3, ease: "power2.in" }, 2.1);
+            tl.to("#s3 .s3-stamp-3", { x: 30, opacity: 0, duration: 0.3, ease: "power2.in" }, 2.2);
+
+            // Phase B: Donut (from 2.0s of scene)
+            tl.fromTo("#s3 .donut-wrap", { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.5)" }, 2.1);
+            // Needs: 50% = half circumference (251.33)
+            tl.fromTo("#seg-needs", { strokeDashoffset: 502.65 }, { strokeDashoffset: 251.33, duration: 1.0, ease: "power2.inOut" }, 2.4);
+            // Wants: 30% = 30% of 502.65 = 150.80, so offset = 502.65 - 150.80 = 351.85
+            tl.fromTo("#seg-wants", { strokeDashoffset: 502.65 }, { strokeDashoffset: 351.85, duration: 0.8, ease: "power2.inOut" }, 2.9);
+            // Savings: 20% = 100.53, offset = 502.65 - 100.53 = 402.12
+            tl.fromTo("#seg-savings", { strokeDashoffset: 502.65 }, { strokeDashoffset: 402.12, duration: 0.7, ease: "power2.inOut" }, 3.3);
+            tl.fromTo("#s3 .donut-center", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 3.6);
+
+            tl.fromTo("#s3 .leg-1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.7);
+            tl.fromTo("#s3 .leg-2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.85);
+            tl.fromTo("#s3 .leg-3", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 4.0);
+
+            // Phase C: Advice cards (from ~5.5s of scene)
+            tl.fromTo("#s3 .adv-1", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 5.6);
+            tl.fromTo("#s3 .adv-2", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 6.0);
+            tl.set("#s3", { opacity: 1 }, 10.55);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s3"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ======================= Scene 4: Projection + PDF (22.7–28.5) ======================= -->
+      <div
+        id="s4"
+        class="scene clip"
+        data-composition-id="s4"
+        data-start="22.7"
+        data-duration="5.8"
+        data-track-index="2"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:4"
+      >
+        <div class="bg-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="grain"></div>
+        <div class="hairline top-hairline"></div>
+        <div class="corner-meta"><span class="dot"></span>PROJECTION · EXPORT</div>
+
+        <div class="s4-title"><span class="em">12 months</span> ahead.</div>
+        <div class="s4-subtitle">Your future income, mapped</div>
+
+        <div class="bar-chart">
+          <div class="bar" data-month="J" style="height: 35%"></div>
+          <div class="bar" data-month="F" style="height: 42%"></div>
+          <div class="bar" data-month="M" style="height: 50%"></div>
+          <div class="bar" data-month="A" style="height: 55%"></div>
+          <div class="bar" data-month="M" style="height: 62%"></div>
+          <div class="bar" data-month="J" style="height: 68%"></div>
+          <div class="bar" data-month="J" style="height: 74%"></div>
+          <div class="bar" data-month="A" style="height: 78%"></div>
+          <div class="bar" data-month="S" style="height: 85%"></div>
+          <div class="bar" data-month="O" style="height: 88%"></div>
+          <div class="bar" data-month="N" style="height: 92%"></div>
+          <div class="bar" data-month="D" style="height: 100%"></div>
+        </div>
+
+        <div class="pdf-row">
+          <div class="pdf-icon">
+            <svg viewBox="0 0 180 220" xmlns="http://www.w3.org/2000/svg">
+              <!-- Paper background -->
+              <path d="M0 12 Q0 0 12 0 L130 0 L180 50 L180 208 Q180 220 168 220 L12 220 Q0 220 0 208 Z"
+                fill="#FAFAFA" />
+              <!-- Folded corner shadow -->
+              <path d="M130 0 L180 50 L132 50 Q130 50 130 48 Z" fill="#D1D5DB" />
+              <!-- Corner triangle highlight -->
+              <path d="M130 0 L180 50 L130 50 Z" fill="#E5E7EB" />
+              <!-- Document horizontal text lines -->
+              <rect x="22" y="80" width="100" height="6" rx="3" fill="#D1D5DB"/>
+              <rect x="22" y="94" width="130" height="6" rx="3" fill="#D1D5DB"/>
+              <rect x="22" y="108" width="78" height="6" rx="3" fill="#D1D5DB"/>
+              <!-- PDF red badge -->
+              <rect x="20" y="138" width="140" height="56" rx="10" fill="#DC2626"/>
+              <text x="90" y="180" text-anchor="middle" font-family="Inter" font-weight="900" font-size="36" fill="#FAFAFA" letter-spacing="3">PDF</text>
+            </svg>
+          </div>
+          <div class="pdf-info">
+            <div class="pdf-title">📄 Export a clean PDF.</div>
+            <div class="pdf-desc">One file. Multilingual. Ready to share.</div>
+          </div>
+        </div>
+
+        <div class="share-targets">
+          <div class="target-pill tgt-1">You</div>
+          <div class="target-pill tgt-2">Your partner</div>
+          <div class="target-pill tgt-3">Your accountant</div>
+        </div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s4 .corner-meta", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.05);
+            tl.fromTo("#s4 .top-hairline", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.7, ease: "expo.out" }, 0);
+
+            tl.fromTo("#s4 .s4-title", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.1);
+            tl.fromTo("#s4 .s4-subtitle", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.35);
+
+            // Stagger bars from left
+            const bars = "#s4 .bar-chart .bar";
+            tl.fromTo(bars, { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.55, ease: "power3.out", stagger: 0.07 }, 0.4);
+
+            tl.fromTo("#s4 .pdf-icon", { x: -80, opacity: 0, rotate: -8 }, { x: 0, opacity: 1, rotate: 0, duration: 0.6, ease: "expo.out" }, 2.0);
+            tl.fromTo("#s4 .pdf-info", { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 2.15);
+
+            tl.fromTo("#s4 .tgt-1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 3.0);
+            tl.fromTo("#s4 .tgt-2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 3.2);
+            tl.fromTo("#s4 .tgt-3", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 3.4);
+            tl.set("#s4", { opacity: 1 }, 5.75);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s4"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ======================= Scene 5: Global (28.3–34.5) ======================= -->
+      <div
+        id="s5"
+        class="scene clip"
+        data-composition-id="s5"
+        data-start="28.3"
+        data-duration="6.2"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:5"
+      >
+        <div class="bg-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="grain"></div>
+        <div class="hairline top-hairline"></div>
+        <div class="corner-meta"><span class="dot"></span>GLOBAL · 59 COUNTRIES</div>
+
+        <div class="s5-stats">
+          <div class="stat-row sr-1">
+            <div class="lbl">🗣️ Languages</div>
+            <div class="val">8</div>
+          </div>
+          <div class="stat-row sr-2">
+            <div class="lbl">🌍 Cities indexed</div>
+            <div class="val">559</div>
+          </div>
+          <div class="stat-row sr-3">
+            <div class="lbl">💱 Live currencies</div>
+            <div class="val">15<span class="small"> / rates daily</span></div>
+          </div>
+        </div>
+
+        <div class="s5-cities">
+          <div class="city-label">From €1,000 — anywhere</div>
+          <div class="currency-stack">
+            <div class="currency-row cr-1">
+              <div class="city-name">Paris</div>
+              <div><span class="from">€</span><span class="amount">1,000</span></div>
+            </div>
+            <div class="currency-row cr-2">
+              <div class="city-name">Tokyo</div>
+              <div><span class="from">¥</span><span class="amount">162,000</span></div>
+            </div>
+            <div class="currency-row cr-3">
+              <div class="city-name">São Paulo</div>
+              <div><span class="from">R$</span><span class="amount">5,640</span></div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s5 .corner-meta", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.05);
+            tl.fromTo("#s5 .top-hairline", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.7, ease: "expo.out" }, 0);
+
+            tl.fromTo("#s5 .sr-1", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.1);
+            tl.fromTo("#s5 .sr-2", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.55);
+            tl.fromTo("#s5 .sr-3", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 1.0);
+
+            tl.fromTo("#s5 .city-label", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 2.6);
+            tl.fromTo("#s5 .cr-1", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 2.8);
+            tl.fromTo("#s5 .cr-2", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 3.15);
+            tl.fromTo("#s5 .cr-3", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "expo.out" }, 3.5);
+            tl.set("#s5", { opacity: 1 }, 6.15);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s5"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ======================= Scene 6: Privacy (34.3–39.9) ======================= -->
+      <div
+        id="s6"
+        class="scene clip"
+        data-composition-id="s6"
+        data-start="34.3"
+        data-duration="5.6"
+        data-track-index="2"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:6"
+      >
+        <div class="bg-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="grain"></div>
+        <div class="hairline top-hairline"></div>
+        <div class="corner-meta"><span class="dot"></span>YOUR DATA · YOUR PHONE</div>
+
+        <div class="lock-icon" data-layout-allow-overflow>
+          <svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+            <!-- Lock body -->
+            <rect class="lock-body" x="6" y="58" width="68" height="56" rx="10" fill="#0F1E3D" stroke="#6EE7B7" stroke-width="5" />
+            <!-- Inner highlight to lock body -->
+            <rect x="14" y="66" width="52" height="40" rx="6" fill="none" stroke="#6EE7B7" stroke-width="2" opacity="0.25"/>
+            <!-- Keyhole -->
+            <circle class="lock-key-c" cx="40" cy="80" r="7" fill="#6EE7B7" />
+            <rect class="lock-key-r" x="36" y="80" width="8" height="16" rx="2" fill="#6EE7B7"/>
+            <!-- Shackle: rotates around its base hinge (left foot) to "close" -->
+            <g class="lock-shackle" style="transform-origin: 21px 58px;">
+              <path d="M21 58 V35 a19 19 0 0 1 38 0 V58" fill="none" stroke="#6EE7B7" stroke-width="6" stroke-linecap="round" />
+            </g>
+            <!-- Sparkle effects appear when locked -->
+            <g class="lock-sparkle" opacity="0">
+              <path d="M68 18 L72 22 L68 26 L64 22 Z" fill="#FBBF24"/>
+              <path d="M12 92 L15 96 L12 100 L9 96 Z" fill="#FBBF24"/>
+              <path d="M64 100 L66 103 L64 106 L62 103 Z" fill="#67E8F9"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="s6-no s6-no-1"><span class="no">NO</span>account.</div>
+        <div class="s6-no s6-no-2"><span class="no">NO</span>cloud.</div>
+        <div class="s6-no s6-no-3"><span class="no">NO</span>tracking.</div>
+
+        <div class="s6-foundation">
+          <div class="line1">That's not a feature.</div>
+          <div class="line2">That's the foundation.</div>
+        </div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s6 .corner-meta", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.05);
+            tl.fromTo("#s6 .top-hairline", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.7, ease: "expo.out" }, 0);
+
+            tl.fromTo("#s6 .lock-icon", { scale: 0.5, opacity: 0, y: -40 }, { scale: 1, opacity: 1, y: 0, duration: 0.7, ease: "back.out(1.4)" }, 0.1);
+            // Lock animation: shackle starts open (rotated -100°), closes to vertical with a tiny bounce
+            tl.fromTo("#s6 .lock-shackle", { rotation: -100, transformOrigin: "21px 58px" }, { rotation: 0, duration: 0.8, ease: "back.out(1.6)" }, 0.9);
+            tl.fromTo("#s6 .lock-shackle", { rotation: 0 }, { rotation: -3, duration: 0.18, ease: "power2.inOut", yoyo: true, repeat: 1 }, 1.75);
+            tl.fromTo("#s6 .lock-sparkle", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 1.75);
+            tl.to("#s6 .lock-sparkle", { opacity: 0.5, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 2.2);
+            // Lock body breathes
+            tl.to("#s6 .lock-icon", { y: -8, duration: 2.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 2.0);
+
+            tl.fromTo("#s6 .s6-no-1", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 0.3);
+            tl.fromTo("#s6 .s6-no-2", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 0.7);
+            tl.fromTo("#s6 .s6-no-3", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 1.1);
+
+            tl.fromTo("#s6 .s6-foundation .line1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.0);
+            tl.fromTo("#s6 .s6-foundation .line2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 3.4);
+            tl.set("#s6", { opacity: 1 }, 5.55);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s6"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ======================= Scene 7: CTA (39.7–43.9) ======================= -->
+      <div
+        id="s7"
+        class="scene clip"
+        data-composition-id="s7"
+        data-start="39.7"
+        data-duration="4.2"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:7"
+      >
+        <div class="bg-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="grain"></div>
+        <div class="hairline top-hairline"></div>
+        <div class="corner-meta"><span class="dot"></span>DOWNLOAD NOW</div>
+
+        <div class="s7-brand">net<span class="em">budget</span></div>
+        <div class="s7-subhead">Loved by real users</div>
+
+        <div class="rating-badge">
+          <span class="stars">★★★★★</span>
+          <span class="meta">100% real App Store reviews</span>
+        </div>
+
+        <div class="badge badge-as">
+          <div class="logo-glyph">
+            <!-- Authentic Apple logo silhouette -->
+            <svg viewBox="0 0 384 470" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#0A1224" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+            </svg>
+          </div>
+          <div class="badge-text">
+            <span class="top">Download on the</span>
+            <span class="bottom">App Store</span>
+          </div>
+        </div>
+
+        <div class="coming-tag">Coming soon</div>
+        <div class="badge badge-gp">
+          <div class="logo-glyph">
+            <!-- Authentic Google Play 4-color triangle play button -->
+            <svg viewBox="0 0 512 512" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="gp-blue" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#0066D9"/>
+                  <stop offset="1" stop-color="#26A6FE"/>
+                </linearGradient>
+                <linearGradient id="gp-red" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#E73247"/>
+                  <stop offset="1" stop-color="#FD5C5C"/>
+                </linearGradient>
+                <linearGradient id="gp-yellow" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#FFC900"/>
+                  <stop offset="1" stop-color="#FFE402"/>
+                </linearGradient>
+                <linearGradient id="gp-green" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#0BD05B"/>
+                  <stop offset="1" stop-color="#22DE7E"/>
+                </linearGradient>
+              </defs>
+              <!-- 4 colored triangles arranged as play button -->
+              <path fill="url(#gp-blue)" d="M48 48 L48 464 L268 256 Z"/>
+              <path fill="url(#gp-red)" d="M48 48 L356 224 L268 256 Z"/>
+              <path fill="url(#gp-green)" d="M48 464 L356 288 L268 256 Z"/>
+              <path fill="url(#gp-yellow)" d="M356 224 L464 256 L356 288 L268 256 Z"/>
+            </svg>
+          </div>
+          <div class="badge-text">
+            <span class="top">Get it on</span>
+            <span class="bottom">Google Play</span>
+          </div>
+        </div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s7 .corner-meta", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.05);
+            tl.fromTo("#s7 .top-hairline", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.7, ease: "expo.out" }, 0);
+
+            tl.fromTo("#s7 .s7-brand", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: "back.out(1.4)" }, 0.1);
+            tl.fromTo("#s7 .s7-subhead", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0.5);
+
+            tl.fromTo("#s7 .badge-as", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 0.7);
+            tl.fromTo("#s7 .badge-gp", { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.1);
+            tl.fromTo("#s7 .coming-tag", { scale: 0, opacity: 0, rotation: -10 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.4, ease: "back.out(2)" }, 1.5);
+            tl.to("#s7 .coming-tag", { rotation: -6, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.9);
+            tl.fromTo("#s7 .rating-badge", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.4);
+            tl.set("#s7", { opacity: 1 }, 4.15);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s7"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ======================= Scene 8: Lockup (43.5–52.0) ======================= -->
+      <div
+        id="s8"
+        class="scene clip"
+        data-composition-id="s8"
+        data-start="43.5"
+        data-duration="8.5"
+        data-track-index="2"
+        data-width="1080"
+        data-height="1920"
+        style="z-index:8"
+      >
+        <div class="bg-glow" data-layout-allow-overflow data-layout-ignore></div>
+        <div class="grain"></div>
+
+        <div class="logo-wrap">
+          <img src="assets/logo.png" crossorigin="anonymous" alt="netbudget" />
+        </div>
+
+        <div class="s8-brand">netbudget</div>
+        <div class="s8-tagline">Know what's really left.</div>
+        <div class="s8-url">netbudget.app</div>
+
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s8 .logo-wrap img", { scale: 0.5, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: 0, duration: 1.0, ease: "back.out(1.4)" }, 0.1);
+            tl.fromTo("#s8 .logo-wrap img", { y: 0 }, { y: -12, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.2);
+            tl.fromTo("#s8 .bg-glow", { scale: 0.9, opacity: 0.5 }, { scale: 1.12, opacity: 1, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.3);
+            tl.fromTo("#s8 .s8-brand", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.6);
+            tl.fromTo("#s8 .s8-tagline", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 0.95);
+            tl.fromTo("#s8 .s8-url", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 1.3);
+            tl.set("#s8", { opacity: 1 }, 8.45);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s8"] = tl;
+          })();
+        </script>
+      </div>
+    </div>
+
+    <script>
+      // Main timeline — handles scene-to-scene crossfade transitions.
+      // Uses tl.set() at t=0 to anchor every scene at opacity:1, then plain tl.to() for
+      // each fade-out. Avoids tl.fromTo() because its immediateRender:true at construction
+      // can resurrect / re-hide elements when the capture engine seeks non-linearly.
+      (function () {
+        const SCENES = ["#s1", "#s2", "#s3", "#s4", "#s5", "#s6", "#s7", "#s8"];
+        const FADES = [
+          { sel: "#s1", at: 5.5 },
+          { sel: "#s2", at: 12.3 },
+          { sel: "#s3", at: 22.7 },
+          { sel: "#s4", at: 28.3 },
+          { sel: "#s5", at: 34.3 },
+          { sel: "#s6", at: 39.7 },
+          { sel: "#s7", at: 43.5 },
+        ];
+        const mainTl = gsap.timeline({ paused: true });
+        // Anchor all scenes at opacity:1 at t=0 — deterministic, no immediateRender surprise.
+        SCENES.forEach((sel) => mainTl.set(sel, { opacity: 1 }, 0));
+        // Then fade each outgoing scene at its boundary.
+        FADES.forEach((f) => {
+          mainTl.to(f.sel, { opacity: 0, duration: 0.4, ease: "power2.in", overwrite: "auto" }, f.at);
+        });
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = mainTl;
+      })();
+    </script>
+  </body>
+</html>

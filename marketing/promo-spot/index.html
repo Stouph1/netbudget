@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>NETbudget — Spot</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #0A1224;
+        font-family: "Inter", sans-serif;
+        color: #FAFAFA;
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: "tnum", "ss01";
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        background: #0A1224;
+        overflow: hidden;
+      }
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.08;
+        mix-blend-mode: overlay;
+        pointer-events: none;
+        background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5) 1px, transparent 1px),
+                          radial-gradient(circle at 70% 70%, rgba(255,255,255,0.4) 1px, transparent 1px);
+        background-size: 240px 240px, 200px 200px;
+      }
+      .flash {
+        position: absolute;
+        inset: 0;
+        background: #FAFAFA;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 99;
+      }
+      /* Subtle "contemplative" tint that lifts at the music build — NOT dark/horror */
+      .despair-filter {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(10, 18, 36, 0.25), rgba(10, 18, 36, 0.15));
+        pointer-events: none;
+        z-index: 80;
+        will-change: opacity;
+        opacity: 0.7;
+      }
+
+      /* ============================ Scene 1 — Intro ============================ */
+      #s1 .scan-noise {
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 4px);
+        pointer-events: none;
+      }
+      #s1 .every {
+        position: absolute;
+        top: 700px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+        font-size: 96px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        color: #FAFAFA;
+        line-height: 1.05;
+      }
+      #s1 .same {
+        position: absolute;
+        top: 900px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+        font-size: 84px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: #A1A1AA;
+        line-height: 1.05;
+      }
+      #s1 .where {
+        position: absolute;
+        top: 800px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 152px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: #6EE7B7;
+        line-height: 1;
+        text-shadow: 0 0 60px rgba(110, 231, 183, 0.5);
+        opacity: 0;
+      }
+      #s1 .where .pulse-word {
+        display: inline-block;
+        margin: 0 6px;
+      }
+
+      /* ============================ Scene 2 — Stop guessing ============================ */
+      #s2 .stop {
+        position: absolute;
+        top: 860px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 168px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: #FAFAFA;
+        line-height: 0.95;
+      }
+      #s2 .stop strike {
+        text-decoration: line-through;
+        text-decoration-color: #6EE7B7;
+        text-decoration-thickness: 12px;
+      }
+
+      /* ============================ Scene 3 — Logo reveal ============================ */
+      #s3 .logo-burst {
+        position: absolute;
+        top: 540px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #s3 .logo-burst img {
+        width: 380px;
+        height: 380px;
+        border-radius: 90px;
+        box-shadow: 0 80px 120px rgba(0,0,0,0.5), 0 0 140px rgba(110,231,183,0.6);
+      }
+      #s3 .logo-brand {
+        position: absolute;
+        top: 980px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 156px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: #FAFAFA;
+        line-height: 1;
+      }
+      #s3 .logo-brand .em {
+        color: #6EE7B7;
+      }
+      #s3 .intro-tag {
+        position: absolute;
+        top: 1180px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 36px;
+        font-weight: 600;
+        letter-spacing: 0.4em;
+        color: #A1A1AA;
+        text-transform: uppercase;
+      }
+      #s3 .burst-ring {
+        position: absolute;
+        top: 600px;
+        left: 50%;
+        margin-left: -160px;
+        width: 320px;
+        height: 320px;
+        border: 6px solid #6EE7B7;
+        border-radius: 50%;
+        z-index: 1;
+      }
+
+      /* ============================ Scene 4 — App video + chips ============================ */
+      #s4 .phone-wrap {
+        position: absolute;
+        top: 220px;
+        left: 270px;
+        width: 540px;
+        height: 1170px;
+        border-radius: 60px;
+        background: #0A1224;
+        border: 5px solid #1E3A6B;
+        box-shadow: 0 60px 100px rgba(0,0,0,0.5), 0 0 100px rgba(110,231,183,0.3);
+        overflow: hidden;
+        z-index: 2;
+      }
+      #s4 .phone-wrap video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #s4 .label-strip {
+        position: absolute;
+        bottom: 160px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        gap: 22px;
+        z-index: 3;
+      }
+      #s4 .label-strip .chip {
+        flex: 1;
+        background: #6EE7B7;
+        color: #0A1224;
+        font-size: 34px;
+        font-weight: 900;
+        text-align: center;
+        padding: 22px 10px;
+        border-radius: 22px;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      #s4 .label-strip .chip.alt { background: #67E8F9; }
+      #s4 .label-strip .chip.alt2 { background: #FBBF24; }
+
+      /* ============================ Scene 5 — Privacy ============================ */
+      #s5 .privacy-stack {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 60px;
+      }
+      #s5 .priv-line {
+        font-size: 132px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        text-align: center;
+        color: #FAFAFA;
+      }
+      #s5 .priv-line .no {
+        color: #EF4444;
+        font-size: 168px;
+        letter-spacing: -0.05em;
+        margin-right: 20px;
+      }
+      #s5 .priv-line .just { color: #6EE7B7; }
+
+      /* ============================ Scene 6 — Climax ============================ */
+      #s6 .climax {
+        position: absolute;
+        top: 700px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 132px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        color: #FAFAFA;
+      }
+      #s6 .climax .em { color: #6EE7B7; }
+      #s6 .underline-bar {
+        position: absolute;
+        top: 940px;
+        left: 50%;
+        margin-left: -260px;
+        width: 520px;
+        height: 14px;
+        background: #6EE7B7;
+        border-radius: 7px;
+        transform-origin: left center;
+      }
+
+      /* ============================ Scene 7 — CTA ============================ */
+      #s7 .cta-brand {
+        position: absolute;
+        top: 340px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 156px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: #FAFAFA;
+        line-height: 1;
+      }
+      #s7 .cta-brand .em { color: #6EE7B7; }
+      #s7 .cta-sub {
+        position: absolute;
+        top: 540px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+        font-size: 44px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        color: #A1A1AA;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+      #s7 .badge {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        height: 180px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        padding: 0 48px;
+        gap: 32px;
+      }
+      #s7 .badge svg { width: 90px; height: 90px; }
+      #s7 .badge .text { display: flex; flex-direction: column; gap: 4px; }
+      #s7 .badge .text .top {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      #s7 .badge .text .bottom {
+        font-size: 54px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      #s7 .badge-as {
+        top: 720px;
+        background: #FAFAFA;
+        box-shadow: 0 40px 90px rgba(110,231,183,0.4), 0 0 120px rgba(110,231,183,0.3);
+      }
+      #s7 .badge-as .text .top { color: #71717A; }
+      #s7 .badge-as .text .bottom { color: #0A1224; }
+      #s7 .badge-gp {
+        top: 940px;
+        background: transparent;
+        border: 3px solid #1E3A6B;
+      }
+      #s7 .badge-gp .text .top { color: #6EE7B7; }
+      #s7 .badge-gp .text .bottom { color: #A1A1AA; }
+      #s7 .coming-pill {
+        position: absolute;
+        top: 920px;
+        right: 100px;
+        background: #FBBF24;
+        color: #0A1224;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        padding: 10px 22px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        z-index: 6;
+        transform: rotate(-8deg);
+      }
+      #s7 .cta-url {
+        position: absolute;
+        bottom: 230px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 56px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #6EE7B7;
+      }
+      #s7 .cta-tagline {
+        position: absolute;
+        bottom: 140px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+        font-size: 32px;
+        font-weight: 500;
+        color: #A1A1AA;
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="22"
+      data-width="1080"
+      data-height="1920"
+    >
+      <audio id="narration" data-start="0" data-duration="22" data-track-index="9" data-volume="1" src="narration.wav"></audio>
+      <!-- Music: dark synth intro 0–6s crossfaded to "Static Motion" by Kevin MacLeod (incompetech.com) — CC BY 4.0 -->
+      <audio id="music" data-start="0" data-duration="22" data-track-index="10" data-volume="0.7" src="music-bed.wav"></audio>
+
+      <!-- Despair filter: dark+desaturated overlay during 0–6s, lifts on the music drop -->
+      <div class="despair-filter" id="despair-filter" data-layout-allow-overflow data-layout-ignore></div>
+
+      <!-- Global flash overlay used on hits -->
+      <div class="flash" id="global-flash" data-layout-allow-overflow data-layout-ignore></div>
+
+      <!-- ============================ Scene 1: Intro (0–5.15s) ============================ -->
+      <div id="s1" class="scene clip" data-composition-id="s1" data-start="0" data-duration="5.15" data-track-index="1" data-width="1080" data-height="1920" style="z-index:1">
+        <div class="grain"></div>
+        <div class="scan-noise"></div>
+        <div class="every">Every month.</div>
+        <div class="same">Same question.</div>
+        <div class="where">
+          <span class="pulse-word w1">WHERE.</span>
+          <span class="pulse-word w2">DID.</span>
+          <span class="pulse-word w3">IT.</span>
+          <span class="pulse-word w4">ALL.</span>
+          <span class="pulse-word w5">GO.</span>
+        </div>
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            // "Every month." with am_michael voice (0.13s start)
+            tl.fromTo("#s1 .every", { y: 40, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: "expo.out" }, 0.10);
+            // "Same question." (0.90s start)
+            tl.fromTo("#s1 .same", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.90);
+            // Snap fade out before WHERE lands (bm_george "Where" starts 2.13s)
+            tl.to(["#s1 .every", "#s1 .same"], { y: -30, opacity: 0, scale: 0.85, duration: 0.18, ease: "power2.in" }, 1.92);
+            // WHERE. DID. IT. ALL. GO. — bm_george British dramatic voice
+            tl.set("#s1 .where", { opacity: 1 }, 2.10);
+            tl.fromTo("#s1 .where .w1", { scale: 3, opacity: 0, letterSpacing: "0.2em" }, { scale: 1, opacity: 1, letterSpacing: "-0.04em", duration: 0.40, ease: "expo.out" }, 2.13);
+            tl.fromTo("#s1 .where .w2", { scale: 2.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.32, ease: "expo.out" }, 2.86);
+            tl.fromTo("#s1 .where .w3", { scale: 2.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.30, ease: "expo.out" }, 3.33);
+            tl.fromTo("#s1 .where .w4", { scale: 2.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.28, ease: "expo.out" }, 3.66);
+            tl.fromTo("#s1 .where .w5", { scale: 3.5, opacity: 0, color: "#6EE7B7" }, { scale: 1, opacity: 1, color: "#FBBF24", duration: 0.50, ease: "back.out(1.8)" }, 4.45);
+            tl.to("#s1 .where", { x: 5, duration: 0.06, repeat: 8, yoyo: true, ease: "none" }, 4.45);
+            tl.set("#s1", { opacity: 1 }, 5.38);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s1"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ============================ Scene 2: Stop guessing (5.13–7.30s) ============================ -->
+      <div id="s2" class="scene clip" data-composition-id="s2" data-start="5.13" data-duration="2.17" data-track-index="2" data-width="1080" data-height="1920" style="z-index:2">
+        <div class="grain"></div>
+        <div class="stop">STOP <strike>GUESSING</strike>.</div>
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s2 .stop", { scale: 1.8, opacity: 0, letterSpacing: "0.1em" }, { scale: 1, opacity: 1, letterSpacing: "-0.04em", duration: 0.35, ease: "expo.out" }, 0.13);
+            tl.to("#s2 .stop", { x: -8, duration: 0.04, repeat: 5, yoyo: true, ease: "none" }, 0.13);
+            tl.set("#s2", { opacity: 1 }, 2.15);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s2"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ============================ Scene 3: Logo reveal (7.30–9.10s) ============================ -->
+      <div id="s3" class="scene clip" data-composition-id="s3" data-start="7.30" data-duration="1.8" data-track-index="1" data-width="1080" data-height="1920" style="z-index:3">
+        <div class="grain"></div>
+        <div class="burst-ring"></div>
+        <div class="logo-burst"><img src="assets/logo.png" crossorigin="anonymous" /></div>
+        <div class="logo-brand">net<span class="em">budget</span></div>
+        <div class="intro-tag">INTRODUCING</div>
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s3 .intro-tag", { y: 10, opacity: 0, letterSpacing: "0.6em" }, { y: 0, opacity: 1, letterSpacing: "0.4em", duration: 0.35, ease: "power3.out" }, 0.03);
+            tl.fromTo("#s3 .logo-burst img", { scale: 0.2, opacity: 0, rotation: -15 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.55, ease: "back.out(1.8)" }, 0.06);
+            tl.fromTo("#s3 .burst-ring", { scale: 0.6, opacity: 0.9, borderWidth: 14 }, { scale: 3.5, opacity: 0, borderWidth: 1, duration: 1.0, ease: "expo.out" }, 0.10);
+            tl.fromTo("#s3 .logo-brand", { y: 80, opacity: 0, scale: 1.3 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" }, 0.45);
+            tl.to("#s3 .logo-burst img", { scale: 1.04, duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.7);
+            tl.set("#s3", { opacity: 1 }, 1.78);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s3"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ============================ Scene 4: App + chips (8.95–11.95s) ============================ -->
+      <div id="s4" class="scene clip" data-composition-id="s4" data-start="8.95" data-duration="3.0" data-track-index="2" data-width="1080" data-height="1920" style="z-index:4">
+        <div class="grain"></div>
+        <div class="phone-wrap">
+          <video id="s4-app-video" src="assets/app-demo.mp4" data-start="8.95" data-duration="3.0" data-track-index="3" data-media-start="6" muted playsinline crossorigin="anonymous"></video>
+        </div>
+        <div class="label-strip">
+          <div class="chip c1">REAL<br>NUMBERS</div>
+          <div class="chip alt c2">REAL<br>CLARITY</div>
+          <div class="chip alt2 c3">IN<br>SECONDS</div>
+        </div>
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s4 .phone-wrap", { y: 100, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: "expo.out" }, 0.05);
+            tl.to("#s4 .phone-wrap", { scale: 1.02, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.65);
+            tl.fromTo("#s4 .c1", { y: 60, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 0.10);
+            tl.fromTo("#s4 .c2", { y: 60, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 1.15);
+            tl.fromTo("#s4 .c3", { y: 60, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 2.15);
+            tl.set("#s4", { opacity: 1 }, 2.97);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s4"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ============================ Scene 5: Privacy (11.95–14.20s) ============================ -->
+      <div id="s5" class="scene clip" data-composition-id="s5" data-start="11.95" data-duration="2.25" data-track-index="1" data-width="1080" data-height="1920" style="z-index:5">
+        <div class="grain"></div>
+        <div class="privacy-stack">
+          <div class="priv-line line-1"><span class="no">NO</span>ACCOUNTS</div>
+          <div class="priv-line line-2"><span class="no">NO</span>TRACKING</div>
+          <div class="priv-line line-3"><span class="just">JUST YOU.</span></div>
+        </div>
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s5 .line-1", { x: -200, opacity: 0, scale: 1.4 }, { x: 0, opacity: 1, scale: 1, duration: 0.32, ease: "expo.out" }, 0.05);
+            tl.fromTo("#s5 .line-2", { x: 200, opacity: 0, scale: 1.4 }, { x: 0, opacity: 1, scale: 1, duration: 0.32, ease: "expo.out" }, 0.85);
+            tl.fromTo("#s5 .line-3", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" }, 1.55);
+            tl.to("#s5 .line-3", { scale: 1.05, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 1 }, 2.0);
+            tl.set("#s5", { opacity: 1 }, 2.22);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s5"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ============================ Scene 6: Climax (14.20–16.85s) ============================ -->
+      <div id="s6" class="scene clip" data-composition-id="s6" data-start="14.20" data-duration="2.65" data-track-index="2" data-width="1080" data-height="1920" style="z-index:6">
+        <div class="grain"></div>
+        <div class="climax"><span class="em">Take back</span> control.</div>
+        <div class="underline-bar"></div>
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            tl.fromTo("#s6 .climax", { scale: 1.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "expo.out" }, 0.05);
+            tl.fromTo("#s6 .underline-bar", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 0.45);
+            tl.to("#s6 .climax", { scale: 1.05, duration: 0.4, ease: "power2.inOut", yoyo: true, repeat: 1 }, 0.95);
+            tl.to("#s6 .climax", { x: -6, duration: 0.05, repeat: 8, yoyo: true, ease: "none" }, 0.05);
+            tl.set("#s6", { opacity: 1 }, 2.62);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s6"] = tl;
+          })();
+        </script>
+      </div>
+
+      <!-- ============================ Scene 7: CTA (16.85–22s) ============================ -->
+      <div id="s7" class="scene clip" data-composition-id="s7" data-start="16.85" data-duration="5.15" data-track-index="1" data-width="1080" data-height="1920" style="z-index:7">
+        <div class="grain"></div>
+        <div class="cta-brand">net<span class="em">budget</span></div>
+        <div class="cta-sub">Available Now</div>
+
+        <div class="badge badge-as">
+          <svg viewBox="0 0 384 470" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#0A1224" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+          </svg>
+          <div class="text">
+            <span class="top">Download on the</span>
+            <span class="bottom">App Store</span>
+          </div>
+        </div>
+
+        <div class="coming-pill">Coming soon</div>
+        <div class="badge badge-gp">
+          <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gp-blue2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0066D9"/><stop offset="1" stop-color="#26A6FE"/></linearGradient>
+              <linearGradient id="gp-red2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E73247"/><stop offset="1" stop-color="#FD5C5C"/></linearGradient>
+              <linearGradient id="gp-yellow2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC900"/><stop offset="1" stop-color="#FFE402"/></linearGradient>
+              <linearGradient id="gp-green2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0BD05B"/><stop offset="1" stop-color="#22DE7E"/></linearGradient>
+            </defs>
+            <path fill="url(#gp-blue2)" d="M48 48 L48 464 L268 256 Z"/>
+            <path fill="url(#gp-red2)" d="M48 48 L356 224 L268 256 Z"/>
+            <path fill="url(#gp-green2)" d="M48 464 L356 288 L268 256 Z"/>
+            <path fill="url(#gp-yellow2)" d="M356 224 L464 256 L356 288 L268 256 Z"/>
+          </svg>
+          <div class="text">
+            <span class="top">Soon on</span>
+            <span class="bottom">Google Play</span>
+          </div>
+        </div>
+
+        <div class="cta-url">netbudget.app</div>
+        <div class="cta-tagline">Know what's really left.</div>
+        <script>
+          (function () {
+            const tl = gsap.timeline({ paused: true });
+            // Scene 7 starts at video t=16.85; key voice moments:
+            //   App = 16.98 → s-time 0.13s
+            //   Coming = 17.85 → s-time 1.0s
+            //   Google = 18.76 → s-time 1.91s
+            //   Know = 20.21 → s-time 3.36s (female voice slogan lands here)
+            tl.fromTo("#s7 .cta-brand", { scale: 1.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "expo.out" }, 0.05);
+            tl.fromTo("#s7 .cta-sub", { y: 30, opacity: 0, letterSpacing: "0.4em" }, { y: 0, opacity: 1, letterSpacing: "0.16em", duration: 0.45, ease: "power3.out" }, 0.30);
+            tl.fromTo("#s7 .badge-as", { x: -150, opacity: 0, scale: 0.9 }, { x: 0, opacity: 1, scale: 1, duration: 0.50, ease: "back.out(1.5)" }, 0.13);
+            tl.fromTo("#s7 .badge-gp", { x: 150, opacity: 0, scale: 0.9 }, { x: 0, opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.5)" }, 1.00);
+            tl.fromTo("#s7 .coming-pill", { scale: 0, opacity: 0, rotation: -30 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.4, ease: "back.out(2.5)" }, 1.55);
+            tl.to("#s7 .coming-pill", { rotation: -4, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 2 }, 1.95);
+            tl.fromTo("#s7 .cta-url", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 2.0);
+            // Female voice slogan lands at s-time 3.36s — text appears just before with a pop
+            tl.fromTo("#s7 .cta-tagline", { y: 30, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 3.25);
+            // Pulse the tagline on the female voice
+            tl.to("#s7 .cta-tagline", { scale: 1.05, duration: 0.35, ease: "sine.inOut", yoyo: true, repeat: 1 }, 3.85);
+            // Big pulse for the brand at the Google Play final boom (~18.76 → s-time 1.91)
+            tl.to("#s7 .cta-brand", { scale: 1.06, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 1 }, 1.85);
+            tl.set("#s7", { opacity: 1 }, 5.12);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["s7"] = tl;
+          })();
+        </script>
+      </div>
+    </div>
+
+    <script>
+      // Main timeline — hit flashes + scene fades on transitions
+      (function () {
+        const SCENES = ["#s1", "#s2", "#s3", "#s4", "#s5", "#s6", "#s7"];
+        const FADES = [
+          { sel: "#s1", at: 5.12 },
+          { sel: "#s2", at: 7.27 },
+          { sel: "#s3", at: 9.07 },
+          { sel: "#s4", at: 11.92 },
+          { sel: "#s5", at: 14.17 },
+          { sel: "#s6", at: 16.82 },
+        ];
+        const mainTl = gsap.timeline({ paused: true });
+        SCENES.forEach((s) => mainTl.set(s, { opacity: 1 }, 0));
+        FADES.forEach((f) => {
+          mainTl.to(f.sel, { opacity: 0, duration: 0.15, ease: "power2.in", overwrite: "auto" }, f.at);
+        });
+
+        // Subtle contemplative tint that lifts as the music swells up at ~6s
+        mainTl.set("#despair-filter", { opacity: 0.7 }, 0);
+        mainTl.to("#despair-filter", { opacity: 0, duration: 1.0, ease: "power3.out", overwrite: "auto" }, 5.8);
+
+        // Flashes — match audio impact times in the new narration
+        const FLASHES = [2.13, 4.45, 5.13, 7.45, 14.32, 17.21, 19.08, 20.13];
+        FLASHES.forEach((t) => {
+          mainTl.set("#global-flash", { opacity: 0 }, t - 0.001);
+          mainTl.to("#global-flash", { opacity: 0.55, duration: 0.03, ease: "power4.out", overwrite: "auto" }, t);
+          mainTl.to("#global-flash", { opacity: 0, duration: 0.10, ease: "power4.in" }, t + 0.03);
+        });
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = mainTl;
+      })();
+    </script>
+  </body>
+</html>

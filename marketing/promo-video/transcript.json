@@ -1,0 +1,742 @@
+[
+  {
+    "text": "End",
+    "start": 0.04,
+    "end": 0.18
+  },
+  {
+    "text": "of",
+    "start": 0.18,
+    "end": 0.3
+  },
+  {
+    "text": "the",
+    "start": 0.3,
+    "end": 0.48
+  },
+  {
+    "text": "month",
+    "start": 0.48,
+    "end": 0.77
+  },
+  {
+    "text": "again,",
+    "start": 0.77,
+    "end": 1.15
+  },
+  {
+    "text": "where",
+    "start": 1.15,
+    "end": 1.32
+  },
+  {
+    "text": "did",
+    "start": 1.34,
+    "end": 1.46
+  },
+  {
+    "text": "your",
+    "start": 1.46,
+    "end": 1.62
+  },
+  {
+    "text": "money",
+    "start": 1.62,
+    "end": 1.81
+  },
+  {
+    "text": "go?",
+    "start": 1.81,
+    "end": 1.96
+  },
+  {
+    "text": "If",
+    "start": 2,
+    "end": 2.06
+  },
+  {
+    "text": "you",
+    "start": 2.06,
+    "end": 2.17
+  },
+  {
+    "text": "can't",
+    "start": 2.23,
+    "end": 2.46
+  },
+  {
+    "text": "see",
+    "start": 2.46,
+    "end": 2.59
+  },
+  {
+    "text": "what's",
+    "start": 2.64,
+    "end": 2.91
+  },
+  {
+    "text": "left,",
+    "start": 2.91,
+    "end": 3.23
+  },
+  {
+    "text": "you",
+    "start": 3.23,
+    "end": 3.35
+  },
+  {
+    "text": "can't",
+    "start": 3.35,
+    "end": 3.54
+  },
+  {
+    "text": "plan,",
+    "start": 3.54,
+    "end": 3.8
+  },
+  {
+    "text": "you",
+    "start": 3.8,
+    "end": 3.93
+  },
+  {
+    "text": "can't",
+    "start": 3.93,
+    "end": 4.15
+  },
+  {
+    "text": "save,",
+    "start": 4.2,
+    "end": 4.56
+  },
+  {
+    "text": "you",
+    "start": 4.56,
+    "end": 4.65
+  },
+  {
+    "text": "can't",
+    "start": 4.73,
+    "end": 4.92
+  },
+  {
+    "text": "breathe.",
+    "start": 4.92,
+    "end": 5.56
+  },
+  {
+    "text": "Net",
+    "start": 5.6,
+    "end": 5.72
+  },
+  {
+    "text": "budget",
+    "start": 5.72,
+    "end": 6.04
+  },
+  {
+    "text": "shows",
+    "start": 6.04,
+    "end": 6.31
+  },
+  {
+    "text": "you",
+    "start": 6.31,
+    "end": 6.47
+  },
+  {
+    "text": "in",
+    "start": 6.47,
+    "end": 6.52
+  },
+  {
+    "text": "seconds,",
+    "start": 6.69,
+    "end": 7.06
+  },
+  {
+    "text": "type",
+    "start": 7.06,
+    "end": 7.27
+  },
+  {
+    "text": "your",
+    "start": 7.27,
+    "end": 7.44
+  },
+  {
+    "text": "income,",
+    "start": 7.49,
+    "end": 7.9
+  },
+  {
+    "text": "type",
+    "start": 7.9,
+    "end": 8.11
+  },
+  {
+    "text": "your",
+    "start": 8.11,
+    "end": 8.25
+  },
+  {
+    "text": "expenses,",
+    "start": 8.32,
+    "end": 8.96
+  },
+  {
+    "text": "see",
+    "start": 9.05,
+    "end": 9.07
+  },
+  {
+    "text": "exactly",
+    "start": 9.11,
+    "end": 9.4
+  },
+  {
+    "text": "what",
+    "start": 9.46,
+    "end": 9.62
+  },
+  {
+    "text": "stays",
+    "start": 9.68,
+    "end": 9.95
+  },
+  {
+    "text": "in",
+    "start": 9.95,
+    "end": 10.07
+  },
+  {
+    "text": "your",
+    "start": 10.07,
+    "end": 10.26
+  },
+  {
+    "text": "pocket",
+    "start": 10.32,
+    "end": 10.59
+  },
+  {
+    "text": "every",
+    "start": 10.77,
+    "end": 11
+  },
+  {
+    "text": "single",
+    "start": 11,
+    "end": 11.37
+  },
+  {
+    "text": "month.",
+    "start": 11.37,
+    "end": 11.92
+  },
+  {
+    "text": "Real",
+    "start": 11.96,
+    "end": 12.13
+  },
+  {
+    "text": "numbers,",
+    "start": 12.19,
+    "end": 12.67
+  },
+  {
+    "text": "real",
+    "start": 12.67,
+    "end": 12.87
+  },
+  {
+    "text": "clarity,",
+    "start": 13.05,
+    "end": 13.42
+  },
+  {
+    "text": "real",
+    "start": 13.42,
+    "end": 13.65
+  },
+  {
+    "text": "you,",
+    "start": 13.65,
+    "end": 13.9
+  },
+  {
+    "text": "built",
+    "start": 13.99,
+    "end": 14.22
+  },
+  {
+    "text": "on",
+    "start": 14.22,
+    "end": 14.26
+  },
+  {
+    "text": "the",
+    "start": 14.36,
+    "end": 14.5
+  },
+  {
+    "text": "50-30-20",
+    "start": 14.5,
+    "end": 15.65
+  },
+  {
+    "text": "rule,",
+    "start": 15.65,
+    "end": 15.98
+  },
+  {
+    "text": "needs,",
+    "start": 16.09,
+    "end": 16.38
+  },
+  {
+    "text": "wants,",
+    "start": 16.38,
+    "end": 16.77
+  },
+  {
+    "text": "savings,",
+    "start": 16.88,
+    "end": 17.45
+  },
+  {
+    "text": "with",
+    "start": 17.52,
+    "end": 17.69
+  },
+  {
+    "text": "personalized",
+    "start": 17.74,
+    "end": 18.43
+  },
+  {
+    "text": "advice",
+    "start": 18.61,
+    "end": 18.88
+  },
+  {
+    "text": "based",
+    "start": 18.88,
+    "end": 19.2
+  },
+  {
+    "text": "on",
+    "start": 19.2,
+    "end": 19.33
+  },
+  {
+    "text": "what",
+    "start": 19.33,
+    "end": 19.58
+  },
+  {
+    "text": "you",
+    "start": 19.58,
+    "end": 19.77
+  },
+  {
+    "text": "actually",
+    "start": 19.77,
+    "end": 20.25
+  },
+  {
+    "text": "earn",
+    "start": 20.33,
+    "end": 20.47
+  },
+  {
+    "text": "and",
+    "start": 20.58,
+    "end": 20.68
+  },
+  {
+    "text": "spend",
+    "start": 20.73,
+    "end": 21.04
+  },
+  {
+    "text": "not",
+    "start": 21.04,
+    "end": 21.23
+  },
+  {
+    "text": "generic",
+    "start": 21.23,
+    "end": 21.67
+  },
+  {
+    "text": "blog",
+    "start": 21.67,
+    "end": 21.93
+  },
+  {
+    "text": "tips.",
+    "start": 21.93,
+    "end": 22.48
+  },
+  {
+    "text": "Get",
+    "start": 22.52,
+    "end": 22.65
+  },
+  {
+    "text": "a",
+    "start": 22.65,
+    "end": 22.69
+  },
+  {
+    "text": "12-month",
+    "start": 22.75,
+    "end": 23.39
+  },
+  {
+    "text": "projection,",
+    "start": 23.39,
+    "end": 24.08
+  },
+  {
+    "text": "export",
+    "start": 24.08,
+    "end": 24.36
+  },
+  {
+    "text": "a",
+    "start": 24.43,
+    "end": 24.46
+  },
+  {
+    "text": "clean",
+    "start": 24.55,
+    "end": 24.77
+  },
+  {
+    "text": "PDF,",
+    "start": 24.77,
+    "end": 25.05
+  },
+  {
+    "text": "send",
+    "start": 25.05,
+    "end": 25.25
+  },
+  {
+    "text": "it",
+    "start": 25.33,
+    "end": 25.39
+  },
+  {
+    "text": "to",
+    "start": 25.39,
+    "end": 25.47
+  },
+  {
+    "text": "yourself,",
+    "start": 25.58,
+    "end": 26.08
+  },
+  {
+    "text": "your",
+    "start": 26.08,
+    "end": 26.31
+  },
+  {
+    "text": "partner,",
+    "start": 26.31,
+    "end": 26.83
+  },
+  {
+    "text": "your",
+    "start": 26.83,
+    "end": 27.18
+  },
+  {
+    "text": "accountant,",
+    "start": 27.19,
+    "end": 27.8
+  },
+  {
+    "text": "eight",
+    "start": 27.84,
+    "end": 28.01
+  },
+  {
+    "text": "languages,",
+    "start": 28.07,
+    "end": 28.63
+  },
+  {
+    "text": "500",
+    "start": 28.63,
+    "end": 29.1
+  },
+  {
+    "text": "cities,",
+    "start": 29.1,
+    "end": 29.51
+  },
+  {
+    "text": "live",
+    "start": 29.51,
+    "end": 29.68
+  },
+  {
+    "text": "currency",
+    "start": 29.73,
+    "end": 30.14
+  },
+  {
+    "text": "conversion,",
+    "start": 30.14,
+    "end": 30.79
+  },
+  {
+    "text": "whether",
+    "start": 30.95,
+    "end": 31.12
+  },
+  {
+    "text": "you",
+    "start": 31.12,
+    "end": 31.2
+  },
+  {
+    "text": "live",
+    "start": 31.29,
+    "end": 31.44
+  },
+  {
+    "text": "in",
+    "start": 31.44,
+    "end": 31.53
+  },
+  {
+    "text": "Paris,",
+    "start": 31.53,
+    "end": 31.86
+  },
+  {
+    "text": "Tokyo",
+    "start": 31.94,
+    "end": 32.27
+  },
+  {
+    "text": "or",
+    "start": 32.32,
+    "end": 32.39
+  },
+  {
+    "text": "Sao",
+    "start": 32.39,
+    "end": 32.55
+  },
+  {
+    "text": "Paulo,",
+    "start": 32.55,
+    "end": 32.91
+  },
+  {
+    "text": "it",
+    "start": 32.96,
+    "end": 33.04
+  },
+  {
+    "text": "speaks",
+    "start": 33.04,
+    "end": 33.23
+  },
+  {
+    "text": "your",
+    "start": 33.41,
+    "end": 33.59
+  },
+  {
+    "text": "money,",
+    "start": 33.59,
+    "end": 33.91
+  },
+  {
+    "text": "no",
+    "start": 33.98,
+    "end": 34.08
+  },
+  {
+    "text": "account,",
+    "start": 34.08,
+    "end": 34.58
+  },
+  {
+    "text": "no",
+    "start": 34.58,
+    "end": 34.62
+  },
+  {
+    "text": "cloud,",
+    "start": 34.71,
+    "end": 35.05
+  },
+  {
+    "text": "no",
+    "start": 35.13,
+    "end": 35.18
+  },
+  {
+    "text": "tracking,",
+    "start": 35.18,
+    "end": 35.79
+  },
+  {
+    "text": "your",
+    "start": 35.83,
+    "end": 35.98
+  },
+  {
+    "text": "data",
+    "start": 35.98,
+    "end": 36.12
+  },
+  {
+    "text": "never",
+    "start": 36.18,
+    "end": 36.34
+  },
+  {
+    "text": "leaves",
+    "start": 36.42,
+    "end": 36.68
+  },
+  {
+    "text": "your",
+    "start": 36.72,
+    "end": 36.88
+  },
+  {
+    "text": "phone,",
+    "start": 36.88,
+    "end": 37.18
+  },
+  {
+    "text": "that's",
+    "start": 37.26,
+    "end": 37.53
+  },
+  {
+    "text": "not",
+    "start": 37.53,
+    "end": 37.63
+  },
+  {
+    "text": "a",
+    "start": 37.63,
+    "end": 37.81
+  },
+  {
+    "text": "feature,",
+    "start": 37.81,
+    "end": 38.18
+  },
+  {
+    "text": "that's",
+    "start": 38.18,
+    "end": 38.48
+  },
+  {
+    "text": "the",
+    "start": 38.48,
+    "end": 38.62
+  },
+  {
+    "text": "foundation,",
+    "start": 38.63,
+    "end": 39.24
+  },
+  {
+    "text": "net",
+    "start": 39.24,
+    "end": 39.37
+  },
+  {
+    "text": "budget,",
+    "start": 39.44,
+    "end": 39.79
+  },
+  {
+    "text": "available",
+    "start": 39.83,
+    "end": 40.25
+  },
+  {
+    "text": "now",
+    "start": 40.25,
+    "end": 40.48
+  },
+  {
+    "text": "on",
+    "start": 40.48,
+    "end": 40.72
+  },
+  {
+    "text": "the",
+    "start": 40.76,
+    "end": 40.9
+  },
+  {
+    "text": "App",
+    "start": 40.9,
+    "end": 41.08
+  },
+  {
+    "text": "Store,",
+    "start": 41.08,
+    "end": 41.51
+  },
+  {
+    "text": "coming",
+    "start": 41.51,
+    "end": 41.88
+  },
+  {
+    "text": "soon",
+    "start": 41.88,
+    "end": 42.12
+  },
+  {
+    "text": "to",
+    "start": 42.12,
+    "end": 42.24
+  },
+  {
+    "text": "Google",
+    "start": 42.24,
+    "end": 42.6
+  },
+  {
+    "text": "Play,",
+    "start": 42.65,
+    "end": 42.97
+  },
+  {
+    "text": "know",
+    "start": 42.97,
+    "end": 43.2
+  },
+  {
+    "text": "what's",
+    "start": 43.21,
+    "end": 43.49
+  },
+  {
+    "text": "really",
+    "start": 43.56,
+    "end": 43.92
+  },
+  {
+    "text": "left.",
+    "start": 43.97,
+    "end": 44.32
+  }
+]
