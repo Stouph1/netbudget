@@ -31,6 +31,15 @@ const fr: Catalog = {
   "hero.cta.learn": "Voir les fonctionnalités",
   "hero.note": "Gratuit. Sans publicité. Aucune donnée n'est envoyée.",
 
+  // Spot video (autoplay hero)
+  "spot.eyebrow": "Le spot · 22 sec",
+  "spot.title": "Vois ce qui change.",
+  "spot.subtitle": "22 secondes pour comprendre.",
+  "spot.unmute": "Activer le son",
+  "spot.mute": "Couper le son",
+  "spot.play": "Lecture",
+  "spot.pause": "Pause",
+
   // Stats strip
   "stats.languages": "langues",
   "stats.currencies": "devises",
@@ -214,6 +223,15 @@ const en: Catalog = {
   "hero.cta.appstore": "Download on the App Store",
   "hero.cta.learn": "See features",
   "hero.note": "Free. No ads. No data leaves your device.",
+
+  // Spot video (autoplay hero)
+  "spot.eyebrow": "The spot · 22 sec",
+  "spot.title": "See what changes.",
+  "spot.subtitle": "22 seconds to get it.",
+  "spot.unmute": "Unmute",
+  "spot.mute": "Mute",
+  "spot.play": "Play",
+  "spot.pause": "Pause",
 
   // Stats strip
   "stats.languages": "languages",

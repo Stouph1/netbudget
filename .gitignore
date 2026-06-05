@@ -80,3 +80,13 @@ credentials.json
 # Agent metadata
 .emergent/
 .claude/
+.agents/
+skills-lock.json
+
+# Marketing project local artifacts
+marketing/**/.piper-models/
+marketing/**/.test-music/
+marketing/**/.frames/
+marketing/**/work-*/
+marketing/**/narration-raw.wav
+marketing/**/*-OLD*
