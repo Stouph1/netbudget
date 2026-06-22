@@ -198,3 +198,4 @@ export async function ensureMonthlyReminderScheduled(
   if (status !== "granted") return;
   await scheduleMonthlyReminder(title, body);
 }
+

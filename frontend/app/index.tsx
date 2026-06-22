@@ -21,6 +21,13 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -242,9 +249,63 @@ export default function Index() {
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const t = (k: string) => tr(k, lang);
 
-  // Navigation par onglet (bottom tabs)
+  // Navigation par onglet (bottom tabs).
+  // Les 3 onglets sont rendus en rangée horizontale ; on translate le container
+  // pour suivre le doigt en temps réel (style Instagram/Twitter), puis on snap
+  // au plus proche au relâchement.
   type Tab = "settings" | "budget" | "converter";
+  const TAB_ORDER: Tab[] = ["settings", "budget", "converter"];
   const [tab, setTab] = useState<Tab>("budget");
+
+  const screenW = Dimensions.get("window").width;
+  const tabIndexSV = useSharedValue(1); // 1 = budget par défaut
+  const swipeX = useSharedValue(-screenW);
+
+  const setTabFromIndex = useCallback((idx: number) => {
+    setTab(TAB_ORDER[idx]);
+  }, []);
+
+  useEffect(() => {
+    const idx = TAB_ORDER.indexOf(tab);
+    tabIndexSV.value = idx;
+    swipeX.value = withTiming(-idx * screenW, { duration: 220 });
+  }, [tab, screenW, tabIndexSV, swipeX]);
+
+  const swipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-12, 12])
+        .failOffsetY([-20, 20])
+        .onUpdate((e) => {
+          "worklet";
+          const base = -tabIndexSV.value * screenW;
+          // résistance aux extrémités (style iOS)
+          let dx = e.translationX;
+          if (tabIndexSV.value === 0 && dx > 0) dx = dx * 0.35;
+          if (tabIndexSV.value === TAB_ORDER.length - 1 && dx < 0) dx = dx * 0.35;
+          swipeX.value = base + dx;
+        })
+        .onEnd((e) => {
+          "worklet";
+          const threshold = screenW / 4;
+          let newIdx = tabIndexSV.value;
+          if (e.translationX < -threshold || e.velocityX < -600) {
+            newIdx = Math.min(TAB_ORDER.length - 1, newIdx + 1);
+          } else if (e.translationX > threshold || e.velocityX > 600) {
+            newIdx = Math.max(0, newIdx - 1);
+          }
+          swipeX.value = withTiming(-newIdx * screenW, { duration: 220 });
+          if (newIdx !== tabIndexSV.value) {
+            tabIndexSV.value = newIdx;
+            runOnJS(setTabFromIndex)(newIdx);
+          }
+        }),
+    [screenW, setTabFromIndex, swipeX, tabIndexSV],
+  );
+
+  const swipeAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: swipeX.value }],
+  }));
 
   // Convertisseur de devise
   const [convFrom, setConvFrom] = useState<CurrencyCode>("EUR");
@@ -933,7 +994,9 @@ export default function Index() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
-        {tab === "budget" && (
+        <GestureDetector gesture={swipeGesture}>
+        <Animated.View style={[{ flex: 1, width: screenW * 3, flexDirection: "row" }, swipeAnimStyle]}>
+        <View style={{ width: screenW, position: "absolute", left: screenW, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -1340,10 +1403,10 @@ export default function Index() {
 
           <View style={{ height: 40 }} />
         </ScrollView>
-        )}
+        </View>
 
         {/* ====== Converter tab (Google Translate style) ====== */}
-        {tab === "converter" && (
+        <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -1473,10 +1536,10 @@ export default function Index() {
           </View>
           <View style={{ height: 40 }} />
         </ScrollView>
-        )}
+        </View>
 
         {/* ====== Settings tab ====== */}
-        {tab === "settings" && (
+        <View style={{ width: screenW, position: "absolute", left: 0, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -1604,7 +1667,9 @@ export default function Index() {
           </Section>
           <View style={{ height: 40 }} />
         </ScrollView>
-        )}
+        </View>
+        </Animated.View>
+        </GestureDetector>
       </KeyboardAvoidingView>
 
       {/* Floating "Terminé" button while keyboard is up */}
