@@ -18,6 +18,31 @@ const REMINDER_DAY = 28;
 const REMINDER_HOUR = 10;
 const REMINDER_MINUTE = 0;
 
+// 3 variantes qui tournent en fonction du mois — évite la répétition lassante
+// chaque mois. Rotation déterministe (mois % 3) : facile à tester et prévisible.
+//
+// L'OS répète la notif avec le MÊME titre/corps tant que le calendar trigger est
+// actif. Pour varier, on resschedule à chaque ouverture de l'app (voir
+// `ensureMonthlyReminderScheduled` côté appelant) avec la variante du mois
+// CIBLE (celui où la prochaine notif va tomber).
+export function pickMonthlyVariant(
+  t: (key: string) => string,
+  now: Date = new Date(),
+): { title: string; body: string } {
+  // Mois cible : si on est passé le jour 28, la prochaine notif tombera le 28
+  // du mois suivant, donc on prend la variante du mois suivant.
+  const target = new Date(now);
+  if (now.getDate() > REMINDER_DAY) {
+    target.setMonth(now.getMonth() + 1);
+  }
+  const idx = target.getMonth() % 3;
+  const suffix = idx === 0 ? "" : `.v${idx + 1}`;
+  return {
+    title: t(`notification.monthly.title${suffix}`),
+    body: t(`notification.monthly.body${suffix}`),
+  };
+}
+
 // Configuration globale du comportement de la notif quand l'app est ouverte.
 // Appelée une fois au boot, idempotent.
 let handlerSet = false;

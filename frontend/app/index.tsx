@@ -32,6 +32,7 @@ import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/app
 import {
   ensureMonthlyReminderScheduled,
   getMonthlyEnabled,
+  pickMonthlyVariant,
   setMonthlyReminderEnabled,
   setupNotificationHandler,
 } from "../src/utils/notifications";
@@ -365,27 +366,23 @@ export default function Index() {
   // Rappel mensuel : toggle, état initial + (re)programmation au boot.
   // L'OS peut perdre la planification après une réinstall ou un long redémarrage ;
   // on re-schedule à chaque ouverture si l'utilisateur a la permission + le toggle ON.
+  // La variante du message tourne chaque mois (mois % 3) — voir pickMonthlyVariant.
   const [monthlyReminder, setMonthlyReminder] = useState(true);
   useEffect(() => {
     setupNotificationHandler();
     (async () => {
       const enabled = await getMonthlyEnabled();
       setMonthlyReminder(enabled);
-      await ensureMonthlyReminderScheduled(
-        t("notification.monthly.title"),
-        t("notification.monthly.body"),
-      );
+      const { title, body } = pickMonthlyVariant(t);
+      await ensureMonthlyReminderScheduled(title, body);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const toggleMonthlyReminder = useCallback(
     async (next: boolean) => {
       setMonthlyReminder(next); // optimiste
-      const effective = await setMonthlyReminderEnabled(
-        next,
-        t("notification.monthly.title"),
-        t("notification.monthly.body"),
-      );
+      const { title, body } = pickMonthlyVariant(t);
+      const effective = await setMonthlyReminderEnabled(next, title, body);
       if (effective !== next) {
         // L'utilisateur a refusé la permission système → on remet à OFF et on l'informe.
         setMonthlyReminder(false);

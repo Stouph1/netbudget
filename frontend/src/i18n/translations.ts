@@ -380,8 +380,12 @@ const fr: Catalog = {
   "settings.notifications.title": "Rappel mensuel",
   "settings.notifications.hint": "Reçois une notif le 28 de chaque mois pour faire ton point budget.",
   "settings.notifications.denied": "Active les notifications dans les réglages de ton téléphone pour activer le rappel.",
-  "notification.monthly.title": "C'est l'heure de ton point budget",
+  "notification.monthly.title": "💰 C'est l'heure de ton point budget",
   "notification.monthly.body": "Ouvre NetBudget pour voir combien il te reste vraiment ce mois-ci.",
+  "notification.monthly.title.v2": "📊 On fait le point ?",
+  "notification.monthly.body.v2": "30 secondes pour savoir où en est ton budget ce mois-ci.",
+  "notification.monthly.title.v3": "✨ Ton point mensuel t'attend",
+  "notification.monthly.body.v3": "Une minute, et tu sais exactement combien tu peux dépenser.",
 };
 
 const en: Catalog = {
@@ -696,8 +700,12 @@ const en: Catalog = {
   "settings.notifications.title": "Monthly reminder",
   "settings.notifications.hint": "Get a nudge on the 28th of each month to check your budget.",
   "settings.notifications.denied": "Enable notifications in your phone settings to turn on the reminder.",
-  "notification.monthly.title": "Time for your monthly check-in",
+  "notification.monthly.title": "💰 Time for your monthly check-in",
   "notification.monthly.body": "Open NetBudget to see exactly what's left this month.",
+  "notification.monthly.title.v2": "📊 Quick budget check?",
+  "notification.monthly.body.v2": "30 seconds to see where your budget stands this month.",
+  "notification.monthly.title.v3": "✨ Your monthly check is ready",
+  "notification.monthly.body.v3": "One minute, and you know exactly what you can spend.",
 };
 
 const es: Catalog = {
@@ -1012,8 +1020,12 @@ const es: Catalog = {
   "settings.notifications.title": "Recordatorio mensual",
   "settings.notifications.hint": "Recibe un aviso el 28 de cada mes para revisar tu presupuesto.",
   "settings.notifications.denied": "Activa las notificaciones en los ajustes de tu teléfono para activar el recordatorio.",
-  "notification.monthly.title": "Es hora de revisar tu presupuesto",
+  "notification.monthly.title": "💰 Es hora de revisar tu presupuesto",
   "notification.monthly.body": "Abre NetBudget para ver lo que realmente te queda este mes.",
+  "notification.monthly.title.v2": "📊 ¿Una revisión rápida?",
+  "notification.monthly.body.v2": "30 segundos para saber dónde está tu presupuesto este mes.",
+  "notification.monthly.title.v3": "✨ Tu revisión mensual te espera",
+  "notification.monthly.body.v3": "Un minuto, y sabes exactamente lo que puedes gastar.",
 };
 
 const pt: Catalog = {
@@ -1328,8 +1340,12 @@ const pt: Catalog = {
   "settings.notifications.title": "Lembrete mensal",
   "settings.notifications.hint": "Recebe um aviso no dia 28 para conferir o teu orçamento.",
   "settings.notifications.denied": "Ativa as notificações nas definições do telefone para ativar o lembrete.",
-  "notification.monthly.title": "É hora do teu check-in mensal",
+  "notification.monthly.title": "💰 É hora do teu check-in mensal",
   "notification.monthly.body": "Abre o NetBudget para veres o que realmente sobrou este mês.",
+  "notification.monthly.title.v2": "📊 Vamos fazer o ponto?",
+  "notification.monthly.body.v2": "30 segundos para saberes onde está o teu orçamento este mês.",
+  "notification.monthly.title.v3": "✨ O teu ponto mensal espera-te",
+  "notification.monthly.body.v3": "Um minuto, e sabes exatamente o que podes gastar.",
 };
 
 const de: Catalog = {
@@ -1644,8 +1660,12 @@ const de: Catalog = {
   "settings.notifications.title": "Monatliche Erinnerung",
   "settings.notifications.hint": "Erhalte am 28. eine Notiz, um dein Budget zu prüfen.",
   "settings.notifications.denied": "Aktiviere die Benachrichtigungen in deinen Telefon-Einstellungen, um die Erinnerung einzuschalten.",
-  "notification.monthly.title": "Zeit für deinen monatlichen Check-up",
+  "notification.monthly.title": "💰 Zeit für deinen monatlichen Check-up",
   "notification.monthly.body": "Öffne NetBudget und sieh, was dir diesen Monat wirklich bleibt.",
+  "notification.monthly.title.v2": "📊 Schneller Budget-Check?",
+  "notification.monthly.body.v2": "30 Sekunden, um zu sehen, wo dein Budget diesen Monat steht.",
+  "notification.monthly.title.v3": "✨ Dein monatlicher Check wartet",
+  "notification.monthly.body.v3": "Eine Minute, und du weißt genau, was du ausgeben kannst.",
 };
 
 const it: Catalog = {
@@ -1960,8 +1980,12 @@ const it: Catalog = {
   "settings.notifications.title": "Promemoria mensile",
   "settings.notifications.hint": "Ricevi una notifica il 28 di ogni mese per controllare il tuo budget.",
   "settings.notifications.denied": "Attiva le notifiche nelle impostazioni del telefono per attivare il promemoria.",
-  "notification.monthly.title": "È ora del tuo check mensile",
+  "notification.monthly.title": "💰 È ora del tuo check mensile",
   "notification.monthly.body": "Apri NetBudget per vedere quanto ti rimane davvero questo mese.",
+  "notification.monthly.title.v2": "📊 Un check rapido?",
+  "notification.monthly.body.v2": "30 secondi per vedere a che punto è il tuo budget questo mese.",
+  "notification.monthly.title.v3": "✨ Il tuo check mensile ti aspetta",
+  "notification.monthly.body.v3": "Un minuto, e sai esattamente quanto puoi spendere.",
 };
 
 const ar: Catalog = {
@@ -2276,8 +2300,12 @@ const ar: Catalog = {
   "settings.notifications.title": "تذكير شهري",
   "settings.notifications.hint": "تلقَّ تنبيهًا في 28 من كل شهر لمراجعة ميزانيتك.",
   "settings.notifications.denied": "فعِّل الإشعارات من إعدادات هاتفك لتفعيل التذكير.",
-  "notification.monthly.title": "حان وقت مراجعتك الشهرية",
+  "notification.monthly.title": "💰 حان وقت مراجعتك الشهرية",
   "notification.monthly.body": "افتح NetBudget لترى ما تبقى لك فعلاً هذا الشهر.",
+  "notification.monthly.title.v2": "📊 مراجعة سريعة؟",
+  "notification.monthly.body.v2": "30 ثانية لمعرفة وضع ميزانيتك هذا الشهر.",
+  "notification.monthly.title.v3": "✨ مراجعتك الشهرية بانتظارك",
+  "notification.monthly.body.v3": "دقيقة واحدة، وستعرف بالضبط كم يمكنك إنفاقه.",
 };
 
 const ja: Catalog = {
@@ -2592,8 +2620,12 @@ const ja: Catalog = {
   "settings.notifications.title": "月次リマインダー",
   "settings.notifications.hint": "毎月28日に予算チェックの通知を受け取ります。",
   "settings.notifications.denied": "リマインダーを有効にするには、電話の設定で通知を許可してください。",
-  "notification.monthly.title": "今月の予算チェックの時間です",
+  "notification.monthly.title": "💰 今月の予算チェックの時間です",
   "notification.monthly.body": "NetBudgetを開いて、今月本当に残った金額を確認しましょう。",
+  "notification.monthly.title.v2": "📊 サクッと予算チェック？",
+  "notification.monthly.body.v2": "30秒で今月の予算状況がわかります。",
+  "notification.monthly.title.v3": "✨ 今月のチェックが待っています",
+  "notification.monthly.body.v3": "1分で、いくら使えるかが正確にわかります。",
 };
 
 export const CATALOGS: Record<Lang, Catalog> = { fr, en, es, pt, de, it, ar, ja };
