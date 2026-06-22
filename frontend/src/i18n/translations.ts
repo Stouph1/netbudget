@@ -376,6 +376,12 @@ const fr: Catalog = {
   "update.message": "Une nouvelle version est disponible sur l'App Store (de {current} à {latest}). Profite des derniers correctifs et fonctionnalités.",
   "update.later": "Plus tard",
   "update.now": "Mettre à jour",
+
+  "settings.notifications.title": "Rappel mensuel",
+  "settings.notifications.hint": "Reçois une notif le 28 de chaque mois pour faire ton point budget.",
+  "settings.notifications.denied": "Active les notifications dans les réglages de ton téléphone pour activer le rappel.",
+  "notification.monthly.title": "C'est l'heure de ton point budget",
+  "notification.monthly.body": "Ouvre NetBudget pour voir combien il te reste vraiment ce mois-ci.",
 };
 
 const en: Catalog = {
@@ -686,6 +692,12 @@ const en: Catalog = {
   "update.message": "A new version is available on the App Store ({current} → {latest}). Get the latest fixes and features.",
   "update.later": "Later",
   "update.now": "Update",
+
+  "settings.notifications.title": "Monthly reminder",
+  "settings.notifications.hint": "Get a nudge on the 28th of each month to check your budget.",
+  "settings.notifications.denied": "Enable notifications in your phone settings to turn on the reminder.",
+  "notification.monthly.title": "Time for your monthly check-in",
+  "notification.monthly.body": "Open NetBudget to see exactly what's left this month.",
 };
 
 const es: Catalog = {
@@ -996,6 +1008,12 @@ const es: Catalog = {
   "update.message": "Una nueva versión está disponible en la App Store ({current} → {latest}). Disfruta de las últimas correcciones y novedades.",
   "update.later": "Más tarde",
   "update.now": "Actualizar",
+
+  "settings.notifications.title": "Recordatorio mensual",
+  "settings.notifications.hint": "Recibe un aviso el 28 de cada mes para revisar tu presupuesto.",
+  "settings.notifications.denied": "Activa las notificaciones en los ajustes de tu teléfono para activar el recordatorio.",
+  "notification.monthly.title": "Es hora de revisar tu presupuesto",
+  "notification.monthly.body": "Abre NetBudget para ver lo que realmente te queda este mes.",
 };
 
 const pt: Catalog = {
@@ -1306,6 +1324,12 @@ const pt: Catalog = {
   "update.message": "Uma nova versão está disponível na App Store ({current} → {latest}). Aproveita as últimas correções e novidades.",
   "update.later": "Mais tarde",
   "update.now": "Atualizar",
+
+  "settings.notifications.title": "Lembrete mensal",
+  "settings.notifications.hint": "Recebe um aviso no dia 28 para conferir o teu orçamento.",
+  "settings.notifications.denied": "Ativa as notificações nas definições do telefone para ativar o lembrete.",
+  "notification.monthly.title": "É hora do teu check-in mensal",
+  "notification.monthly.body": "Abre o NetBudget para veres o que realmente sobrou este mês.",
 };
 
 const de: Catalog = {
@@ -1616,6 +1640,12 @@ const de: Catalog = {
   "update.message": "Eine neue Version ist im App Store verfügbar ({current} → {latest}). Hol dir die neuesten Fixes und Features.",
   "update.later": "Später",
   "update.now": "Aktualisieren",
+
+  "settings.notifications.title": "Monatliche Erinnerung",
+  "settings.notifications.hint": "Erhalte am 28. eine Notiz, um dein Budget zu prüfen.",
+  "settings.notifications.denied": "Aktiviere die Benachrichtigungen in deinen Telefon-Einstellungen, um die Erinnerung einzuschalten.",
+  "notification.monthly.title": "Zeit für deinen monatlichen Check-up",
+  "notification.monthly.body": "Öffne NetBudget und sieh, was dir diesen Monat wirklich bleibt.",
 };
 
 const it: Catalog = {
@@ -1926,6 +1956,12 @@ const it: Catalog = {
   "update.message": "Una nuova versione è disponibile sull'App Store ({current} → {latest}). Approfitta delle ultime correzioni e novità.",
   "update.later": "Più tardi",
   "update.now": "Aggiorna",
+
+  "settings.notifications.title": "Promemoria mensile",
+  "settings.notifications.hint": "Ricevi una notifica il 28 di ogni mese per controllare il tuo budget.",
+  "settings.notifications.denied": "Attiva le notifiche nelle impostazioni del telefono per attivare il promemoria.",
+  "notification.monthly.title": "È ora del tuo check mensile",
+  "notification.monthly.body": "Apri NetBudget per vedere quanto ti rimane davvero questo mese.",
 };
 
 const ar: Catalog = {
@@ -2236,6 +2272,12 @@ const ar: Catalog = {
   "update.message": "إصدار جديد متاح على App Store ({current} → {latest}). احصل على أحدث الإصلاحات والميزات.",
   "update.later": "لاحقًا",
   "update.now": "تحديث",
+
+  "settings.notifications.title": "تذكير شهري",
+  "settings.notifications.hint": "تلقَّ تنبيهًا في 28 من كل شهر لمراجعة ميزانيتك.",
+  "settings.notifications.denied": "فعِّل الإشعارات من إعدادات هاتفك لتفعيل التذكير.",
+  "notification.monthly.title": "حان وقت مراجعتك الشهرية",
+  "notification.monthly.body": "افتح NetBudget لترى ما تبقى لك فعلاً هذا الشهر.",
 };
 
 const ja: Catalog = {
@@ -2546,6 +2588,12 @@ const ja: Catalog = {
   "update.message": "App Storeに新しいバージョン（{current} → {latest}）があります。最新の修正と機能をお試しください。",
   "update.later": "後で",
   "update.now": "更新",
+
+  "settings.notifications.title": "月次リマインダー",
+  "settings.notifications.hint": "毎月28日に予算チェックの通知を受け取ります。",
+  "settings.notifications.denied": "リマインダーを有効にするには、電話の設定で通知を許可してください。",
+  "notification.monthly.title": "今月の予算チェックの時間です",
+  "notification.monthly.body": "NetBudgetを開いて、今月本当に残った金額を確認しましょう。",
 };
 
 export const CATALOGS: Record<Lang, Catalog> = { fr, en, es, pt, de, it, ar, ja };

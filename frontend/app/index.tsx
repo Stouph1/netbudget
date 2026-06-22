@@ -16,6 +16,7 @@ import {
   Alert,
   Keyboard,
   Linking,
+  Switch,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
@@ -28,6 +29,12 @@ import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
+import {
+  ensureMonthlyReminderScheduled,
+  getMonthlyEnabled,
+  setMonthlyReminderEnabled,
+  setupNotificationHandler,
+} from "../src/utils/notifications";
 import DonutChart, { DonutSegment } from "../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
 import { CITIES, City, COUNTRIES, INDEX_SOURCES, citiesByCountry, getCountry } from "../src/constants/cities";
@@ -354,6 +361,42 @@ export default function Index() {
       if (info) setUpdateInfo(info);
     })();
   }, []);
+
+  // Rappel mensuel : toggle, état initial + (re)programmation au boot.
+  // L'OS peut perdre la planification après une réinstall ou un long redémarrage ;
+  // on re-schedule à chaque ouverture si l'utilisateur a la permission + le toggle ON.
+  const [monthlyReminder, setMonthlyReminder] = useState(true);
+  useEffect(() => {
+    setupNotificationHandler();
+    (async () => {
+      const enabled = await getMonthlyEnabled();
+      setMonthlyReminder(enabled);
+      await ensureMonthlyReminderScheduled(
+        t("notification.monthly.title"),
+        t("notification.monthly.body"),
+      );
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const toggleMonthlyReminder = useCallback(
+    async (next: boolean) => {
+      setMonthlyReminder(next); // optimiste
+      const effective = await setMonthlyReminderEnabled(
+        next,
+        t("notification.monthly.title"),
+        t("notification.monthly.body"),
+      );
+      if (effective !== next) {
+        // L'utilisateur a refusé la permission système → on remet à OFF et on l'informe.
+        setMonthlyReminder(false);
+        Alert.alert(
+          t("settings.notifications.title"),
+          t("settings.notifications.denied"),
+        );
+      }
+    },
+    [t],
+  );
 
   // Prompt de note App Store : se déclenche une seule fois, quand l'utilisateur
   // scrolle jusqu'en bas de l'onglet Budget après avoir rempli quelques données.
@@ -1522,6 +1565,31 @@ export default function Index() {
               <Feather name="info" size={14} color={TEXT_3} />
               <Text style={styles.infoRowText}>{t("info.indexHelp")}</Text>
             </TouchableOpacity>
+          </Section>
+
+          <Section
+            title={t("settings.notifications.title")}
+            subtitle={t("settings.notifications.hint")}
+          >
+            <View style={styles.toggleRow}>
+              <Feather
+                name="bell"
+                size={20}
+                color={monthlyReminder ? GOLD : TEXT_3}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={[styles.toggleLabel, { flex: 1 }]}>
+                {t("settings.notifications.title")}
+              </Text>
+              <Switch
+                value={monthlyReminder}
+                onValueChange={toggleMonthlyReminder}
+                trackColor={{ false: BORDER, true: GOLD }}
+                thumbColor="#fff"
+                ios_backgroundColor={BORDER}
+                testID="settings-notifications-toggle"
+              />
+            </View>
           </Section>
 
           <Section title={t("settings.danger.title")}>
@@ -2968,6 +3036,15 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row", alignItems: "center", gap: 6,
     paddingHorizontal: 4, paddingVertical: 6,
+  },
+
+  toggleRow: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: SURFACE_2, borderRadius: 14,
+    borderWidth: 1, borderColor: BORDER, padding: 14,
+  },
+  toggleLabel: {
+    color: TEXT, fontSize: 15, fontWeight: "600",
   },
   infoRowText: {
     color: TEXT_3, fontSize: 12, textDecorationLine: "underline",
