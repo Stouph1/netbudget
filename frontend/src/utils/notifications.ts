@@ -1,10 +1,10 @@
-// Rappel mensuel : programme une notification locale le 28 de chaque mois à 10h00.
-// Pourquoi le 28 : la plupart des salaires tombent en début/milieu de mois ; le 28
-// laisse 3-4 jours pour ajuster son budget avant la fin du mois et anticiper le
-// prochain. Heure 10h00 : visible le matin sans réveiller, avant la routine.
+// Deux rappels mensuels :
+//  - DÉBUT DE MOIS (1er à 10h00) : prépare ton budget pour le mois qui commence.
+//  - FIN DE MOIS (28 à 10h00) : fais ton point avant de boucler le mois.
 //
-// L'utilisateur peut désactiver depuis les Réglages. Permission demandée une seule
-// fois — refusée, on n'insiste pas (on garde un drapeau pour éviter de re-demander).
+// Heure 10h00 : visible le matin sans réveiller, avant la routine.
+// L'utilisateur peut désactiver les deux d'un coup depuis les Réglages.
+// Permission demandée une seule fois — refusée, on n'insiste pas.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
@@ -12,34 +12,55 @@ import { Platform } from "react-native";
 
 const ENABLED_KEY = "netbudget:notifications:monthlyEnabled";
 const PERMISSION_ASKED_KEY = "netbudget:notifications:permissionAsked";
-const SCHEDULED_ID_KEY = "netbudget:notifications:monthlyId";
+const SCHEDULED_START_ID_KEY = "netbudget:notifications:monthlyStartId";
+const SCHEDULED_END_ID_KEY = "netbudget:notifications:monthlyEndId";
 
-const REMINDER_DAY = 28;
+const START_REMINDER_DAY = 1;
+const END_REMINDER_DAY = 28;
 const REMINDER_HOUR = 10;
 const REMINDER_MINUTE = 0;
 
-// 3 variantes qui tournent en fonction du mois — évite la répétition lassante
-// chaque mois. Rotation déterministe (mois % 3) : facile à tester et prévisible.
+export type MonthlyVariants = {
+  start: { title: string; body: string };
+  end: { title: string; body: string };
+};
+
+// 3 variantes par notif qui tournent selon le mois (mois % 3) — évite la
+// répétition lassante. Rotation déterministe : facile à tester et prévisible.
 //
-// L'OS répète la notif avec le MÊME titre/corps tant que le calendar trigger est
-// actif. Pour varier, on resschedule à chaque ouverture de l'app (voir
-// `ensureMonthlyReminderScheduled` côté appelant) avec la variante du mois
-// CIBLE (celui où la prochaine notif va tomber).
-export function pickMonthlyVariant(
+// L'OS répète la notif avec le MÊME contenu tant que le calendar trigger est
+// actif. Pour varier, on reschedule à chaque ouverture de l'app avec la
+// variante du mois CIBLE (celui où la prochaine notif tombera).
+function pickVariant(
+  prefix: "monthStart" | "monthEnd",
+  day: number,
   t: (key: string) => string,
-  now: Date = new Date(),
+  now: Date,
 ): { title: string; body: string } {
-  // Mois cible : si on est passé le jour 28, la prochaine notif tombera le 28
-  // du mois suivant, donc on prend la variante du mois suivant.
   const target = new Date(now);
-  if (now.getDate() > REMINDER_DAY) {
+  const hasPassedDayThisMonth =
+    now.getDate() > day ||
+    (now.getDate() === day &&
+      (now.getHours() > REMINDER_HOUR ||
+        (now.getHours() === REMINDER_HOUR && now.getMinutes() >= REMINDER_MINUTE)));
+  if (hasPassedDayThisMonth) {
     target.setMonth(now.getMonth() + 1);
   }
   const idx = target.getMonth() % 3;
   const suffix = idx === 0 ? "" : `.v${idx + 1}`;
   return {
-    title: t(`notification.monthly.title${suffix}`),
-    body: t(`notification.monthly.body${suffix}`),
+    title: t(`notification.${prefix}.title${suffix}`),
+    body: t(`notification.${prefix}.body${suffix}`),
+  };
+}
+
+export function pickMonthlyVariants(
+  t: (key: string) => string,
+  now: Date = new Date(),
+): MonthlyVariants {
+  return {
+    start: pickVariant("monthStart", START_REMINDER_DAY, t, now),
+    end: pickVariant("monthEnd", END_REMINDER_DAY, t, now),
   };
 }
 
@@ -85,18 +106,18 @@ async function setMonthlyEnabled(enabled: boolean): Promise<void> {
   } catch {}
 }
 
-async function getStoredScheduledId(): Promise<string | null> {
+async function getStoredId(key: string): Promise<string | null> {
   try {
-    return await AsyncStorage.getItem(SCHEDULED_ID_KEY);
+    return await AsyncStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
-async function setStoredScheduledId(id: string | null): Promise<void> {
+async function setStoredId(key: string, id: string | null): Promise<void> {
   try {
-    if (id === null) await AsyncStorage.removeItem(SCHEDULED_ID_KEY);
-    else await AsyncStorage.setItem(SCHEDULED_ID_KEY, id);
+    if (id === null) await AsyncStorage.removeItem(key);
+    else await AsyncStorage.setItem(key, id);
   } catch {}
 }
 
@@ -121,28 +142,32 @@ export async function requestPermissionOnce(): Promise<boolean> {
   return status === "granted";
 }
 
-// Annule la notif programmée et oublie son id local.
-export async function cancelMonthlyReminder(): Promise<void> {
-  const id = await getStoredScheduledId();
+async function cancelOne(key: string): Promise<void> {
+  const id = await getStoredId(key);
   if (id) {
     try {
       await Notifications.cancelScheduledNotificationAsync(id);
     } catch {}
   }
-  await setStoredScheduledId(null);
+  await setStoredId(key, null);
 }
 
-// Programme la notif récurrente le 28 à 10h00. Idempotent : annule l'existant d'abord.
-// `body` et `title` sont passés par l'appelant pour respecter la langue de l'app.
-export async function scheduleMonthlyReminder(
+// Annule les deux notifs programmées et oublie leurs ids locaux.
+export async function cancelMonthlyReminders(): Promise<void> {
+  await cancelOne(SCHEDULED_START_ID_KEY);
+  await cancelOne(SCHEDULED_END_ID_KEY);
+}
+
+async function scheduleOne(
+  day: number,
+  identifier: string,
+  storageKey: string,
   title: string,
   body: string,
 ): Promise<string | null> {
-  await ensureAndroidChannel();
-  await cancelMonthlyReminder();
   try {
     const id = await Notifications.scheduleNotificationAsync({
-      identifier: "netbudget-monthly-reminder",
+      identifier,
       content: {
         title,
         body,
@@ -151,24 +176,46 @@ export async function scheduleMonthlyReminder(
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-        day: REMINDER_DAY,
+        day,
         hour: REMINDER_HOUR,
         minute: REMINDER_MINUTE,
         repeats: true,
       },
     });
-    await setStoredScheduledId(id);
+    await setStoredId(storageKey, id);
     return id;
   } catch {
     return null;
   }
 }
 
-// Toggle Settings : active ou désactive le rappel. Retourne le nouvel état effectif.
+// Programme les deux notifs récurrentes (1er + 28 à 10h00). Idempotent : annule
+// les existantes d'abord.
+export async function scheduleMonthlyReminders(
+  variants: MonthlyVariants,
+): Promise<void> {
+  await ensureAndroidChannel();
+  await cancelMonthlyReminders();
+  await scheduleOne(
+    START_REMINDER_DAY,
+    "netbudget-monthly-start",
+    SCHEDULED_START_ID_KEY,
+    variants.start.title,
+    variants.start.body,
+  );
+  await scheduleOne(
+    END_REMINDER_DAY,
+    "netbudget-monthly-end",
+    SCHEDULED_END_ID_KEY,
+    variants.end.title,
+    variants.end.body,
+  );
+}
+
+// Toggle Settings : active ou désactive les rappels. Retourne le nouvel état effectif.
 export async function setMonthlyReminderEnabled(
   enabled: boolean,
-  title: string,
-  body: string,
+  variants: MonthlyVariants,
 ): Promise<boolean> {
   if (enabled) {
     const granted = await requestPermissionOnce();
@@ -176,26 +223,24 @@ export async function setMonthlyReminderEnabled(
       await setMonthlyEnabled(false);
       return false;
     }
-    await scheduleMonthlyReminder(title, body);
+    await scheduleMonthlyReminders(variants);
     await setMonthlyEnabled(true);
     return true;
   }
-  await cancelMonthlyReminder();
+  await cancelMonthlyReminders();
   await setMonthlyEnabled(false);
   return false;
 }
 
 // Appelé au boot : si l'utilisateur a déjà la permission et le toggle ON, on
-// (re)programme la notif. Permet de couvrir le cas où l'OS a effacé la planif
+// (re)programme les notifs. Permet de couvrir le cas où l'OS a effacé la planif
 // (réinstall, mise à jour majeure, redémarrage prolongé).
-export async function ensureMonthlyReminderScheduled(
-  title: string,
-  body: string,
+export async function ensureMonthlyRemindersScheduled(
+  variants: MonthlyVariants,
 ): Promise<void> {
   const enabled = await getMonthlyEnabled();
   if (!enabled) return;
   const { status } = await Notifications.getPermissionsAsync();
   if (status !== "granted") return;
-  await scheduleMonthlyReminder(title, body);
+  await scheduleMonthlyReminders(variants);
 }
-
