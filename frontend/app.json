@@ -2,7 +2,7 @@
   "expo": {
     "name": "NETbudget",
     "slug": "netbudget",
-    "version": "1.6.1",
+    "version": "1.6.3",
     "runtimeVersion": {
       "policy": "fingerprint"
     },
@@ -45,6 +45,13 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#0F1E3D"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#10B981"
         }
       ],
       "expo-web-browser"

@@ -94,3 +94,6 @@ marketing/**/.frames/
 marketing/**/work-*/
 marketing/**/narration-raw.wav
 marketing/**/*-OLD*
+
+# Third-party reference material (not for redistribution)
+BUDGET GOLD*.xlsx

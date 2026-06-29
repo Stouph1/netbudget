@@ -16,10 +16,18 @@ import {
   Alert,
   Keyboard,
   Linking,
+  Switch,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,6 +36,13 @@ import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
+import {
+  ensureMonthlyRemindersScheduled,
+  getMonthlyEnabled,
+  pickMonthlyVariants,
+  setMonthlyReminderEnabled,
+  setupNotificationHandler,
+} from "../src/utils/notifications";
 import DonutChart, { DonutSegment } from "../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../src/components/MonthlyBreakdown";
 import { CITIES, City, COUNTRIES, INDEX_SOURCES, citiesByCountry, getCountry } from "../src/constants/cities";
@@ -234,9 +249,63 @@ export default function Index() {
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const t = (k: string) => tr(k, lang);
 
-  // Navigation par onglet (bottom tabs)
+  // Navigation par onglet (bottom tabs).
+  // Les 3 onglets sont rendus en rangée horizontale ; on translate le container
+  // pour suivre le doigt en temps réel (style Instagram/Twitter), puis on snap
+  // au plus proche au relâchement.
   type Tab = "settings" | "budget" | "converter";
+  const TAB_ORDER: Tab[] = ["settings", "budget", "converter"];
   const [tab, setTab] = useState<Tab>("budget");
+
+  const screenW = Dimensions.get("window").width;
+  const tabIndexSV = useSharedValue(1); // 1 = budget par défaut
+  const swipeX = useSharedValue(-screenW);
+
+  const setTabFromIndex = useCallback((idx: number) => {
+    setTab(TAB_ORDER[idx]);
+  }, []);
+
+  useEffect(() => {
+    const idx = TAB_ORDER.indexOf(tab);
+    tabIndexSV.value = idx;
+    swipeX.value = withTiming(-idx * screenW, { duration: 220 });
+  }, [tab, screenW, tabIndexSV, swipeX]);
+
+  const swipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-12, 12])
+        .failOffsetY([-20, 20])
+        .onUpdate((e) => {
+          "worklet";
+          const base = -tabIndexSV.value * screenW;
+          // résistance aux extrémités (style iOS)
+          let dx = e.translationX;
+          if (tabIndexSV.value === 0 && dx > 0) dx = dx * 0.35;
+          if (tabIndexSV.value === TAB_ORDER.length - 1 && dx < 0) dx = dx * 0.35;
+          swipeX.value = base + dx;
+        })
+        .onEnd((e) => {
+          "worklet";
+          const threshold = screenW / 4;
+          let newIdx = tabIndexSV.value;
+          if (e.translationX < -threshold || e.velocityX < -600) {
+            newIdx = Math.min(TAB_ORDER.length - 1, newIdx + 1);
+          } else if (e.translationX > threshold || e.velocityX > 600) {
+            newIdx = Math.max(0, newIdx - 1);
+          }
+          swipeX.value = withTiming(-newIdx * screenW, { duration: 220 });
+          if (newIdx !== tabIndexSV.value) {
+            tabIndexSV.value = newIdx;
+            runOnJS(setTabFromIndex)(newIdx);
+          }
+        }),
+    [screenW, setTabFromIndex, swipeX, tabIndexSV],
+  );
+
+  const swipeAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: swipeX.value }],
+  }));
 
   // Convertisseur de devise
   const [convFrom, setConvFrom] = useState<CurrencyCode>("EUR");
@@ -354,6 +423,38 @@ export default function Index() {
       if (info) setUpdateInfo(info);
     })();
   }, []);
+
+  // Rappels mensuels (1er + 28) : toggle, état initial + (re)programmation au boot.
+  // L'OS peut perdre la planification après une réinstall ou un long redémarrage ;
+  // on re-schedule à chaque ouverture si l'utilisateur a la permission + le toggle ON.
+  // La variante du message tourne chaque mois (mois % 3) — voir pickMonthlyVariants.
+  const [monthlyReminder, setMonthlyReminder] = useState(true);
+  useEffect(() => {
+    setupNotificationHandler();
+    (async () => {
+      const enabled = await getMonthlyEnabled();
+      setMonthlyReminder(enabled);
+      const variants = pickMonthlyVariants(t);
+      await ensureMonthlyRemindersScheduled(variants);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const toggleMonthlyReminder = useCallback(
+    async (next: boolean) => {
+      setMonthlyReminder(next); // optimiste
+      const variants = pickMonthlyVariants(t);
+      const effective = await setMonthlyReminderEnabled(next, variants);
+      if (effective !== next) {
+        // L'utilisateur a refusé la permission système → on remet à OFF et on l'informe.
+        setMonthlyReminder(false);
+        Alert.alert(
+          t("settings.notifications.title"),
+          t("settings.notifications.denied"),
+        );
+      }
+    },
+    [t],
+  );
 
   // Prompt de note App Store : se déclenche une seule fois, quand l'utilisateur
   // scrolle jusqu'en bas de l'onglet Budget après avoir rempli quelques données.
@@ -893,7 +994,9 @@ export default function Index() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
-        {tab === "budget" && (
+        <GestureDetector gesture={swipeGesture}>
+        <Animated.View style={[{ flex: 1, width: screenW * 3, flexDirection: "row" }, swipeAnimStyle]}>
+        <View style={{ width: screenW, position: "absolute", left: screenW, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -1300,10 +1403,10 @@ export default function Index() {
 
           <View style={{ height: 40 }} />
         </ScrollView>
-        )}
+        </View>
 
         {/* ====== Converter tab (Google Translate style) ====== */}
-        {tab === "converter" && (
+        <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -1433,10 +1536,10 @@ export default function Index() {
           </View>
           <View style={{ height: 40 }} />
         </ScrollView>
-        )}
+        </View>
 
         {/* ====== Settings tab ====== */}
-        {tab === "settings" && (
+        <View style={{ width: screenW, position: "absolute", left: 0, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -1524,6 +1627,28 @@ export default function Index() {
             </TouchableOpacity>
           </Section>
 
+          <Section title={t("settings.notifications.title")}>
+            <View style={styles.toggleRow}>
+              <Feather
+                name="bell"
+                size={20}
+                color={monthlyReminder ? GOLD : TEXT_3}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={[styles.toggleLabel, { flex: 1 }]}>
+                {t("settings.notifications.title")}
+              </Text>
+              <Switch
+                value={monthlyReminder}
+                onValueChange={toggleMonthlyReminder}
+                trackColor={{ false: BORDER, true: GOLD }}
+                thumbColor="#fff"
+                ios_backgroundColor={BORDER}
+                testID="settings-notifications-toggle"
+              />
+            </View>
+          </Section>
+
           <Section title={t("settings.danger.title")}>
             <TouchableOpacity
               onPress={askResetAll}
@@ -1539,7 +1664,9 @@ export default function Index() {
           </Section>
           <View style={{ height: 40 }} />
         </ScrollView>
-        )}
+        </View>
+        </Animated.View>
+        </GestureDetector>
       </KeyboardAvoidingView>
 
       {/* Floating "Terminé" button while keyboard is up */}
@@ -2968,6 +3095,15 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row", alignItems: "center", gap: 6,
     paddingHorizontal: 4, paddingVertical: 6,
+  },
+
+  toggleRow: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: SURFACE_2, borderRadius: 14,
+    borderWidth: 1, borderColor: BORDER, padding: 14,
+  },
+  toggleLabel: {
+    color: TEXT, fontSize: 15, fontWeight: "600",
   },
   infoRowText: {
     color: TEXT_3, fontSize: 12, textDecorationLine: "underline",

@@ -376,6 +376,21 @@ const fr: Catalog = {
   "update.message": "Une nouvelle version est disponible sur l'App Store (de {current} à {latest}). Profite des derniers correctifs et fonctionnalités.",
   "update.later": "Plus tard",
   "update.now": "Mettre à jour",
+
+  "settings.notifications.title": "Rappels mensuels",
+  "settings.notifications.denied": "Active les notifications dans les réglages de ton téléphone pour activer les rappels.",
+  "notification.monthStart.title": "🚀 Nouveau mois, nouveau plan",
+  "notification.monthStart.body": "Mets à jour ton budget pour démarrer le mois sur de bonnes bases.",
+  "notification.monthStart.title.v2": "🎯 Le mois commence",
+  "notification.monthStart.body.v2": "Quelques secondes pour caler ton budget et garder le contrôle.",
+  "notification.monthStart.title.v3": "💡 C'est parti",
+  "notification.monthStart.body.v3": "Vérifie tes revenus et dépenses prévues — un budget à jour, c'est le secret.",
+  "notification.monthEnd.title": "💰 C'est l'heure de ton point budget",
+  "notification.monthEnd.body": "Ouvre NetBudget pour voir combien il te reste vraiment ce mois-ci.",
+  "notification.monthEnd.title.v2": "📊 On fait le point ?",
+  "notification.monthEnd.body.v2": "30 secondes pour savoir où en est ton budget ce mois-ci.",
+  "notification.monthEnd.title.v3": "✨ Ton point mensuel t'attend",
+  "notification.monthEnd.body.v3": "Une minute, et tu sais exactement combien tu peux dépenser.",
 };
 
 const en: Catalog = {
@@ -686,6 +701,21 @@ const en: Catalog = {
   "update.message": "A new version is available on the App Store ({current} → {latest}). Get the latest fixes and features.",
   "update.later": "Later",
   "update.now": "Update",
+
+  "settings.notifications.title": "Monthly reminders",
+  "settings.notifications.denied": "Enable notifications in your phone settings to turn on the reminders.",
+  "notification.monthStart.title": "🚀 New month, new plan",
+  "notification.monthStart.body": "Update your budget to start the month on the right foot.",
+  "notification.monthStart.title.v2": "🎯 Fresh month ahead",
+  "notification.monthStart.body.v2": "A few seconds to set your budget and stay in control.",
+  "notification.monthStart.title.v3": "💡 Here we go",
+  "notification.monthStart.body.v3": "Check your income and planned expenses — an up-to-date budget is the secret.",
+  "notification.monthEnd.title": "💰 Time for your monthly check-in",
+  "notification.monthEnd.body": "Open NetBudget to see exactly what's left this month.",
+  "notification.monthEnd.title.v2": "📊 Quick budget check?",
+  "notification.monthEnd.body.v2": "30 seconds to see where your budget stands this month.",
+  "notification.monthEnd.title.v3": "✨ Your monthly check is ready",
+  "notification.monthEnd.body.v3": "One minute, and you know exactly what you can spend.",
 };
 
 const es: Catalog = {
@@ -996,6 +1026,21 @@ const es: Catalog = {
   "update.message": "Una nueva versión está disponible en la App Store ({current} → {latest}). Disfruta de las últimas correcciones y novedades.",
   "update.later": "Más tarde",
   "update.now": "Actualizar",
+
+  "settings.notifications.title": "Recordatorios mensuales",
+  "settings.notifications.denied": "Activa las notificaciones en los ajustes de tu teléfono para activar los recordatorios.",
+  "notification.monthStart.title": "🚀 Nuevo mes, nuevo plan",
+  "notification.monthStart.body": "Actualiza tu presupuesto para empezar el mes con buen pie.",
+  "notification.monthStart.title.v2": "🎯 Empieza un nuevo mes",
+  "notification.monthStart.body.v2": "Unos segundos para ajustar tu presupuesto y mantener el control.",
+  "notification.monthStart.title.v3": "💡 Vamos allá",
+  "notification.monthStart.body.v3": "Revisa tus ingresos y gastos previstos: un presupuesto al día es el secreto.",
+  "notification.monthEnd.title": "💰 Es hora de revisar tu presupuesto",
+  "notification.monthEnd.body": "Abre NetBudget para ver lo que realmente te queda este mes.",
+  "notification.monthEnd.title.v2": "📊 ¿Una revisión rápida?",
+  "notification.monthEnd.body.v2": "30 segundos para saber dónde está tu presupuesto este mes.",
+  "notification.monthEnd.title.v3": "✨ Tu revisión mensual te espera",
+  "notification.monthEnd.body.v3": "Un minuto, y sabes exactamente lo que puedes gastar.",
 };
 
 const pt: Catalog = {
@@ -1306,6 +1351,21 @@ const pt: Catalog = {
   "update.message": "Uma nova versão está disponível na App Store ({current} → {latest}). Aproveita as últimas correções e novidades.",
   "update.later": "Mais tarde",
   "update.now": "Atualizar",
+
+  "settings.notifications.title": "Lembretes mensais",
+  "settings.notifications.denied": "Ativa as notificações nas definições do telefone para ativar os lembretes.",
+  "notification.monthStart.title": "🚀 Novo mês, novo plano",
+  "notification.monthStart.body": "Atualiza o teu orçamento para começar o mês com o pé direito.",
+  "notification.monthStart.title.v2": "🎯 Mês novo a chegar",
+  "notification.monthStart.body.v2": "Alguns segundos para ajustar o teu orçamento e manter o controlo.",
+  "notification.monthStart.title.v3": "💡 Vamos lá",
+  "notification.monthStart.body.v3": "Verifica os teus rendimentos e despesas previstas — um orçamento atualizado é o segredo.",
+  "notification.monthEnd.title": "💰 É hora do teu check-in mensal",
+  "notification.monthEnd.body": "Abre o NetBudget para veres o que realmente sobrou este mês.",
+  "notification.monthEnd.title.v2": "📊 Vamos fazer o ponto?",
+  "notification.monthEnd.body.v2": "30 segundos para saberes onde está o teu orçamento este mês.",
+  "notification.monthEnd.title.v3": "✨ O teu ponto mensal espera-te",
+  "notification.monthEnd.body.v3": "Um minuto, e sabes exatamente o que podes gastar.",
 };
 
 const de: Catalog = {
@@ -1616,6 +1676,21 @@ const de: Catalog = {
   "update.message": "Eine neue Version ist im App Store verfügbar ({current} → {latest}). Hol dir die neuesten Fixes und Features.",
   "update.later": "Später",
   "update.now": "Aktualisieren",
+
+  "settings.notifications.title": "Monatliche Erinnerungen",
+  "settings.notifications.denied": "Aktiviere die Benachrichtigungen in deinen Telefon-Einstellungen, um die Erinnerungen einzuschalten.",
+  "notification.monthStart.title": "🚀 Neuer Monat, neuer Plan",
+  "notification.monthStart.body": "Aktualisiere dein Budget, um den Monat richtig zu starten.",
+  "notification.monthStart.title.v2": "🎯 Ein frischer Monat steht an",
+  "notification.monthStart.body.v2": "Ein paar Sekunden, um dein Budget einzustellen und den Überblick zu behalten.",
+  "notification.monthStart.title.v3": "💡 Los geht's",
+  "notification.monthStart.body.v3": "Prüfe dein Einkommen und deine Ausgaben — ein aktuelles Budget ist das Geheimnis.",
+  "notification.monthEnd.title": "💰 Zeit für deinen monatlichen Check-up",
+  "notification.monthEnd.body": "Öffne NetBudget und sieh, was dir diesen Monat wirklich bleibt.",
+  "notification.monthEnd.title.v2": "📊 Schneller Budget-Check?",
+  "notification.monthEnd.body.v2": "30 Sekunden, um zu sehen, wo dein Budget diesen Monat steht.",
+  "notification.monthEnd.title.v3": "✨ Dein monatlicher Check wartet",
+  "notification.monthEnd.body.v3": "Eine Minute, und du weißt genau, was du ausgeben kannst.",
 };
 
 const it: Catalog = {
@@ -1926,6 +2001,21 @@ const it: Catalog = {
   "update.message": "Una nuova versione è disponibile sull'App Store ({current} → {latest}). Approfitta delle ultime correzioni e novità.",
   "update.later": "Più tardi",
   "update.now": "Aggiorna",
+
+  "settings.notifications.title": "Promemoria mensili",
+  "settings.notifications.denied": "Attiva le notifiche nelle impostazioni del telefono per attivare i promemoria.",
+  "notification.monthStart.title": "🚀 Nuovo mese, nuovo piano",
+  "notification.monthStart.body": "Aggiorna il tuo budget per iniziare il mese con il piede giusto.",
+  "notification.monthStart.title.v2": "🎯 Inizia un nuovo mese",
+  "notification.monthStart.body.v2": "Pochi secondi per impostare il tuo budget e mantenere il controllo.",
+  "notification.monthStart.title.v3": "💡 Si parte",
+  "notification.monthStart.body.v3": "Controlla entrate e spese previste — un budget aggiornato è il segreto.",
+  "notification.monthEnd.title": "💰 È ora del tuo check mensile",
+  "notification.monthEnd.body": "Apri NetBudget per vedere quanto ti rimane davvero questo mese.",
+  "notification.monthEnd.title.v2": "📊 Un check rapido?",
+  "notification.monthEnd.body.v2": "30 secondi per vedere a che punto è il tuo budget questo mese.",
+  "notification.monthEnd.title.v3": "✨ Il tuo check mensile ti aspetta",
+  "notification.monthEnd.body.v3": "Un minuto, e sai esattamente quanto puoi spendere.",
 };
 
 const ar: Catalog = {
@@ -2236,6 +2326,21 @@ const ar: Catalog = {
   "update.message": "إصدار جديد متاح على App Store ({current} → {latest}). احصل على أحدث الإصلاحات والميزات.",
   "update.later": "لاحقًا",
   "update.now": "تحديث",
+
+  "settings.notifications.title": "تذكيرات شهرية",
+  "settings.notifications.denied": "فعِّل الإشعارات من إعدادات هاتفك لتفعيل التذكيرات.",
+  "notification.monthStart.title": "🚀 شهر جديد، خطة جديدة",
+  "notification.monthStart.body": "حدّث ميزانيتك لبدء الشهر بقوة.",
+  "notification.monthStart.title.v2": "🎯 شهر جديد على الأبواب",
+  "notification.monthStart.body.v2": "ثوانٍ قليلة لضبط ميزانيتك والحفاظ على السيطرة.",
+  "notification.monthStart.title.v3": "💡 لننطلق",
+  "notification.monthStart.body.v3": "راجع دخلك ونفقاتك المتوقعة — ميزانية محدّثة هي السر.",
+  "notification.monthEnd.title": "💰 حان وقت مراجعتك الشهرية",
+  "notification.monthEnd.body": "افتح NetBudget لترى ما تبقى لك فعلاً هذا الشهر.",
+  "notification.monthEnd.title.v2": "📊 مراجعة سريعة؟",
+  "notification.monthEnd.body.v2": "30 ثانية لمعرفة وضع ميزانيتك هذا الشهر.",
+  "notification.monthEnd.title.v3": "✨ مراجعتك الشهرية بانتظارك",
+  "notification.monthEnd.body.v3": "دقيقة واحدة، وستعرف بالضبط كم يمكنك إنفاقه.",
 };
 
 const ja: Catalog = {
@@ -2546,6 +2651,21 @@ const ja: Catalog = {
   "update.message": "App Storeに新しいバージョン（{current} → {latest}）があります。最新の修正と機能をお試しください。",
   "update.later": "後で",
   "update.now": "更新",
+
+  "settings.notifications.title": "月次リマインダー",
+  "settings.notifications.denied": "リマインダーを有効にするには、電話の設定で通知を許可してください。",
+  "notification.monthStart.title": "🚀 新しい月、新しい計画",
+  "notification.monthStart.body": "予算を更新して、月のスタートを切ろう。",
+  "notification.monthStart.title.v2": "🎯 新しい月が始まる",
+  "notification.monthStart.body.v2": "数秒で予算を整え、コントロールを保とう。",
+  "notification.monthStart.title.v3": "💡 さあ始めよう",
+  "notification.monthStart.body.v3": "収入と予定の支出を確認 — 最新の予算が成功の秘訣。",
+  "notification.monthEnd.title": "💰 今月の予算チェックの時間です",
+  "notification.monthEnd.body": "NetBudgetを開いて、今月本当に残った金額を確認しましょう。",
+  "notification.monthEnd.title.v2": "📊 サクッと予算チェック？",
+  "notification.monthEnd.body.v2": "30秒で今月の予算状況がわかります。",
+  "notification.monthEnd.title.v3": "✨ 今月のチェックが待っています",
+  "notification.monthEnd.body.v3": "1分で、いくら使えるかが正確にわかります。",
 };
 
 export const CATALOGS: Record<Lang, Catalog> = { fr, en, es, pt, de, it, ar, ja };
