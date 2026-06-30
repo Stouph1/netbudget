@@ -84,6 +84,9 @@ credentials.json
 .agents/
 skills-lock.json
 
+# Third-party reference material (not for redistribution)
+BUDGET GOLD*.xlsx
+
 # Marketing project local artifacts
 marketing/**/.piper-models/
 marketing/**/.test-music
@@ -92,5 +95,6 @@ marketing/**/work-*/
 marketing/**/narration-raw.wav
 marketing/**/*-OLD*
 
-# Third-party reference material (not for redistribution)
-BUDGET GOLD*.xlsx
+# Local working notes
+docs/
+design-system/
