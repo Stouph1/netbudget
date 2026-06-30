@@ -21,6 +21,7 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -1648,6 +1649,21 @@ export default function Index() {
               />
             </View>
           </Section>
+
+          {__DEV__ ? (
+            <Section title="Premium (DEV)">
+              <TouchableOpacity
+                onPress={() => router.push("/premium-test" as never)}
+                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER }]}
+                activeOpacity={0.85}
+              >
+                <Feather name="key" size={18} color={GOLD} />
+                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
+                  Test auth (Apple Sign In)
+                </Text>
+              </TouchableOpacity>
+            </Section>
+          ) : null}
 
           <Section title={t("settings.danger.title")}>
             <TouchableOpacity
