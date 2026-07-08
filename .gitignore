@@ -94,3 +94,7 @@ marketing/**/*-OLD*
 
 # Third-party reference material (not for redistribution)
 BUDGET GOLD*.xlsx
+
+# Local working notes
+docs/
+design-system/

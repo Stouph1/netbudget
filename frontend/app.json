@@ -24,7 +24,7 @@
       }
     },
     "android": {
-      "package": "com.stouph.netbudget.app",
+      "package": "com.stouph.netbudget",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0F1E3D"
