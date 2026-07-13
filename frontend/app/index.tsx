@@ -1733,6 +1733,16 @@ export default function Index() {
                   Conseils personnalisés
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/(premium)/workspaces" as never)}
+                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
+                activeOpacity={0.85}
+              >
+                <Feather name="users" size={18} color={GOLD} />
+                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
+                  Workspaces (couple / famille)
+                </Text>
+              </TouchableOpacity>
             </Section>
           ) : null}
 

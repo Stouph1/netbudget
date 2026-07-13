@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DonutChart, { type DonutSegment } from "../../src/components/DonutChart";
 import { useSession } from "../../src/contexts/SessionContext";
+import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { loadS1, saveS1 } from "../../src/lib/premiumStore";
 import {
   EMPTY_S1_PAYLOAD,
@@ -64,22 +65,24 @@ function progressPct(goal: SavingsGoal): number {
 
 export default function S1Epargne() {
   const { user, loading: sessionLoading } = useSession();
+  const { workspaceId, loading: scopeLoading } = useActiveScope();
   const [payload, setPayload] = useState<S1Payload>(EMPTY_S1_PAYLOAD);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
 
   useEffect(() => {
-    if (!user?.id) {
-      setLoading(false);
+    if (!user?.id || scopeLoading) {
+      if (!user?.id) setLoading(false);
       return;
     }
     (async () => {
-      const loaded = await loadS1(user.id);
+      setLoading(true);
+      const loaded = await loadS1(user.id, workspaceId);
       setPayload(loaded);
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [user?.id, workspaceId, scopeLoading]);
 
   const totals = useMemo(() => {
     const active = payload.goals.filter((g) => !g.extraP);
@@ -107,7 +110,7 @@ export default function S1Epargne() {
     async (next: S1Payload) => {
       setPayload(next);
       if (!user?.id) return;
-      const result = await saveS1(user.id, next);
+      const result = await saveS1(user.id, next, workspaceId);
       if (!result.ok) {
         Alert.alert(
           "Sync",
@@ -115,7 +118,7 @@ export default function S1Epargne() {
         );
       }
     },
-    [user?.id],
+    [user?.id, workspaceId],
   );
 
   const upsertGoal = useCallback(
@@ -137,7 +140,7 @@ export default function S1Epargne() {
     [payload, persist],
   );
 
-  if (sessionLoading || loading) {
+  if (sessionLoading || scopeLoading || loading) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
