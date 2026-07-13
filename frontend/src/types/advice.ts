@@ -12,7 +12,7 @@
 // User profile (les axes de personnalisation)
 // ============================================================================
 
-export type AgeBracket = "18-25" | "26-35" | "36-50" | "51-65" | "66+";
+export type AgeBracket = "under_18" | "18-25" | "26-35" | "36-50" | "51-65" | "66+";
 
 export type FamilyStatus =
   | "single"
@@ -145,18 +145,35 @@ export type AdviceAction = {
 // Prédicat : renvoie true si le conseil s'applique au profil donné.
 export type AdvicePredicate = (profile: UserProfile) => boolean;
 
+export type AdviceFigure = { label: string; value: string };
+
+// body et figures peuvent être STATIQUES (string / array) ou DYNAMIQUES (fonctions
+// qui prennent le profil et renvoient le contenu). Utile pour des conseils dont
+// le contenu dépend du profil (ex: répartition budgétaire personnalisée).
 export type AdviceCard = {
   id: string;
   category: AdviceCategory;
-  title: string;                 // ≤ 60 chars
-  body: string;                  // 2-3 phrases
-  action: AdviceAction;
+  title: string;
+  body: string | ((p: UserProfile) => string);
+  action: AdviceAction | ((p: UserProfile) => AdviceAction);
   appliesWhen: AdvicePredicate;
-  priority: number;              // 1-100, plus haut = plus important (tri desc)
-  figures?: {
-    label: string;
-    value: string;
-  }[];
+  priority: number;
+  figures?: AdviceFigure[] | ((p: UserProfile) => AdviceFigure[]);
   sources: string[];
-  lastVerified: string;          // ISO date
+  lastVerified: string;
 };
+
+// Helpers pour l'UI : résoudre les champs dynamiques.
+export function resolveBody(card: AdviceCard, p: UserProfile): string {
+  return typeof card.body === "function" ? card.body(p) : card.body;
+}
+export function resolveAction(card: AdviceCard, p: UserProfile): AdviceAction {
+  return typeof card.action === "function" ? card.action(p) : card.action;
+}
+export function resolveFigures(
+  card: AdviceCard,
+  p: UserProfile,
+): AdviceFigure[] {
+  if (!card.figures) return [];
+  return typeof card.figures === "function" ? card.figures(p) : card.figures;
+}

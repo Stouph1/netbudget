@@ -57,6 +57,85 @@ const and =
     preds.every((f) => f(p));
 
 // ============================================================================
+// Répartition budgétaire personnalisée (adaptée du 50/30/20 selon profil).
+// Heuristique v1 — à raffiner via deep-research en v1.1.
+// ============================================================================
+
+export function computeBudgetSplit(p: UserProfile): {
+  besoins: number;
+  envies: number;
+  epargne: number;
+} {
+  let besoins = 50;
+  let envies = 30;
+  let epargne = 20;
+
+  const isBigCity = p.zone === "big_city";
+  const isProvince = p.zone === "province";
+  const isYoungAdult = p.age === "18-25" || p.age === "26-35";
+  const isSenior = p.age === "66+";
+  const isRenter = p.housing === "renter";
+  const isOwner = p.housing === "owner";
+  const isAccessor = p.housing === "accessor";
+  const hasChildren =
+    p.family === "couple_with_kids" || p.family === "single_parent";
+  const isSingleParent = p.family === "single_parent";
+  const isHighTMI = p.tmi === "41" || p.tmi === "45";
+
+  // Jeune locataire grande ville : le loyer bouffe une part énorme
+  if (isBigCity && isYoungAdult && isRenter) {
+    besoins += 10;
+    envies -= 5;
+    epargne -= 5;
+  } else if (isProvince && isYoungAdult && isRenter) {
+    // Province : loyer plus bas, plus de marge d'épargne
+    besoins -= 5;
+    epargne += 5;
+  }
+
+  // Parent solo : revenu unique, budget serré
+  if (isSingleParent) {
+    besoins += 15;
+    envies -= 15;
+  } else if (hasChildren) {
+    // Couple avec enfants : + charges enfants, prioriser épargne (études)
+    besoins += 5;
+    envies -= 10;
+    epargne += 5;
+  }
+
+  // Accédant : mensualité crédit prend une part importante
+  if (isAccessor) {
+    besoins += 10;
+    envies -= 10;
+  } else if (isOwner && isSenior) {
+    // Sénior propriétaire crédit remboursé : liberté sur envies/épargne
+    besoins -= 15;
+    envies += 5;
+    epargne += 10;
+  }
+
+  // Haute TMI = capacité d'épargne + défiscalisation
+  if (isHighTMI) {
+    envies -= 5;
+    epargne += 5;
+  }
+
+  // Clamp aux bornes raisonnables
+  besoins = Math.max(30, Math.min(80, besoins));
+  envies = Math.max(5, Math.min(50, envies));
+  epargne = Math.max(5, Math.min(50, epargne));
+
+  // Normalize à 100
+  const total = besoins + envies + epargne;
+  besoins = Math.round((besoins / total) * 100);
+  envies = Math.round((envies / total) * 100);
+  epargne = 100 - besoins - envies;
+
+  return { besoins, envies, epargne };
+}
+
+// ============================================================================
 // Catalogue FR
 // ============================================================================
 
@@ -88,20 +167,33 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     lastVerified: VERIFIED,
   },
   {
-    id: "budget-50-30-20",
+    id: "budget-split-personalized",
     category: "emergency",
-    title: "La règle 50/30/20 comme repère budgétaire",
-    body:
-      "50% des revenus pour les besoins (logement, factures, courses), 30% pour les envies (loisirs, sorties), 20% pour l'épargne. Si un poste dépasse largement, revois ton budget.",
-    action: { label: "Vérifier tes % dans NetBudget" },
+    title: "Ta répartition budgétaire idéale",
+    body: (p) => {
+      const s = computeBudgetSplit(p);
+      const parts: string[] = [];
+      if (s.besoins >= 60) parts.push("logement + charges pèsent lourd");
+      if (s.epargne >= 25) parts.push("marge d'épargne significative");
+      if (s.epargne <= 15) parts.push("épargne à protéger malgré tout");
+      const context = parts.length ? ` (${parts.join(", ")})` : "";
+      return `Adaptée à ton profil${context}. La règle 50/30/20 classique ne convient pas à tout le monde — voici les ratios recommandés pour toi. Ajuste sur 1-3 mois puis vérifie.`;
+    },
+    action: { label: "Comparer avec ta réalité dans le tab Budget" },
     appliesWhen: always,
-    priority: 55,
-    figures: [
-      { label: "Besoins", value: "50%" },
-      { label: "Envies", value: "30%" },
-      { label: "Épargne", value: "20%" },
+    priority: 80,
+    figures: (p) => {
+      const s = computeBudgetSplit(p);
+      return [
+        { label: "Besoins", value: `${s.besoins}%` },
+        { label: "Envies", value: `${s.envies}%` },
+        { label: "Épargne", value: `${s.epargne}%` },
+      ];
+    },
+    sources: [
+      "Heuristique dérivée de Banque de France, INSEE, littérature finance perso 2026",
+      "https://www.banque-france.fr",
     ],
-    sources: ["https://www.banque-france.fr"],
     lastVerified: VERIFIED,
   },
   {
@@ -439,6 +531,85 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     appliesWhen: kids("16-18"),
     priority: 58,
     sources: ["https://www.service-public.fr"],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "cto-enfant-early",
+    category: "kids",
+    title: "CTO enfant : commence dès la naissance",
+    body:
+      "Un Compte Titres Ordinaire au nom du mineur permet d'investir en ETF, actions ou obligations sans plafond. Avec un horizon de 18+ ans, même 50 €/mois deviennent ~22 000 € à 7% moyen. Le mineur peut être à 0% IR sur les gains s'il est non-imposable (souvent le cas).",
+    action: {
+      label: "Ouvrir un CTO au nom de l'enfant",
+      link: "https://www.service-public.fr/particuliers/vosdroits/F32164",
+    },
+    appliesWhen: kids("0-6", "7-11"),
+    priority: 82,
+    figures: [
+      { label: "Horizon", value: "18+ ans" },
+      { label: "Plafond", value: "Aucun" },
+      { label: "Gains 50€/mois × 18 ans @ 7%", value: "~22 000 €" },
+      { label: "Fiscalité gains", value: "PFU 30% (0% IR si non-imposable)" },
+    ],
+    sources: [
+      "https://www.service-public.fr/particuliers/vosdroits/F32164",
+      "https://www.amf-france.org",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "av-enfant-transmission",
+    category: "kids",
+    title: "AV enfant : alternative pour la transmission",
+    body:
+      "Ouvrir une assurance-vie au nom du mineur (ou avec l'enfant bénéficiaire) permet de combiner croissance long terme + fiscalité transmission avantageuse. Attention : moins souple qu'un CTO tant que l'enfant est mineur (accord parents obligatoire pour rachats). Complémentaire au CTO plutôt que remplacement.",
+    action: { label: "Comparer AV enfant vs CTO enfant" },
+    appliesWhen: kids("0-6", "7-11", "12-15"),
+    priority: 70,
+    figures: [
+      { label: "Horizon fiscal optimal", value: "8 ans" },
+      { label: "Abattement 8 ans", value: "4 600 €/an" },
+      { label: "Fiscalité gains post-8 ans", value: "7,5% IR + 17,2% PS" },
+    ],
+    sources: [
+      "https://www.service-public.fr/particuliers/vosdroits/F15274",
+    ],
+    lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // UNDER 18 (user teen)
+  // ==========================================================================
+  {
+    id: "under18-livret-jeune",
+    category: "emergency",
+    title: "Ton Livret Jeune : réservé aux 12-25 ans",
+    body:
+      "Rémunéré au minimum au taux du Livret A + prime (2-3% en 2026 selon banque). Plafond 1 600 €. Retrait à partir de 16 ans autorisé sans accord parental. C'est ton premier outil d'épargne.",
+    action: {
+      label: "Ouvrir un Livret Jeune",
+      link: "https://www.service-public.fr/particuliers/vosdroits/F2367",
+    },
+    appliesWhen: ageIn("under_18"),
+    priority: 90,
+    figures: [
+      { label: "Âge", value: "12 - 25 ans" },
+      { label: "Plafond", value: "1 600 €" },
+      { label: "Taux minimum", value: "1,5%" },
+    ],
+    sources: ["https://www.service-public.fr/particuliers/vosdroits/F2367"],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "under18-budget-basics",
+    category: "emergency",
+    title: "Ton premier budget hebdomadaire",
+    body:
+      "Commence par lister sur une semaine : ton argent de poche + ce que tu dépenses (goûters, transport, sorties). Ce simple exercice fait comprendre 80% des mécaniques d'un budget d'adulte.",
+    action: { label: "Créer un budget dans le tab Budget de l'app" },
+    appliesWhen: ageIn("under_18"),
+    priority: 85,
+    sources: ["https://www.education.gouv.fr"],
     lastVerified: VERIFIED,
   },
 

@@ -26,6 +26,11 @@ import {
   loadAdviceProfile,
   saveAdviceProfile,
 } from "../../src/lib/premiumStore";
+import {
+  resolveAction,
+  resolveBody,
+  resolveFigures,
+} from "../../src/types/advice";
 import type {
   AdviceCard,
   AgeBracket,
@@ -50,6 +55,7 @@ const BORDER = "rgba(255,255,255,0.08)";
 const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
 
 const AGE_OPTIONS: { value: AgeBracket; label: string }[] = [
+  { value: "under_18", label: "Moins de 18 ans" },
   { value: "18-25", label: "18 - 25 ans" },
   { value: "26-35", label: "26 - 35 ans" },
   { value: "36-50", label: "36 - 50 ans" },
@@ -123,6 +129,23 @@ export default function AdviceScreen() {
   const [profile, setProfile] = useState<UserProfile>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  // Set des group.key expanded. Par défaut, seule la 1re catégorie est ouverte.
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    new Set(["budget"]),
+  );
+
+  const toggleGroup = useCallback((key: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const setAllGroups = useCallback((expand: boolean, keys: string[]) => {
+    setExpandedGroups(expand ? new Set(keys) : new Set());
+  }, []);
 
   useEffect(() => {
     if (!user?.id) {
@@ -345,11 +368,29 @@ export default function AdviceScreen() {
           </Text>
         </View>
 
-        <Text style={styles.summaryText}>
-          {totalCount} conseil{totalCount > 1 ? "s" : ""} pour toi, en{" "}
-          {rotatedGrouped.length} catégorie
-          {rotatedGrouped.length > 1 ? "s" : ""}.
-        </Text>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryText}>
+            {totalCount} conseil{totalCount > 1 ? "s" : ""} en{" "}
+            {rotatedGrouped.length} catégorie
+            {rotatedGrouped.length > 1 ? "s" : ""}
+          </Text>
+          {rotatedGrouped.length > 0 ? (
+            <TouchableOpacity
+              onPress={() => {
+                const allKeys = rotatedGrouped.map((g) => g.group.key);
+                const allOpen = allKeys.every((k) => expandedGroups.has(k));
+                setAllGroups(!allOpen, allKeys);
+              }}
+              hitSlop={10}
+            >
+              <Text style={styles.expandAllText}>
+                {rotatedGrouped.every((g) => expandedGroups.has(g.group.key))
+                  ? "Tout replier"
+                  : "Tout déplier"}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
 
         {rotatedGrouped.length === 0 ? (
           <View style={styles.emptyList}>
@@ -360,25 +401,44 @@ export default function AdviceScreen() {
             </Text>
           </View>
         ) : (
-          rotatedGrouped.map(({ group, cards }) => (
-            <View key={group.key} style={{ marginTop: 24 }}>
-              <View style={styles.groupHeader}>
-                <Feather
-                  name={group.icon as never}
-                  size={16}
-                  color={GOLD}
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.groupLabel}>{group.label}</Text>
-                <View style={styles.groupCount}>
-                  <Text style={styles.groupCountText}>{cards.length}</Text>
-                </View>
+          rotatedGrouped.map(({ group, cards }) => {
+            const expanded = expandedGroups.has(group.key);
+            return (
+              <View key={group.key} style={{ marginTop: 20 }}>
+                <TouchableOpacity
+                  style={styles.groupHeader}
+                  onPress={() => toggleGroup(group.key)}
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name={group.icon as never}
+                    size={16}
+                    color={GOLD}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.groupLabel}>{group.label}</Text>
+                  <View style={styles.groupCount}>
+                    <Text style={styles.groupCountText}>{cards.length}</Text>
+                  </View>
+                  <Feather
+                    name={expanded ? "chevron-up" : "chevron-down"}
+                    size={18}
+                    color={TEXT_2}
+                    style={{ marginLeft: 8 }}
+                  />
+                </TouchableOpacity>
+                {expanded
+                  ? cards.map((card) => (
+                      <AdviceCardView
+                        key={card.id}
+                        card={card}
+                        profile={profile}
+                      />
+                    ))
+                  : null}
               </View>
-              {cards.map((card) => (
-                <AdviceCardView key={card.id} card={card} />
-              ))}
-            </View>
-          ))
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -471,17 +531,26 @@ function ChildrenBlock({
   );
 }
 
-function AdviceCardView({ card }: { card: AdviceCard }) {
+function AdviceCardView({
+  card,
+  profile,
+}: {
+  card: AdviceCard;
+  profile: UserProfile;
+}) {
   const [expanded, setExpanded] = useState(false);
+  const body = resolveBody(card, profile);
+  const action = resolveAction(card, profile);
+  const figures = resolveFigures(card, profile);
 
   return (
     <View style={styles.adviceCard}>
       <Text style={styles.adviceTitle}>{card.title}</Text>
-      <Text style={styles.adviceBody}>{card.body}</Text>
+      <Text style={styles.adviceBody}>{body}</Text>
 
-      {card.figures && card.figures.length > 0 ? (
+      {figures.length > 0 ? (
         <View style={styles.figuresRow}>
-          {card.figures.map((f, i) => (
+          {figures.map((f, i) => (
             <View key={i} style={styles.figureChip}>
               <Text style={styles.figureLabel}>{f.label}</Text>
               <Text style={styles.figureValue}>{f.value}</Text>
@@ -490,19 +559,19 @@ function AdviceCardView({ card }: { card: AdviceCard }) {
         </View>
       ) : null}
 
-      {card.action.link ? (
+      {action.link ? (
         <TouchableOpacity
-          onPress={() => Linking.openURL(card.action.link!)}
+          onPress={() => Linking.openURL(action.link!)}
           style={styles.actionBtn}
           activeOpacity={0.85}
         >
           <Feather name="external-link" size={16} color={GOLD} />
-          <Text style={styles.actionBtnText}>{card.action.label}</Text>
+          <Text style={styles.actionBtnText}>{action.label}</Text>
         </TouchableOpacity>
       ) : (
         <View style={styles.actionBtn}>
           <Feather name="target" size={16} color={GOLD} />
-          <Text style={styles.actionBtnText}>{card.action.label}</Text>
+          <Text style={styles.actionBtnText}>{action.label}</Text>
         </View>
       )}
 
@@ -636,17 +705,33 @@ const styles = StyleSheet.create({
   },
   profileTagText: { color: TEXT_2, fontSize: 12, lineHeight: 18 },
 
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
   summaryText: {
     color: TEXT_3,
     fontSize: 12,
-    marginBottom: 8,
     fontStyle: "italic",
+  },
+  expandAllText: {
+    color: GOLD,
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   groupHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    backgroundColor: SURFACE,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
   },
   groupLabel: {
     color: TEXT_1,
