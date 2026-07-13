@@ -10,6 +10,7 @@
 // SANS toucher au reste du code (interface stable).
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { UserProfile } from "../types/advice";
 import { EMPTY_S1_PAYLOAD, type S1Payload } from "../types/premium";
 import { supabase } from "./supabase";
 
@@ -175,4 +176,21 @@ export async function saveS1(
   payload: S1Payload,
 ): Promise<{ ok: boolean; error?: string }> {
   return writePayload<S1Payload>("s1", userId, payload);
+}
+
+// ============================================================================
+// API Profil advice — pour personnaliser les conseils Premium
+// ============================================================================
+
+const EMPTY_PROFILE: UserProfile = {};
+
+export async function loadAdviceProfile(userId: string): Promise<UserProfile> {
+  return readPayload<UserProfile>("advice_profile", userId, EMPTY_PROFILE);
+}
+
+export async function saveAdviceProfile(
+  userId: string,
+  profile: UserProfile,
+): Promise<{ ok: boolean; error?: string }> {
+  return writePayload<UserProfile>("advice_profile", userId, profile);
 }

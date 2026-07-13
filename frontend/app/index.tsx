@@ -1672,6 +1672,16 @@ export default function Index() {
                   S1 · Épargne (Grand Dispatching)
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/(premium)/advice" as never)}
+                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
+                activeOpacity={0.85}
+              >
+                <Feather name="compass" size={18} color={GOLD} />
+                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
+                  Conseils personnalisés
+                </Text>
+              </TouchableOpacity>
             </Section>
           ) : null}
 
