@@ -4,20 +4,23 @@
 //  1. Le catalogue `ADVICE_CATALOG_FR` est un tableau de `AdviceCard` avec un
 //     prédicat `appliesWhen(profile)`.
 //  2. `matchAdvice(profile)` filtre les cards qui matchent, trie par priorité.
-//  3. L'UI affiche les 3-5 premières + une rotation pour éviter la lassitude.
+//  3. `groupByAdviceGroup(cards)` regroupe par thème visible pour l'UI.
+//  4. L'UI affiche les cards regroupées par catégorie (Budget/Invest/Fiscalité…).
 //
 // Corpus source : docs/advice-corpus-fr-v1.md (deep-research 2026-07-13).
-// Ajouter/modifier des cards ici, pas ailleurs. Tout est en français ;
-// la traduction 7 langues se fera une fois le corpus stabilisé.
 
 import type {
   AdviceCard,
+  AdviceCategory,
+  AdviceGroup,
   AdvicePredicate,
+  ChildAgeBracket,
   UserProfile,
 } from "../types/advice";
+import { ADVICE_GROUPS, hasAnyKids, hasChildrenIn } from "../types/advice";
 
 // ============================================================================
-// Helpers de prédicat (combinables)
+// Helpers de prédicat
 // ============================================================================
 
 const always: AdvicePredicate = () => true;
@@ -42,8 +45,11 @@ const tmiAtLeast = (min: NonNullable<UserProfile["tmi"]>): AdvicePredicate =>
     return order.indexOf(p.tmi) >= order.indexOf(min);
   };
 
-const hasKids: AdvicePredicate = (p) =>
-  p.family === "couple_with_kids" || p.family === "single_parent";
+const savingsCapacityLow: AdvicePredicate = (p) =>
+  p.monthlySavingsCapacity === "under_100" ||
+  p.monthlySavingsCapacity === "100_300";
+
+const kids = (...brackets: ChildAgeBracket[]) => hasChildrenIn(brackets);
 
 const and =
   (...preds: AdvicePredicate[]): AdvicePredicate =>
@@ -51,27 +57,65 @@ const and =
     preds.every((f) => f(p));
 
 // ============================================================================
-// Catalogue FR — 15 cards initiales (à étendre à 30-50)
+// Catalogue FR
 // ============================================================================
 
-const VERIFIED = "2026-07-13"; // date de vérification du corpus
+const VERIFIED = "2026-07-13";
 
 export const ADVICE_CATALOG_FR: AdviceCard[] = [
   // ==========================================================================
-  // Épargne de précaution
+  // BUDGET & ÉPARGNE
   // ==========================================================================
+  {
+    id: "priority-emergency-fund",
+    category: "emergency",
+    title: "Priorité 1 : constituer 1 mois de dépenses",
+    body:
+      "Si ton épargne de précaution < 1 mois de dépenses, mets en pause tout le reste (PEA, PER, projets). Concentre-toi sur constituer un matelas sur Livret A. C'est le socle qui te protège des imprévus.",
+    action: {
+      label: "Alimenter le Livret A",
+      link: "https://www.economie.gouv.fr/particuliers/livret-a",
+    },
+    appliesWhen: savingsCapacityLow,
+    priority: 100,
+    figures: [
+      { label: "Objectif", value: "1 mois min." },
+      { label: "Cible finale", value: "3-6 mois" },
+    ],
+    sources: [
+      "https://www.economie.gouv.fr/particuliers/livret-a",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "budget-50-30-20",
+    category: "emergency",
+    title: "La règle 50/30/20 comme repère budgétaire",
+    body:
+      "50% des revenus pour les besoins (logement, factures, courses), 30% pour les envies (loisirs, sorties), 20% pour l'épargne. Si un poste dépasse largement, revois ton budget.",
+    action: { label: "Vérifier tes % dans NetBudget" },
+    appliesWhen: always,
+    priority: 55,
+    figures: [
+      { label: "Besoins", value: "50%" },
+      { label: "Envies", value: "30%" },
+      { label: "Épargne", value: "20%" },
+    ],
+    sources: ["https://www.banque-france.fr"],
+    lastVerified: VERIFIED,
+  },
   {
     id: "emergency-fund-locataire",
     category: "emergency",
-    title: "Constitue 3 à 6 mois de dépenses sur ton Livret A",
+    title: "Constitue 3 à 6 mois de dépenses",
     body:
-      "En locataire, tu es exposé à des imprévus non couverts (déménagement d'urgence, caution, perte d'emploi). Vise 3 mois si tu es célibataire sans enfants, 6 mois si tu as des enfants ou revenu variable.",
+      "En locataire, tu es exposé aux imprévus non couverts (déménagement, caution, perte d'emploi). Vise 3 mois si célibataire, 6 mois avec enfants ou revenu variable. À placer sur Livret A + LDDS.",
     action: {
-      label: "Ouvrir ou approvisionner ton Livret A",
+      label: "Ouvrir/alimenter Livret A",
       link: "https://www.economie.gouv.fr/particuliers/livret-a",
     },
     appliesWhen: housingIn("renter"),
-    priority: 95,
+    priority: 90,
     figures: [
       { label: "Livret A plafond", value: "22 950 €" },
       { label: "Taux 2026", value: "1,5%" },
@@ -86,13 +130,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     category: "emergency",
     title: "Vérifie ton éligibilité au LEP à 2,5%",
     body:
-      "Le Livret d'Épargne Populaire rapporte 2,5% en 2026 (contre 1,5% Livret A) mais est réservé aux ménages modestes (test de revenu fiscal de référence). Un couple avec 2 LEP peut placer 20 000 € à ce taux.",
+      "Le Livret d'Épargne Populaire rapporte 2,5% en 2026 (contre 1,5% Livret A) mais est réservé aux ménages modestes (test sur revenu fiscal). Un couple avec 2 LEP peut placer 20 000 € à ce taux.",
     action: {
       label: "Vérifier l'éligibilité LEP",
       link: "https://www.economie.gouv.fr/particuliers/livret-epargne-populaire-lep",
     },
     appliesWhen: (p) => p.income === "low" || p.income === "medium",
-    priority: 90,
+    priority: 85,
     figures: [
       { label: "Taux LEP 2026", value: "2,5%" },
       { label: "Plafond", value: "10 000 €" },
@@ -105,15 +149,12 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "ldds-cascade-livret-a",
     category: "emergency",
-    title: "Après le Livret A rempli, ouvre un LDDS",
+    title: "Livret A rempli ? Bascule sur LDDS",
     body:
-      "Livret A plafonné à 22 950 € ? Bascule le surplus sur un LDDS (12 000 € additionnels au même taux 1,5%). Ces deux livrets sont défiscalisés et disponibles à tout moment.",
-    action: {
-      label: "Ouvrir un LDDS dans ta banque",
-      link: "https://www.service-public.fr",
-    },
+      "Livret A plafonné à 22 950 € ? Le surplus va sur LDDS (12 000 € additionnels, même taux 1,5%, même défiscalisation). Ensemble : 34 950 € disponibles à tout moment.",
+    action: { label: "Ouvrir un LDDS dans ta banque" },
     appliesWhen: always,
-    priority: 70,
+    priority: 65,
     figures: [
       { label: "LDDS plafond", value: "12 000 €" },
       { label: "Cumul A+LDDS", value: "34 950 €" },
@@ -123,23 +164,23 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   },
 
   // ==========================================================================
-  // Investissement long terme (PEA / Assurance-vie)
+  // INVESTISSEMENTS (long term + retirement)
   // ==========================================================================
   {
     id: "pea-jeune-actif",
     category: "long_term",
     title: "Ouvre un PEA dès maintenant, même vide",
     body:
-      "L'ancienneté du PEA se compte depuis la date d'ouverture. Ouvrir un PEA à 25 ans avec 100 € te fait démarrer le compteur des 5 ans avant l'exonération d'IR. Tu pourras l'alimenter plus tard.",
+      "L'ancienneté du PEA compte depuis la date d'ouverture. À 25 ans avec 100 €, tu déclenches le compteur des 5 ans avant exonération d'IR. Tu alimenteras quand tu pourras.",
     action: {
       label: "Ouvrir un PEA (banque ou courtier)",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2385",
     },
     appliesWhen: ageIn("18-25", "26-35"),
-    priority: 85,
+    priority: 88,
     figures: [
       { label: "Plafond PEA", value: "150 000 €" },
-      { label: "Fiscalité après 5 ans", value: "0% IR + 18,6% PS" },
+      { label: "Après 5 ans", value: "0% IR + 18,6% PS" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F2385",
@@ -150,18 +191,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "av-vs-pea-nouvelle-parite",
     category: "long_term",
-    title: "En 2026, arbitrage nouveau : AV vs PEA",
+    title: "En 2026, AV bat PEA sur les prélèvements sociaux",
     body:
-      "Depuis la LFSS 2026, les prélèvements sociaux sur PEA sont passés de 17,2% à 18,6% (nouvelle contribution CFA). L'assurance-vie reste à 17,2%. Sur du long terme, ce +1,4pt peut peser — considère les deux enveloppes.",
-    action: {
-      label: "Comparer PEA vs Assurance-vie",
-    },
+      "Depuis la LFSS 2026, le PEA est à 18,6% de PS (nouvelle contribution CFA +1,4 pt). L'assurance-vie reste à 17,2%. Sur du long terme, ce delta pèse — considère l'AV comme complément.",
+    action: { label: "Comparer PEA vs Assurance-vie" },
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 75,
     figures: [
       { label: "PS PEA", value: "18,6%" },
       { label: "PS AV", value: "17,2%" },
-      { label: "Différence", value: "+1,4 pt" },
+      { label: "Écart", value: "+1,4 pt" },
     ],
     sources: [
       "https://www.legifrance.gouv.fr (loi n° 2026-103 du 19 février 2026)",
@@ -174,14 +213,12 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     title: "En couple, doublez votre capacité PEA",
     body:
       "Un couple marié ou pacsé peut détenir 2 PEA (1 chacun), soit 300 000 € de capacité totale. Chaque PEA garde sa propre ancienneté et fiscalité indépendante.",
-    action: {
-      label: "Ouvrir un 2e PEA au nom du conjoint",
-    },
+    action: { label: "Ouvrir un 2e PEA au nom du conjoint" },
     appliesWhen: familyIn("couple_no_kids", "couple_with_kids"),
-    priority: 60,
+    priority: 68,
     figures: [
       { label: "Plafond couple", value: "300 000 €" },
-      { label: "Cumul avec PEA-PME", value: "225 000 € / personne" },
+      { label: "+ PEA-PME/pers", value: "75 000 €" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2385"],
     lastVerified: VERIFIED,
@@ -189,43 +226,34 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "av-abattement-fiscal",
     category: "long_term",
-    title: "Assurance-vie : profite de l'abattement annuel",
+    title: "AV après 8 ans : profite de l'abattement annuel",
     body:
-      "Après 8 ans, tu peux retirer jusqu'à 4 600 € de gains par an sans payer d'IR (9 200 € en couple), grâce à l'abattement légal. Utile pour compléter tes revenus sans surcoût fiscal.",
-    action: {
-      label: "Programmer des rachats partiels annuels",
-    },
-    appliesWhen: and(
-      ageIn("36-50", "51-65", "66+"),
-      // À l'usage on ajoutera : hasAV && avAgeYears >= 8
-    ),
-    priority: 65,
+      "Après 8 ans, retire jusqu'à 4 600 € de gains par an sans payer d'IR (9 200 € en couple). Utile pour compléter tes revenus sans surcoût fiscal.",
+    action: { label: "Programmer des rachats partiels annuels" },
+    appliesWhen: ageIn("36-50", "51-65", "66+"),
+    priority: 66,
     figures: [
       { label: "Abattement seul", value: "4 600 €" },
-      { label: "Abattement couple", value: "9 200 €" },
-      { label: "IR au-delà (< 150k€ primes)", value: "7,5%" },
+      { label: "Couple", value: "9 200 €" },
+      { label: "IR au-delà", value: "7,5%" },
     ],
-    sources: ["https://www.france-epargne.fr/outils/fiscalite/fiscalite-placement"],
+    sources: [
+      "https://www.france-epargne.fr/outils/fiscalite/fiscalite-placement",
+    ],
     lastVerified: VERIFIED,
   },
-
-  // ==========================================================================
-  // Préparation retraite (PER)
-  // ==========================================================================
   {
     id: "per-tmi-41",
     category: "retirement",
     title: "TMI à 41% ? Le PER devient très intéressant",
     body:
-      "À TMI 41%, chaque euro versé sur un PER te fait économiser 41 centimes d'IR. Un versement de 10 000 € = 4 100 € d'économie d'impôt immédiate. Combine avec un PEA pour la croissance long terme.",
-    action: {
-      label: "Ouvrir un PER individuel",
-    },
+      "À TMI 41%, chaque euro versé sur un PER te fait économiser 41 centimes d'IR. Verse 10 000 € = 4 100 € d'économie immédiate. Combine avec un PEA pour la croissance.",
+    action: { label: "Ouvrir un PER individuel" },
     appliesWhen: tmiAtLeast("41"),
     priority: 90,
     figures: [
-      { label: "Économie 10k€ à TMI 41%", value: "4 100 €" },
-      { label: "TMI break-even PER", value: "≥ 30%" },
+      { label: "10k€ à TMI 41%", value: "4 100 € éco." },
+      { label: "TMI break-even", value: "≥ 30%" },
     ],
     sources: [
       "https://www.info-per.fr",
@@ -238,35 +266,31 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     category: "retirement",
     title: "PER : attention à ta TMI de retraite",
     body:
-      "Le PER n'est fiscalement avantageux QUE si ta TMI à la retraite sera INFÉRIEURE à ta TMI active. Si tu penses rester à TMI 30%+ à la retraite (immobilier locatif, dividendes), l'AV ou le PEA seront plus intéressants.",
-    action: {
-      label: "Estimer ta TMI de retraite avant d'ouvrir un PER",
-    },
+      "Le PER n'est fiscalement avantageux QUE si ta TMI à la retraite sera INFÉRIEURE à ta TMI active. Si tu vises TMI 30%+ à la retraite (dividendes, foncier), l'AV et le PEA sont plus intéressants.",
+    action: { label: "Estimer ta TMI de retraite" },
     appliesWhen: and(tmiAtLeast("30"), ageIn("36-50", "51-65")),
-    priority: 85,
-    figures: [{ label: "Condition PER attractif", value: "TMI retraite < TMI active" }],
+    priority: 82,
+    figures: [{ label: "Condition PER attractif", value: "TMI retraite < active" }],
     sources: ["https://www.ramify.fr/epargne/per-pea-assurance-vie"],
     lastVerified: VERIFIED,
   },
 
   // ==========================================================================
-  // Crédit immobilier
+  // IMMOBILIER
   // ==========================================================================
   {
     id: "hcsf-taux-endettement",
     category: "real_estate",
     title: "Ne dépasse pas 35% d'endettement",
     body:
-      "Le HCSF plafonne le taux d'effort à 35% des revenus nets, assurance emprunteur incluse. Au-delà, banque et courtier refusent le dossier (sauf dérogation 20% des dossiers). Vise 30% pour te laisser une marge de sécurité.",
-    action: {
-      label: "Calculer ton taux d'effort",
-    },
+      "Le HCSF plafonne le taux d'effort à 35% des revenus nets, assurance emprunteur incluse. Au-delà, la banque refuse (sauf dérogation 20% des dossiers). Vise 30% pour ta marge.",
+    action: { label: "Calculer ton taux d'effort" },
     appliesWhen: housingIn("renter"),
-    priority: 88,
+    priority: 85,
     figures: [
       { label: "Plafond HCSF", value: "35%" },
       { label: "Marge conseillée", value: "30% max" },
-      { label: "Durée max", value: "25 ans (27 en VEFA)" },
+      { label: "Durée max", value: "25 ans (27 VEFA)" },
     ],
     sources: [
       "https://www.economie.gouv.fr/hcsf/mesures/mesure-relative-loctroi-de-credits-immobiliers",
@@ -274,60 +298,49 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     lastVerified: VERIFIED,
   },
   {
+    id: "apport-optimal-30pct",
+    category: "real_estate",
+    title: "Vise 30% d'apport pour un meilleur taux",
+    body:
+      "En 2026, les banques accordent les meilleurs taux immo aux dossiers avec 30%+ d'apport (résidence principale). En dessous de 10%, taux plus élevé et parfois refus. L'apport inclut ton épargne + frais de notaire (~7% ancien / 3% neuf).",
+    action: { label: "Comparer 3 courtiers immobiliers" },
+    appliesWhen: and(housingIn("renter"), ageIn("26-35", "36-50")),
+    priority: 72,
+    figures: [
+      { label: "Apport idéal", value: "≥ 30%" },
+      { label: "Frais notaire ancien", value: "~7%" },
+      { label: "Frais notaire neuf", value: "~3%" },
+    ],
+    sources: ["https://www.service-public.gouv.fr"],
+    lastVerified: VERIFIED,
+  },
+  {
     id: "acheter-jeune-grande-ville",
     category: "housing",
     title: "Grande ville, jeune : réévalue louer vs acheter",
     body:
-      "Dans les métropoles chères (Paris, Lyon, Bordeaux), le point d'équilibre acheter vs louer se déplace à 7-10 ans de détention. Si tu envisages de bouger dans les 5 ans, louer reste souvent plus rentable (frais de notaire absorbés).",
-    action: {
-      label: "Comparer avec un simulateur INSEE",
-    },
+      "Dans les métropoles chères (Paris, Lyon, Bordeaux), le point d'équilibre acheter vs louer se déplace à 7-10 ans de détention. Si tu bouges dans les 5 ans, louer reste souvent plus rentable (frais de notaire absorbés).",
+    action: { label: "Simuler avec l'INSEE" },
     appliesWhen: and(ageIn("18-25", "26-35"), (p) => p.zone === "big_city"),
-    priority: 70,
+    priority: 68,
     sources: ["https://www.insee.fr"],
-    lastVerified: VERIFIED,
-  },
-
-  // ==========================================================================
-  // Optimisation fiscale
-  // ==========================================================================
-  {
-    id: "garde-enfants-credit-impot",
-    category: "kids",
-    title: "Enfant < 6 ans : réclame ton crédit d'impôt garde",
-    body:
-      "Les frais de crèche, halte-garderie ou assistante maternelle ouvrent droit à un crédit d'impôt de 50%, plafonné à 3 500 € de dépenses par enfant/an — soit 1 750 € de crédit par enfant. En garde alternée, le plafond est partagé.",
-    action: {
-      label: "Déclarer les frais de garde à la ligne 7GA",
-      link: "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
-    },
-    appliesWhen: (p) => p.hasChildrenUnder6 === true,
-    priority: 92,
-    figures: [
-      { label: "Taux crédit", value: "50%" },
-      { label: "Plafond dépenses/enfant/an", value: "3 500 €" },
-      { label: "Crédit max/enfant", value: "1 750 €" },
-    ],
-    sources: [
-      "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
-    ],
     lastVerified: VERIFIED,
   },
   {
     id: "relance-logement-jeanbrun",
     category: "tax",
-    title: "Investir dans le neuf : nouveau dispositif Jeanbrun",
+    title: "Investir dans le neuf : dispositif Jeanbrun 2026",
     body:
       "Le Pinel est mort fin 2024. Depuis février 2026, le dispositif Relance Logement (Jeanbrun) amortit 3,5% à 5,5% par an du prix du bien neuf loué (base 80% du prix), sur 9 ans minimum. Plus intéressant pour TMI ≥ 30%.",
     action: {
-      label: "Se renseigner sur le dispositif Jeanbrun",
+      label: "Se renseigner sur Jeanbrun",
       link: "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000053508155",
     },
     appliesWhen: and(tmiAtLeast("30"), ageIn("36-50", "51-65")),
-    priority: 60,
+    priority: 65,
     figures: [
-      { label: "Amortissement neuf social", value: "3,5% → 5,5%" },
-      { label: "Engagement min", value: "9 ans" },
+      { label: "Amortissement", value: "3,5% → 5,5%" },
+      { label: "Engagement", value: "9 ans min." },
     ],
     sources: [
       "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000053508155",
@@ -336,49 +349,215 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   },
 
   // ==========================================================================
-  // Transmission
+  // ENFANTS (par âge)
   // ==========================================================================
   {
-    id: "av-transmission-abattement",
+    id: "garde-enfants-credit-impot",
     category: "kids",
+    title: "Enfant < 6 ans : réclame le crédit d'impôt garde",
+    body:
+      "Les frais de crèche, halte-garderie ou assistante maternelle ouvrent droit à un crédit d'impôt de 50%, plafonné à 3 500 € de dépenses par enfant/an — soit 1 750 € de crédit par enfant.",
+    action: {
+      label: "Déclarer à la ligne 7GA",
+      link: "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
+    },
+    appliesWhen: kids("0-6"),
+    priority: 92,
+    figures: [
+      { label: "Taux crédit", value: "50%" },
+      { label: "Plafond/enfant/an", value: "3 500 €" },
+      { label: "Crédit max/enfant", value: "1 750 €" },
+    ],
+    sources: [
+      "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "livret-jeune-ado",
+    category: "kids",
+    title: "Livret Jeune : ouvre-le pour ton ado",
+    body:
+      "Le Livret Jeune est réservé aux 12-25 ans. Rémunéré au minimum au taux du Livret A + prime (souvent 2-3% en 2026), défiscalisé, plafond 1 600 €. Complète le Livret A ouvert au nom de l'enfant.",
+    action: {
+      label: "Ouvrir un Livret Jeune",
+      link: "https://www.service-public.fr/particuliers/vosdroits/F2367",
+    },
+    appliesWhen: kids("12-15", "16-18"),
+    priority: 78,
+    figures: [
+      { label: "Âge", value: "12 - 25 ans" },
+      { label: "Plafond", value: "1 600 €" },
+      { label: "Taux mini", value: "1,5%" },
+    ],
+    sources: ["https://www.service-public.fr/particuliers/vosdroits/F2367"],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "pel-enfant-etudes",
+    category: "kids",
+    title: "PEL enfant pour préparer les études",
+    body:
+      "Ouvrir un PEL au nom de l'enfant à 8-12 ans permet d'obtenir à 18 ans un prêt épargne logement à taux garanti (2,25% en 2026). Verse au minimum 45 €/mois pendant 4 ans.",
+    action: { label: "Ouvrir un PEL au nom de l'enfant" },
+    appliesWhen: kids("7-11", "12-15"),
+    priority: 62,
+    figures: [
+      { label: "Taux PEL 2026", value: "2,25%" },
+      { label: "Versement min/mois", value: "45 €" },
+      { label: "Durée min", value: "4 ans" },
+    ],
+    sources: [
+      "https://www.service-public.fr/particuliers/vosdroits/F2650",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "budget-etudes-sup",
+    category: "kids",
+    title: "Anticipe 15 000 € à 60 000 € pour les études sup",
+    body:
+      "Coût moyen 2026 : 3 000 €/an en public province, 8 000 €/an en école publique grande ville (avec loyer), jusqu'à 15 000 €/an en école privée. Sur 4-5 ans, prévois 15 à 60 k€ pour un enfant.",
+    action: { label: "Créer un objectif dans S1" },
+    appliesWhen: kids("12-15", "16-18"),
+    priority: 74,
+    figures: [
+      { label: "Public province", value: "~3 k€/an" },
+      { label: "École privée", value: "~15 k€/an" },
+      { label: "Total 4-5 ans", value: "15-60 k€" },
+    ],
+    sources: ["https://www.enseignementsup-recherche.gouv.fr"],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "autonomie-ado-carte",
+    category: "kids",
+    title: "Premier compte + carte à 16 ans",
+    body:
+      "Un ado peut avoir un compte bancaire dès 12 ans (autorisation parentale) et une carte de retrait à 16 ans. Bon moment pour apprendre à gérer un budget mensuel avant les études sup.",
+    action: { label: "Ouvrir un compte jeune" },
+    appliesWhen: kids("16-18"),
+    priority: 58,
+    sources: ["https://www.service-public.fr"],
+    lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // TRANSMISSION
+  // ==========================================================================
+  {
+    id: "donation-100k-par-enfant",
+    category: "inheritance",
+    title: "Donation : 100 000 € par enfant tous les 15 ans",
+    body:
+      "Chaque parent peut donner jusqu'à 100 000 € à chaque enfant sans droits de succession, renouvelable tous les 15 ans. Couplé avec le don familial (31 865 € tous les 15 ans si donateur < 80 ans), c'est un outil puissant.",
+    action: {
+      label: "Consulter le simulateur donation",
+      link: "https://www.impots.gouv.fr/particulier/donation",
+    },
+    appliesWhen: and(hasAnyKids, ageIn("36-50", "51-65", "66+")),
+    priority: 82,
+    figures: [
+      { label: "Abattement/enfant/parent", value: "100 000 €" },
+      { label: "Don familial (< 80 ans)", value: "31 865 €" },
+      { label: "Renouvelable", value: "15 ans" },
+    ],
+    sources: [
+      "https://www.impots.gouv.fr/particulier/donation",
+      "https://www.legifiscal.fr/actualites-fiscales/4308-plf-2026-abattement-2026-droits-donation-conjoints-enfants-petits-enfants.html",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "av-transmission-abattement",
+    category: "inheritance",
     title: "AV avant 70 ans : 152 500 € par bénéficiaire",
     body:
-      "Les versements sur assurance-vie avant tes 70 ans ouvrent droit à 152 500 € d'abattement par bénéficiaire lors de la transmission. Au-delà, taxation 20% jusqu'à 700 k€ puis 31,25%. Outil clé pour transmettre à ses enfants.",
-    action: {
-      label: "Vérifier les bénéficiaires de ton AV",
-    },
-    appliesWhen: and(ageIn("36-50", "51-65"), hasKids),
+      "Les versements sur assurance-vie avant tes 70 ans ouvrent droit à 152 500 € d'abattement par bénéficiaire lors de la transmission. Au-delà, taxation 20% jusqu'à 700 k€ puis 31,25%. Outil clé pour transmettre.",
+    action: { label: "Vérifier les bénéficiaires de ton AV" },
+    appliesWhen: and(ageIn("36-50", "51-65"), hasAnyKids),
     priority: 80,
     figures: [
       { label: "Abattement/bénéficiaire", value: "152 500 €" },
-      { label: "Taxation 152k€ → 700k€", value: "20%" },
-      { label: "Au-delà 700k€", value: "31,25%" },
+      { label: "Taxation 152k → 700k", value: "20%" },
+      { label: "Au-delà 700k", value: "31,25%" },
     ],
     sources: ["https://www.legifrance.gouv.fr (art. 990 I CGI)"],
     lastVerified: VERIFIED,
   },
   {
     id: "av-souscrire-avant-70-ans",
-    category: "kids",
-    title: "Souscris ton AV avant 70 ans si possible",
+    category: "inheritance",
+    title: "Souscris ton AV avant 70 ans",
     body:
-      "Les versements après 70 ans passent sous un régime moins favorable (abattement global de 30 500 € seulement, tous bénéficiaires confondus). Si tu approches 70 ans, envisage un versement significatif avant la date anniversaire.",
-    action: {
-      label: "Planifier un versement AV avant 70 ans",
-    },
+      "Les versements après 70 ans passent sous un régime moins favorable (abattement global de 30 500 € pour tous les bénéficiaires confondus). Si tu approches 70 ans, envisage un versement significatif avant la date anniversaire.",
+    action: { label: "Planifier un versement AV avant 70 ans" },
     appliesWhen: ageIn("51-65"),
-    priority: 78,
+    priority: 76,
     figures: [
-      { label: "Avant 70 ans/bénéficiaire", value: "152 500 €" },
-      { label: "Après 70 ans (tous bénéf.)", value: "30 500 €" },
+      { label: "Avant 70 ans/bénéf.", value: "152 500 €" },
+      { label: "Après 70 ans (total)", value: "30 500 €" },
     ],
     sources: ["https://www.legifrance.gouv.fr (art. 990 I & 757 B CGI)"],
+    lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // PRÉVOYANCE
+  // ==========================================================================
+  {
+    id: "prevoyance-deces-parents",
+    category: "insurance",
+    title: "Assurance décès : indispensable avec enfants",
+    body:
+      "Le décès d'un parent d'enfants mineurs est le sinistre le plus dévastateur financièrement. Une assurance décès temporaire souscrite entre 30 et 40 ans coûte 15 à 30 €/mois pour un capital de 100 à 300 k€.",
+    action: { label: "Comparer 3 devis prévoyance" },
+    appliesWhen: and(
+      familyIn("couple_with_kids", "single_parent"),
+      ageIn("26-35", "36-50"),
+    ),
+    priority: 78,
+    figures: [
+      { label: "Coût mensuel", value: "15-30 €" },
+      { label: "Capital typique", value: "100-300 k€" },
+      { label: "Durée typique", value: "20-25 ans" },
+    ],
+    sources: ["https://www.acpr.banque-france.fr"],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "prevoyance-invalidite",
+    category: "insurance",
+    title: "Prévoyance invalidité : socle vital",
+    body:
+      "Les salariés du privé sont couverts par la Sécu + prévoyance employeur (souvent 60-80% du salaire). Les indépendants/freelances sont beaucoup moins couverts — une prévoyance individuelle protège 60-100% du revenu en cas d'invalidité.",
+    action: { label: "Vérifier ta couverture actuelle" },
+    appliesWhen: ageIn("26-35", "36-50", "51-65"),
+    priority: 62,
+    sources: ["https://www.ameli.fr", "https://www.acpr.banque-france.fr"],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "prevoyance-dependance-senior",
+    category: "insurance",
+    title: "Dépendance : penser à 55-60 ans, pas plus tard",
+    body:
+      "Le risque de dépendance concerne 1 personne sur 3 après 75 ans. Une assurance dépendance souscrite à 55-60 ans coûte 30-60 €/mois pour une rente à vie de 500-1 500 €/mois. Après 65 ans, les tarifs explosent.",
+    action: { label: "Comparer 3 offres dépendance" },
+    appliesWhen: ageIn("51-65"),
+    priority: 55,
+    figures: [
+      { label: "Souscription", value: "55-60 ans" },
+      { label: "Cotisation", value: "30-60 €/mois" },
+      { label: "Rente typique", value: "500-1 500 €/mois" },
+    ],
+    sources: ["https://www.pour-les-personnes-agees.gouv.fr"],
     lastVerified: VERIFIED,
   },
 ];
 
 // ============================================================================
-// Moteur : match + tri
+// Moteur : match + tri + grouping
 // ============================================================================
 
 export function matchAdvice(
@@ -390,8 +569,6 @@ export function matchAdvice(
     .sort((a, b) => b.priority - a.priority);
 }
 
-// Retourne les N conseils prioritaires. Utilise le seed (ex: userId + weekOfYear)
-// pour faire tourner les conseils de même priorité au fil des semaines.
 export function topAdvice(
   profile: UserProfile,
   count = 5,
@@ -399,7 +576,6 @@ export function topAdvice(
   catalog: AdviceCard[] = ADVICE_CATALOG_FR,
 ): AdviceCard[] {
   const matched = matchAdvice(profile, catalog);
-  // Regroupe par priorité et rotate à seed près pour éviter l'ordre statique
   const groups = new Map<number, AdviceCard[]>();
   for (const c of matched) {
     const g = groups.get(c.priority) ?? [];
@@ -418,3 +594,29 @@ export function topAdvice(
   }
   return out;
 }
+
+// Regroupe les cards par thème UI (Budget / Invest / Fiscalité / etc.).
+export function groupByAdviceGroup(cards: AdviceCard[]): {
+  group: AdviceGroup;
+  cards: AdviceCard[];
+}[] {
+  const out: { group: AdviceGroup; cards: AdviceCard[] }[] = [];
+  for (const group of ADVICE_GROUPS) {
+    const matched = cards.filter((c) => group.categories.includes(c.category));
+    if (matched.length > 0) {
+      out.push({ group, cards: matched });
+    }
+  }
+  return out;
+}
+
+// Renvoie TOUS les conseils matchés (sans limite), groupés par thème.
+export function allAdviceGrouped(
+  profile: UserProfile,
+  catalog: AdviceCard[] = ADVICE_CATALOG_FR,
+): { group: AdviceGroup; cards: AdviceCard[] }[] {
+  return groupByAdviceGroup(matchAdvice(profile, catalog));
+}
+
+// Utilitaire : accès aux categories par card (pour retro-compat imports).
+export type { AdviceCategory };

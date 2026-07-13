@@ -9,7 +9,7 @@
 // Contenu 2026 : voir docs/advice-corpus-fr-v1.md pour le sourcing.
 
 // ============================================================================
-// User profile (les 4 axes de personnalisation + revenus)
+// User profile (les axes de personnalisation)
 // ============================================================================
 
 export type AgeBracket = "18-25" | "26-35" | "36-50" | "51-65" | "66+";
@@ -30,6 +30,18 @@ export type TaxBracket = "0" | "11" | "30" | "41" | "45"; // TMI FR 2026
 
 export type Country = "FR" | "BE" | "CH" | "LU" | "CA" | "OTHER";
 
+// Tranches d'âge des enfants — les conseils diffèrent radicalement selon l'âge.
+export type ChildAgeBracket = "0-6" | "7-11" | "12-15" | "16-18" | "19+";
+
+// Capacité d'épargne mensuelle (dispo après charges fixes).
+// À terme, dérivable automatiquement depuis le tab Budget du free tier.
+export type SavingsCapacity =
+  | "under_100"
+  | "100_300"
+  | "300_800"
+  | "800_2000"
+  | "2000_plus";
+
 export type UserProfile = {
   age?: AgeBracket;
   family?: FamilyStatus;
@@ -38,25 +50,92 @@ export type UserProfile = {
   income?: IncomeBracket;
   tmi?: TaxBracket;
   country?: Country;
-  hasEmergencyFund?: boolean; // dérivable de S3 provisions
-  hasChildrenUnder6?: boolean;
-  numChildren?: number;
+  hasEmergencyFund?: boolean;
+  children?: ChildAgeBracket[];      // multi-select des tranches d'âge
+  monthlySavingsCapacity?: SavingsCapacity;
 };
+
+// ============================================================================
+// Helpers de dérivation (utilisés par les prédicats des cards)
+// ============================================================================
+
+export function hasChildrenIn(
+  brackets: ChildAgeBracket[],
+): (p: UserProfile) => boolean {
+  return (p) => !!p.children?.some((b) => brackets.includes(b));
+}
+
+export function hasAnyKids(p: UserProfile): boolean {
+  return !!p.children?.length;
+}
 
 // ============================================================================
 // Advice card
 // ============================================================================
 
 export type AdviceCategory =
-  | "emergency"       // Épargne de précaution
-  | "long_term"       // Investissements long terme (PEA, AV)
-  | "retirement"      // Préparation retraite (PER, SCPI)
-  | "tax"             // Optimisation fiscale
-  | "real_estate"     // Crédit immobilier
-  | "insurance"       // Prévoyance
-  | "kids"            // Enfants et transmission
-  | "housing"         // Choix logement (locataire vs propriétaire)
-  ;
+  | "emergency"       // → Budget & Épargne
+  | "long_term"       // → Investissements
+  | "retirement"      // → Investissements
+  | "tax"             // → Impôts & Fiscalité
+  | "real_estate"     // → Immobilier
+  | "housing"         // → Immobilier
+  | "kids"            // → Enfants
+  | "inheritance"     // → Transmission
+  | "insurance";      // → Prévoyance
+
+// Regroupement UI par thème visible pour l'user.
+export type AdviceGroup = {
+  key: string;
+  label: string;
+  icon: string;
+  categories: AdviceCategory[];
+};
+
+export const ADVICE_GROUPS: AdviceGroup[] = [
+  {
+    key: "budget",
+    label: "Budget & Épargne",
+    icon: "shield",
+    categories: ["emergency"],
+  },
+  {
+    key: "invest",
+    label: "Investissements",
+    icon: "trending-up",
+    categories: ["long_term", "retirement"],
+  },
+  {
+    key: "tax",
+    label: "Impôts & Fiscalité",
+    icon: "file-text",
+    categories: ["tax"],
+  },
+  {
+    key: "housing",
+    label: "Immobilier",
+    icon: "home",
+    categories: ["real_estate", "housing"],
+  },
+  {
+    key: "kids",
+    label: "Enfants",
+    icon: "users",
+    categories: ["kids"],
+  },
+  {
+    key: "inheritance",
+    label: "Transmission",
+    icon: "gift",
+    categories: ["inheritance"],
+  },
+  {
+    key: "insurance",
+    label: "Prévoyance",
+    icon: "umbrella",
+    categories: ["insurance"],
+  },
+];
 
 export type AdviceAction = {
   label: string;      // Verbe à l'infinitif : "Ouvrir un PEA", "Comparer 3 courtiers"
@@ -67,17 +146,17 @@ export type AdviceAction = {
 export type AdvicePredicate = (profile: UserProfile) => boolean;
 
 export type AdviceCard = {
-  id: string;                    // slug unique, ex: "livret-a-plafond-2026"
+  id: string;
   category: AdviceCategory;
   title: string;                 // ≤ 60 chars
   body: string;                  // 2-3 phrases
   action: AdviceAction;
   appliesWhen: AdvicePredicate;
   priority: number;              // 1-100, plus haut = plus important (tri desc)
-  figures?: {                    // chiffres 2026 mis en avant dans l'UI
+  figures?: {
     label: string;
-    value: string;               // ex: "22 950 €", "1,5%", "35%"
+    value: string;
   }[];
-  sources: string[];             // URLs pour transparency
-  lastVerified: string;          // ISO date — quand ce chiffre a été vérifié
+  sources: string[];
+  lastVerified: string;          // ISO date
 };

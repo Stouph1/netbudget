@@ -2,11 +2,8 @@
 //
 // Flow :
 //  - Load profile (encrypted_payloads.advice_profile)
-//  - Si profil vide → onboarding (5 questions)
-//  - Sinon → liste des top 5 conseils personnalisés (adviceEngine.topAdvice)
-//
-// Le profil est stocké comme un blob encrypted_payloads pour rester
-// consistent avec l'E2E-first approach (encryption stub Phase 3).
+//  - Si profil incomplet → onboarding
+//  - Sinon → conseils groupés par catégorie (Budget/Invest/Fiscalité/…)
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -24,7 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../../src/contexts/SessionContext";
-import { topAdvice } from "../../src/lib/adviceEngine";
+import { allAdviceGrouped } from "../../src/lib/adviceEngine";
 import {
   loadAdviceProfile,
   saveAdviceProfile,
@@ -32,8 +29,10 @@ import {
 import type {
   AdviceCard,
   AgeBracket,
+  ChildAgeBracket,
   FamilyStatus,
   HousingStatus,
+  SavingsCapacity,
   TaxBracket,
   UserProfile,
   Zone,
@@ -84,18 +83,39 @@ const TMI_OPTIONS: { value: TaxBracket; label: string }[] = [
   { value: "45", label: "45%" },
 ];
 
-function isProfileComplete(p: UserProfile): boolean {
-  return !!(p.age && p.family && p.housing && p.zone && p.tmi);
+const CHILDREN_OPTIONS: { value: ChildAgeBracket; label: string }[] = [
+  { value: "0-6", label: "0 - 6 ans (petite enfance)" },
+  { value: "7-11", label: "7 - 11 ans (primaire)" },
+  { value: "12-15", label: "12 - 15 ans (collège)" },
+  { value: "16-18", label: "16 - 18 ans (lycée)" },
+  { value: "19+", label: "19+ ans (études sup / autonomes)" },
+];
+
+const SAVINGS_OPTIONS: { value: SavingsCapacity; label: string }[] = [
+  { value: "under_100", label: "< 100 € / mois" },
+  { value: "100_300", label: "100 - 300 € / mois" },
+  { value: "300_800", label: "300 - 800 € / mois" },
+  { value: "800_2000", label: "800 - 2 000 € / mois" },
+  { value: "2000_plus", label: "> 2 000 € / mois" },
+];
+
+function hasKids(family?: FamilyStatus): boolean {
+  return family === "couple_with_kids" || family === "single_parent";
 }
 
-// Seed hebdomadaire pour la rotation des conseils
+function isProfileComplete(p: UserProfile): boolean {
+  if (!p.age || !p.family || !p.housing || !p.zone || !p.tmi) return false;
+  // Si famille avec enfants, exiger au moins une tranche d'âge
+  if (hasKids(p.family) && (!p.children || p.children.length === 0)) return false;
+  return true;
+}
+
 function currentWeekSeed(): number {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
-  const week = Math.floor(
+  return Math.floor(
     (now.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000),
   );
-  return week;
 }
 
 export default function AdviceScreen() {
@@ -112,16 +132,20 @@ export default function AdviceScreen() {
     (async () => {
       const loaded = await loadAdviceProfile(user.id);
       setProfile(loaded);
-      // Force l'onboarding la première fois
       setEditing(!isProfileComplete(loaded));
       setLoading(false);
     })();
   }, [user?.id]);
 
-  const cards: AdviceCard[] = useMemo(() => {
+  const grouped = useMemo(() => {
     if (!isProfileComplete(profile)) return [];
-    return topAdvice(profile, 6, currentWeekSeed());
+    return allAdviceGrouped(profile);
   }, [profile]);
+
+  const totalCount = useMemo(
+    () => grouped.reduce((s, g) => s + g.cards.length, 0),
+    [grouped],
+  );
 
   const persist = useCallback(
     async (next: UserProfile) => {
@@ -143,6 +167,14 @@ export default function AdviceScreen() {
     value: UserProfile[K],
   ) {
     persist({ ...profile, [key]: value });
+  }
+
+  function toggleChild(bracket: ChildAgeBracket) {
+    const current = profile.children ?? [];
+    const next = current.includes(bracket)
+      ? current.filter((c) => c !== bracket)
+      : [...current, bracket];
+    updateField("children", next);
   }
 
   if (sessionLoading || loading) {
@@ -173,7 +205,9 @@ export default function AdviceScreen() {
     );
   }
 
-  // ============ Onboarding ============
+  // =========================================================================
+  // Onboarding
+  // =========================================================================
   if (editing) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
@@ -196,8 +230,8 @@ export default function AdviceScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.intro}>
-            5 questions rapides pour te donner des conseils personnalisés basés
-            sur les règles fiscales et financières 2026 (source : impots.gouv.fr,
+            Réponds à ces questions pour recevoir des conseils personnalisés
+            basés sur les règles fiscales 2026 (impots.gouv.fr,
             economie.gouv.fr, Banque de France).
           </Text>
 
@@ -208,11 +242,23 @@ export default function AdviceScreen() {
             onSelect={(v) => updateField("age", v)}
           />
           <QuestionBlock
-            label="Ta situation"
+            label="Ta situation familiale"
             options={FAMILY_OPTIONS}
             value={profile.family}
-            onSelect={(v) => updateField("family", v)}
+            onSelect={(v) => {
+              updateField("family", v);
+              // Reset children si passage à sans enfants
+              if (!hasKids(v)) updateField("children", []);
+            }}
           />
+
+          {hasKids(profile.family) ? (
+            <ChildrenBlock
+              value={profile.children ?? []}
+              onToggle={toggleChild}
+            />
+          ) : null}
+
           <QuestionBlock
             label="Ton logement"
             options={HOUSING_OPTIONS}
@@ -227,10 +273,17 @@ export default function AdviceScreen() {
           />
           <QuestionBlock
             label="Ta tranche marginale d'imposition (TMI)"
-            hint="Si tu ne sais pas : 0% = tu n'es pas imposable, 11% = revenu jusqu'à ~28k€/an, 30% = ~28k à 80k€, 41% = 80k à 170k€"
+            hint="0% = non imposable · 11% ~ jusqu'à 28k€/an · 30% ~ 28k à 80k€ · 41% ~ 80k à 170k€ · 45% > 170k€"
             options={TMI_OPTIONS}
             value={profile.tmi}
             onSelect={(v) => updateField("tmi", v)}
+          />
+          <QuestionBlock
+            label="Ta capacité d'épargne mensuelle"
+            hint="Ce qu'il te reste chaque mois après charges fixes et dépenses courantes. Approximatif suffit."
+            options={SAVINGS_OPTIONS}
+            value={profile.monthlySavingsCapacity}
+            onSelect={(v) => updateField("monthlySavingsCapacity", v)}
           />
 
           {isProfileComplete(profile) ? (
@@ -244,7 +297,7 @@ export default function AdviceScreen() {
             </TouchableOpacity>
           ) : (
             <Text style={styles.hint}>
-              Réponds aux 5 questions pour débloquer tes conseils.
+              Réponds à toutes les questions pour débloquer tes conseils.
             </Text>
           )}
         </ScrollView>
@@ -252,7 +305,20 @@ export default function AdviceScreen() {
     );
   }
 
-  // ============ Advice list ============
+  // =========================================================================
+  // Conseils groupés par catégorie
+  // =========================================================================
+  const seed = currentWeekSeed();
+  // Applique une petite rotation intra-catégorie (déterministe par semaine)
+  const rotatedGrouped = grouped.map(({ group, cards }) => {
+    if (cards.length <= 1) return { group, cards };
+    const offset = ((seed % cards.length) + cards.length) % cards.length;
+    return {
+      group,
+      cards: cards.map((_, i) => cards[(offset + i) % cards.length]),
+    };
+  });
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.header}>
@@ -269,22 +335,50 @@ export default function AdviceScreen() {
         <View style={styles.profileTag}>
           <Text style={styles.profileTagText}>
             {AGE_OPTIONS.find((o) => o.value === profile.age)?.label} ·{" "}
-            {FAMILY_OPTIONS.find((o) => o.value === profile.family)?.label} ·{" "}
+            {FAMILY_OPTIONS.find((o) => o.value === profile.family)?.label}
+            {hasKids(profile.family) && profile.children?.length
+              ? ` (${profile.children.length} tranche${profile.children.length > 1 ? "s" : ""})`
+              : ""}
+            {"\n"}
             {HOUSING_OPTIONS.find((o) => o.value === profile.housing)?.label} · TMI{" "}
             {profile.tmi}%
           </Text>
         </View>
 
-        {cards.length === 0 ? (
+        <Text style={styles.summaryText}>
+          {totalCount} conseil{totalCount > 1 ? "s" : ""} pour toi, en{" "}
+          {rotatedGrouped.length} catégorie
+          {rotatedGrouped.length > 1 ? "s" : ""}.
+        </Text>
+
+        {rotatedGrouped.length === 0 ? (
           <View style={styles.emptyList}>
             <Feather name="compass" size={28} color={TEXT_3} />
             <Text style={styles.emptyTitle}>Aucun conseil ne match ton profil</Text>
             <Text style={styles.emptyBody}>
-              Le catalogue Premium s'enrichit chaque mois. Reviens bientôt.
+              Le catalogue s'enrichit chaque mois. Reviens bientôt.
             </Text>
           </View>
         ) : (
-          cards.map((card) => <AdviceCardView key={card.id} card={card} />)
+          rotatedGrouped.map(({ group, cards }) => (
+            <View key={group.key} style={{ marginTop: 24 }}>
+              <View style={styles.groupHeader}>
+                <Feather
+                  name={group.icon as never}
+                  size={16}
+                  color={GOLD}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.groupLabel}>{group.label}</Text>
+                <View style={styles.groupCount}>
+                  <Text style={styles.groupCountText}>{cards.length}</Text>
+                </View>
+              </View>
+              {cards.map((card) => (
+                <AdviceCardView key={card.id} card={card} />
+              ))}
+            </View>
+          ))
         )}
       </ScrollView>
     </SafeAreaView>
@@ -323,6 +417,45 @@ function QuestionBlock<T extends string>({
               activeOpacity={0.85}
             >
               <View style={[styles.radio, active && styles.radioActive]}>
+                {active ? (
+                  <Feather name="check" size={12} color="#000" />
+                ) : null}
+              </View>
+              <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function ChildrenBlock({
+  value,
+  onToggle,
+}: {
+  value: ChildAgeBracket[];
+  onToggle: (b: ChildAgeBracket) => void;
+}) {
+  return (
+    <View style={{ marginBottom: 20 }}>
+      <Text style={styles.qLabel}>Âges de tes enfants</Text>
+      <Text style={styles.qHint}>
+        Sélectionne toutes les tranches concernées (multi-choix).
+      </Text>
+      <View style={{ gap: 8, marginTop: 8 }}>
+        {CHILDREN_OPTIONS.map((opt) => {
+          const active = value.includes(opt.value);
+          return (
+            <TouchableOpacity
+              key={opt.value}
+              onPress={() => onToggle(opt.value)}
+              style={[styles.optionRow, active && styles.optionRowActive]}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.checkbox, active && styles.checkboxActive]}>
                 {active ? (
                   <Feather name="check" size={12} color="#000" />
                 ) : null}
@@ -459,6 +592,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   radioActive: { backgroundColor: GOLD, borderColor: GOLD },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    marginRight: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxActive: { backgroundColor: GOLD, borderColor: GOLD },
   optionText: { color: TEXT_1, fontSize: 14 },
   optionTextActive: { fontWeight: "600" },
 
@@ -488,15 +632,52 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  profileTagText: { color: TEXT_2, fontSize: 12 },
+  profileTagText: { color: TEXT_2, fontSize: 12, lineHeight: 18 },
+
+  summaryText: {
+    color: TEXT_3,
+    fontSize: 12,
+    marginBottom: 8,
+    fontStyle: "italic",
+  },
+
+  groupHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  groupLabel: {
+    color: TEXT_1,
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+  groupCount: {
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    minWidth: 28,
+    alignItems: "center",
+  },
+  groupCountText: {
+    color: TEXT_2,
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: MONO_FONT,
+  },
 
   adviceCard: {
     backgroundColor: SURFACE,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: BORDER,
   },
