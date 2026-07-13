@@ -654,37 +654,42 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     category: "kids",
     title: "Livret Jeune : ouvre-le pour ton ado",
     body:
-      "Le Livret Jeune est réservé aux 12-25 ans. Rémunéré au minimum au taux du Livret A + prime (souvent 2-3% en 2026), défiscalisé, plafond 1 600 €. Complète le Livret A ouvert au nom de l'enfant.",
+      "Réservé aux 12-25 ans résidant en France, plafond 1 600 €. Taux minimum aligné sur le Livret A (1,50% au 1er février 2026), souvent bonifié à 2-3% par les banques. Intérêts totalement exonérés d'IR et de prélèvements sociaux. Un seul par personne.",
     action: {
       label: "Ouvrir un Livret Jeune",
-      link: "https://www.service-public.fr/particuliers/vosdroits/F2367",
+      link: "https://www.service-public.fr/particuliers/vosdroits/F2904",
     },
     appliesWhen: kids("12-15", "16-18"),
     priority: 78,
     figures: [
       { label: "Âge", value: "12 - 25 ans" },
       { label: "Plafond", value: "1 600 €" },
-      { label: "Taux mini", value: "1,5%" },
+      { label: "Taux minimum", value: "1,50%" },
+      { label: "Fiscalité", value: "Exonération totale" },
     ],
-    sources: ["https://www.service-public.fr/particuliers/vosdroits/F2367"],
+    sources: ["https://www.service-public.fr/particuliers/vosdroits/F2904"],
     lastVerified: VERIFIED,
   },
   {
     id: "pel-enfant-etudes",
     category: "kids",
-    title: "PEL enfant pour préparer les études",
+    title: "PEL enfant : 2,00% garanti pour son futur logement",
     body:
-      "Ouvrir un PEL au nom de l'enfant à 8-12 ans permet d'obtenir à 18 ans un prêt épargne logement à taux garanti (2,25% en 2026). Verse au minimum 45 €/mois pendant 4 ans.",
-    action: { label: "Ouvrir un PEL au nom de l'enfant" },
+      "Un PEL ouvert au nom de l'enfant (via représentant légal — mineur ne peut pas seul) rapporte 2,00% en 2026, et permet à 18+ un prêt épargne logement à taux fixe 3,20% garanti. Verse au minimum 45 €/mois pendant 4 ans. Un seul PEL par personne.",
+    action: {
+      label: "Ouvrir un PEL au nom de l'enfant",
+      link: "https://www.service-public.fr/particuliers/vosdroits/F16140",
+    },
     appliesWhen: kids("7-11", "12-15"),
     priority: 62,
     figures: [
-      { label: "Taux PEL 2026", value: "2,25%" },
-      { label: "Versement min/mois", value: "45 €" },
-      { label: "Durée min", value: "4 ans" },
+      { label: "Taux rémunération 2026", value: "2,00%" },
+      { label: "Taux prêt garanti", value: "3,20%" },
+      { label: "Dépôt initial min", value: "225 €" },
+      { label: "Versement min/an", value: "540 €" },
     ],
     sources: [
-      "https://www.service-public.fr/particuliers/vosdroits/F2650",
+      "https://www.service-public.fr/particuliers/vosdroits/F16140",
     ],
     lastVerified: VERIFIED,
   },
@@ -854,6 +859,179 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "Après 70 ans (total)", value: "30 500 €" },
     ],
     sources: ["https://www.legifrance.gouv.fr (art. 990 I & 757 B CGI)"],
+    lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // TRANSMISSION (donations chiffrées 2026)
+  // ==========================================================================
+  {
+    id: "donation-enfant-100k-couple",
+    category: "inheritance",
+    title: "En couple : 200 000 € par enfant en franchise",
+    body:
+      "Chaque parent peut donner jusqu'à 100 000 € par enfant sans droits de succession, renouvelable tous les 15 ans. Un couple peut donc transmettre 200 000 € par enfant en une ou plusieurs fois. Idéal pour aider à l'achat d'un logement ou financer les études sup.",
+    action: {
+      label: "Simulateur donation impots.gouv.fr",
+      link: "https://www.impots.gouv.fr/particulier/questions/que-puis-je-donner-mes-enfants-petits-enfants-sans-avoir-payer-de-droits",
+    },
+    appliesWhen: and(
+      hasAnyKids,
+      familyIn("couple_no_kids", "couple_with_kids"),
+      ageIn("36-50", "51-65", "66+"),
+    ),
+    priority: 78,
+    figures: [
+      { label: "Par parent / enfant", value: "100 000 €" },
+      { label: "Couple / enfant", value: "200 000 €" },
+      { label: "Renouvelable", value: "tous les 15 ans" },
+    ],
+    sources: [
+      "https://www.impots.gouv.fr/particulier/questions/que-puis-je-donner-mes-enfants-petits-enfants-sans-avoir-payer-de-droits",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "donation-grand-parent-63k",
+    category: "inheritance",
+    title: "Grand-parent : 63 730 € par petit-enfant",
+    body:
+      "Un grand-parent peut cumuler deux dispositifs : 31 865 € (art. 790 B CGI) + 31 865 € de don familial de somme d'argent (art. 790 G) si le donateur a moins de 80 ans et le bénéficiaire est majeur ou émancipé. Renouvelable tous les 15 ans, par grand-parent et par petit-enfant.",
+    action: {
+      label: "Vérifier les conditions du don familial",
+      link: "https://www.impots.gouv.fr/particulier/questions/jai-perdu-mon-fils-comment-aider-mes-petits-enfants",
+    },
+    appliesWhen: ageIn("51-65", "66+"),
+    priority: 65,
+    figures: [
+      { label: "Abattement (790 B)", value: "31 865 €" },
+      { label: "Don familial (790 G)", value: "31 865 €" },
+      { label: "Cumul max", value: "63 730 €" },
+      { label: "Conditions 790 G", value: "< 80 ans, majeur" },
+    ],
+    sources: [
+      "https://www.impots.gouv.fr/particulier/questions/que-puis-je-donner-mes-enfants-petits-enfants-sans-avoir-payer-de-droits",
+      "https://www.impots.gouv.fr/particulier/questions/jai-perdu-mon-fils-comment-aider-mes-petits-enfants",
+    ],
+    lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // PER — chiffres exacts 2026 (les précédents étaient refutés)
+  // ==========================================================================
+  {
+    id: "per-plafond-37680",
+    category: "retirement",
+    title: "PER 2026 : plafond de 37 680 € pour les actifs",
+    body:
+      "Le plafond de déduction PER 2026 est de 10% des revenus 2025 nets de cotisations sociales, dans la limite de 37 680 € (= 8 × PASS 2025 × 10%). Chaque euro versé jusqu'à ce plafond est déductible de ton revenu imposable.",
+    action: {
+      label: "Consulter le mécanisme sur service-public.gouv.fr",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
+    },
+    appliesWhen: and(tmiAtLeast("30"), ageIn("26-35", "36-50", "51-65")),
+    priority: 84,
+    figures: [
+      { label: "Formule", value: "10% revenus N-1" },
+      { label: "Plafond max", value: "37 680 €" },
+      { label: "Base", value: "8 × PASS 2025 (47 100 €)" },
+    ],
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
+      "https://bofip.impots.gouv.fr/bofip/1124-PGP.html/identifiant=BOI-IR-BASE-20-50-20-20260217",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "per-non-actif-4710",
+    category: "retirement",
+    title: "PER non-actif : plancher garanti à 4 710 €",
+    body:
+      "Sans revenu pro ou à faibles revenus (retraité, étudiant, parent au foyer, chômeur), tu retiens toujours le PLUS ÉLEVÉ entre 10% des revenus N-1 et 4 710 € en 2026. Utile pour continuer à défiscaliser malgré une transition professionnelle.",
+    action: {
+      label: "Vérifier ton plafond épargne retraite",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
+    },
+    appliesWhen: ageIn("51-65", "66+"),
+    priority: 60,
+    figures: [
+      { label: "Plancher 2026", value: "4 710 €" },
+      { label: "Base", value: "10% PASS 2025" },
+      { label: "Applicable si", value: "aucun/faible revenu" },
+    ],
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "per-report-5-ans",
+    category: "retirement",
+    title: "PER : le report des plafonds passe à 5 ans",
+    body:
+      "Nouveau depuis 2026 : les plafonds PER non utilisés se reportent désormais sur 5 ans (contre 3 ans avant). Si tu n'as pas maxé ton plafond 2026, tu as jusqu'en 2031 pour rattraper. Utile pour lisser tes versements sur des années à haut revenu.",
+    action: {
+      label: "Retrouver ton plafond dans ton avis d'imposition",
+    },
+    appliesWhen: and(tmiAtLeast("30"), ageIn("36-50", "51-65")),
+    priority: 62,
+    figures: [
+      { label: "Report ancien (2024-2025)", value: "3 ans" },
+      { label: "Report nouveau (dès 2026)", value: "5 ans" },
+    ],
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
+    ],
+    lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // SCPI — Immobilier locatif pour préparation retraite
+  // ==========================================================================
+  {
+    id: "scpi-retraite-diversif",
+    category: "retirement",
+    title: "SCPI : 4,92% de rendement moyen pour la retraite",
+    body:
+      "Les SCPI de rendement ont distribué 4,92% en moyenne en 2025 (chiffre ASPIM). Ticket d'entrée typique 200-1 000 €. Alternative au PER pour les TMI < 30% (moins d'intérêt fiscal du PER). Attention : la variation de prix des parts peut être négative (-3,45% en 2025) — c'est un placement long terme (10+ ans).",
+    action: {
+      label: "Comparer les catégories sur aspim.fr",
+      link: "https://www.aspim.fr",
+    },
+    appliesWhen: ageIn("36-50", "51-65"),
+    priority: 55,
+    figures: [
+      { label: "TD moyen 2025", value: "4,92%" },
+      { label: "Ticket d'entrée", value: "200 - 1 000 €" },
+      { label: "Horizon", value: "10+ ans" },
+      { label: "Perf globale 2025", value: "+1,46%" },
+    ],
+    sources: [
+      "https://www.aspim.fr/actualites/collecte-et-performance-des-fonds-immobiliers-grand-public-au-premier-trimestre-2026-et-principaux-indicateurs-des-scpi-en-2025/",
+    ],
+    lastVerified: VERIFIED,
+  },
+  {
+    id: "scpi-choix-categorie",
+    category: "long_term",
+    title: "SCPI : logistique et diversifiées en tête en 2025",
+    body:
+      "Les catégories qui ont surperformé en 2025 : Logistique/industriel (+6,4% RGI), Diversifiées (+5,7%). Les catégories en repli : Bureaux (+2,4%), Santé/éducation (0,0%). Le marché SCPI se re-segmente — évite l'exposition unique aux bureaux.",
+    action: {
+      label: "Consulter le rapport ASPIM Q4 2025",
+      link: "https://www.aspim.fr",
+    },
+    appliesWhen: ageIn("36-50", "51-65"),
+    priority: 50,
+    figures: [
+      { label: "Logistique RGI", value: "+6,4%" },
+      { label: "Diversifiées RGI", value: "+5,7%" },
+      { label: "Bureaux RGI", value: "+2,4%" },
+      { label: "Santé RGI", value: "0,0%" },
+    ],
+    sources: [
+      "https://www.aspim.fr/actualites/collecte-et-performance-des-fonds-immobiliers-grand-public-au-premier-trimestre-2026-et-principaux-indicateurs-des-scpi-en-2025/",
+    ],
     lastVerified: VERIFIED,
   },
 
