@@ -21,7 +21,7 @@ const fr: Catalog = {
   // Onboarding
   "onboarding.title": "Comment ça marche",
   "onboarding.step1": "Ajoute tes sources de revenu (salaire, freelance, locatif, dividendes…). Chaque source a son taux de charges.",
-  "onboarding.step2": "Renseigne ton loyer, tes prêts et tes dépenses, classées en 3 familles : Besoins, Loisirs, Épargne (règle 50/30/20).",
+  "onboarding.step2": "Renseigne ton loyer, tes prêts et tes dépenses, classées en 3 familles : Besoins, Loisirs, Épargne.",
   "onboarding.step3": "En bas de page : ton reste à vivre, tes conseils personnalisés et l'export PDF.",
   "onboarding.tip": "💡 Tes données restent sur ton téléphone — rien n'est envoyé sur internet.",
 
