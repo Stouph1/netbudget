@@ -114,7 +114,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "shield",
       titleKey: "advice.needsCrit.title",
       messageKey: "advice.needsCrit.msg",
-      params: { pct: Math.round(besoinsPct) },
+      params: { pct: Math.round(besoinsPct), target: target.besoins },
     });
   } else if (besoinsPct > besoinsWarn) {
     out.push({
@@ -125,6 +125,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       params: {
         pct: Math.round(besoinsPct),
         gap: Math.round(besoinsPct - target.besoins),
+        target: target.besoins,
       },
     });
   } else if (besoinsPct > 0 && besoinsPct <= target.besoins) {
@@ -133,7 +134,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "check-circle",
       titleKey: "advice.needsOk.title",
       messageKey: "advice.needsOk.msg",
-      params: { pct: Math.round(besoinsPct) },
+      params: { pct: Math.round(besoinsPct), target: target.besoins },
     });
   }
 
@@ -144,7 +145,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "music",
       titleKey: "advice.wantsHigh.title",
       messageKey: "advice.wantsHigh.msg",
-      params: { pct: Math.round(loisirsPct) },
+      params: { pct: Math.round(loisirsPct), target: target.envies },
     });
   } else if (loisirsPct > enviesWarn) {
     out.push({
@@ -152,7 +153,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "music",
       titleKey: "advice.wantsBitHigh.title",
       messageKey: "advice.wantsBitHigh.msg",
-      params: { pct: Math.round(loisirsPct) },
+      params: { pct: Math.round(loisirsPct), target: target.envies },
     });
   } else if (loisirs === 0 && netMensuel > 0) {
     out.push({
@@ -177,7 +178,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "trending-up",
       titleKey: "advice.lowSavings.title",
       messageKey: "advice.lowSavings.msg",
-      params: { pct: Math.round(epargnePct) },
+      params: { pct: Math.round(epargnePct), target: target.epargne },
     });
   } else if (epargnePct < epargneMid) {
     out.push({
@@ -185,7 +186,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "trending-up",
       titleKey: "advice.savingsBuilding.title",
       messageKey: "advice.savingsBuilding.msg",
-      params: { pct: Math.round(epargnePct) },
+      params: { pct: Math.round(epargnePct), target: target.epargne },
     });
   } else if (epargnePct >= epargneMid && epargnePct < epargneMax) {
     out.push({
@@ -193,7 +194,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "award",
       titleKey: "advice.goodSavings.title",
       messageKey: "advice.goodSavings.msg",
-      params: { pct: Math.round(epargnePct) },
+      params: { pct: Math.round(epargnePct), target: target.epargne },
     });
   } else if (epargnePct >= epargneMax) {
     out.push({
@@ -201,7 +202,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       icon: "award",
       titleKey: "advice.maxSavings.title",
       messageKey: "advice.maxSavings.msg",
-      params: { pct: Math.round(epargnePct) },
+      params: { pct: Math.round(epargnePct), target: target.epargne },
     });
   }
 

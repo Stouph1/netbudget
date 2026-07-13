@@ -469,16 +469,24 @@ export default function Index() {
   // (50/30/20 par défaut) dans l'en-tête du tab Budget. Null si free tier.
   const { user: premiumUser } = useSession();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
-  useEffect(() => {
+  const reloadPremiumProfile = useCallback(async () => {
     if (!premiumUser?.id) {
       setPremiumProfile(null);
       return;
     }
-    (async () => {
-      const p = await loadAdviceProfile(premiumUser.id);
-      setPremiumProfile(p);
-    })();
+    const p = await loadAdviceProfile(premiumUser.id);
+    setPremiumProfile(p);
   }, [premiumUser?.id]);
+  useEffect(() => {
+    reloadPremiumProfile();
+  }, [reloadPremiumProfile]);
+  // Recharge à chaque switch vers le tab Budget (au cas où le profil ait été
+  // modifié dans l'écran Conseils personnalisés Premium).
+  useEffect(() => {
+    if (tab === "budget") {
+      reloadPremiumProfile();
+    }
+  }, [tab, reloadPremiumProfile]);
 
   const budgetRatio = useMemo(() => {
     if (premiumProfile && premiumProfile.age && premiumProfile.family) {

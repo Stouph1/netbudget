@@ -307,20 +307,23 @@ export default function AdviceScreen() {
             options={HOUSING_OPTIONS}
             value={profile.housing}
             onSelect={(v) => updateField("housing", v)}
+            allowDeselect
           />
           <QuestionBlock
             label="Ta tranche marginale d'imposition (TMI)"
-            hint="0% = non imposable · 11% ~ jusqu'à 28k€/an · 30% ~ 28k à 80k€ · 41% ~ 80k à 170k€ · 45% > 170k€"
+            hint="0% = non imposable · 11% ~ jusqu'à 28k€/an · 30% ~ 28k à 80k€ · 41% ~ 80k à 170k€ · 45% > 170k€ · Retape ta sélection pour la retirer."
             options={TMI_OPTIONS}
             value={profile.tmi}
             onSelect={(v) => updateField("tmi", v)}
+            allowDeselect
           />
           <QuestionBlock
             label="Ta capacité d'épargne mensuelle"
-            hint="Ce qu'il te reste chaque mois après charges fixes et dépenses courantes."
+            hint="Ce qu'il te reste chaque mois après charges fixes et dépenses courantes. Retape ta sélection pour la retirer."
             options={SAVINGS_OPTIONS}
             value={profile.monthlySavingsCapacity}
             onSelect={(v) => updateField("monthlySavingsCapacity", v)}
+            allowDeselect
           />
 
           {hasMinimumProfile(profile) ? (
@@ -472,12 +475,14 @@ function QuestionBlock<T extends string>({
   options,
   value,
   onSelect,
+  allowDeselect = false,
 }: {
   label: string;
   hint?: string;
   options: { value: T; label: string }[];
   value: T | undefined;
-  onSelect: (v: T) => void;
+  onSelect: (v: T | undefined) => void;
+  allowDeselect?: boolean; // optional fields: click on selected to unset
 }) {
   return (
     <View style={{ marginBottom: 20 }}>
@@ -489,7 +494,13 @@ function QuestionBlock<T extends string>({
           return (
             <TouchableOpacity
               key={opt.value}
-              onPress={() => onSelect(opt.value)}
+              onPress={() => {
+                if (active && allowDeselect) {
+                  onSelect(undefined);
+                } else {
+                  onSelect(opt.value);
+                }
+              }}
               style={[styles.optionRow, active && styles.optionRowActive]}
               activeOpacity={0.85}
             >
