@@ -40,7 +40,6 @@ import type {
   SavingsCapacity,
   TaxBracket,
   UserProfile,
-  Zone,
 } from "../../src/types/advice";
 
 const MIDNIGHT = "#0F172A";
@@ -76,10 +75,6 @@ const HOUSING_OPTIONS: { value: HousingStatus; label: string }[] = [
   { value: "accessor", label: "Accédant (crédit en cours)" },
 ];
 
-const ZONE_OPTIONS: { value: Zone; label: string }[] = [
-  { value: "big_city", label: "Grande ville (Paris, Lyon, Marseille…)" },
-  { value: "province", label: "Province / petite ville" },
-];
 
 const TMI_OPTIONS: { value: TaxBracket; label: string }[] = [
   { value: "0", label: "0% (non imposable)" },
@@ -287,9 +282,12 @@ export default function AdviceScreen() {
             options={FAMILY_OPTIONS}
             value={profile.family}
             onSelect={(v) => {
-              updateField("family", v);
-              // Reset children si passage à sans enfants
-              if (!hasKids(v)) updateField("children", []);
+              // Update famille + reset children si sans enfant, DANS LE MÊME
+              // persist pour éviter le race condition (2 setState consécutifs
+              // écrasent le premier via closure stale).
+              const next: UserProfile = { ...profile, family: v };
+              if (!hasKids(v)) next.children = [];
+              persist(next);
             }}
           />
 
@@ -309,12 +307,6 @@ export default function AdviceScreen() {
             options={HOUSING_OPTIONS}
             value={profile.housing}
             onSelect={(v) => updateField("housing", v)}
-          />
-          <QuestionBlock
-            label="Ta zone"
-            options={ZONE_OPTIONS}
-            value={profile.zone}
-            onSelect={(v) => updateField("zone", v)}
           />
           <QuestionBlock
             label="Ta tranche marginale d'imposition (TMI)"

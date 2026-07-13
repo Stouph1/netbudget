@@ -38,7 +38,7 @@ import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import { useSession } from "../src/contexts/SessionContext";
-import { computeBudgetSplit } from "../src/lib/adviceEngine";
+import { computeBudgetSplit, explainBudgetSplit } from "../src/lib/adviceEngine";
 import { loadAdviceProfile } from "../src/lib/premiumStore";
 import type { UserProfile } from "../src/types/advice";
 import {
@@ -2199,7 +2199,7 @@ export default function Index() {
         </View>
       </Modal>
 
-      {/* 50/30/20 Rule Info Modal */}
+      {/* Ratio budgétaire — Info Modal (personnalisée si Premium loggé) */}
       <Modal
         visible={ruleInfoOpen}
         transparent
@@ -2212,25 +2212,49 @@ export default function Index() {
             onPress={() => setRuleInfoOpen(false)}
           />
           <View style={styles.confirmBox}>
-            <Text style={styles.confirmTitle}>{t("rule.title")}</Text>
-            <Text style={styles.confirmMessage}>
-              {t("rule.intro")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 10 }]}>
-              <Text style={{ color: "#10B981", fontWeight: "800" }}>{t("rule.needsHead")} </Text>
-              {t("rule.needsBody")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
-              <Text style={{ color: "#A855F7", fontWeight: "800" }}>{t("rule.wantsHead")} </Text>
-              {t("rule.wantsBody")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
-              <Text style={{ color: "#F59E0B", fontWeight: "800" }}>{t("rule.savingsHead")} </Text>
-              {t("rule.savingsBody")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 12, fontStyle: "italic" }]}>
-              {t("rule.tip")}
-            </Text>
+            {(() => {
+              const info = explainBudgetSplit(premiumProfile ?? {});
+              return (
+                <>
+                  <Text style={styles.confirmTitle}>
+                    {info.isPersonalized
+                      ? `Ton mix : ${info.split.besoins}/${info.split.envies}/${info.split.epargne}`
+                      : "Repère 50/30/20"}
+                  </Text>
+                  <Text style={styles.confirmMessage}>
+                    {info.isPersonalized
+                      ? "Ta répartition idéale ajustée selon ton profil Premium :"
+                      : "La règle 50/30/20 est un repère générique. Voici comment la lire :"}
+                  </Text>
+                  <Text style={[styles.confirmMessage, { marginTop: 12 }]}>
+                    <Text style={{ color: "#10B981", fontWeight: "800" }}>
+                      BESOINS {info.split.besoins}% ·{" "}
+                    </Text>
+                    {info.besoinsReason}
+                  </Text>
+                  <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
+                    <Text style={{ color: "#A855F7", fontWeight: "800" }}>
+                      ENVIES {info.split.envies}% ·{" "}
+                    </Text>
+                    {info.enviesReason}
+                  </Text>
+                  <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
+                    <Text style={{ color: "#F59E0B", fontWeight: "800" }}>
+                      ÉPARGNE {info.split.epargne}% ·{" "}
+                    </Text>
+                    {info.epargneReason}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.confirmMessage,
+                      { marginTop: 14, fontStyle: "italic" },
+                    ]}
+                  >
+                    {info.reminder}
+                  </Text>
+                </>
+              );
+            })()}
             <TouchableOpacity
               style={styles.infoCloseBtn}
               onPress={() => setRuleInfoOpen(false)}

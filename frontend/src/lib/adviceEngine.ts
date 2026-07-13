@@ -70,8 +70,6 @@ export function computeBudgetSplit(p: UserProfile): {
   let envies = 30;
   let epargne = 20;
 
-  const isBigCity = p.zone === "big_city";
-  const isProvince = p.zone === "province";
   const isYoungAdult = p.age === "18-25" || p.age === "26-35";
   const isSenior = p.age === "66+";
   const isRenter = p.housing === "renter";
@@ -81,16 +79,16 @@ export function computeBudgetSplit(p: UserProfile): {
     p.family === "couple_with_kids" || p.family === "single_parent";
   const isSingleParent = p.family === "single_parent";
   const isHighTMI = p.tmi === "41" || p.tmi === "45";
+  const savingsHigh =
+    p.monthlySavingsCapacity === "800_2000" ||
+    p.monthlySavingsCapacity === "2000_plus";
+  const savingsLow =
+    p.monthlySavingsCapacity === "under_100" ||
+    p.monthlySavingsCapacity === "100_300";
 
-  // Jeune locataire grande ville : le loyer bouffe une part énorme
-  if (isBigCity && isYoungAdult && isRenter) {
-    besoins += 10;
-    envies -= 5;
-    epargne -= 5;
-  } else if (isProvince && isYoungAdult && isRenter) {
-    // Province : loyer plus bas, plus de marge d'épargne
-    besoins -= 5;
-    epargne += 5;
+  // Jeune locataire : loyer > moyenne, mais compensé par flexibilité
+  if (isYoungAdult && isRenter) {
+    besoins += 5;
   }
 
   // Parent solo : revenu unique, budget serré
@@ -116,9 +114,15 @@ export function computeBudgetSplit(p: UserProfile): {
   }
 
   // Haute TMI = capacité d'épargne + défiscalisation
-  if (isHighTMI) {
+  if (isHighTMI || savingsHigh) {
     envies -= 5;
     epargne += 5;
+  }
+
+  // Capacité épargne faible : ne pas surcharger l'épargne théorique
+  if (savingsLow) {
+    envies += 5;
+    epargne -= 5;
   }
 
   // Clamp aux bornes raisonnables
@@ -133,6 +137,79 @@ export function computeBudgetSplit(p: UserProfile): {
   epargne = 100 - besoins - envies;
 
   return { besoins, envies, epargne };
+}
+
+// Explique POURQUOI le mix est ce qu'il est, pour la modal d'info.
+// Renvoie 3 lignes explicatives (une par catégorie) + un reminder.
+export function explainBudgetSplit(p: UserProfile): {
+  split: { besoins: number; envies: number; epargne: number };
+  isPersonalized: boolean;
+  besoinsReason: string;
+  enviesReason: string;
+  epargneReason: string;
+  reminder: string;
+} {
+  const split = computeBudgetSplit(p);
+  const isPersonalized = !!(p.age && p.family);
+
+  const isRenter = p.housing === "renter";
+  const isAccessor = p.housing === "accessor";
+  const isOwnerSenior = p.housing === "owner" && p.age === "66+";
+  const hasChildren =
+    p.family === "couple_with_kids" || p.family === "single_parent";
+  const isSingleParent = p.family === "single_parent";
+
+  // Besoins
+  let besoinsReason = "logement, factures, courses — le socle incompressible.";
+  if (isAccessor)
+    besoinsReason = "mensualité de crédit + charges — la part fixe pèse plus.";
+  else if (isSingleParent)
+    besoinsReason = "revenu unique et charges enfants — le socle est serré.";
+  else if (hasChildren)
+    besoinsReason =
+      "charges familiales (école, alimentation, vêtements) tirent le poste vers le haut.";
+  else if (isRenter)
+    besoinsReason = "loyer + charges — souvent le plus gros poste en location.";
+  else if (isOwnerSenior)
+    besoinsReason =
+      "crédit remboursé + charges légères — plus de marge que la moyenne.";
+
+  // Envies
+  let enviesReason = "loisirs, sorties, resto, achats plaisir — le carburant du quotidien.";
+  if (isSingleParent)
+    enviesReason =
+      "à limiter pour maintenir l'épargne sans se priver totalement.";
+  else if (hasChildren)
+    enviesReason =
+      "à modérer — priorité aux imprévus enfants (école, activités, santé).";
+  else if (isOwnerSenior)
+    enviesReason =
+      "marge élargie maintenant que le crédit est remboursé — profite-en (voyages, projets).";
+
+  // Épargne
+  let epargneReason = "épargne de précaution + investissements long terme.";
+  if (split.epargne >= 25)
+    epargneReason =
+      "priorité forte — anticipe études enfants, retraite ou projet immo.";
+  else if (split.epargne <= 15)
+    epargneReason =
+      "à protéger malgré le budget serré — même 5% construit un matelas sur 12 mois.";
+  else if (p.tmi === "41" || p.tmi === "45")
+    epargneReason =
+      "capacité et défiscalisation à exploiter (PEA + PER + AV combinés).";
+
+  const reminder = isPersonalized
+    ? "C'est un repère basé sur ton profil, pas une règle absolue. Adapte selon ta réalité mensuelle."
+    : "Complète ton profil dans Réglages → Conseils personnalisés pour recevoir une répartition adaptée à ta situation.";
+
+  return {
+    split,
+    isPersonalized,
+    besoinsReason,
+    enviesReason,
+    epargneReason,
+    reminder,
+  };
 }
 
 // ============================================================================
