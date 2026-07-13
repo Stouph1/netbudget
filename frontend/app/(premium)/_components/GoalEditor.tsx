@@ -117,7 +117,6 @@ export default function GoalEditor({
       currentAmount: Math.max(0, parseAmount(current)),
       monthlyContribution: monthly ? parseAmount(monthly) : undefined,
       extraP,
-      accountId: goal?.accountId,
       targetDate: goal?.targetDate,
       color: goal?.color,
       createdAt: goal?.createdAt ?? now,
