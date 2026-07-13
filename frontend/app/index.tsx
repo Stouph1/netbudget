@@ -1662,6 +1662,16 @@ export default function Index() {
                   Test auth (Apple Sign In)
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/(premium)/s1-epargne" as never)}
+                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
+                activeOpacity={0.85}
+              >
+                <Feather name="target" size={18} color={GOLD} />
+                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
+                  S1 · Épargne (Grand Dispatching)
+                </Text>
+              </TouchableOpacity>
             </Section>
           ) : null}
 
