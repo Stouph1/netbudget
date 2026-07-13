@@ -37,6 +37,10 @@ import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
+import { useSession } from "../src/contexts/SessionContext";
+import { computeBudgetSplit } from "../src/lib/adviceEngine";
+import { loadAdviceProfile } from "../src/lib/premiumStore";
+import type { UserProfile } from "../src/types/advice";
 import {
   ensureMonthlyRemindersScheduled,
   getMonthlyEnabled,
@@ -456,6 +460,29 @@ export default function Index() {
     },
     [t],
   );
+
+  // Profil Premium (advice engine) — pour personnaliser le ratio budgétaire
+  // (50/30/20 par défaut) dans l'en-tête du tab Budget. Null si free tier.
+  const { user: premiumUser } = useSession();
+  const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
+  useEffect(() => {
+    if (!premiumUser?.id) {
+      setPremiumProfile(null);
+      return;
+    }
+    (async () => {
+      const p = await loadAdviceProfile(premiumUser.id);
+      setPremiumProfile(p);
+    })();
+  }, [premiumUser?.id]);
+
+  const budgetRatio = useMemo(() => {
+    if (premiumProfile && premiumProfile.age && premiumProfile.family) {
+      const s = computeBudgetSplit(premiumProfile);
+      return { ...s, personalized: true };
+    }
+    return { besoins: 50, envies: 30, epargne: 20, personalized: false };
+  }, [premiumProfile]);
 
   // Prompt de note App Store : se déclenche une seule fois, quand l'utilisateur
   // scrolle jusqu'en bas de l'onglet Budget après avoir rempli quelques données.
@@ -1014,6 +1041,24 @@ export default function Index() {
               </Text>
               <Text style={styles.title}>NETbudget</Text>
             </View>
+            <TouchableOpacity
+              onPress={() => setRuleInfoOpen(true)}
+              style={styles.ratioWidget}
+              testID="budget-ratio-widget"
+              activeOpacity={0.85}
+            >
+              <Text style={styles.ratioLabel}>
+                {budgetRatio.personalized ? "Ton mix" : "Repère"}
+              </Text>
+              <Text style={styles.ratioValue}>
+                {budgetRatio.besoins}/{budgetRatio.envies}/{budgetRatio.epargne}
+              </Text>
+              {budgetRatio.personalized ? (
+                <View style={styles.ratioBadge}>
+                  <Text style={styles.ratioBadgeText}>PERSO</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
           </View>
 
           {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
@@ -2892,6 +2937,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 8,
     paddingBottom: 16,
+  },
+  ratioWidget: {
+    alignItems: "flex-end",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  ratioLabel: {
+    color: TEXT_3,
+    fontSize: 9,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  ratioValue: {
+    color: GOLD,
+    fontSize: 15,
+    fontWeight: "700",
+    marginTop: 2,
+    fontVariant: ["tabular-nums"],
+  },
+  ratioBadge: {
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: GOLD,
+  },
+  ratioBadgeText: {
+    color: "#000",
+    fontSize: 8,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   eyebrow: {
     color: GOLD,

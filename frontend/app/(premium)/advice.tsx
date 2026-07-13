@@ -109,11 +109,25 @@ function hasKids(family?: FamilyStatus): boolean {
   return family === "couple_with_kids" || family === "single_parent";
 }
 
-function isProfileComplete(p: UserProfile): boolean {
-  if (!p.age || !p.family || !p.housing || !p.zone || !p.tmi) return false;
-  // Si famille avec enfants, exiger au moins une tranche d'âge
-  if (hasKids(p.family) && (!p.children || p.children.length === 0)) return false;
-  return true;
+// Seuls âge + situation familiale sont vraiment requis. Le reste (logement,
+// zone, TMI, savings capacity, âges enfants) est optionnel — l'user peut
+// débloquer plus de conseils en le renseignant, mais peut aussi consulter
+// les conseils de base sans tout remplir.
+function hasMinimumProfile(p: UserProfile): boolean {
+  return !!(p.age && p.family);
+}
+
+// Renvoie le nombre de champs optionnels remplis (pour l'indicateur UI).
+function profileCompleteness(p: UserProfile): { filled: number; total: number } {
+  const optional = [
+    p.housing,
+    p.zone,
+    p.tmi,
+    p.monthlySavingsCapacity,
+    hasKids(p.family) ? (p.children?.length ? true : undefined) : true,
+  ];
+  const filled = optional.filter((v) => v !== undefined && v !== null).length;
+  return { filled, total: optional.length };
 }
 
 function currentWeekSeed(): number {
@@ -155,15 +169,18 @@ export default function AdviceScreen() {
     (async () => {
       const loaded = await loadAdviceProfile(user.id);
       setProfile(loaded);
-      setEditing(!isProfileComplete(loaded));
+      // Onboarding forcé seulement si aucune info de base (age + family manquants)
+      setEditing(!hasMinimumProfile(loaded));
       setLoading(false);
     })();
   }, [user?.id]);
 
   const grouped = useMemo(() => {
-    if (!isProfileComplete(profile)) return [];
+    if (!hasMinimumProfile(profile)) return [];
     return allAdviceGrouped(profile);
   }, [profile]);
+
+  const completeness = profileCompleteness(profile);
 
   const totalCount = useMemo(
     () => grouped.reduce((s, g) => s + g.cards.length, 0),
@@ -237,7 +254,7 @@ export default function AdviceScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => {
-              if (isProfileComplete(profile)) setEditing(false);
+              if (hasMinimumProfile(profile)) setEditing(false);
               else router.back();
             }}
             hitSlop={10}
@@ -253,19 +270,20 @@ export default function AdviceScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.intro}>
-            Réponds à ces questions pour recevoir des conseils personnalisés
-            basés sur les règles fiscales 2026 (impots.gouv.fr,
-            economie.gouv.fr, Banque de France).
+            Seuls <Text style={{ color: TEXT_1, fontWeight: "600" }}>l'âge</Text> et{" "}
+            <Text style={{ color: TEXT_1, fontWeight: "600" }}>la situation familiale</Text>{" "}
+            sont nécessaires pour démarrer. Plus tu remplis, plus les conseils
+            deviennent précis (règles fiscales 2026).
           </Text>
 
           <QuestionBlock
-            label="Ton âge"
+            label="Ton âge *"
             options={AGE_OPTIONS}
             value={profile.age}
             onSelect={(v) => updateField("age", v)}
           />
           <QuestionBlock
-            label="Ta situation familiale"
+            label="Ta situation familiale *"
             options={FAMILY_OPTIONS}
             value={profile.family}
             onSelect={(v) => {
@@ -281,6 +299,10 @@ export default function AdviceScreen() {
               onToggle={toggleChild}
             />
           ) : null}
+
+          <Text style={styles.optionalHeader}>
+            Optionnel — plus tu remplis, plus c'est précis
+          </Text>
 
           <QuestionBlock
             label="Ton logement"
@@ -303,24 +325,27 @@ export default function AdviceScreen() {
           />
           <QuestionBlock
             label="Ta capacité d'épargne mensuelle"
-            hint="Ce qu'il te reste chaque mois après charges fixes et dépenses courantes. Approximatif suffit."
+            hint="Ce qu'il te reste chaque mois après charges fixes et dépenses courantes."
             options={SAVINGS_OPTIONS}
             value={profile.monthlySavingsCapacity}
             onSelect={(v) => updateField("monthlySavingsCapacity", v)}
           />
 
-          {isProfileComplete(profile) ? (
+          {hasMinimumProfile(profile) ? (
             <TouchableOpacity
               onPress={() => setEditing(false)}
               style={styles.ctaBtn}
               activeOpacity={0.85}
             >
               <Feather name="check" size={18} color="#000" />
-              <Text style={styles.ctaBtnText}>Voir mes conseils</Text>
+              <Text style={styles.ctaBtnText}>
+                Voir mes conseils ({completeness.filled}/{completeness.total} détails)
+              </Text>
             </TouchableOpacity>
           ) : (
             <Text style={styles.hint}>
-              Réponds à toutes les questions pour débloquer tes conseils.
+              Renseigne au moins l'âge et la situation familiale pour débloquer
+              les conseils.
             </Text>
           )}
         </ScrollView>
@@ -624,6 +649,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     marginBottom: 24,
+  },
+  optionalHeader: {
+    color: TEXT_3,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginTop: 20,
+    marginBottom: 8,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
   },
 
   qLabel: {
