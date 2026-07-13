@@ -22,11 +22,24 @@ export type AdviceInput = {
   loisirs: number;
   epargne: number;
   remaining: number;
+  // Cible optionnelle (default = 50/30/20). Fournie par le profil Premium.
+  targetSplit?: { besoins: number; envies: number; epargne: number };
 };
 
 export function buildAdvice(input: AdviceInput): AdviceItem[] {
   const { netMensuel, rent, loansMonthly, besoinsExtra, loisirs, epargne, remaining } = input;
   const out: AdviceItem[] = [];
+
+  // Cible personnalisée (mix perso Premium) ou 50/30/20 par défaut
+  const target = input.targetSplit ?? { besoins: 50, envies: 30, epargne: 20 };
+  // Seuils dynamiques : ±5 = warn, ±10 = danger, autour de la cible
+  const besoinsWarn = target.besoins + 5;
+  const besoinsCrit = target.besoins + 10;
+  const enviesWarn = target.envies + 5;
+  const enviesHigh = target.envies + 10;
+  const epargneLow = Math.max(5, target.epargne - 10);
+  const epargneMid = target.epargne;
+  const epargneMax = target.epargne + 10;
 
   if (netMensuel <= 0) {
     out.push({
@@ -94,8 +107,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     });
   }
 
-  // ----- Regle 50/30/20 : Besoins -----
-  if (besoinsPct > 60) {
+  // ----- Besoins (seuils basés sur la cible personnalisée) -----
+  if (besoinsPct > besoinsCrit) {
     out.push({
       tone: "danger",
       icon: "shield",
@@ -103,15 +116,18 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       messageKey: "advice.needsCrit.msg",
       params: { pct: Math.round(besoinsPct) },
     });
-  } else if (besoinsPct > 55) {
+  } else if (besoinsPct > besoinsWarn) {
     out.push({
       tone: "warn",
       icon: "shield",
       titleKey: "advice.needsHigh.title",
       messageKey: "advice.needsHigh.msg",
-      params: { pct: Math.round(besoinsPct), gap: Math.round(besoinsPct - 50) },
+      params: {
+        pct: Math.round(besoinsPct),
+        gap: Math.round(besoinsPct - target.besoins),
+      },
     });
-  } else if (besoinsPct > 0 && besoinsPct <= 50) {
+  } else if (besoinsPct > 0 && besoinsPct <= target.besoins) {
     out.push({
       tone: "good",
       icon: "check-circle",
@@ -121,8 +137,8 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     });
   }
 
-  // ----- Regle 50/30/20 : Loisirs -----
-  if (loisirsPct > 40) {
+  // ----- Loisirs -----
+  if (loisirsPct > enviesHigh) {
     out.push({
       tone: "warn",
       icon: "music",
@@ -130,7 +146,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       messageKey: "advice.wantsHigh.msg",
       params: { pct: Math.round(loisirsPct) },
     });
-  } else if (loisirsPct > 35) {
+  } else if (loisirsPct > enviesWarn) {
     out.push({
       tone: "info",
       icon: "music",
@@ -147,7 +163,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     });
   }
 
-  // ----- Regle 50/30/20 : Epargne -----
+  // ----- Épargne -----
   if (epargnePct < 5 && netMensuel > 0 && remaining >= 0) {
     out.push({
       tone: "danger",
@@ -155,7 +171,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       titleKey: "advice.noSavings.title",
       messageKey: "advice.noSavings.msg",
     });
-  } else if (epargnePct < 10) {
+  } else if (epargnePct < epargneLow) {
     out.push({
       tone: "warn",
       icon: "trending-up",
@@ -163,7 +179,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       messageKey: "advice.lowSavings.msg",
       params: { pct: Math.round(epargnePct) },
     });
-  } else if (epargnePct < 20) {
+  } else if (epargnePct < epargneMid) {
     out.push({
       tone: "warn",
       icon: "trending-up",
@@ -171,7 +187,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       messageKey: "advice.savingsBuilding.msg",
       params: { pct: Math.round(epargnePct) },
     });
-  } else if (epargnePct >= 20 && epargnePct < 30) {
+  } else if (epargnePct >= epargneMid && epargnePct < epargneMax) {
     out.push({
       tone: "good",
       icon: "award",
@@ -179,7 +195,7 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
       messageKey: "advice.goodSavings.msg",
       params: { pct: Math.round(epargnePct) },
     });
-  } else if (epargnePct >= 30) {
+  } else if (epargnePct >= epargneMax) {
     out.push({
       tone: "good",
       icon: "award",

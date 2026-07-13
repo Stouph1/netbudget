@@ -38,7 +38,11 @@ import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import { useSession } from "../src/contexts/SessionContext";
-import { computeBudgetSplit, explainBudgetSplit } from "../src/lib/adviceEngine";
+import {
+  computeBudgetSplit,
+  explainBudgetSplit,
+  getBudgetMixProfile,
+} from "../src/lib/adviceEngine";
 import { loadAdviceProfile } from "../src/lib/premiumStore";
 import type { UserProfile } from "../src/types/advice";
 import {
@@ -665,8 +669,16 @@ export default function Index() {
         loisirs: familyTotals.loisirs,
         epargne: familyTotals.epargne,
         remaining,
+        // Seuils basés sur le mix personnalisé si Premium loggé (sinon 50/30/20)
+        targetSplit: budgetRatio.personalized
+          ? {
+              besoins: budgetRatio.besoins,
+              envies: budgetRatio.envies,
+              epargne: budgetRatio.epargne,
+            }
+          : undefined,
       }),
-    [netMensuel, rentNum, loansMonthly, familyTotals, remaining]
+    [netMensuel, rentNum, loansMonthly, familyTotals, remaining, budgetRatio]
   );
 
   // Donut
@@ -1047,17 +1059,16 @@ export default function Index() {
               testID="budget-ratio-widget"
               activeOpacity={0.85}
             >
-              <Text style={styles.ratioLabel}>
-                {budgetRatio.personalized ? "Ton mix" : "Repère"}
-              </Text>
+              {budgetRatio.personalized && premiumProfile ? (
+                <Text style={styles.ratioMixName} numberOfLines={1}>
+                  {getBudgetMixProfile(premiumProfile).name}
+                </Text>
+              ) : (
+                <Text style={styles.ratioLabel}>Repère</Text>
+              )}
               <Text style={styles.ratioValue}>
                 {budgetRatio.besoins}/{budgetRatio.envies}/{budgetRatio.epargne}
               </Text>
-              {budgetRatio.personalized ? (
-                <View style={styles.ratioBadge}>
-                  <Text style={styles.ratioBadgeText}>PERSO</Text>
-                </View>
-              ) : null}
             </TouchableOpacity>
           </View>
 
@@ -1291,20 +1302,7 @@ export default function Index() {
                   </TouchableOpacity>
                 }
               >
-                <View style={styles.familySubRow}>
-                  <Text style={styles.familySub}>{t(`family.${family}.sub`)}</Text>
-                  {family === "besoins" && (
-                    <TouchableOpacity
-                      onPress={() => setRuleInfoOpen(true)}
-                      hitSlop={10}
-                      style={styles.familyInfoBtn}
-                      testID="open-rule-info"
-                    >
-                      <Feather name="info" size={14} color={GOLD} />
-                      <Text style={styles.familyInfoBtnText}>50/30/20</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+                <Text style={styles.familySub}>{t(`family.${family}.sub`)}</Text>
                 {items.length === 0 ? (
                   <View style={styles.emptyCard}>
                     <Feather name={meta.icon} size={22} color={TEXT_3} />
@@ -2218,14 +2216,26 @@ export default function Index() {
                 <>
                   <Text style={styles.confirmTitle}>
                     {info.isPersonalized
-                      ? `Ton mix : ${info.split.besoins}/${info.split.envies}/${info.split.epargne}`
-                      : "Repère 50/30/20"}
+                      ? `${info.mix.name} · ${info.split.besoins}/${info.split.envies}/${info.split.epargne}`
+                      : "L'Équilibré · 50/30/20"}
                   </Text>
-                  <Text style={styles.confirmMessage}>
-                    {info.isPersonalized
-                      ? "Ta répartition idéale ajustée selon ton profil Premium :"
-                      : "La règle 50/30/20 est un repère générique. Voici comment la lire :"}
-                  </Text>
+                  {info.isPersonalized ? (
+                    <>
+                      <Text style={[styles.confirmMessage, { fontStyle: "italic", marginTop: 2 }]}>
+                        {info.mix.tagline}
+                      </Text>
+                      <Text style={[styles.confirmMessage, { marginTop: 10 }]}>
+                        {info.mix.description}
+                      </Text>
+                      <Text style={[styles.confirmMessage, { marginTop: 12, color: TEXT_3, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }]}>
+                        Détail de ton mix
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.confirmMessage}>
+                      Ta situation suit le repère 50/30/20 classique. Voici comment le lire :
+                    </Text>
+                  )}
                   <Text style={[styles.confirmMessage, { marginTop: 12 }]}>
                     <Text style={{ color: "#10B981", fontWeight: "800" }}>
                       BESOINS {info.split.besoins}% ·{" "}
@@ -2978,25 +2988,19 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  ratioValue: {
+  ratioMixName: {
     color: GOLD,
-    fontSize: 15,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+    maxWidth: 120,
+  },
+  ratioValue: {
+    color: TEXT,
+    fontSize: 14,
     fontWeight: "700",
     marginTop: 2,
     fontVariant: ["tabular-nums"],
-  },
-  ratioBadge: {
-    marginTop: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    backgroundColor: GOLD,
-  },
-  ratioBadgeText: {
-    color: "#000",
-    fontSize: 8,
-    fontWeight: "800",
-    letterSpacing: 0.5,
   },
   eyebrow: {
     color: GOLD,

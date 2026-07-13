@@ -139,11 +139,117 @@ export function computeBudgetSplit(p: UserProfile): {
   return { besoins, envies, epargne };
 }
 
+// ============================================================================
+// Archétypes de mix budgétaires — noms sympa pour rendre le repère mémorable.
+// ============================================================================
+
+export type BudgetMixProfile = {
+  name: string;        // ex: "Le Bâtisseur"
+  tagline: string;     // 1 ligne courte
+  description: string; // 2-3 phrases pour expliquer simplement
+};
+
+export function getBudgetMixProfile(p: UserProfile): BudgetMixProfile {
+  const isSingleParent = p.family === "single_parent";
+  const hasChildren = p.family === "couple_with_kids" || isSingleParent;
+  const isAccessor = p.housing === "accessor";
+  const isOwnerSenior = p.housing === "owner" && p.age === "66+";
+  const isHighTMI = p.tmi === "41" || p.tmi === "45";
+  const isYoungRenter =
+    (p.age === "18-25" || p.age === "26-35") && p.housing === "renter";
+  const savingsLow =
+    p.monthlySavingsCapacity === "under_100" ||
+    p.monthlySavingsCapacity === "100_300";
+  const isUnder18 = p.age === "under_18";
+
+  // Cas spécial ado (avant tout)
+  if (isUnder18) {
+    return {
+      name: "L'Apprenti",
+      tagline: "Apprendre les bases",
+      description:
+        "À ton âge, l'objectif n'est pas d'optimiser — c'est de comprendre comment ton argent fonctionne. Épargne systématique + petit budget hebdo suffisent largement pour poser les bases.",
+    };
+  }
+
+  // Ordre de priorité : du plus spécifique au plus générique
+  if (isSingleParent) {
+    return {
+      name: "Le Capitaine Solo",
+      tagline: "Tenir la barre à un seul",
+      description:
+        "Tu jongles avec un revenu unique + les charges enfants. Budget serré mais épargne à protéger absolument pour la sécurité et l'avenir des enfants.",
+    };
+  }
+
+  if (hasChildren) {
+    return {
+      name: "Le Bâtisseur",
+      tagline: "Construire pour la famille",
+      description:
+        "Charges familiales élevées + horizon long. Tu réduis les envies pour prioriser l'épargne (études, imprévus). Approche pragmatique : chaque euro compte.",
+    };
+  }
+
+  if (isOwnerSenior) {
+    return {
+      name: "Le Sérénité",
+      tagline: "Récolter ce qui a été construit",
+      description:
+        "Crédit remboursé, charges légères. Plus de marge sur les plaisirs (voyages, projets) tout en gardant une bonne épargne pour la retraite et la transmission.",
+    };
+  }
+
+  if (isAccessor) {
+    return {
+      name: "Le Grimpeur",
+      tagline: "Monter vers ton toit",
+      description:
+        "La mensualité de crédit prend une part importante — c'est un effort temporaire pour construire ton patrimoine. Compresse les envies, garde l'épargne stable.",
+    };
+  }
+
+  if (isHighTMI) {
+    return {
+      name: "Le Stratège",
+      tagline: "Optimiser fiscalement",
+      description:
+        "Ta TMI te permet de défiscaliser : PER (économie d'impôt immédiate), PEA + AV (croissance long terme). Chaque euro épargné vaut plus qu'un euro brut.",
+    };
+  }
+
+  if (isYoungRenter && savingsLow) {
+    return {
+      name: "Le Débutant",
+      tagline: "Poser les fondations",
+      description:
+        "Ton loyer prend une part importante et tu débutes ta vie active. Priorité 1 : constituer 1 mois de dépenses sur Livret A. Priorité 2 : ouvrir PEA vide (l'ancienneté commence à courir).",
+    };
+  }
+
+  if (isYoungRenter) {
+    return {
+      name: "Le Sprinteur",
+      tagline: "Capitaliser sur ta jeunesse",
+      description:
+        "Tu as l'horizon long en atout majeur. Ouvre PEA + AV même vides pour prendre date, puis épargne agressivement dès que ta capacité le permet. Les intérêts composés font le reste.",
+    };
+  }
+
+  return {
+    name: "L'Équilibré",
+    tagline: "La règle classique",
+    description:
+      "Ta situation suit le repère 50/30/20 largement utilisé en finance perso. Un bon point de départ pour la plupart des profils — solide, adaptable.",
+  };
+}
+
 // Explique POURQUOI le mix est ce qu'il est, pour la modal d'info.
 // Renvoie 3 lignes explicatives (une par catégorie) + un reminder.
 export function explainBudgetSplit(p: UserProfile): {
   split: { besoins: number; envies: number; epargne: number };
   isPersonalized: boolean;
+  mix: BudgetMixProfile;
   besoinsReason: string;
   enviesReason: string;
   epargneReason: string;
@@ -205,6 +311,7 @@ export function explainBudgetSplit(p: UserProfile): {
   return {
     split,
     isPersonalized,
+    mix: getBudgetMixProfile(p),
     besoinsReason,
     enviesReason,
     epargneReason,
