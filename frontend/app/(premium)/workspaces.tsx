@@ -26,7 +26,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import {
@@ -62,6 +62,26 @@ const KIND_OPTIONS: { value: WorkspaceKind; label: string; icon: keyof typeof Fe
   { value: "coloc", label: "Colocation", icon: "home" },
   { value: "other", label: "Autre", icon: "more-horizontal" },
 ];
+
+// Suit la hauteur du clavier pour que les sheets flottent au-dessus
+// (même pattern que GoalEditor — KeyboardAvoidingView pousse les sheets
+// au-dessus de la status bar, on gère à la main).
+function useKeyboardHeight(): number {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvt, (e) => {
+      setHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvt, () => setHeight(0));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+  return height;
+}
 
 export default function WorkspacesScreen() {
   const { user } = useSession();
@@ -307,7 +327,7 @@ function CreateModal({
   onClose: () => void;
   onCreated: (ws: Workspace) => void;
 }) {
-  const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardHeight();
   const [name, setName] = useState("");
   const [kind, setKind] = useState<WorkspaceKind>("family");
   const [busy, setBusy] = useState(false);
@@ -339,7 +359,7 @@ function CreateModal({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, { paddingBottom: 36 }]}>
+        <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Nouveau workspace</Text>
@@ -353,7 +373,7 @@ function CreateModal({
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder="Famille Pizeuil, Coloc Bordeaux..."
+            placeholder="Nom de famille, Coloc Bordeaux..."
             placeholderTextColor={TEXT_3}
             autoFocus
           />
@@ -412,6 +432,7 @@ function JoinModal({
   onClose: () => void;
   onJoined: () => void;
 }) {
+  const keyboardHeight = useKeyboardHeight();
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -442,7 +463,7 @@ function JoinModal({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, { paddingBottom: 36 }]}>
+        <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Rejoindre un workspace</Text>
@@ -506,13 +527,15 @@ function WorkspaceDetailModal({
   onDeleted: () => void;
   onLeft: () => void;
 }) {
+  const keyboardHeight = useKeyboardHeight();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [pendingToken, setPendingToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const isOwner = workspace.owner_id === currentUserId;
-  const maxSheetHeight = Dimensions.get("window").height - 80;
+  const maxSheetHeight =
+    Dimensions.get("window").height - 80 - keyboardHeight;
 
   useEffect(() => {
     (async () => {
@@ -587,7 +610,7 @@ function WorkspaceDetailModal({
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, { maxHeight: maxSheetHeight }]}>
+        <View style={[styles.sheet, { maxHeight: maxSheetHeight, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{workspace.name}</Text>
