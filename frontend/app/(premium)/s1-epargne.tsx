@@ -65,7 +65,7 @@ function progressPct(goal: SavingsGoal): number {
 
 export default function S1Epargne() {
   const { user, loading: sessionLoading } = useSession();
-  const { workspaceId, loading: scopeLoading } = useActiveScope();
+  const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
   const [payload, setPayload] = useState<S1Payload>(EMPTY_S1_PAYLOAD);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -179,8 +179,28 @@ export default function S1Epargne() {
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
         <Text style={styles.title}>S1 · Épargne</Text>
-        <View style={{ width: 22 }} />
+        <TouchableOpacity
+          onPress={() => router.push("/(premium)/home" as never)}
+          hitSlop={10}
+        >
+          <Feather name="home" size={20} color={TEXT_2} />
+        </TouchableOpacity>
       </View>
+
+      {/* Badge de scope — on sait toujours dans quel espace on écrit */}
+      <TouchableOpacity
+        style={styles.scopeBadge}
+        onPress={() => router.push("/(premium)/workspaces" as never)}
+        activeOpacity={0.8}
+      >
+        <Feather
+          name={workspaceId ? "users" : "user"}
+          size={13}
+          color={GOLD}
+        />
+        <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
+        <Feather name="chevron-down" size={13} color={TEXT_3} />
+      </TouchableOpacity>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         {donutSegments.length > 0 ? (
@@ -317,6 +337,21 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: { color: TEXT_1, fontSize: 18, fontWeight: "600" },
+
+  scopeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginBottom: 10,
+  },
+  scopeBadgeText: { color: GOLD, fontSize: 12, fontWeight: "700" },
 
   totalCard: {
     padding: 20,

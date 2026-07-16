@@ -223,13 +223,29 @@ export async function saveS1(
 
 const EMPTY_PROFILE: UserProfile = {};
 
-export async function loadAdviceProfile(userId: string): Promise<UserProfile> {
-  return readPayload<UserProfile>("advice_profile", userId, EMPTY_PROFILE);
+// Profil advice scopé : le profil d'un workspace "couple" peut différer du
+// profil perso (ex: situation familiale du foyer vs individuelle).
+export async function loadAdviceProfile(
+  userId: string,
+  workspaceId: string | null = null,
+): Promise<UserProfile> {
+  return readPayload<UserProfile>(
+    "advice_profile",
+    userId,
+    EMPTY_PROFILE,
+    workspaceId,
+  );
 }
 
 export async function saveAdviceProfile(
   userId: string,
   profile: UserProfile,
+  workspaceId: string | null = null,
 ): Promise<{ ok: boolean; error?: string }> {
-  return writePayload<UserProfile>("advice_profile", userId, profile);
+  return writePayload<UserProfile>(
+    "advice_profile",
+    userId,
+    profile,
+    workspaceId,
+  );
 }

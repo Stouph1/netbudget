@@ -14,7 +14,6 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  FlatList,
   Keyboard,
   Modal,
   Platform,
@@ -104,8 +103,8 @@ export default function WorkspacesScreen() {
   }, [reload]);
 
   const onSwitchScope = useCallback(
-    async (id: string | null) => {
-      await setScope(id);
+    async (id: string | null, name?: string | null) => {
+      await setScope(id, name);
       // Feedback rapide
       Alert.alert(
         id ? "Workspace activé" : "Compte perso activé",
@@ -146,20 +145,37 @@ export default function WorkspacesScreen() {
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
         <Text style={styles.title}>Workspaces</Text>
-        <TouchableOpacity onPress={reload} hitSlop={10}>
-          <Feather name="refresh-cw" size={18} color={TEXT_2} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <TouchableOpacity onPress={reload} hitSlop={10}>
+            <Feather name="refresh-cw" size={18} color={TEXT_2} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(premium)/home" as never)}
+            hitSlop={10}
+          >
+            <Feather name="home" size={18} color={TEXT_2} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
-        <View style={styles.activeCard}>
-          <Text style={styles.activeLabel}>Scope actif</Text>
-          <Text style={styles.activeName}>{activeLabel}</Text>
-          <Text style={styles.activeHint}>
-            Tes données Premium (objectifs S1, provisions, etc.) sont
-            enregistrées dans ce scope.
-          </Text>
-        </View>
+        <TouchableOpacity
+          style={styles.activeCard}
+          onPress={() => router.push("/(premium)/s1-epargne" as never)}
+          activeOpacity={0.85}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.activeLabel}>Scope actif</Text>
+              <Text style={styles.activeName}>{activeLabel}</Text>
+              <Text style={styles.activeHint}>
+                Tes données Premium (objectifs S1, provisions, etc.) sont
+                enregistrées dans ce scope. Tape pour ouvrir S1 · Épargne.
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={22} color={TEXT_3} />
+          </View>
+        </TouchableOpacity>
 
         {/* Perso */}
         <ScopeCard
@@ -183,7 +199,7 @@ export default function WorkspacesScreen() {
               subtitle={KIND_OPTIONS.find((k) => k.value === ws.kind)?.label ?? ws.kind}
               icon={KIND_OPTIONS.find((k) => k.value === ws.kind)?.icon ?? "users"}
               active={activeId === ws.id}
-              onSwitch={() => onSwitchScope(ws.id)}
+              onSwitch={() => onSwitchScope(ws.id, ws.name)}
               onDetail={() => setDetailWs(ws)}
               isOwner={ws.owner_id === user.id}
             />
@@ -215,10 +231,9 @@ export default function WorkspacesScreen() {
         onCreated={async (ws) => {
           setCreateOpen(false);
           await reload();
-          Alert.alert(
-            "Workspace créé",
-            `"${ws.name}" est créé. Active-le pour y basculer, puis invite tes proches.`,
-          );
+          // Ouvre directement le détail : l'user peut inviter tout de suite
+          // et récupérer le code d'invitation à partager.
+          setDetailWs(ws);
         }}
       />
 

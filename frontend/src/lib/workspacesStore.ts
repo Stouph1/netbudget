@@ -4,6 +4,7 @@
 // Les payloads (S1, advice profile, etc.) ne sont PAS gérés ici — ils
 // vivent dans premiumStore.ts qui prend maintenant un workspaceId optionnel.
 
+import * as Crypto from "expo-crypto";
 import type {
   Workspace,
   WorkspaceInvite,
@@ -87,10 +88,10 @@ export async function leaveWorkspace(
 // ============================================================================
 
 // Génère un token opaque (256 bits base64url) pour l'invitation.
+// expo-crypto : source d'aléa native fiable, dispo aussi dans Expo Go
+// (globalThis.crypto.getRandomValues n'existe pas dans Expo Go → crash).
 function genInviteToken(): string {
-  // Web Crypto disponible sur RN via polyfill Expo
-  const bytes = new Uint8Array(32);
-  (globalThis as unknown as { crypto: Crypto }).crypto.getRandomValues(bytes);
+  const bytes = Crypto.getRandomBytes(32);
   let b64 = "";
   for (const b of bytes) b64 += String.fromCharCode(b);
   return globalThis.btoa(b64).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");

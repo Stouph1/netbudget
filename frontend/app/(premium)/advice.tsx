@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../../src/contexts/SessionContext";
+import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { allAdviceGrouped } from "../../src/lib/adviceEngine";
 import {
   loadAdviceProfile,
@@ -135,6 +136,7 @@ function currentWeekSeed(): number {
 
 export default function AdviceScreen() {
   const { user, loading: sessionLoading } = useSession();
+  const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
   const [profile, setProfile] = useState<UserProfile>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -157,18 +159,19 @@ export default function AdviceScreen() {
   }, []);
 
   useEffect(() => {
-    if (!user?.id) {
-      setLoading(false);
+    if (!user?.id || scopeLoading) {
+      if (!user?.id) setLoading(false);
       return;
     }
     (async () => {
-      const loaded = await loadAdviceProfile(user.id);
+      setLoading(true);
+      const loaded = await loadAdviceProfile(user.id, workspaceId);
       setProfile(loaded);
       // Onboarding forcé seulement si aucune info de base (age + family manquants)
       setEditing(!hasMinimumProfile(loaded));
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [user?.id, workspaceId, scopeLoading]);
 
   const grouped = useMemo(() => {
     if (!hasMinimumProfile(profile)) return [];
@@ -186,7 +189,7 @@ export default function AdviceScreen() {
     async (next: UserProfile) => {
       setProfile(next);
       if (!user?.id) return;
-      const result = await saveAdviceProfile(user.id, next);
+      const result = await saveAdviceProfile(user.id, next, workspaceId);
       if (!result.ok) {
         Alert.alert(
           "Sync",
@@ -194,7 +197,7 @@ export default function AdviceScreen() {
         );
       }
     },
-    [user?.id],
+    [user?.id, workspaceId],
   );
 
   function updateField<K extends keyof UserProfile>(
@@ -212,7 +215,7 @@ export default function AdviceScreen() {
     updateField("children", next);
   }
 
-  if (sessionLoading || loading) {
+  if (sessionLoading || scopeLoading || loading) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
@@ -258,6 +261,11 @@ export default function AdviceScreen() {
           </TouchableOpacity>
           <Text style={styles.title}>Ton profil</Text>
           <View style={{ width: 22 }} />
+        </View>
+
+        <View style={styles.scopeBadge}>
+          <Feather name={workspaceId ? "users" : "user"} size={13} color={GOLD} />
+          <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
         </View>
 
         <ScrollView
@@ -369,10 +377,29 @@ export default function AdviceScreen() {
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
         <Text style={styles.title}>Conseils personnalisés</Text>
-        <TouchableOpacity onPress={() => setEditing(true)} hitSlop={10}>
-          <Feather name="settings" size={20} color={TEXT_2} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <TouchableOpacity onPress={() => setEditing(true)} hitSlop={10}>
+            <Feather name="settings" size={20} color={TEXT_2} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(premium)/home" as never)}
+            hitSlop={10}
+          >
+            <Feather name="home" size={20} color={TEXT_2} />
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Badge de scope — le profil (et donc les conseils) sont scopés */}
+      <TouchableOpacity
+        style={styles.scopeBadge}
+        onPress={() => router.push("/(premium)/workspaces" as never)}
+        activeOpacity={0.8}
+      >
+        <Feather name={workspaceId ? "users" : "user"} size={13} color={GOLD} />
+        <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
+        <Feather name="chevron-down" size={13} color={TEXT_3} />
+      </TouchableOpacity>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         <View style={styles.profileTag}>
@@ -646,6 +673,21 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: { color: TEXT_1, fontSize: 18, fontWeight: "600" },
+
+  scopeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginBottom: 10,
+  },
+  scopeBadgeText: { color: GOLD, fontSize: 12, fontWeight: "700" },
 
   intro: {
     color: TEXT_2,

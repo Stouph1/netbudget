@@ -38,6 +38,7 @@ import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import { useSession } from "../src/contexts/SessionContext";
+import { useActiveScope } from "../src/hooks/useActiveScope";
 import {
   computeBudgetSplit,
   explainBudgetSplit,
@@ -467,16 +468,18 @@ export default function Index() {
 
   // Profil Premium (advice engine) — pour personnaliser le ratio budgétaire
   // (50/30/20 par défaut) dans l'en-tête du tab Budget. Null si free tier.
+  // Suit le scope actif : le mix du workspace "couple" peut différer du perso.
   const { user: premiumUser } = useSession();
+  const { workspaceId: activeWorkspaceId } = useActiveScope();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
   const reloadPremiumProfile = useCallback(async () => {
     if (!premiumUser?.id) {
       setPremiumProfile(null);
       return;
     }
-    const p = await loadAdviceProfile(premiumUser.id);
+    const p = await loadAdviceProfile(premiumUser.id, activeWorkspaceId);
     setPremiumProfile(p);
-  }, [premiumUser?.id]);
+  }, [premiumUser?.id, activeWorkspaceId]);
   useEffect(() => {
     reloadPremiumProfile();
   }, [reloadPremiumProfile]);
@@ -1724,8 +1727,18 @@ export default function Index() {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/premium-test" as never)}
+                onPress={() => router.push("/(premium)/home" as never)}
                 style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER }]}
+                activeOpacity={0.85}
+              >
+                <Feather name="home" size={18} color={GOLD} />
+                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
+                  Accueil Premium
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/premium-test" as never)}
+                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
                 activeOpacity={0.85}
               >
                 <Feather name="key" size={18} color={GOLD} />
