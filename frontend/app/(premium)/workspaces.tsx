@@ -26,8 +26,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Image } from "react-native";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
+import { pickAndUploadWorkspacePhoto } from "../../src/lib/photos";
 import {
   acceptInvite,
   createInvite,
@@ -198,6 +200,7 @@ export default function WorkspacesScreen() {
               name={ws.name}
               subtitle={KIND_OPTIONS.find((k) => k.value === ws.kind)?.label ?? ws.kind}
               icon={KIND_OPTIONS.find((k) => k.value === ws.kind)?.icon ?? "users"}
+              photoUrl={ws.photo_url}
               active={activeId === ws.id}
               onSwitch={() => onSwitchScope(ws.id, ws.name, ws.kind)}
               onDetail={() => setDetailWs(ws)}
@@ -275,6 +278,7 @@ function ScopeCard({
   name,
   subtitle,
   icon,
+  photoUrl,
   active,
   onSwitch,
   onDetail,
@@ -283,6 +287,7 @@ function ScopeCard({
   name: string;
   subtitle: string;
   icon: keyof typeof Feather.glyphMap;
+  photoUrl?: string | null;
   active: boolean;
   onSwitch: () => void;
   onDetail?: () => void;
@@ -291,7 +296,14 @@ function ScopeCard({
   return (
     <View style={[styles.scopeCard, active && styles.scopeCardActive]}>
       <View style={styles.scopeIconWrap}>
-        <Feather name={icon} size={20} color={active ? "#000" : GOLD} />
+        {photoUrl ? (
+          <Image
+            source={{ uri: photoUrl }}
+            style={{ width: 40, height: 40, borderRadius: 20 }}
+          />
+        ) : (
+          <Feather name={icon} size={20} color={active ? "#000" : GOLD} />
+        )}
       </View>
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -548,9 +560,30 @@ function WorkspaceDetailModal({
   const [inviteEmail, setInviteEmail] = useState("");
   const [pendingToken, setPendingToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(
+    workspace.photo_url ?? null,
+  );
+  const [busyPhoto, setBusyPhoto] = useState(false);
   const isOwner = workspace.owner_id === currentUserId;
   const maxSheetHeight =
     Dimensions.get("window").height - 80 - keyboardHeight;
+
+  async function changePhoto() {
+    if (!isOwner) return;
+    setBusyPhoto(true);
+    const result = await pickAndUploadWorkspacePhoto(workspace.id);
+    setBusyPhoto(false);
+    if (result.ok) {
+      setPhotoUrl(result.url);
+    } else if (result.reason === "permission") {
+      Alert.alert(
+        "Photos",
+        "Autorise l'accès à tes photos dans les réglages du téléphone.",
+      );
+    } else if (result.reason === "error") {
+      Alert.alert("Upload échoué", result.message ?? "Erreur inconnue");
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -628,7 +661,31 @@ function WorkspaceDetailModal({
         <View style={[styles.sheet, { maxHeight: maxSheetHeight, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{workspace.name}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+              <TouchableOpacity
+                onPress={changePhoto}
+                activeOpacity={isOwner ? 0.8 : 1}
+                disabled={!isOwner || busyPhoto}
+              >
+                <View style={styles.wsPhoto}>
+                  {busyPhoto ? (
+                    <ActivityIndicator color={GOLD} size="small" />
+                  ) : photoUrl ? (
+                    <Image source={{ uri: photoUrl }} style={styles.wsPhotoImg} />
+                  ) : (
+                    <Feather name="image" size={18} color={TEXT_3} />
+                  )}
+                  {isOwner ? (
+                    <View style={styles.wsPhotoEditBadge}>
+                      <Feather name="camera" size={9} color="#000" />
+                    </View>
+                  ) : null}
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.sheetTitle} numberOfLines={1}>
+                {workspace.name}
+              </Text>
+            </View>
             <TouchableOpacity onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
@@ -865,7 +922,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 16,
   },
-  sheetTitle: { color: TEXT_1, fontSize: 18, fontWeight: "600" },
+  sheetTitle: { color: TEXT_1, fontSize: 18, fontWeight: "600", flexShrink: 1 },
+
+  wsPhoto: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  wsPhotoImg: { width: 40, height: 40, borderRadius: 20 },
+  wsPhotoEditBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: GOLD,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: MIDNIGHT,
+  },
   sheetIntro: { color: TEXT_2, fontSize: 13, lineHeight: 20, marginBottom: 8 },
 
   label: {

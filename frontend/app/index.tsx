@@ -37,6 +37,7 @@ import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
+import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import { useSession } from "../src/contexts/SessionContext";
 import { useActiveScope } from "../src/hooks/useActiveScope";
 import {
@@ -263,8 +264,8 @@ export default function Index() {
   // Les 3 onglets sont rendus en rangée horizontale ; on translate le container
   // pour suivre le doigt en temps réel (style Instagram/Twitter), puis on snap
   // au plus proche au relâchement.
-  type Tab = "settings" | "budget" | "converter";
-  const TAB_ORDER: Tab[] = ["settings", "budget", "converter"];
+  type Tab = "settings" | "budget" | "converter" | "premium";
+  const TAB_ORDER: Tab[] = ["settings", "budget", "converter", "premium"];
   const [tab, setTab] = useState<Tab>("budget");
 
   const screenW = Dimensions.get("window").width;
@@ -1046,7 +1047,7 @@ export default function Index() {
         style={{ flex: 1 }}
       >
         <GestureDetector gesture={swipeGesture}>
-        <Animated.View style={[{ flex: 1, width: screenW * 3, flexDirection: "row" }, swipeAnimStyle]}>
+        <Animated.View style={[{ flex: 1, width: screenW * 4, flexDirection: "row" }, swipeAnimStyle]}>
         <View style={{ width: screenW, position: "absolute", left: screenW, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
@@ -1727,18 +1728,8 @@ export default function Index() {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/(premium)/home" as never)}
-                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER }]}
-                activeOpacity={0.85}
-              >
-                <Feather name="home" size={18} color={GOLD} />
-                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
-                  Accueil Premium
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
                 onPress={() => router.push("/premium-test" as never)}
-                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
+                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER }]}
                 activeOpacity={0.85}
               >
                 <Feather name="key" size={18} color={GOLD} />
@@ -1794,6 +1785,17 @@ export default function Index() {
           </Section>
           <View style={{ height: 40 }} />
         </ScrollView>
+        </View>
+
+        {/* ====== Premium / Profil tab (style Instagram : tout à droite) ====== */}
+        <View style={{ width: screenW, position: "absolute", left: screenW * 3, top: 0, bottom: 0 }}>
+          <View style={[styles.header, { paddingHorizontal: 20 }]}>
+            <View>
+              <Text style={styles.eyebrow}>{t("tab.premium")}</Text>
+              <Text style={styles.title}>NETbudget</Text>
+            </View>
+          </View>
+          <PremiumHomePanel onGoBudget={() => setTab("budget")} />
         </View>
         </Animated.View>
         </GestureDetector>
@@ -1982,6 +1984,7 @@ export default function Index() {
           { key: "settings", icon: "settings" },
           { key: "budget", icon: "pie-chart" },
           { key: "converter", icon: "refresh-cw" },
+          { key: "premium", icon: "user" },
         ] as { key: Tab; icon: keyof typeof Feather.glyphMap }[]).map((it) => {
           const active = tab === it.key;
           return (

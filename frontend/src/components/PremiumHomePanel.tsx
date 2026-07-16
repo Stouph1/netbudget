@@ -1,0 +1,438 @@
+// Panel "Profil / Accueil Premium" — contenu partagé entre :
+//  - le 4e onglet de la tab bar (index.tsx, style Instagram : profil à droite)
+//  - la route /(premium)/home (icônes maison des écrans Premium)
+//
+// Deux états :
+//  - Non connecté → écran de connexion façon TikTok : l'app marche sans compte,
+//    le compte sert aux features Premium (sync, workspaces, conseils).
+//  - Connecté → profil (avatar photo uploadable), scope actif, overview S1,
+//    tuiles de navigation.
+
+import { Feather } from "@expo/vector-icons";
+import * as AppleAuthentication from "expo-apple-authentication";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSession } from "../contexts/SessionContext";
+import { useActiveScope } from "../hooks/useActiveScope";
+import { signInWithApple, signOut } from "../lib/auth";
+import { loadAvatarUrl, pickAndUploadAvatar } from "../lib/photos";
+import { loadS1 } from "../lib/premiumStore";
+import type { S1Payload } from "../types/premium";
+
+const MIDNIGHT = "#0F172A";
+const SURFACE = "#1A2238";
+const SURFACE_2 = "#0F1B33";
+const TEXT_1 = "#FFFFFF";
+const TEXT_2 = "#94A3B8";
+const TEXT_3 = "#64748B";
+const GOLD = "#4ADE80";
+const MINT = "#10B981";
+const BORDER = "rgba(255,255,255,0.08)";
+const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
+
+function formatEuro(n: number): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+type Props = {
+  // Naviguer vers le tab Budget (depuis le tab: setTab; depuis la route: back)
+  onGoBudget?: () => void;
+};
+
+export default function PremiumHomePanel({ onGoBudget }: Props) {
+  const { user, loading: sessionLoading } = useSession();
+  const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
+  const [s1, setS1] = useState<S1Payload | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [busyAvatar, setBusyAvatar] = useState(false);
+  const [busyAuth, setBusyAuth] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id || scopeLoading) return;
+      let cancelled = false;
+      (async () => {
+        const [payload, url] = await Promise.all([
+          loadS1(user.id, workspaceId),
+          loadAvatarUrl(user.id),
+        ]);
+        if (!cancelled) {
+          setS1(payload);
+          setAvatarUrl(url);
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [user?.id, workspaceId, scopeLoading]),
+  );
+
+  const changeAvatar = useCallback(async () => {
+    if (!user?.id) return;
+    setBusyAvatar(true);
+    const result = await pickAndUploadAvatar(user.id);
+    setBusyAvatar(false);
+    if (result.ok) {
+      setAvatarUrl(result.url);
+    } else if (result.reason === "permission") {
+      Alert.alert(
+        "Photos",
+        "Autorise l'accès à tes photos dans les réglages du téléphone.",
+      );
+    } else if (result.reason === "error") {
+      Alert.alert("Upload échoué", result.message ?? "Erreur inconnue");
+    }
+  }, [user?.id]);
+
+  async function handleApple() {
+    setBusyAuth(true);
+    const result = await signInWithApple();
+    setBusyAuth(false);
+    if (!result.ok && result.reason !== "cancelled") {
+      Alert.alert("Connexion", result.message ?? result.reason);
+    }
+  }
+
+  if (sessionLoading || scopeLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={GOLD} />
+      </View>
+    );
+  }
+
+  // ==========================================================================
+  // Non connecté — sign-in optionnel façon TikTok
+  // ==========================================================================
+  if (!user) {
+    return (
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
+        <View style={styles.signinHero}>
+          <View style={styles.signinIconWrap}>
+            <Feather name="user" size={36} color={GOLD} />
+          </View>
+          <Text style={styles.signinTitle}>Ton espace NetBudget</Text>
+          <Text style={styles.signinBody}>
+            Pas besoin de compte pour utiliser NetBudget — ton budget reste
+            100% sur ton téléphone.
+          </Text>
+          <Text style={[styles.signinBody, { marginTop: 10 }]}>
+            Un compte débloque les fonctions Premium : synchronisation
+            chiffrée, budgets partagés en couple ou en famille, et conseils
+            personnalisés.
+          </Text>
+
+          {Platform.OS === "ios" ? (
+            busyAuth ? (
+              <View style={{ height: 52, marginTop: 24, justifyContent: "center" }}>
+                <ActivityIndicator color={GOLD} />
+              </View>
+            ) : (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={
+                  AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
+                }
+                buttonStyle={
+                  AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                }
+                cornerRadius={12}
+                style={{ width: "100%", height: 52, marginTop: 24 }}
+                onPress={handleApple}
+              />
+            )
+          ) : (
+            <Text style={[styles.signinBody, { marginTop: 24, fontStyle: "italic" }]}>
+              La connexion Google arrive bientôt sur Android.
+            </Text>
+          )}
+
+          <Text style={styles.signinFootnote}>
+            Gratuit pendant le développement. Aucune donnée n'est partagée sans
+            ton accord.
+          </Text>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  // ==========================================================================
+  // Connecté — profil + overview + navigation
+  // ==========================================================================
+  const activeGoals = s1?.goals.filter((g) => !g.extraP) ?? [];
+  const target = activeGoals.reduce((s, g) => s + g.targetAmount, 0);
+  const current = activeGoals.reduce((s, g) => s + g.currentAmount, 0);
+  const pct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
+
+  return (
+    <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
+      {/* Profil */}
+      <View style={styles.profileCard}>
+        <TouchableOpacity
+          onPress={changeAvatar}
+          activeOpacity={0.8}
+          disabled={busyAvatar}
+        >
+          <View style={styles.avatar}>
+            {busyAvatar ? (
+              <ActivityIndicator color={GOLD} />
+            ) : avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatarImg} />
+            ) : (
+              <Feather name="user" size={26} color={GOLD} />
+            )}
+            <View style={styles.avatarEditBadge}>
+              <Feather name="camera" size={10} color="#000" />
+            </View>
+          </View>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.profileEmail} numberOfLines={1}>
+            {user.email ?? "email masqué"}
+          </Text>
+          <TouchableOpacity
+            style={styles.scopeInline}
+            onPress={() => router.push("/(premium)/workspaces" as never)}
+            activeOpacity={0.8}
+          >
+            <Feather
+              name={workspaceId ? "users" : "user"}
+              size={12}
+              color={GOLD}
+            />
+            <Text style={styles.scopeInlineText}>{scopeLabel}</Text>
+            <Feather name="chevron-down" size={12} color={TEXT_3} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          onPress={() =>
+            Alert.alert("Déconnexion", "Te déconnecter de ton compte ?", [
+              { text: "Annuler", style: "cancel" },
+              { text: "Déconnexion", style: "destructive", onPress: () => signOut() },
+            ])
+          }
+          hitSlop={10}
+        >
+          <Feather name="log-out" size={18} color={TEXT_3} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Overview S1 */}
+      <TouchableOpacity
+        style={styles.overviewCard}
+        onPress={() => router.push("/(premium)/s1-epargne" as never)}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.overviewLabel}>Épargne · {scopeLabel}</Text>
+        <View style={styles.overviewRow}>
+          <Text style={styles.overviewCurrent}>{formatEuro(current)}</Text>
+          <Text style={styles.overviewTarget}>/ {formatEuro(target)}</Text>
+        </View>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressBarFill, { width: `${pct}%` }]} />
+        </View>
+        <Text style={styles.overviewMeta}>
+          {activeGoals.length} objectif{activeGoals.length > 1 ? "s" : ""} ·{" "}
+          {pct.toFixed(0)}%
+        </Text>
+      </TouchableOpacity>
+
+      {/* Tuiles navigation */}
+      <View style={styles.tilesRow}>
+        <Tile
+          icon="target"
+          label="S1 · Épargne"
+          onPress={() => router.push("/(premium)/s1-epargne" as never)}
+        />
+        <Tile
+          icon="compass"
+          label="Conseils"
+          onPress={() => router.push("/(premium)/advice" as never)}
+        />
+      </View>
+      <View style={styles.tilesRow}>
+        <Tile
+          icon="users"
+          label="Workspaces"
+          onPress={() => router.push("/(premium)/workspaces" as never)}
+        />
+        <Tile
+          icon="pie-chart"
+          label="Budget"
+          onPress={() => (onGoBudget ? onGoBudget() : router.back())}
+        />
+      </View>
+    </ScrollView>
+  );
+}
+
+function Tile({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof Feather.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.85}>
+      <Feather name={icon} size={22} color={GOLD} />
+      <Text style={styles.tileLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+
+  signinHero: {
+    alignItems: "center",
+    padding: 24,
+    backgroundColor: SURFACE,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginTop: 20,
+  },
+  signinIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: SURFACE_2,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  signinTitle: {
+    color: TEXT_1,
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  signinBody: {
+    color: TEXT_2,
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: "center",
+  },
+  signinFootnote: {
+    color: TEXT_3,
+    fontSize: 11,
+    marginTop: 16,
+    textAlign: "center",
+    lineHeight: 16,
+  },
+
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 16,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: SURFACE_2,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  avatarImg: { width: 56, height: 56, borderRadius: 28 },
+  avatarEditBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: GOLD,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: MIDNIGHT,
+  },
+  profileEmail: { color: TEXT_1, fontSize: 14, fontWeight: "600" },
+  scopeInline: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+    alignSelf: "flex-start",
+  },
+  scopeInlineText: { color: GOLD, fontSize: 12, fontWeight: "700" },
+
+  overviewCard: {
+    padding: 20,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginBottom: 16,
+  },
+  overviewLabel: {
+    color: TEXT_2,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  overviewRow: { flexDirection: "row", alignItems: "flex-end", marginTop: 8 },
+  overviewCurrent: {
+    color: TEXT_1,
+    fontSize: 28,
+    fontWeight: "700",
+    fontFamily: MONO_FONT,
+  },
+  overviewTarget: {
+    color: TEXT_3,
+    fontSize: 16,
+    marginLeft: 8,
+    marginBottom: 3,
+    fontFamily: MONO_FONT,
+  },
+  overviewMeta: { color: TEXT_2, fontSize: 12, marginTop: 8 },
+  progressBar: {
+    marginTop: 12,
+    height: 6,
+    backgroundColor: SURFACE_2,
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  progressBarFill: { height: "100%", backgroundColor: MINT },
+
+  tilesRow: { flexDirection: "row", gap: 12, marginBottom: 12 },
+  tile: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 22,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  tileLabel: { color: TEXT_1, fontSize: 13, fontWeight: "600" },
+});
