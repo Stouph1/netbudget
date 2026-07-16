@@ -1613,7 +1613,11 @@ export default function Index() {
               testID="open-currency-picker"
               activeOpacity={0.85}
             >
-              <Text style={[styles.currencyFlag, { marginRight: 12 }]}>{getCurrency(currency).flag}</Text>
+              <View style={[styles.currencySymbolBig, { marginRight: 12 }]}>
+                <Text style={styles.currencySymbolBigText}>
+                  {getCurrency(currency).symbol}
+                </Text>
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.inputLabel}>{getCurrency(currency).code}</Text>
                 <Text style={styles.inputValue}>{getCurrency(currency).name}</Text>
@@ -1703,6 +1707,22 @@ export default function Index() {
 
           {__DEV__ ? (
             <Section title="Premium (DEV)">
+              <View style={[styles.toggleRow, { marginBottom: 8 }]}>
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: premiumUser ? SUCCESS : TEXT_3,
+                    marginRight: 10,
+                  }}
+                />
+                <Text style={[styles.toggleLabel, { flex: 1 }]} numberOfLines={1}>
+                  {premiumUser
+                    ? `Connecté · ${premiumUser.email ?? "email masqué"}`
+                    : "Non connecté"}
+                </Text>
+              </View>
               <TouchableOpacity
                 onPress={() => router.push("/premium-test" as never)}
                 style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER }]}
@@ -1821,13 +1841,12 @@ export default function Index() {
                     testID={`conv-currency-${c.code}`}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.currencyFlag}>{c.flag}</Text>
+                    <View style={[styles.currencySymbolBig, { marginRight: 12 }]}>
+                      <Text style={styles.currencySymbolBigText}>{c.symbol}</Text>
+                    </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.currencyName}>{c.name}</Text>
-                      <Text style={styles.currencyMeta}>{c.code}</Text>
-                    </View>
-                    <View style={styles.currencySymbol}>
-                      <Text style={styles.currencySymbolText}>{c.symbol}</Text>
+                      <Text style={styles.currencyMeta}>{c.flag} {c.code}</Text>
                     </View>
                     {active && (
                       <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />
@@ -1928,13 +1947,12 @@ export default function Index() {
                     testID={`currency-option-${c.code}`}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.currencyFlag}>{c.flag}</Text>
+                    <View style={[styles.currencySymbolBig, { marginRight: 12 }]}>
+                      <Text style={styles.currencySymbolBigText}>{c.symbol}</Text>
+                    </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.currencyName}>{c.name}</Text>
-                      <Text style={styles.currencyMeta}>{c.code}</Text>
-                    </View>
-                    <View style={styles.currencySymbol}>
-                      <Text style={styles.currencySymbolText}>{c.symbol}</Text>
+                      <Text style={styles.currencyMeta}>{c.flag} {c.code}</Text>
                     </View>
                     {active && <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />}
                   </TouchableOpacity>
@@ -3057,6 +3075,17 @@ const styles = StyleSheet.create({
     borderRadius: 10, minWidth: 50, alignItems: "center",
   },
   currencySymbolText: { color: GOLD, fontSize: 13, fontWeight: "700" },
+  currencySymbolBig: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  currencySymbolBigText: { color: GOLD, fontSize: 18, fontWeight: "800" },
 
   convResultBox: {
     backgroundColor: SURFACE, borderRadius: 16,
