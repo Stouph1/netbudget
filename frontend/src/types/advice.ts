@@ -42,6 +42,11 @@ export type SavingsCapacity =
   | "800_2000"
   | "2000_plus";
 
+// Type du workspace actif — injecté automatiquement par l'app (pas demandé
+// dans l'onboarding). Permet aux conseils "budget à plusieurs" de matcher
+// selon le contexte : un workspace "couple" → conseils compte joint, etc.
+export type WorkspaceKindForAdvice = "couple" | "family" | "coloc" | "other";
+
 export type UserProfile = {
   age?: AgeBracket;
   family?: FamilyStatus;
@@ -53,6 +58,7 @@ export type UserProfile = {
   hasEmergencyFund?: boolean;
   children?: ChildAgeBracket[];      // multi-select des tranches d'âge
   monthlySavingsCapacity?: SavingsCapacity;
+  workspaceKind?: WorkspaceKindForAdvice | null; // null/undefined = compte perso
 };
 
 // ============================================================================
@@ -82,7 +88,8 @@ export type AdviceCategory =
   | "housing"         // → Immobilier
   | "kids"            // → Enfants
   | "inheritance"     // → Transmission
-  | "insurance";      // → Prévoyance
+  | "insurance"       // → Prévoyance
+  | "shared";         // → Budget à plusieurs (couple / famille / coloc)
 
 // Regroupement UI par thème visible pour l'user.
 export type AdviceGroup = {
@@ -93,6 +100,12 @@ export type AdviceGroup = {
 };
 
 export const ADVICE_GROUPS: AdviceGroup[] = [
+  {
+    key: "shared",
+    label: "Budget à plusieurs",
+    icon: "users",
+    categories: ["shared"],
+  },
   {
     key: "budget",
     label: "Budget & Épargne",

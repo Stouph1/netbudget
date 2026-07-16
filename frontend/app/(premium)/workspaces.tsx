@@ -103,8 +103,8 @@ export default function WorkspacesScreen() {
   }, [reload]);
 
   const onSwitchScope = useCallback(
-    async (id: string | null, name?: string | null) => {
-      await setScope(id, name);
+    async (id: string | null, name?: string | null, kind?: WorkspaceKind | null) => {
+      await setScope(id, name, kind);
       // Feedback rapide
       Alert.alert(
         id ? "Workspace activé" : "Compte perso activé",
@@ -199,7 +199,7 @@ export default function WorkspacesScreen() {
               subtitle={KIND_OPTIONS.find((k) => k.value === ws.kind)?.label ?? ws.kind}
               icon={KIND_OPTIONS.find((k) => k.value === ws.kind)?.icon ?? "users"}
               active={activeId === ws.id}
-              onSwitch={() => onSwitchScope(ws.id, ws.name)}
+              onSwitch={() => onSwitchScope(ws.id, ws.name, ws.kind)}
               onDetail={() => setDetailWs(ws)}
               isOwner={ws.owner_id === user.id}
             />

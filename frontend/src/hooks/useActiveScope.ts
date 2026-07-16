@@ -11,10 +11,20 @@ const STORAGE_KEY = "netbudget:premium:activeScope";
 // Ancienne clé (v1 : juste l'id) — lue en fallback puis migrée.
 const LEGACY_KEY = "netbudget:premium:activeWorkspaceId";
 
-type StoredScope = { id: string | null; name: string | null };
+export type ScopeKind = "couple" | "family" | "coloc" | "other";
+
+type StoredScope = {
+  id: string | null;
+  name: string | null;
+  kind: ScopeKind | null;
+};
 
 export function useActiveScope() {
-  const [scope, setScopeState] = useState<StoredScope>({ id: null, name: null });
+  const [scope, setScopeState] = useState<StoredScope>({
+    id: null,
+    name: null,
+    kind: null,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,16 +32,19 @@ export function useActiveScope() {
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
-          setScopeState(JSON.parse(raw) as StoredScope);
+          const parsed = JSON.parse(raw) as Partial<StoredScope>;
+          setScopeState({
+            id: parsed.id ?? null,
+            name: parsed.name ?? null,
+            kind: parsed.kind ?? null,
+          });
         } else {
           // Migration depuis la v1 (id seul, pas de nom)
           const legacy = await AsyncStorage.getItem(LEGACY_KEY);
           if (legacy) {
-            setScopeState({ id: legacy, name: null });
-            await AsyncStorage.setItem(
-              STORAGE_KEY,
-              JSON.stringify({ id: legacy, name: null }),
-            );
+            const migrated: StoredScope = { id: legacy, name: null, kind: null };
+            setScopeState(migrated);
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
             await AsyncStorage.removeItem(LEGACY_KEY);
           }
         }
@@ -40,17 +53,25 @@ export function useActiveScope() {
     })();
   }, []);
 
-  const setScope = useCallback(async (id: string | null, name?: string | null) => {
-    const next: StoredScope = { id, name: id ? (name ?? null) : null };
-    setScopeState(next);
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {}
-  }, []);
+  const setScope = useCallback(
+    async (id: string | null, name?: string | null, kind?: ScopeKind | null) => {
+      const next: StoredScope = {
+        id,
+        name: id ? (name ?? null) : null,
+        kind: id ? (kind ?? null) : null,
+      };
+      setScopeState(next);
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+    },
+    [],
+  );
 
   return {
     workspaceId: scope.id,
     workspaceName: scope.name,
+    workspaceKind: scope.kind,
     // Libellé prêt à afficher dans un badge de scope
     scopeLabel: scope.id ? (scope.name ?? "Workspace") : "Perso",
     setScope,

@@ -136,13 +136,19 @@ function currentWeekSeed(): number {
 
 export default function AdviceScreen() {
   const { user, loading: sessionLoading } = useSession();
-  const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
+  const {
+    workspaceId,
+    workspaceKind,
+    scopeLabel,
+    loading: scopeLoading,
+  } = useActiveScope();
   const [profile, setProfile] = useState<UserProfile>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  // Set des group.key expanded. Par défaut, seule la 1re catégorie est ouverte.
+  // Set des group.key expanded. Par défaut : Budget & Épargne + Budget à
+  // plusieurs (ce dernier n'apparaît que dans un workspace).
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(["budget"]),
+    new Set(["budget", "shared"]),
   );
 
   const toggleGroup = useCallback((key: string) => {
@@ -175,8 +181,10 @@ export default function AdviceScreen() {
 
   const grouped = useMemo(() => {
     if (!hasMinimumProfile(profile)) return [];
-    return allAdviceGrouped(profile);
-  }, [profile]);
+    // Injecte le type du workspace actif dans le profil de matching :
+    // les conseils "Budget à plusieurs" ne s'affichent que dans le bon contexte.
+    return allAdviceGrouped({ ...profile, workspaceKind });
+  }, [profile, workspaceKind]);
 
   const completeness = profileCompleteness(profile);
 

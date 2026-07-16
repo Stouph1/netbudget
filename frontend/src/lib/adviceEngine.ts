@@ -56,6 +56,14 @@ const and =
   (p) =>
     preds.every((f) => f(p));
 
+// Matche si le scope actif est un workspace d'un de ces types.
+// (workspaceKind est injecté par l'app depuis le scope actif — pas demandé
+// dans l'onboarding.)
+const inWorkspace =
+  (...kinds: NonNullable<UserProfile["workspaceKind"]>[]): AdvicePredicate =>
+  (p) =>
+    !!p.workspaceKind && kinds.includes(p.workspaceKind);
+
 // ============================================================================
 // Répartition budgétaire personnalisée (adaptée du 50/30/20 selon profil).
 // Heuristique v1 — à raffiner via deep-research en v1.1.
@@ -860,6 +868,230 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ],
     sources: ["https://www.legifrance.gouv.fr (art. 990 I & 757 B CGI)"],
     lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // BUDGET À PLUSIEURS (workspace couple / famille / coloc)
+  // Corpus v3 — deep-research 2026-07-16, sources primaires gouv vérifiées 3-0.
+  // ==========================================================================
+  {
+    id: "shared-compte-joint-solidarite",
+    category: "shared",
+    title: "Compte joint : chacun doit 100% du découvert",
+    body:
+      "Sur un compte joint, les cotitulaires sont solidairement responsables du solde débiteur : la banque peut réclamer la totalité de la dette à n'importe lequel, même s'il n'est pas à l'origine du paiement. Limite le compte joint aux dépenses communes.",
+    action: {
+      label: "Fixer un plafond d'alimentation mensuel du compte joint",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
+    },
+    appliesWhen: inWorkspace("couple", "family", "coloc"),
+    priority: 88,
+    figures: [
+      { label: "Dette exigible par cotitulaire", value: "100%" },
+      { label: "Qui a causé l'incident", value: "Sans effet" },
+    ],
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
+      "https://www.economie.gouv.fr/particuliers/differences-compte-individuel-compte-joint-compte-indivis",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-dettes-menage-art220",
+    category: "shared",
+    title: "Dettes du ménage : solidarité automatique si mariés/pacsés",
+    body:
+      "L'article 220 du Code civil (515-4 pour le PACS) rend chaque époux/partenaire solidaire des dettes du ménage contractées par l'autre seul. Exceptions : dépenses manifestement excessives, achats à tempérament et emprunts non signés à deux. Les concubins n'ont aucun devoir légal l'un envers l'autre.",
+    action: { label: "Signer à deux tout crédit ou achat à tempérament significatif" },
+    appliesWhen: inWorkspace("couple", "family"),
+    priority: 82,
+    figures: [
+      { label: "Base légale", value: "art. 220 & 515-4 C. civ." },
+      { label: "Concubins", value: "0 solidarité légale" },
+    ],
+    sources: [
+      "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000028748098",
+      "https://www.notaires.fr/fr/article/mariage-pacs-et-concubinage-elements-de-comparaison",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-prorata-modele-legal",
+    category: "shared",
+    title: "Répartition au prorata : le modèle prévu par la loi",
+    body:
+      "Époux et partenaires de PACS contribuent aux charges du ménage proportionnellement à leurs facultés respectives (art. 214 et 515-4 C. civ.). Le prorata des revenus est l'ancrage légal — le 50/50 n'est qu'une convention. Exemple : revenus 3 000 € et 2 000 € → clé 60/40.",
+    action: { label: "Calculer ta clé : ton revenu ÷ revenus cumulés du couple" },
+    appliesWhen: inWorkspace("couple", "family"),
+    priority: 80,
+    figures: [
+      { label: "Base légale", value: "art. 214 C. civ." },
+      { label: "Exemple 3000/2000 €", value: "clé 60/40" },
+    ],
+    sources: [
+      "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006439780",
+      "https://www.notaires.fr/fr/article/mariage-pacs-et-concubinage-elements-de-comparaison",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-cheque-responsable-unique",
+    category: "shared",
+    title: "Chèque sans provision : désignez un responsable unique",
+    body:
+      "Un chèque rejeté sur un compte joint entraîne l'interdiction bancaire de CHAQUE cotitulaire sur TOUS ses comptes — sauf si un responsable unique a été désigné par écrit (art. L131-80 CMF) : l'interdiction ne frappe alors que lui. Modèle de lettre officiel R20791 sur service-public.",
+    action: {
+      label: "Désigner un responsable unique dès l'ouverture du compte",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
+    },
+    appliesWhen: inWorkspace("couple", "family", "coloc"),
+    priority: 70,
+    figures: [
+      { label: "Interdiction max", value: "5 ans" },
+      { label: "Sans désignation", value: "tous les comptes de chacun" },
+    ],
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F2812",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-livret-a-individuel",
+    category: "shared",
+    title: "Pas de Livret A commun — mais 2 Livrets A = 45 900 €",
+    body:
+      "L'épargne réglementée (Livret A, LDDS, LEP, PEL, CEL, PEA) est strictement individuelle : jamais de compte joint possible. En couple, ouvrez chacun le vôtre pour doubler le plafond. Seuls les comptes courants, livrets bancaires, comptes-titres et comptes à terme peuvent être joints.",
+    action: { label: "Ouvrir un Livret A par partenaire" },
+    appliesWhen: inWorkspace("couple", "family"),
+    priority: 74,
+    figures: [
+      { label: "Plafond couple (2 Livrets A)", value: "45 900 €" },
+      { label: "Livret A par personne", value: "1 max" },
+    ],
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F2365",
+      "https://www.banque-france.fr/fr/a-votre-service/particuliers/connaitre-pratiques-bancaires-assurance/epargne/livret-a",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-separation-compte-joint",
+    category: "shared",
+    title: "Séparation : le compte joint ne se ferme pas tout seul",
+    body:
+      "Divorce ou séparation ne clôturent PAS le compte joint — sans démarche, la solidarité sur le découvert continue. Un seul cotitulaire peut se désolidariser par lettre recommandée avec AR à la banque et aux autres cotitulaires (le compte devient indivis, à double signature).",
+    action: {
+      label: "Envoyer une dénonciation en recommandé dès la séparation",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
+    },
+    appliesWhen: inWorkspace("couple", "family"),
+    priority: 60,
+    figures: [
+      { label: "Clôture automatique", value: "Aucune" },
+      { label: "Désolidarisation", value: "1 lettre AR suffit" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F10412"],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-declaration-commune",
+    category: "shared",
+    title: "Mariage ou PACS = 1 déclaration, 2 parts",
+    body:
+      "Couples mariés/pacsés : déclaration commune unique et 2 parts de quotient conjugal. L'année de l'union uniquement, option irrévocable pour 2 déclarations séparées (indisponible si vous étiez déjà pacsés). Concubins : déclarations séparées, non solidaires de l'impôt sur le revenu.",
+    action: {
+      label: "Simuler les deux options l'année du mariage/PACS",
+      link: "https://www.impots.gouv.fr/particulier/mariage-et-impots-en-commun",
+    },
+    appliesWhen: inWorkspace("couple", "family"),
+    priority: 72,
+    figures: [
+      { label: "Parts fiscales", value: "2" },
+      { label: "Option année union", value: "1 seule fois" },
+    ],
+    sources: [
+      "https://www.impots.gouv.fr/particulier/mariage-et-impots-en-commun",
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-donation-concubin-60pct",
+    category: "shared",
+    title: "Donation au concubin : 60% de taxes",
+    body:
+      "Entre époux ou partenaires de PACS : abattement de 80 724 € puis barème progressif 5-45%. Entre concubins : taxation à 60% sans aucun abattement. Attention : l'abattement PACS est repris rétroactivement si le PACS est dissous l'année de la donation ou la suivante (sauf mariage ou décès).",
+    action: { label: "Envisager le PACS avant toute donation significative" },
+    appliesWhen: inWorkspace("couple"),
+    priority: 64,
+    figures: [
+      { label: "Abattement mariés/pacsés", value: "80 724 €" },
+      { label: "Concubins", value: "60% sans abattement" },
+    ],
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F14203",
+      "https://www.notaires.fr/fr/article/mariage-pacs-et-concubinage-elements-de-comparaison",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-succession-concubin",
+    category: "shared",
+    title: "Succession : le concubin paie 60%, le conjoint 0%",
+    body:
+      "Le conjoint marié et le partenaire de PACS désigné par testament sont totalement exonérés de droits de succession. Le concubin est taxé à 60% après seulement 1 594 € d'abattement. PACS et concubin n'héritent QUE par testament — seul le mariage donne un droit successoral automatique.",
+    action: { label: "Rédiger un testament si pacsé ou concubin + vérifier la clause bénéficiaire AV" },
+    appliesWhen: inWorkspace("couple", "family"),
+    priority: 68,
+    figures: [
+      { label: "Conjoint / PACS testamentaire", value: "0%" },
+      { label: "Concubin", value: "60% après 1 594 €" },
+    ],
+    sources: [
+      "https://www.notaires.fr/fr/article/mariage-pacs-et-concubinage-elements-de-comparaison",
+    ],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-quotient-familial-1807",
+    category: "shared",
+    title: "Quotient familial : 1 807 € d'avantage max par demi-part",
+    body:
+      "Chaque enfant à charge apporte 0,5 part (1 part entière dès le 3e). L'avantage fiscal est plafonné à 1 807 € par demi-part pour l'imposition 2026 des revenus 2025 (904 € par quart de part en résidence alternée). Vérifie si le plafonnement s'applique avant de compter sur l'économie.",
+    action: {
+      label: "Vérifier ton plafonnement sur service-public.gouv.fr",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705",
+    },
+    appliesWhen: (p) =>
+      p.workspaceKind === "family" || hasAnyKids(p),
+    priority: 66,
+    figures: [
+      { label: "Plafond/demi-part 2026", value: "1 807 €" },
+      { label: "Enfants 1-2", value: "0,5 part" },
+      { label: "Dès le 3e enfant", value: "1 part" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2705"],
+    lastVerified: "2026-07-16",
+  },
+  {
+    id: "shared-coloc-compte-indivis",
+    category: "shared",
+    title: "Coloc : lisez la clause de solidarité du compte indivis",
+    body:
+      "La loi ne prévoit PAS de solidarité entre cotitulaires d'un compte indivis (art. 1310 C. civ. : la solidarité ne se présume pas) — mais la majorité des banques l'insèrent par contrat dans la convention d'ouverture. La protection légale disparaît alors.",
+    action: {
+      label: "Lire la convention et négocier/refuser la clause avant signature",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2812",
+    },
+    appliesWhen: inWorkspace("coloc"),
+    priority: 84,
+    figures: [
+      { label: "Solidarité légale", value: "0 (art. 1310)" },
+      { label: "Conventions bancaires", value: "majorité la stipulent" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2812"],
+    lastVerified: "2026-07-16",
   },
 
   // ==========================================================================
