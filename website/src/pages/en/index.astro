@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import Hero from "../../components/Hero.astro";
+import PremiumWaitlist from "../../components/PremiumWaitlist.astro";
 import Stats from "../../components/Stats.astro";
 import Screens from "../../components/Screens.astro";
 import Features from "../../components/Features.astro";
@@ -16,6 +17,7 @@ const locale = "en" as const;
 
 <Layout locale={locale}>
   <Hero locale={locale} />
+  <PremiumWaitlist locale={locale} />
   <Stats locale={locale} />
   <Screens locale={locale} />
   <Features locale={locale} />

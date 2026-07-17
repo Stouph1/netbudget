@@ -28,8 +28,18 @@ const fr: Catalog = {
   "hero.subtitle":
     "NETbudget calcule ton reste à vivre, applique la règle 50/30/20 et te donne des conseils sur-mesure. 100 % sur ton téléphone, sans compte, sans cloud, sans publicité.",
   "hero.cta.appstore": "Télécharger sur l'App Store",
+  "hero.cta.googleplay": "Disponible sur Google Play",
   "hero.cta.learn": "Voir les fonctionnalités",
   "hero.note": "Gratuit. Sans publicité. Aucune donnée n'est envoyée.",
+
+  // Premium waitlist ("first 100")
+  "waitlist.eyebrow": "Offre de lancement",
+  "waitlist.badge": "100 places seulement",
+  "waitlist.title": "Les 100 premiers inscrits reçoivent 2 mois de Premium offerts",
+  "waitlist.subtitle":
+    "NETbudget Premium arrive mi-novembre 2026 : budgets partagés en couple ou en famille, conseils personnalisés selon ta situation, synchronisation chiffrée de bout en bout. Inscris-toi maintenant pour réserver ta place.",
+  "waitlist.cta": "Réserver ma place",
+  "waitlist.note": "Aucune carte bancaire requise. Tu seras averti·e par email au lancement.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "Le spot · 22 sec",
@@ -133,6 +143,7 @@ const fr: Catalog = {
   "cta.title": "Prêt à reprendre la main sur ton argent ?",
   "cta.subtitle": "Télécharge NETbudget et compte ton reste à vivre en moins de 5 minutes.",
   "cta.button": "Télécharger sur l'App Store",
+  "cta.button.android": "Télécharger sur Google Play",
 
   // Scripture
   "scripture.verse":
@@ -161,6 +172,8 @@ const fr: Catalog = {
   "footer.contact": "Contact",
   "footer.copyright": "© 2026 NETbudget. Tous droits réservés.",
   "footer.lang": "Langue",
+  "footer.appstore": "App Store",
+  "footer.googleplay": "Google Play",
 
   // Privacy page
   "page.privacy.title": "Politique de confidentialité",
@@ -221,8 +234,18 @@ const en: Catalog = {
   "hero.subtitle":
     "NETbudget computes your disposable income, applies the 50/30/20 rule and gives tailored advice. 100% on your phone — no account, no cloud, no ads.",
   "hero.cta.appstore": "Download on the App Store",
+  "hero.cta.googleplay": "Get it on Google Play",
   "hero.cta.learn": "See features",
   "hero.note": "Free. No ads. No data leaves your device.",
+
+  // Premium waitlist ("first 100")
+  "waitlist.eyebrow": "Launch offer",
+  "waitlist.badge": "Only 100 spots",
+  "waitlist.title": "The first 100 sign-ups get 2 months of Premium free",
+  "waitlist.subtitle":
+    "NETbudget Premium arrives mid-November 2026: shared budgets for couples and families, advice tailored to your situation, end-to-end encrypted sync. Sign up now to reserve your spot.",
+  "waitlist.cta": "Reserve my spot",
+  "waitlist.note": "No card required. We'll email you at launch.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "The spot · 22 sec",
@@ -326,6 +349,7 @@ const en: Catalog = {
   "cta.title": "Ready to take back control of your money?",
   "cta.subtitle": "Download NETbudget and count your disposable income in under 5 minutes.",
   "cta.button": "Download on the App Store",
+  "cta.button.android": "Download on Google Play",
 
   // Scripture
   "scripture.verse":
@@ -354,6 +378,8 @@ const en: Catalog = {
   "footer.contact": "Contact",
   "footer.copyright": "© 2026 NETbudget. All rights reserved.",
   "footer.lang": "Language",
+  "footer.appstore": "App Store",
+  "footer.googleplay": "Google Play",
 
   // Privacy page
   "page.privacy.title": "Privacy policy",
