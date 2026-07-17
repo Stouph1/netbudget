@@ -32,6 +32,11 @@ const fr: Catalog = {
   "hero.cta.learn": "Voir les fonctionnalités",
   "hero.note": "Gratuit. Sans publicité. Aucune donnée n'est envoyée.",
 
+  // Links hub (destination unique : App Store + Google Play + waitlist)
+  "links.eyebrow": "Tous les liens ici",
+  "links.title": "Télécharge NETbudget",
+  "links.subtitle": "Disponible sur iPhone et Android. Gratuit, sans publicité, sans compte.",
+
   // Premium waitlist ("first 100")
   "waitlist.eyebrow": "Offre de lancement",
   "waitlist.badge": "100 places seulement",
@@ -237,6 +242,11 @@ const en: Catalog = {
   "hero.cta.googleplay": "Get it on Google Play",
   "hero.cta.learn": "See features",
   "hero.note": "Free. No ads. No data leaves your device.",
+
+  // Links hub (single destination: App Store + Google Play + waitlist)
+  "links.eyebrow": "All links here",
+  "links.title": "Download NETbudget",
+  "links.subtitle": "Available on iPhone and Android. Free, no ads, no account.",
 
   // Premium waitlist ("first 100")
   "waitlist.eyebrow": "Launch offer",
