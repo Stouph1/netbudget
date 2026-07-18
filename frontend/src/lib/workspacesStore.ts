@@ -29,6 +29,7 @@ export async function listMyWorkspaces(): Promise<Workspace[]> {
 export async function createWorkspace(
   name: string,
   kind: WorkspaceKind = "family",
+  description?: string,
 ): Promise<{ ok: boolean; workspace?: Workspace; error?: string }> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user?.id) {
@@ -36,11 +37,28 @@ export async function createWorkspace(
   }
   const { data, error } = await supabase
     .from("workspaces")
-    .insert({ owner_id: userData.user.id, name: name.trim(), kind })
+    .insert({
+      owner_id: userData.user.id,
+      name: name.trim(),
+      kind,
+      description: description?.trim() || null,
+    })
     .select()
     .single();
   if (error) return { ok: false, error: error.message };
   return { ok: true, workspace: data as Workspace };
+}
+
+export async function updateWorkspaceDescription(
+  workspaceId: string,
+  description: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase
+    .from("workspaces")
+    .update({ description: description.trim() || null })
+    .eq("id", workspaceId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }
 
 export async function deleteWorkspace(

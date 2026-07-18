@@ -15,6 +15,7 @@ import type {
   AdviceGroup,
   AdvicePredicate,
   ChildAgeBracket,
+  PetSpecies,
   UserProfile,
 } from "../types/advice";
 import { ADVICE_GROUPS, hasAnyKids, hasChildrenIn } from "../types/advice";
@@ -63,6 +64,13 @@ const inWorkspace =
   (...kinds: NonNullable<UserProfile["workspaceKind"]>[]): AdvicePredicate =>
   (p) =>
     !!p.workspaceKind && kinds.includes(p.workspaceKind);
+
+// Animaux de compagnie
+const hasAnyPet: AdvicePredicate = (p) => p.hasPets === true && !!p.pets?.length;
+const hasPetSpecies =
+  (...species: PetSpecies[]): AdvicePredicate =>
+  (p) =>
+    p.hasPets === true && !!p.pets?.some((pet) => species.includes(pet.species));
 
 // ============================================================================
 // Répartition budgétaire personnalisée (adaptée du 50/30/20 selon profil).
@@ -1318,6 +1326,94 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ],
     sources: ["https://www.pour-les-personnes-agees.gouv.fr"],
     lastVerified: VERIFIED,
+  },
+
+  // ==========================================================================
+  // ANIMAUX DE COMPAGNIE
+  // Corpus v5 (2026-07-18) — seuls les chiffres vérifiés 3-0 sont utilisés.
+  // Budget chien hors assurance + petites espèces : pas de données fiables,
+  // donc conseil générique sans montant inventé.
+  // ==========================================================================
+  {
+    id: "pets-assurance-chien",
+    category: "pets",
+    title: "Assurance santé chien : 12 à 44 €/mois",
+    body:
+      "Pour un chien de moins de 2 ans en 2026, compte 12,46 €/mois en formule économique, 27,33 € en médium et 44,15 € en premium (baromètre janvier 2026). Souscrire jeune coûte moins cher et évite les exclusions pour maladies préexistantes.",
+    action: { label: "Comparer 3 formules d'assurance avant les 2 ans du chien" },
+    appliesWhen: hasPetSpecies("dog"),
+    priority: 70,
+    figures: [
+      { label: "Formule éco", value: "12,46 €/mois" },
+      { label: "Médium", value: "27,33 €/mois" },
+      { label: "Premium", value: "44,15 €/mois" },
+    ],
+    sources: [
+      "https://www.lecomparateurassurance.com/assurance-animaux/actualites/barometre-assurance-animaux-janvier-2026",
+      "https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026",
+    ],
+    lastVerified: "2026-07-18",
+  },
+  {
+    id: "pets-assurance-chat",
+    category: "pets",
+    title: "Assurance santé chat : 9 à 35 €/mois",
+    body:
+      "Pour un chat de moins de 2 ans en 2026, l'assurance santé va de 9 €/mois (entrée de gamme) à 35 €/mois (premium). Les tarifs grimpent avec l'âge de l'animal — souscrire tôt fige un meilleur prix.",
+    action: { label: "Comparer les formules d'assurance chat" },
+    appliesWhen: hasPetSpecies("cat"),
+    priority: 68,
+    figures: [
+      { label: "Fourchette 2026", value: "9 - 35 €/mois" },
+      { label: "Âge optimal", value: "avant 2 ans" },
+    ],
+    sources: [
+      "https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026",
+    ],
+    lastVerified: "2026-07-18",
+  },
+  {
+    id: "pets-budget-chat",
+    category: "pets",
+    title: "Budget chat : 600 à 1 000 € par an",
+    body: (p) => {
+      const count = p.pets?.find((pet) => pet.species === "cat")?.count ?? 1;
+      if (count > 1) {
+        return `Nourriture, litière et soins courants (hors assurance) coûtent 600 à 1 000 € par an et par chat — soit ${600 * count} à ${1000 * count} € pour tes ${count} chats. Provisionne 50-85 €/mois/chat dans une catégorie dédiée pour absorber les visites vétérinaires.`;
+      }
+      return "Nourriture, litière et soins courants (hors assurance) : 600 à 1 000 € par an, soit 50 à 85 €/mois. Provisionne cette somme dans une catégorie dédiée pour éviter que les visites vétérinaires percutent ton reste à vivre.";
+    },
+    action: { label: "Créer une catégorie de dépense dédiée au chat" },
+    appliesWhen: hasPetSpecies("cat"),
+    priority: 72,
+    figures: (p) => {
+      const count = p.pets?.find((pet) => pet.species === "cat")?.count ?? 1;
+      return [
+        { label: "Budget annuel/chat", value: "600 - 1 000 €" },
+        { label: "Par mois/chat", value: "50 - 85 €" },
+        ...(count > 1
+          ? [{ label: `Total ${count} chats`, value: `${600 * count} - ${1000 * count} €/an` }]
+          : []),
+      ];
+    },
+    sources: [
+      "https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026",
+    ],
+    lastVerified: "2026-07-18",
+  },
+  {
+    id: "pets-ligne-budget-dediee",
+    category: "pets",
+    title: "Un animal = une ligne budgétaire dédiée",
+    body:
+      "Nourriture, soins courants, vétérinaire et imprévus : un animal est une dépense récurrente ET irrégulière. Une urgence vétérinaire peut coûter plusieurs centaines d'euros d'un coup. Crée une catégorie de dépense dédiée et une petite provision mensuelle — même modeste, elle absorbe les à-coups.",
+    action: { label: "Créer une catégorie animaux + provision mensuelle" },
+    appliesWhen: hasAnyPet,
+    priority: 60,
+    sources: [
+      "https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026",
+    ],
+    lastVerified: "2026-07-18",
   },
 ];
 

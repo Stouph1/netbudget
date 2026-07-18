@@ -20,7 +20,8 @@ export type FamilyStatus =
   | "couple_with_kids"
   | "single_parent";
 
-export type HousingStatus = "renter" | "owner" | "accessor"; // accessor = accédant (crédit en cours)
+export type HousingStatus = "renter" | "owner" | "accessor" | "free_housing";
+// accessor = accédant (crédit en cours) · free_housing = hébergé gratuitement
 
 export type Zone = "big_city" | "province"; // grande ville vs province (loyers différenciés)
 
@@ -47,6 +48,14 @@ export type SavingsCapacity =
 // selon le contexte : un workspace "couple" → conseils compte joint, etc.
 export type WorkspaceKindForAdvice = "couple" | "family" | "coloc" | "other";
 
+// Animaux de compagnie — impacte le budget (nourriture, vétérinaire, assurance).
+export type PetSpecies = "dog" | "cat" | "small_mammal" | "bird" | "fish" | "reptile";
+
+export type Pet = {
+  species: PetSpecies;
+  count: number; // nombre d'animaux de cette espèce
+};
+
 export type UserProfile = {
   age?: AgeBracket;
   family?: FamilyStatus;
@@ -59,6 +68,8 @@ export type UserProfile = {
   children?: ChildAgeBracket[];      // multi-select des tranches d'âge
   monthlySavingsCapacity?: SavingsCapacity;
   workspaceKind?: WorkspaceKindForAdvice | null; // null/undefined = compte perso
+  hasPets?: boolean;
+  pets?: Pet[];                      // rempli seulement si hasPets === true
 };
 
 // ============================================================================
@@ -89,7 +100,8 @@ export type AdviceCategory =
   | "kids"            // → Enfants
   | "inheritance"     // → Transmission
   | "insurance"       // → Prévoyance
-  | "shared";         // → Budget à plusieurs (couple / famille / coloc)
+  | "shared"          // → Budget à plusieurs (couple / famille / coloc)
+  | "pets";           // → Animaux de compagnie
 
 // Regroupement UI par thème visible pour l'user.
 export type AdviceGroup = {
@@ -147,6 +159,12 @@ export const ADVICE_GROUPS: AdviceGroup[] = [
     label: "Prévoyance",
     icon: "umbrella",
     categories: ["insurance"],
+  },
+  {
+    key: "pets",
+    label: "Animaux de compagnie",
+    icon: "heart", // Feather n'a pas d'icône "patte" ; heart reste sobre et clair
+    categories: ["pets"],
   },
 ];
 

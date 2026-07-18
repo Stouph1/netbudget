@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DonutChart, { type DonutSegment } from "../../src/components/DonutChart";
+import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { loadS1, saveS1 } from "../../src/lib/premiumStore";
@@ -69,6 +70,7 @@ export default function S1Epargne() {
   const [payload, setPayload] = useState<S1Payload>(EMPTY_S1_PAYLOAD);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
 
   useEffect(() => {
@@ -187,10 +189,10 @@ export default function S1Epargne() {
         </TouchableOpacity>
       </View>
 
-      {/* Badge de scope — on sait toujours dans quel espace on écrit */}
+      {/* Badge de scope — tape pour changer de workspace sans quitter S1 */}
       <TouchableOpacity
         style={styles.scopeBadge}
-        onPress={() => router.push("/(premium)/workspaces" as never)}
+        onPress={() => setSwitcherOpen(true)}
         activeOpacity={0.8}
       >
         <Feather
@@ -201,6 +203,11 @@ export default function S1Epargne() {
         <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
         <Feather name="chevron-down" size={13} color={TEXT_3} />
       </TouchableOpacity>
+
+      <ScopeSwitcher
+        visible={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+      />
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         {donutSegments.length > 0 ? (

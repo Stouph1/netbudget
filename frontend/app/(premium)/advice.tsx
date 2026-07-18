@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { allAdviceGrouped } from "../../src/lib/adviceEngine";
@@ -38,6 +39,8 @@ import type {
   ChildAgeBracket,
   FamilyStatus,
   HousingStatus,
+  Pet,
+  PetSpecies,
   SavingsCapacity,
   TaxBracket,
   UserProfile,
@@ -74,6 +77,16 @@ const HOUSING_OPTIONS: { value: HousingStatus; label: string }[] = [
   { value: "renter", label: "Locataire" },
   { value: "owner", label: "Propriétaire" },
   { value: "accessor", label: "Accédant (crédit en cours)" },
+  { value: "free_housing", label: "Hébergé gratuitement" },
+];
+
+const PET_OPTIONS: { value: PetSpecies; label: string }[] = [
+  { value: "dog", label: "Chien" },
+  { value: "cat", label: "Chat" },
+  { value: "small_mammal", label: "Rongeur / lapin" },
+  { value: "bird", label: "Oiseau" },
+  { value: "fish", label: "Poisson / aquarium" },
+  { value: "reptile", label: "Reptile / NAC" },
 ];
 
 
@@ -121,6 +134,7 @@ function profileCompleteness(p: UserProfile): { filled: number; total: number } 
     p.tmi,
     p.monthlySavingsCapacity,
     hasKids(p.family) ? (p.children?.length ? true : undefined) : true,
+    p.hasPets === undefined ? undefined : true,
   ];
   const filled = optional.filter((v) => v !== undefined && v !== null).length;
   return { filled, total: optional.length };
@@ -145,6 +159,7 @@ export default function AdviceScreen() {
   const [profile, setProfile] = useState<UserProfile>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   // Set des group.key expanded. Par défaut : Budget & Épargne + Budget à
   // plusieurs (ce dernier n'apparaît que dans un workspace).
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
@@ -221,6 +236,24 @@ export default function AdviceScreen() {
       ? current.filter((c) => c !== bracket)
       : [...current, bracket];
     updateField("children", next);
+  }
+
+  function togglePetSpecies(species: PetSpecies) {
+    const current = profile.pets ?? [];
+    const idx = current.findIndex((p) => p.species === species);
+    if (idx >= 0) {
+      persist({ ...profile, pets: current.filter((p) => p.species !== species) });
+    } else {
+      persist({ ...profile, pets: [...current, { species, count: 1 }] });
+    }
+  }
+
+  function setPetCount(species: PetSpecies, count: number) {
+    const current = profile.pets ?? [];
+    const next = current.map((p) =>
+      p.species === species ? { ...p, count: Math.max(1, count) } : p,
+    );
+    updateField("pets", next);
   }
 
   if (sessionLoading || scopeLoading || loading) {
@@ -342,6 +375,49 @@ export default function AdviceScreen() {
             allowDeselect
           />
 
+          <Text style={styles.qLabel}>As-tu un animal de compagnie ?</Text>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 4 }}>
+            <TouchableOpacity
+              onPress={() => {
+                const active = profile.hasPets === true;
+                persist({
+                  ...profile,
+                  hasPets: active ? undefined : true,
+                  pets: active ? undefined : profile.pets,
+                });
+              }}
+              style={[styles.optionRow, { flex: 1 }, profile.hasPets === true && styles.optionRowActive]}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.radio, profile.hasPets === true && styles.radioActive]}>
+                {profile.hasPets === true ? <Feather name="check" size={12} color="#000" /> : null}
+              </View>
+              <Text style={[styles.optionText, profile.hasPets === true && styles.optionTextActive]}>
+                Oui
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => persist({ ...profile, hasPets: false, pets: [] })}
+              style={[styles.optionRow, { flex: 1 }, profile.hasPets === false && styles.optionRowActive]}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.radio, profile.hasPets === false && styles.radioActive]}>
+                {profile.hasPets === false ? <Feather name="check" size={12} color="#000" /> : null}
+              </View>
+              <Text style={[styles.optionText, profile.hasPets === false && styles.optionTextActive]}>
+                Non
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {profile.hasPets === true ? (
+            <PetsBlock
+              pets={profile.pets ?? []}
+              onToggleSpecies={togglePetSpecies}
+              onSetCount={setPetCount}
+            />
+          ) : null}
+
           {hasMinimumProfile(profile) ? (
             <TouchableOpacity
               onPress={() => setEditing(false)}
@@ -398,16 +474,21 @@ export default function AdviceScreen() {
         </View>
       </View>
 
-      {/* Badge de scope — le profil (et donc les conseils) sont scopés */}
+      {/* Badge de scope — tape pour changer de workspace sans quitter l'écran */}
       <TouchableOpacity
         style={styles.scopeBadge}
-        onPress={() => router.push("/(premium)/workspaces" as never)}
+        onPress={() => setSwitcherOpen(true)}
         activeOpacity={0.8}
       >
         <Feather name={workspaceId ? "users" : "user"} size={13} color={GOLD} />
         <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
         <Feather name="chevron-down" size={13} color={TEXT_3} />
       </TouchableOpacity>
+
+      <ScopeSwitcher
+        visible={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+      />
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         <View style={styles.profileTag}>
@@ -548,6 +629,64 @@ function QuestionBlock<T extends string>({
                 {opt.label}
               </Text>
             </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function PetsBlock({
+  pets,
+  onToggleSpecies,
+  onSetCount,
+}: {
+  pets: Pet[];
+  onToggleSpecies: (s: PetSpecies) => void;
+  onSetCount: (s: PetSpecies, count: number) => void;
+}) {
+  return (
+    <View style={{ marginBottom: 20 }}>
+      <Text style={styles.qLabel}>Quels animaux ?</Text>
+      <Text style={styles.qHint}>Sélectionne les espèces, précise le nombre pour chacune.</Text>
+      <View style={{ gap: 8, marginTop: 8 }}>
+        {PET_OPTIONS.map((opt) => {
+          const pet = pets.find((p) => p.species === opt.value);
+          const active = !!pet;
+          return (
+            <View key={opt.value}>
+              <TouchableOpacity
+                onPress={() => onToggleSpecies(opt.value)}
+                style={[styles.optionRow, active && styles.optionRowActive]}
+                activeOpacity={0.85}
+              >
+                <View style={[styles.checkbox, active && styles.checkboxActive]}>
+                  {active ? <Feather name="check" size={12} color="#000" /> : null}
+                </View>
+                <Text style={[styles.optionText, active && styles.optionTextActive, { flex: 1 }]}>
+                  {opt.label}
+                </Text>
+                {active ? (
+                  <View style={styles.stepper}>
+                    <TouchableOpacity
+                      onPress={() => onSetCount(opt.value, (pet?.count ?? 1) - 1)}
+                      hitSlop={8}
+                      style={styles.stepperBtn}
+                    >
+                      <Feather name="minus" size={14} color={TEXT_1} />
+                    </TouchableOpacity>
+                    <Text style={styles.stepperValue}>{pet?.count ?? 1}</Text>
+                    <TouchableOpacity
+                      onPress={() => onSetCount(opt.value, (pet?.count ?? 1) + 1)}
+                      hitSlop={8}
+                      style={styles.stepperBtn}
+                    >
+                      <Feather name="plus" size={14} color={TEXT_1} />
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+              </TouchableOpacity>
+            </View>
           );
         })}
       </View>
@@ -762,6 +901,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   checkboxActive: { backgroundColor: GOLD, borderColor: GOLD },
+  stepper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: SURFACE_2,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  stepperBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepperValue: {
+    color: TEXT_1,
+    fontSize: 14,
+    fontWeight: "700",
+    minWidth: 18,
+    textAlign: "center",
+    fontFamily: MONO_FONT,
+  },
   optionText: { color: TEXT_1, fontSize: 14 },
   optionTextActive: { fontWeight: "600" },
 

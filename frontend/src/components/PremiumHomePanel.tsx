@@ -23,11 +23,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ScopeSwitcher from "./ScopeSwitcher";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signOut } from "../lib/auth";
-import { loadAvatarUrl, pickAndUploadAvatar } from "../lib/photos";
+import { pickAndUploadAvatar } from "../lib/photos";
 import { loadS1 } from "../lib/premiumStore";
+import { loadProfileBasics, updateUsername } from "../lib/profile";
 import type { S1Payload } from "../types/premium";
 
 const MIDNIGHT = "#0F172A";
@@ -59,21 +61,24 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
   const [s1, setS1] = useState<S1Payload | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [busyAvatar, setBusyAvatar] = useState(false);
   const [busyAuth, setBusyAuth] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       if (!user?.id || scopeLoading) return;
       let cancelled = false;
       (async () => {
-        const [payload, url] = await Promise.all([
+        const [payload, basics] = await Promise.all([
           loadS1(user.id, workspaceId),
-          loadAvatarUrl(user.id),
+          loadProfileBasics(user.id),
         ]);
         if (!cancelled) {
           setS1(payload);
-          setAvatarUrl(url);
+          setAvatarUrl(basics.avatar_url);
+          setUsername(basics.username);
         }
       })();
       return () => {
@@ -81,6 +86,29 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       };
     }, [user?.id, workspaceId, scopeLoading]),
   );
+
+  const editUsername = useCallback(() => {
+    if (!user?.id) return;
+    if (Platform.OS !== "ios") {
+      Alert.alert("Bientôt", "L'édition du nom arrive sur Android.");
+      return;
+    }
+    Alert.prompt(
+      username ? "Modifier ton nom d'utilisateur" : "Choisis un nom d'utilisateur",
+      "3 à 24 caractères : lettres, chiffres, points, tirets, underscores.",
+      async (value) => {
+        if (!value) return;
+        const result = await updateUsername(user.id, value);
+        if (result.ok) {
+          setUsername(value.trim());
+        } else {
+          Alert.alert("Impossible", result.error ?? "Erreur inconnue");
+        }
+      },
+      "plain-text",
+      username ?? "",
+    );
+  }, [user?.id, username]);
 
   const changeAvatar = useCallback(async () => {
     if (!user?.id) return;
@@ -201,12 +229,20 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           </View>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
+          <TouchableOpacity onPress={editUsername} activeOpacity={0.7}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.profileName} numberOfLines={1}>
+                {username ?? "Choisir un nom d'utilisateur"}
+              </Text>
+              <Feather name="edit-2" size={11} color={TEXT_3} />
+            </View>
+          </TouchableOpacity>
           <Text style={styles.profileEmail} numberOfLines={1}>
             {user.email ?? "email masqué"}
           </Text>
           <TouchableOpacity
             style={styles.scopeInline}
-            onPress={() => router.push("/(premium)/workspaces" as never)}
+            onPress={() => setSwitcherOpen(true)}
             activeOpacity={0.8}
           >
             <Feather
@@ -276,6 +312,11 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           onPress={() => (onGoBudget ? onGoBudget() : router.back())}
         />
       </View>
+
+      <ScopeSwitcher
+        visible={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+      />
     </ScrollView>
   );
 }
@@ -373,7 +414,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: MIDNIGHT,
   },
-  profileEmail: { color: TEXT_1, fontSize: 14, fontWeight: "600" },
+  profileName: { color: TEXT_1, fontSize: 15, fontWeight: "700", flexShrink: 1 },
+  profileEmail: { color: TEXT_3, fontSize: 12, marginTop: 2 },
   scopeInline: {
     flexDirection: "row",
     alignItems: "center",

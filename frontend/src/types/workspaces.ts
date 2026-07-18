@@ -16,6 +16,7 @@ export type Workspace = {
   owner_id: string;
   name: string;
   kind: WorkspaceKind;
+  description?: string | null;
   photo_url?: string | null;
   created_at: string;
   updated_at: string;

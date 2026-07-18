@@ -198,7 +198,10 @@ export default function WorkspacesScreen() {
             <ScopeCard
               key={ws.id}
               name={ws.name}
-              subtitle={KIND_OPTIONS.find((k) => k.value === ws.kind)?.label ?? ws.kind}
+              subtitle={
+                ws.description ||
+                (KIND_OPTIONS.find((k) => k.value === ws.kind)?.label ?? ws.kind)
+              }
               icon={KIND_OPTIONS.find((k) => k.value === ws.kind)?.icon ?? "users"}
               photoUrl={ws.photo_url}
               active={activeId === ws.id}
@@ -356,12 +359,14 @@ function CreateModal({
 }) {
   const keyboardHeight = useKeyboardHeight();
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [kind, setKind] = useState<WorkspaceKind>("family");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setName("");
+      setDescription("");
       setKind("family");
       setBusy(false);
     }
@@ -373,7 +378,7 @@ function CreateModal({
       return;
     }
     setBusy(true);
-    const result = await createWorkspace(name.trim(), kind);
+    const result = await createWorkspace(name.trim(), kind, description);
     setBusy(false);
     if (!result.ok || !result.workspace) {
       Alert.alert("Erreur", result.error ?? "Création échouée.");
@@ -403,6 +408,16 @@ function CreateModal({
             placeholder="Nom de famille, Coloc Bordeaux..."
             placeholderTextColor={TEXT_3}
             autoFocus
+          />
+
+          <Text style={styles.label}>Description (optionnel)</Text>
+          <TextInput
+            style={styles.input}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Budget commun pour le loyer et les courses…"
+            placeholderTextColor={TEXT_3}
+            maxLength={80}
           />
 
           <Text style={styles.label}>Type</Text>
