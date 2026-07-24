@@ -23,7 +23,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
-import { allAdviceGrouped } from "../../src/lib/adviceEngine";
+import {
+  allAdviceGrouped,
+  adviceModeFor as modeFor,
+  deriveMatchingProfile as matchingProfile,
+  type AdviceMode,
+} from "../../src/lib/adviceEngine";
 import {
   loadAdviceProfile,
   saveAdviceProfile,
@@ -118,26 +123,222 @@ function hasKids(family?: FamilyStatus): boolean {
   return family === "couple_with_kids" || family === "single_parent";
 }
 
-// Seuls âge + situation familiale sont vraiment requis. Le reste (logement,
-// zone, TMI, savings capacity, âges enfants) est optionnel — l'user peut
-// débloquer plus de conseils en le renseignant, mais peut aussi consulter
-// les conseils de base sans tout remplir.
-function hasMinimumProfile(p: UserProfile): boolean {
-  return !!(p.age && p.family);
+// Foyer d'un workspace "famille" : deux parents ou parent solo.
+// Réutilise le champ profile.family (valeurs avec enfants uniquement).
+const FOYER_OPTIONS: { value: FamilyStatus; label: string }[] = [
+  { value: "couple_with_kids", label: "Deux parents" },
+  { value: "single_parent", label: "Parent solo" },
+];
+
+// ============================================================================
+// Onboarding par type de scope : les questions posées dépendent du contexte.
+// Un compte perso demande la situation individuelle ; un workspace couple /
+// famille / coloc décrit le FOYER ou le GROUPE ; une association ne demande
+// aucune info personnelle.
+// ============================================================================
+
+type OnboardingConfig = {
+  intro: string;
+  minimumHint: string;
+  askAge: boolean;
+  ageLabel: string;
+  askFamily: boolean; // situation familiale complète (perso)
+  askFoyer: boolean; // deux parents / parent solo (workspace famille)
+  askKids: "auto" | "always" | "never"; // auto = si situation avec enfants
+  kidsLabel: string;
+  askHousing: boolean;
+  housingLabel: string;
+  askTmi: boolean;
+  tmiLabel: string;
+  askSavings: boolean;
+  savingsLabel: string;
+  savingsHint: string;
+  askPets: boolean;
+  petsLabel: string;
+};
+
+const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
+  perso: {
+    intro:
+      "Seuls l'âge et la situation familiale sont nécessaires pour démarrer. Plus tu remplis, plus les conseils deviennent précis (règles fiscales 2026).",
+    minimumHint:
+      "Renseigne au moins l'âge et la situation familiale pour débloquer les conseils.",
+    askAge: true,
+    ageLabel: "Ton âge *",
+    askFamily: true,
+    askFoyer: false,
+    askKids: "auto",
+    kidsLabel: "Âges de tes enfants",
+    askHousing: true,
+    housingLabel: "Ton logement",
+    askTmi: true,
+    tmiLabel: "Ta tranche marginale d'imposition (TMI)",
+    askSavings: true,
+    savingsLabel: "Ta capacité d'épargne mensuelle",
+    savingsHint:
+      "Ce qu'il te reste chaque mois après charges fixes et dépenses courantes. Retape ta sélection pour la retirer.",
+    askPets: true,
+    petsLabel: "As-tu un animal de compagnie ?",
+  },
+  couple: {
+    intro:
+      "Profil du couple — les conseils portent sur votre budget commun : compte joint, déclaration, projets à deux. Seule la tranche d'âge est nécessaire pour démarrer.",
+    minimumHint: "Renseigne la tranche d'âge du couple pour débloquer les conseils.",
+    askAge: true,
+    ageLabel: "Tranche d'âge du couple *",
+    askFamily: false,
+    askFoyer: false,
+    askKids: "always",
+    kidsLabel: "Vos enfants (laisser vide si aucun)",
+    askHousing: true,
+    housingLabel: "Votre logement",
+    askTmi: true,
+    tmiLabel: "TMI du foyer",
+    askSavings: true,
+    savingsLabel: "Capacité d'épargne du foyer",
+    savingsHint:
+      "Ce que vous mettez de côté à deux chaque mois, une fois toutes les charges payées.",
+    askPets: true,
+    petsLabel: "Des animaux dans le foyer ?",
+  },
+  family: {
+    intro:
+      "Profil du foyer — conseils famille : allocations, garde, études, quotient familial, transmission. L'âge des parents et le type de foyer suffisent pour démarrer.",
+    minimumHint:
+      "Renseigne la tranche d'âge des parents et le type de foyer pour débloquer les conseils.",
+    askAge: true,
+    ageLabel: "Tranche d'âge des parents *",
+    askFamily: false,
+    askFoyer: true,
+    askKids: "always",
+    kidsLabel: "Âges des enfants",
+    askHousing: true,
+    housingLabel: "Votre logement",
+    askTmi: true,
+    tmiLabel: "TMI du foyer",
+    askSavings: true,
+    savingsLabel: "Capacité d'épargne du foyer",
+    savingsHint:
+      "Ce que le foyer met de côté chaque mois, une fois toutes les charges payées.",
+    askPets: true,
+    petsLabel: "Des animaux dans le foyer ?",
+  },
+  coloc: {
+    intro:
+      "Profil de la coloc — les conseils portent sur le budget commun : compte joint, bail, charges, caution. La tranche d'âge des colocataires suffit pour démarrer.",
+    minimumHint:
+      "Renseigne la tranche d'âge des colocataires pour débloquer les conseils.",
+    askAge: true,
+    ageLabel: "Tranche d'âge des colocataires *",
+    askFamily: false,
+    askFoyer: false,
+    askKids: "never",
+    kidsLabel: "",
+    askHousing: true,
+    housingLabel: "Votre logement",
+    askTmi: false, // l'impôt reste individuel en coloc
+    tmiLabel: "",
+    askSavings: true,
+    savingsLabel: "Capacité d'épargne commune",
+    savingsHint:
+      "Ce que la coloc peut mettre de côté chaque mois (caution, cagnotte commune, imprévus).",
+    askPets: true,
+    petsLabel: "Des animaux dans la coloc ?",
+  },
+  association: {
+    intro:
+      "Espace association — les conseils portent sur la gestion de l'asso : trésorerie, comptabilité, dons, subventions, assurance. Aucune information personnelle n'est demandée.",
+    minimumHint: "",
+    askAge: false,
+    ageLabel: "",
+    askFamily: false,
+    askFoyer: false,
+    askKids: "never",
+    kidsLabel: "",
+    askHousing: false,
+    housingLabel: "",
+    askTmi: false,
+    tmiLabel: "",
+    askSavings: true,
+    savingsLabel: "Mise en réserve mensuelle possible",
+    savingsHint:
+      "Ce que l'association peut mettre de côté chaque mois une fois ses charges payées. Retape ta sélection pour la retirer.",
+    askPets: false,
+    petsLabel: "",
+  },
+};
+
+// Le minimum requis dépend du mode : une asso n'a rien d'obligatoire,
+// un couple / une coloc n'ont besoin que de la tranche d'âge.
+function hasMinimumProfileFor(p: UserProfile, mode: AdviceMode): boolean {
+  switch (mode) {
+    case "association":
+      return true;
+    case "couple":
+    case "coloc":
+      return !!p.age;
+    case "family":
+      return !!(p.age && p.family);
+    default:
+      return !!(p.age && p.family);
+  }
 }
 
-// Renvoie le nombre de champs optionnels remplis (pour l'indicateur UI).
-function profileCompleteness(p: UserProfile): { filled: number; total: number } {
-  const optional = [
-    p.housing,
-    p.zone,
-    p.tmi,
-    p.monthlySavingsCapacity,
-    hasKids(p.family) ? (p.children?.length ? true : undefined) : true,
-    p.hasPets === undefined ? undefined : true,
-  ];
+// Renvoie le nombre de champs optionnels remplis (pour l'indicateur UI),
+// en ne comptant que les questions effectivement posées dans ce mode.
+function profileCompleteness(
+  p: UserProfile,
+  cfg: OnboardingConfig,
+): { filled: number; total: number } {
+  const optional: unknown[] = [];
+  if (cfg.askHousing) optional.push(p.housing);
+  if (cfg.askTmi) optional.push(p.tmi);
+  if (cfg.askSavings) optional.push(p.monthlySavingsCapacity);
+  if (cfg.askKids === "auto") {
+    optional.push(
+      hasKids(p.family) ? (p.children?.length ? true : undefined) : true,
+    );
+  }
+  if (cfg.askPets) optional.push(p.hasPets === undefined ? undefined : true);
   const filled = optional.filter((v) => v !== undefined && v !== null).length;
   return { filled, total: optional.length };
+}
+
+// Résumé lisible du profil affiché au-dessus des conseils, selon le mode.
+function profileSummary(p: UserProfile, mode: AdviceMode): string {
+  const age = AGE_OPTIONS.find((o) => o.value === p.age)?.label;
+  const housing = HOUSING_OPTIONS.find((o) => o.value === p.housing)?.label;
+  const kidsPart = p.children?.length
+    ? `enfants (${p.children.length} tranche${p.children.length > 1 ? "s" : ""} d'âge)`
+    : null;
+  const parts: (string | null | undefined)[] = [];
+  switch (mode) {
+    case "association":
+      return "Association · gestion, trésorerie, dons & subventions";
+    case "couple":
+      parts.push("Couple", age, kidsPart ?? "sans enfant", housing);
+      break;
+    case "family":
+      parts.push(
+        p.family === "single_parent" ? "Parent solo" : "Deux parents",
+        age,
+        kidsPart,
+        housing,
+      );
+      break;
+    case "coloc":
+      parts.push("Colocation", age, housing);
+      break;
+    default:
+      parts.push(
+        age,
+        FAMILY_OPTIONS.find((o) => o.value === p.family)?.label,
+        kidsPart,
+        housing,
+      );
+  }
+  if (mode !== "coloc" && p.tmi) parts.push(`TMI ${p.tmi}%`);
+  return parts.filter(Boolean).join(" · ");
 }
 
 function currentWeekSeed(): number {
@@ -161,10 +362,13 @@ export default function AdviceScreen() {
   const [editing, setEditing] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   // Set des group.key expanded. Par défaut : Budget & Épargne + Budget à
-  // plusieurs (ce dernier n'apparaît que dans un workspace).
+  // plusieurs + Association (ces derniers n'apparaissent que dans le bon scope).
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(["budget", "shared"]),
+    new Set(["budget", "shared", "association"]),
   );
+
+  const mode = modeFor(workspaceKind);
+  const cfg = ONBOARDING_CONFIG[mode];
 
   const toggleGroup = useCallback((key: string) => {
     setExpandedGroups((prev) => {
@@ -188,20 +392,22 @@ export default function AdviceScreen() {
       setLoading(true);
       const loaded = await loadAdviceProfile(user.id, workspaceId);
       setProfile(loaded);
-      // Onboarding forcé seulement si aucune info de base (age + family manquants)
-      setEditing(!hasMinimumProfile(loaded));
+      // Onboarding forcé seulement si le minimum du mode n'est pas rempli
+      // (asso : rien d'obligatoire → direct sur les conseils).
+      setEditing(!hasMinimumProfileFor(loaded, modeFor(workspaceKind)));
       setLoading(false);
     })();
-  }, [user?.id, workspaceId, scopeLoading]);
+  }, [user?.id, workspaceId, workspaceKind, scopeLoading]);
 
   const grouped = useMemo(() => {
-    if (!hasMinimumProfile(profile)) return [];
-    // Injecte le type du workspace actif dans le profil de matching :
-    // les conseils "Budget à plusieurs" ne s'affichent que dans le bon contexte.
-    return allAdviceGrouped({ ...profile, workspaceKind });
-  }, [profile, workspaceKind]);
+    if (!hasMinimumProfileFor(profile, mode)) return [];
+    // Le profil de matching dérive la situation familiale du type de workspace
+    // (couple → couple avec/sans enfants) et neutralise les champs perso
+    // pour les associations.
+    return allAdviceGrouped(matchingProfile(profile, workspaceKind));
+  }, [profile, workspaceKind, mode]);
 
-  const completeness = profileCompleteness(profile);
+  const completeness = profileCompleteness(profile, cfg);
 
   const totalCount = useMemo(
     () => grouped.reduce((s, g) => s + g.cards.length, 0),
@@ -293,14 +499,16 @@ export default function AdviceScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => {
-              if (hasMinimumProfile(profile)) setEditing(false);
+              if (hasMinimumProfileFor(profile, mode)) setEditing(false);
               else router.back();
             }}
             hitSlop={10}
           >
             <Feather name="arrow-left" size={22} color={TEXT_1} />
           </TouchableOpacity>
-          <Text style={styles.title}>Ton profil</Text>
+          <Text style={styles.title}>
+            {mode === "perso" ? "Ton profil" : "Profil du workspace"}
+          </Text>
           <View style={{ width: 22 }} />
         </View>
 
@@ -313,112 +521,135 @@ export default function AdviceScreen() {
           contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.intro}>
-            Seuls <Text style={{ color: TEXT_1, fontWeight: "600" }}>l'âge</Text> et{" "}
-            <Text style={{ color: TEXT_1, fontWeight: "600" }}>la situation familiale</Text>{" "}
-            sont nécessaires pour démarrer. Plus tu remplis, plus les conseils
-            deviennent précis (règles fiscales 2026).
-          </Text>
+          <Text style={styles.intro}>{cfg.intro}</Text>
 
-          <QuestionBlock
-            label="Ton âge *"
-            options={AGE_OPTIONS}
-            value={profile.age}
-            onSelect={(v) => updateField("age", v)}
-          />
-          <QuestionBlock
-            label="Ta situation familiale *"
-            options={FAMILY_OPTIONS}
-            value={profile.family}
-            onSelect={(v) => {
-              // Update famille + reset children si sans enfant, DANS LE MÊME
-              // persist pour éviter le race condition (2 setState consécutifs
-              // écrasent le premier via closure stale).
-              const next: UserProfile = { ...profile, family: v };
-              if (!hasKids(v)) next.children = [];
-              persist(next);
-            }}
-          />
+          {cfg.askAge ? (
+            <QuestionBlock
+              label={cfg.ageLabel}
+              options={AGE_OPTIONS}
+              value={profile.age}
+              onSelect={(v) => updateField("age", v)}
+            />
+          ) : null}
 
-          {hasKids(profile.family) ? (
+          {cfg.askFamily ? (
+            <QuestionBlock
+              label="Ta situation familiale *"
+              options={FAMILY_OPTIONS}
+              value={profile.family}
+              onSelect={(v) => {
+                // Update famille + reset children si sans enfant, DANS LE MÊME
+                // persist pour éviter le race condition (2 setState consécutifs
+                // écrasent le premier via closure stale).
+                const next: UserProfile = { ...profile, family: v };
+                if (!hasKids(v)) next.children = [];
+                persist(next);
+              }}
+            />
+          ) : null}
+
+          {cfg.askFoyer ? (
+            <QuestionBlock
+              label="Le foyer *"
+              options={FOYER_OPTIONS}
+              value={profile.family}
+              onSelect={(v) => updateField("family", v)}
+            />
+          ) : null}
+
+          {cfg.askKids === "always" ||
+          (cfg.askKids === "auto" && hasKids(profile.family)) ? (
             <ChildrenBlock
+              label={cfg.kidsLabel}
               value={profile.children ?? []}
               onToggle={toggleChild}
             />
           ) : null}
 
-          <Text style={styles.optionalHeader}>
-            Optionnel — plus tu remplis, plus c'est précis
-          </Text>
+          {cfg.askHousing || cfg.askTmi || cfg.askSavings || cfg.askPets ? (
+            <Text style={styles.optionalHeader}>
+              Optionnel — plus tu remplis, plus c'est précis
+            </Text>
+          ) : null}
 
-          <QuestionBlock
-            label="Ton logement"
-            options={HOUSING_OPTIONS}
-            value={profile.housing}
-            onSelect={(v) => updateField("housing", v)}
-            allowDeselect
-          />
-          <QuestionBlock
-            label="Ta tranche marginale d'imposition (TMI)"
-            hint="0% = non imposable · 11% ~ jusqu'à 28k€/an · 30% ~ 28k à 80k€ · 41% ~ 80k à 170k€ · 45% > 170k€ · Retape ta sélection pour la retirer."
-            options={TMI_OPTIONS}
-            value={profile.tmi}
-            onSelect={(v) => updateField("tmi", v)}
-            allowDeselect
-          />
-          <QuestionBlock
-            label="Ta capacité d'épargne mensuelle"
-            hint="Ce qu'il te reste chaque mois après charges fixes et dépenses courantes. Retape ta sélection pour la retirer."
-            options={SAVINGS_OPTIONS}
-            value={profile.monthlySavingsCapacity}
-            onSelect={(v) => updateField("monthlySavingsCapacity", v)}
-            allowDeselect
-          />
-
-          <Text style={styles.qLabel}>As-tu un animal de compagnie ?</Text>
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 4 }}>
-            <TouchableOpacity
-              onPress={() => {
-                const active = profile.hasPets === true;
-                persist({
-                  ...profile,
-                  hasPets: active ? undefined : true,
-                  pets: active ? undefined : profile.pets,
-                });
-              }}
-              style={[styles.optionRow, { flex: 1 }, profile.hasPets === true && styles.optionRowActive]}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.radio, profile.hasPets === true && styles.radioActive]}>
-                {profile.hasPets === true ? <Feather name="check" size={12} color="#000" /> : null}
-              </View>
-              <Text style={[styles.optionText, profile.hasPets === true && styles.optionTextActive]}>
-                Oui
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => persist({ ...profile, hasPets: false, pets: [] })}
-              style={[styles.optionRow, { flex: 1 }, profile.hasPets === false && styles.optionRowActive]}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.radio, profile.hasPets === false && styles.radioActive]}>
-                {profile.hasPets === false ? <Feather name="check" size={12} color="#000" /> : null}
-              </View>
-              <Text style={[styles.optionText, profile.hasPets === false && styles.optionTextActive]}>
-                Non
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {profile.hasPets === true ? (
-            <PetsBlock
-              pets={profile.pets ?? []}
-              onToggleSpecies={togglePetSpecies}
-              onSetCount={setPetCount}
+          {cfg.askHousing ? (
+            <QuestionBlock
+              label={cfg.housingLabel}
+              options={HOUSING_OPTIONS}
+              value={profile.housing}
+              onSelect={(v) => updateField("housing", v)}
+              allowDeselect
+            />
+          ) : null}
+          {cfg.askTmi ? (
+            <QuestionBlock
+              label={cfg.tmiLabel}
+              hint="0% = non imposable · 11% ~ jusqu'à 28k€/an · 30% ~ 28k à 80k€ · 41% ~ 80k à 170k€ · 45% > 170k€ · Retape ta sélection pour la retirer."
+              options={TMI_OPTIONS}
+              value={profile.tmi}
+              onSelect={(v) => updateField("tmi", v)}
+              allowDeselect
+            />
+          ) : null}
+          {cfg.askSavings ? (
+            <QuestionBlock
+              label={cfg.savingsLabel}
+              hint={cfg.savingsHint}
+              options={SAVINGS_OPTIONS}
+              value={profile.monthlySavingsCapacity}
+              onSelect={(v) => updateField("monthlySavingsCapacity", v)}
+              allowDeselect
             />
           ) : null}
 
-          {hasMinimumProfile(profile) ? (
+          {cfg.askPets ? (
+            <>
+              <Text style={styles.qLabel}>{cfg.petsLabel}</Text>
+              <View style={{ flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 4 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const active = profile.hasPets === true;
+                    persist({
+                      ...profile,
+                      hasPets: active ? undefined : true,
+                      pets: active ? undefined : profile.pets,
+                    });
+                  }}
+                  style={[styles.optionRow, { flex: 1 }, profile.hasPets === true && styles.optionRowActive]}
+                  activeOpacity={0.85}
+                >
+                  <View style={[styles.radio, profile.hasPets === true && styles.radioActive]}>
+                    {profile.hasPets === true ? <Feather name="check" size={12} color="#000" /> : null}
+                  </View>
+                  <Text style={[styles.optionText, profile.hasPets === true && styles.optionTextActive]}>
+                    Oui
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => persist({ ...profile, hasPets: false, pets: [] })}
+                  style={[styles.optionRow, { flex: 1 }, profile.hasPets === false && styles.optionRowActive]}
+                  activeOpacity={0.85}
+                >
+                  <View style={[styles.radio, profile.hasPets === false && styles.radioActive]}>
+                    {profile.hasPets === false ? <Feather name="check" size={12} color="#000" /> : null}
+                  </View>
+                  <Text style={[styles.optionText, profile.hasPets === false && styles.optionTextActive]}>
+                    Non
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {profile.hasPets === true ? (
+                <PetsBlock
+                  pets={profile.pets ?? []}
+                  onToggleSpecies={togglePetSpecies}
+                  onSetCount={setPetCount}
+                />
+              ) : null}
+            </>
+          ) : null}
+
+          {hasMinimumProfileFor(profile, mode) ? (
             <TouchableOpacity
               onPress={() => setEditing(false)}
               style={styles.ctaBtn}
@@ -426,14 +657,14 @@ export default function AdviceScreen() {
             >
               <Feather name="check" size={18} color="#000" />
               <Text style={styles.ctaBtnText}>
-                Voir mes conseils ({completeness.filled}/{completeness.total} détails)
+                Voir les conseils
+                {completeness.total > 0
+                  ? ` (${completeness.filled}/${completeness.total} détails)`
+                  : ""}
               </Text>
             </TouchableOpacity>
           ) : (
-            <Text style={styles.hint}>
-              Renseigne au moins l'âge et la situation familiale pour débloquer
-              les conseils.
-            </Text>
+            <Text style={styles.hint}>{cfg.minimumHint}</Text>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -493,14 +724,7 @@ export default function AdviceScreen() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         <View style={styles.profileTag}>
           <Text style={styles.profileTagText}>
-            {AGE_OPTIONS.find((o) => o.value === profile.age)?.label} ·{" "}
-            {FAMILY_OPTIONS.find((o) => o.value === profile.family)?.label}
-            {hasKids(profile.family) && profile.children?.length
-              ? ` (${profile.children.length} tranche${profile.children.length > 1 ? "s" : ""})`
-              : ""}
-            {"\n"}
-            {HOUSING_OPTIONS.find((o) => o.value === profile.housing)?.label} · TMI{" "}
-            {profile.tmi}%
+            {profileSummary(profile, mode)}
           </Text>
         </View>
 
@@ -695,15 +919,17 @@ function PetsBlock({
 }
 
 function ChildrenBlock({
+  label,
   value,
   onToggle,
 }: {
+  label: string;
   value: ChildAgeBracket[];
   onToggle: (b: ChildAgeBracket) => void;
 }) {
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={styles.qLabel}>Âges de tes enfants</Text>
+      <Text style={styles.qLabel}>{label}</Text>
       <Text style={styles.qHint}>
         Sélectionne toutes les tranches concernées (multi-choix).
       </Text>

@@ -22,7 +22,7 @@ const STORAGE_KEY = "netbudget:premium:activeScope";
 // Ancienne clé (v1 : juste l'id) — lue en fallback puis migrée.
 const LEGACY_KEY = "netbudget:premium:activeWorkspaceId";
 
-export type ScopeKind = "couple" | "family" | "coloc" | "other";
+export type ScopeKind = "couple" | "family" | "coloc" | "association" | "other";
 
 type StoredScope = {
   id: string | null;

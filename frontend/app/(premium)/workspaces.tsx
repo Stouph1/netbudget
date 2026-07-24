@@ -62,6 +62,7 @@ const KIND_OPTIONS: { value: WorkspaceKind; label: string; icon: keyof typeof Fe
   { value: "couple", label: "Couple", icon: "heart" },
   { value: "family", label: "Famille", icon: "users" },
   { value: "coloc", label: "Colocation", icon: "home" },
+  { value: "association", label: "Association", icon: "award" },
   { value: "other", label: "Autre", icon: "more-horizontal" },
 ];
 

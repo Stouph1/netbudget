@@ -65,6 +65,51 @@ const inWorkspace =
   (p) =>
     !!p.workspaceKind && kinds.includes(p.workspaceKind);
 
+// ============================================================================
+// Mode de conseil selon le scope actif. Détermine les questions posées dans
+// l'onboarding ET la dérivation du profil de matching.
+// ============================================================================
+
+export type AdviceMode = "perso" | "couple" | "family" | "coloc" | "association";
+
+export function adviceModeFor(
+  kind: UserProfile["workspaceKind"],
+): AdviceMode {
+  if (
+    kind === "couple" ||
+    kind === "family" ||
+    kind === "coloc" ||
+    kind === "association"
+  ) {
+    return kind;
+  }
+  // Compte perso + workspaces "other" → questionnaire individuel classique.
+  return "perso";
+}
+
+// Profil passé au moteur : dérive la situation familiale depuis le type de
+// workspace quand elle n'est pas demandée (couple → avec/sans enfants selon
+// le bloc enfants), et neutralise les champs perso hérités d'un ancien
+// remplissage pour les associations (aucune donnée personnelle ne doit
+// influencer les conseils d'une asso).
+export function deriveMatchingProfile(
+  p: UserProfile,
+  workspaceKind: UserProfile["workspaceKind"],
+): UserProfile {
+  const mode = adviceModeFor(workspaceKind);
+  if (mode === "association") {
+    return {
+      monthlySavingsCapacity: p.monthlySavingsCapacity,
+      workspaceKind: "association",
+    };
+  }
+  const out: UserProfile = { ...p, workspaceKind: workspaceKind ?? null };
+  if (mode === "couple") {
+    out.family = p.children?.length ? "couple_with_kids" : "couple_no_kids";
+  }
+  return out;
+}
+
 // Animaux de compagnie
 const hasAnyPet: AdvicePredicate = (p) => p.hasPets === true && !!p.pets?.length;
 const hasPetSpecies =
@@ -1100,6 +1145,132 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2812"],
     lastVerified: "2026-07-16",
+  },
+
+  // ==========================================================================
+  // ASSOCIATION (loi 1901) — trésorerie, dons, subventions, assurance.
+  // Cartes volontairement génériques : pas de seuils comptables ni plafonds
+  // chiffrés non re-vérifiés. Seule exception : la réduction d'impôt dons
+  // (art. 200 CGI), règle stable et sourcée impots.gouv.fr.
+  // ==========================================================================
+  {
+    id: "asso-compte-bancaire-dedie",
+    category: "association",
+    title: "Un compte bancaire au nom de l'association, rien d'autre",
+    body:
+      "Une association loi 1901 déclarée peut ouvrir un compte à son nom. Ne faites JAMAIS transiter l'argent de l'asso par le compte perso d'un membre : c'est la source n°1 de conflits et de soupçons de gestion de fait. Prévoyez une double signature au-delà d'un certain montant, votée en AG.",
+    action: {
+      label: "Vérifier les démarches d'ouverture de compte",
+      link: "https://www.service-public.fr/associations",
+    },
+    appliesWhen: inWorkspace("association"),
+    priority: 92,
+    sources: ["https://www.service-public.fr/associations"],
+    lastVerified: "2026-07-24",
+  },
+  {
+    id: "asso-budget-previsionnel",
+    category: "association",
+    title: "Votez un budget prévisionnel chaque année",
+    body:
+      "Un budget prévisionnel voté en assemblée générale, ventilé par projet ou action, est la base d'une gestion saine — et il est exigé dans quasiment tous les dossiers de subvention. Suivez les écarts réel/prévu chaque mois plutôt que de découvrir le trou en fin d'exercice.",
+    action: { label: "Préparer le budget prévisionnel du prochain exercice" },
+    appliesWhen: inWorkspace("association"),
+    priority: 90,
+    sources: ["https://www.associations.gouv.fr"],
+    lastVerified: "2026-07-24",
+  },
+  {
+    id: "asso-comptabilite-registre",
+    category: "association",
+    title: "Tenez une comptabilité simple mais irréprochable",
+    body:
+      "Au minimum : un registre chronologique des recettes et dépenses, chaque ligne justifiée (facture, reçu), présenté en AG. Les obligations comptables se renforcent selon la taille de l'association et ses financements publics — renseignez-vous dès que l'asso reçoit des subventions significatives.",
+    action: {
+      label: "Mettre en place le registre recettes/dépenses",
+      link: "https://www.associations.gouv.fr",
+    },
+    appliesWhen: inWorkspace("association"),
+    priority: 88,
+    sources: ["https://www.associations.gouv.fr"],
+    lastVerified: "2026-07-24",
+  },
+  {
+    id: "asso-reserve-tresorerie",
+    category: "association",
+    title: "Constituez une réserve de trésorerie",
+    body:
+      "Une subvention qui arrive en retard, un événement annulé, et l'asso ne peut plus payer sa salle. Règle de bonne pratique : viser une réserve couvrant environ 3 mois de charges courantes, placée sur un livret associatif (les associations peuvent détenir un Livret A).",
+    action: { label: "Calculer 3 mois de charges et ouvrir un livret dédié" },
+    appliesWhen: inWorkspace("association"),
+    priority: 86,
+    figures: [{ label: "Réserve conseillée", value: "~3 mois de charges" }],
+    sources: ["https://www.associations.gouv.fr"],
+    lastVerified: "2026-07-24",
+  },
+  {
+    id: "asso-dons-recu-fiscal",
+    category: "association",
+    title: "Dons : le reçu fiscal est votre meilleur levier de collecte",
+    body:
+      "Si l'association est d'intérêt général, un don ouvre droit pour le donateur à une réduction d'impôt de 66 % du montant (dans la limite de 20 % de son revenu imposable) — 75 % pour les organismes d'aide aux personnes en difficulté, dans un plafond spécifique. Émettre des reçus fiscaux conformes multiplie la générosité : dites-le sur vos supports de collecte.",
+    action: {
+      label: "Vérifier l'éligibilité et le modèle de reçu fiscal",
+      link: "https://www.impots.gouv.fr/particulier/les-dons-aux-associations",
+    },
+    appliesWhen: inWorkspace("association"),
+    priority: 84,
+    figures: [
+      { label: "Réduction donateur", value: "66 % du don" },
+      { label: "Plafond", value: "20 % du revenu imposable" },
+    ],
+    sources: [
+      "https://www.impots.gouv.fr/particulier/les-dons-aux-associations",
+      "Art. 200 du Code général des impôts",
+    ],
+    lastVerified: "2026-07-24",
+  },
+  {
+    id: "asso-subventions",
+    category: "association",
+    title: "Subventions : un dossier solide ouvre beaucoup de portes",
+    body:
+      "Commune, département, région, FDVA : la plupart des demandes passent aujourd'hui par la plateforme Le Compte Asso. Un dossier type demande : budget prévisionnel, rapport d'activité, RIB au nom de l'asso et numéro RNA. Anticipez — les campagnes ont des dates limites strictes, souvent en début d'année.",
+    action: {
+      label: "Créer le compte de l'asso sur Le Compte Asso",
+      link: "https://lecompteasso.associations.gouv.fr",
+    },
+    appliesWhen: inWorkspace("association"),
+    priority: 82,
+    sources: ["https://lecompteasso.associations.gouv.fr"],
+    lastVerified: "2026-07-24",
+  },
+  {
+    id: "asso-assurance-rc",
+    category: "association",
+    title: "Assurance responsabilité civile : quasi indispensable",
+    body:
+      "L'assurance RC est légalement obligatoire pour certaines activités (accueil de mineurs, activités sportives, voyages…) et fortement recommandée pour toutes les autres : l'association est responsable des dommages causés par ses bénévoles et lors de ses événements. Comparez les contrats « multirisque association ».",
+    action: {
+      label: "Vérifier les obligations d'assurance de votre activité",
+      link: "https://www.service-public.fr/associations",
+    },
+    appliesWhen: inWorkspace("association"),
+    priority: 80,
+    sources: ["https://www.service-public.fr/associations"],
+    lastVerified: "2026-07-24",
+  },
+  {
+    id: "asso-cotisations-suivi",
+    category: "association",
+    title: "Cotisations : cadrez le montant et le suivi des adhésions",
+    body:
+      "Le montant de la cotisation est fixé par les statuts ou voté en AG — formalisez-le. Tenez un registre des adhérents à jour (c'est aussi votre base légale pour voter en AG) et automatisez les relances de renouvellement : les cotisations non relancées sont la première recette perdue des petites assos.",
+    action: { label: "Mettre à jour le registre des adhérents et les relances" },
+    appliesWhen: inWorkspace("association"),
+    priority: 78,
+    sources: ["https://www.service-public.fr/associations"],
+    lastVerified: "2026-07-24",
   },
 
   // ==========================================================================

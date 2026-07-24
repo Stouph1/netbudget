@@ -7,7 +7,7 @@
 // Le storage layer (premiumStore) scope les payloads par workspace_id.
 // Voir supabase/migrations/002_workspaces.sql pour le schéma DB.
 
-export type WorkspaceKind = "couple" | "family" | "coloc" | "other";
+export type WorkspaceKind = "couple" | "family" | "coloc" | "association" | "other";
 
 export type WorkspaceRole = "owner" | "admin" | "member";
 

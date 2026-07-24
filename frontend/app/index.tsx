@@ -42,6 +42,7 @@ import { useSession } from "../src/contexts/SessionContext";
 import { useActiveScope } from "../src/hooks/useActiveScope";
 import {
   computeBudgetSplit,
+  deriveMatchingProfile,
   explainBudgetSplit,
   getBudgetMixProfile,
 } from "../src/lib/adviceEngine";
@@ -473,7 +474,8 @@ export default function Index() {
   // (50/30/20 par défaut) dans l'en-tête du tab Budget. Null si free tier.
   // Suit le scope actif : le mix du workspace "couple" peut différer du perso.
   const { user: premiumUser } = useSession();
-  const { workspaceId: activeWorkspaceId } = useActiveScope();
+  const { workspaceId: activeWorkspaceId, workspaceKind: activeWorkspaceKind } =
+    useActiveScope();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
   const [tithePercent, setTithePercent] = useState(0);
@@ -487,9 +489,12 @@ export default function Index() {
       loadAdviceProfile(premiumUser.id, activeWorkspaceId),
       loadProfileDetails(premiumUser.id),
     ]);
-    setPremiumProfile(p);
+    // Même dérivation que l'écran Conseils : en scope couple la situation
+    // familiale est déduite du workspace, en scope association le profil
+    // perso est neutralisé (mix 50/30/20 par défaut).
+    setPremiumProfile(deriveMatchingProfile(p, activeWorkspaceKind));
     setTithePercent(details.tithe_enabled ? details.tithe_percent : 0);
-  }, [premiumUser?.id, activeWorkspaceId]);
+  }, [premiumUser?.id, activeWorkspaceId, activeWorkspaceKind]);
   useEffect(() => {
     reloadPremiumProfile();
   }, [reloadPremiumProfile]);

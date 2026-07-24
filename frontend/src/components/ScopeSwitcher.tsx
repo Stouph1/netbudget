@@ -35,6 +35,7 @@ const KIND_ICON: Record<WorkspaceKind, keyof typeof Feather.glyphMap> = {
   couple: "heart",
   family: "users",
   coloc: "home",
+  association: "award",
   other: "more-horizontal",
 };
 

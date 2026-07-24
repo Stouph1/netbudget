@@ -46,7 +46,12 @@ export type SavingsCapacity =
 // Type du workspace actif — injecté automatiquement par l'app (pas demandé
 // dans l'onboarding). Permet aux conseils "budget à plusieurs" de matcher
 // selon le contexte : un workspace "couple" → conseils compte joint, etc.
-export type WorkspaceKindForAdvice = "couple" | "family" | "coloc" | "other";
+export type WorkspaceKindForAdvice =
+  | "couple"
+  | "family"
+  | "coloc"
+  | "association"
+  | "other";
 
 // Animaux de compagnie — impacte le budget (nourriture, vétérinaire, assurance).
 export type PetSpecies = "dog" | "cat" | "small_mammal" | "bird" | "fish" | "reptile";
@@ -101,6 +106,7 @@ export type AdviceCategory =
   | "inheritance"     // → Transmission
   | "insurance"       // → Prévoyance
   | "shared"          // → Budget à plusieurs (couple / famille / coloc)
+  | "association"     // → Association (trésorerie, dons, subventions)
   | "pets";           // → Animaux de compagnie
 
 // Regroupement UI par thème visible pour l'user.
@@ -117,6 +123,12 @@ export const ADVICE_GROUPS: AdviceGroup[] = [
     label: "Budget à plusieurs",
     icon: "users",
     categories: ["shared"],
+  },
+  {
+    key: "association",
+    label: "Association",
+    icon: "award",
+    categories: ["association"],
   },
   {
     key: "budget",
