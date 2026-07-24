@@ -36,7 +36,8 @@ import {
   createWorkspace,
   deleteWorkspace,
   leaveWorkspace,
-  listMembers,
+  listMembersWithProfiles,
+  type MemberWithProfile,
   listMyWorkspaces,
 } from "../../src/lib/workspacesStore";
 import type {
@@ -570,7 +571,7 @@ function WorkspaceDetailModal({
   onLeft: () => void;
 }) {
   const keyboardHeight = useKeyboardHeight();
-  const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [members, setMembers] = useState<MemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [pendingToken, setPendingToken] = useState<string | null>(null);
@@ -602,7 +603,7 @@ function WorkspaceDetailModal({
 
   useEffect(() => {
     (async () => {
-      const m = await listMembers(workspace.id);
+      const m = await listMembersWithProfiles(workspace.id);
       setMembers(m);
       setLoading(false);
     })();
@@ -713,21 +714,36 @@ function WorkspaceDetailModal({
             {loading ? (
               <ActivityIndicator color={GOLD} />
             ) : (
-              members.map((m) => (
-                <View key={m.user_id} style={styles.memberRow}>
-                  <Feather
-                    name={m.role === "owner" ? "star" : "user"}
-                    size={16}
-                    color={m.role === "owner" ? GOLD : TEXT_2}
-                  />
-                  <Text style={styles.memberId}>
-                    {m.user_id === currentUserId ? "Toi" : m.user_id.slice(0, 8) + "…"}
-                  </Text>
-                  <View style={styles.roleBadge}>
-                    <Text style={styles.roleBadgeText}>{m.role}</Text>
+              members.map((m) => {
+                const displayName =
+                  m.user_id === currentUserId
+                    ? "Toi"
+                    : m.username ?? m.first_name ?? m.user_id.slice(0, 8) + "…";
+                return (
+                  <View key={m.user_id} style={styles.memberRow}>
+                    <View style={styles.memberAvatar}>
+                      {m.avatar_url ? (
+                        <Image
+                          source={{ uri: m.avatar_url }}
+                          style={styles.memberAvatarImg}
+                        />
+                      ) : (
+                        <Feather
+                          name={m.role === "owner" ? "star" : "user"}
+                          size={14}
+                          color={m.role === "owner" ? GOLD : TEXT_2}
+                        />
+                      )}
+                    </View>
+                    <Text style={styles.memberName} numberOfLines={1}>
+                      {displayName}
+                    </Text>
+                    <View style={styles.roleBadge}>
+                      <Text style={styles.roleBadgeText}>{m.role}</Text>
+                    </View>
                   </View>
-                </View>
-              ))
+                );
+              })
             )}
 
             {isOwner ? (
@@ -1009,6 +1025,17 @@ const styles = StyleSheet.create({
     borderBottomColor: BORDER,
   },
   memberId: { color: TEXT_1, fontSize: 13, flex: 1, fontFamily: MONO_FONT },
+  memberName: { color: TEXT_1, fontSize: 14, flex: 1, fontWeight: "600" },
+  memberAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: SURFACE_2,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  memberAvatarImg: { width: 30, height: 30, borderRadius: 15 },
   roleBadge: {
     backgroundColor: SURFACE_2,
     borderWidth: 1,

@@ -87,6 +87,40 @@ export async function listMembers(
   return (data ?? []) as WorkspaceMember[];
 }
 
+// Membre enrichi du profil public (username, avatar, prénom) — lisible entre
+// co-membres grâce à la policy "profiles select workspace comembers" (migr. 007).
+export type MemberWithProfile = WorkspaceMember & {
+  username: string | null;
+  avatar_url: string | null;
+  first_name: string | null;
+};
+
+export async function listMembersWithProfiles(
+  workspaceId: string,
+): Promise<MemberWithProfile[]> {
+  const members = await listMembers(workspaceId);
+  if (members.length === 0) return [];
+
+  const ids = members.map((m) => m.user_id);
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, username, avatar_url, first_name")
+    .in("id", ids);
+
+  const profileById = new Map(
+    (data ?? []).map((p) => [p.id as string, p]),
+  );
+  return members.map((m) => {
+    const p = profileById.get(m.user_id);
+    return {
+      ...m,
+      username: (p?.username as string | null) ?? null,
+      avatar_url: (p?.avatar_url as string | null) ?? null,
+      first_name: (p?.first_name as string | null) ?? null,
+    };
+  });
+}
+
 export async function leaveWorkspace(
   workspaceId: string,
 ): Promise<{ ok: boolean; error?: string }> {

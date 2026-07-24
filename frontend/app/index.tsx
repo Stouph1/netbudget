@@ -46,6 +46,7 @@ import {
   getBudgetMixProfile,
 } from "../src/lib/adviceEngine";
 import { loadAdviceProfile } from "../src/lib/premiumStore";
+import { loadProfileDetails } from "../src/lib/profile";
 import type { UserProfile } from "../src/types/advice";
 import {
   ensureMonthlyRemindersScheduled,
@@ -96,6 +97,7 @@ import {
   TYPE_DEFAULT_CHARGES,
   TYPE_HINT,
   averageMonthlyNet,
+  averageMonthlyTithe,
   annualGross,
   monthlyNetSeries,
   defaultIncomeSource,
@@ -473,13 +475,20 @@ export default function Index() {
   const { user: premiumUser } = useSession();
   const { workspaceId: activeWorkspaceId } = useActiveScope();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
+  // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
+  const [tithePercent, setTithePercent] = useState(0);
   const reloadPremiumProfile = useCallback(async () => {
     if (!premiumUser?.id) {
       setPremiumProfile(null);
+      setTithePercent(0);
       return;
     }
-    const p = await loadAdviceProfile(premiumUser.id, activeWorkspaceId);
+    const [p, details] = await Promise.all([
+      loadAdviceProfile(premiumUser.id, activeWorkspaceId),
+      loadProfileDetails(premiumUser.id),
+    ]);
     setPremiumProfile(p);
+    setTithePercent(details.tithe_enabled ? details.tithe_percent : 0);
   }, [premiumUser?.id, activeWorkspaceId]);
   useEffect(() => {
     reloadPremiumProfile();
@@ -634,9 +643,19 @@ export default function Index() {
   }, []);
 
   // ---- Calculs revenus (multi-sources) ----
-  const netSeries = useMemo(() => monthlyNetSeries(incomes), [incomes]);
-  const netMensuel = useMemo(() => averageMonthlyNet(incomes), [incomes]);
+  const netSeries = useMemo(
+    () => monthlyNetSeries(incomes, tithePercent),
+    [incomes, tithePercent],
+  );
+  const netMensuel = useMemo(
+    () => averageMonthlyNet(incomes, tithePercent),
+    [incomes, tithePercent],
+  );
   const totalBrutAnnuel = useMemo(() => annualGross(incomes), [incomes]);
+  const monthlyTithe = useMemo(
+    () => averageMonthlyTithe(incomes, tithePercent),
+    [incomes, tithePercent],
+  );
   const netAnnuel = netMensuel * 12;
   const brutMensuel = totalBrutAnnuel / 12;
 
@@ -1154,7 +1173,7 @@ export default function Index() {
               </View>
             ) : (
               incomes.map((src) => {
-                const monthly = averageMonthlyNet([src]);
+                const monthly = averageMonthlyNet([src], tithePercent);
                 const freqLabel =
                   src.frequency === "monthly"
                     ? t("freq.monthly")
@@ -1205,6 +1224,16 @@ export default function Index() {
                   {fmt(totalBrutAnnuel)}
                 </Text>
               </View>
+              {monthlyTithe > 0 ? (
+                <View style={styles.revenusRow}>
+                  <Text style={styles.revenusLabel}>
+                    Dîme ({tithePercent} %)
+                  </Text>
+                  <Text style={styles.revenusTotalMuted}>
+                    − {fmt(monthlyTithe)}
+                  </Text>
+                </View>
+              ) : null}
               <View style={styles.revenusRow}>
                 <Text style={styles.revenusLabel}>{t("summary.netMonthlyEst")}</Text>
                 <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
@@ -2481,6 +2510,35 @@ export default function Index() {
                   hintText={TYPE_HINT[incomeForm.type]}
                   testID="income-charges"
                 />
+
+                {/* Dîme — visible seulement si activée dans le profil (Premium) */}
+                {tithePercent > 0 ? (
+                  <View style={styles.toggleRow}>
+                    <Feather
+                      name="heart"
+                      size={20}
+                      color={incomeForm.titheApplied ? GOLD : TEXT_3}
+                      style={{ marginRight: 12 }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.toggleLabel}>
+                        Appliquer la dîme ({tithePercent} %)
+                      </Text>
+                      <Text style={{ color: TEXT_3, fontSize: 12, marginTop: 2 }}>
+                        Déduite du net de ce revenu.
+                      </Text>
+                    </View>
+                    <Switch
+                      value={incomeForm.titheApplied ?? false}
+                      onValueChange={(v) =>
+                        setIncomeForm((f) => ({ ...f, titheApplied: v }))
+                      }
+                      trackColor={{ false: BORDER, true: GOLD }}
+                      thumbColor="#fff"
+                      ios_backgroundColor={BORDER}
+                    />
+                  </View>
+                ) : null}
               </ScrollView>
               <View style={styles.sheetFooter}>
                 <TouchableOpacity

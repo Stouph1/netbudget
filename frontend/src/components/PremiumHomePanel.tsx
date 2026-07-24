@@ -89,12 +89,17 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
 
   const editUsername = useCallback(() => {
     if (!user?.id) return;
+    // Inscription pas terminée → écran complet (pseudo + nom + âge + dîme)
+    if (!username) {
+      router.push("/(premium)/complete-profile" as never);
+      return;
+    }
     if (Platform.OS !== "ios") {
       Alert.alert("Bientôt", "L'édition du nom arrive sur Android.");
       return;
     }
     Alert.prompt(
-      username ? "Modifier ton nom d'utilisateur" : "Choisis un nom d'utilisateur",
+      "Modifier ton nom d'utilisateur",
       "3 à 24 caractères : lettres, chiffres, points, tirets, underscores.",
       async (value) => {
         if (!value) return;
@@ -133,6 +138,14 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
     setBusyAuth(false);
     if (!result.ok && result.reason !== "cancelled") {
       Alert.alert("Connexion", result.message ?? result.reason);
+      return;
+    }
+    if (result.ok) {
+      // Première connexion (ou inscription incomplète) → écran d'inscription
+      const basics = await loadProfileBasics(result.userId);
+      if (!basics.username) {
+        router.push("/(premium)/complete-profile" as never);
+      }
     }
   }
 
@@ -208,6 +221,23 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
+      {!username ? (
+        <TouchableOpacity
+          style={styles.completeBanner}
+          onPress={() => router.push("/(premium)/complete-profile" as never)}
+          activeOpacity={0.85}
+        >
+          <Feather name="alert-circle" size={18} color="#000" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.completeBannerTitle}>Finalise ton inscription</Text>
+            <Text style={styles.completeBannerText}>
+              Pseudo, photo et profil — 1 minute pour débloquer tes conseils.
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={18} color="#000" />
+        </TouchableOpacity>
+      ) : null}
+
       {/* Profil */}
       <View style={styles.profileCard}>
         <TouchableOpacity
@@ -416,6 +446,18 @@ const styles = StyleSheet.create({
   },
   profileName: { color: TEXT_1, fontSize: 15, fontWeight: "700", flexShrink: 1 },
   profileEmail: { color: TEXT_3, fontSize: 12, marginTop: 2 },
+
+  completeBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: GOLD,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+  },
+  completeBannerTitle: { color: "#000", fontSize: 14, fontWeight: "800" },
+  completeBannerText: { color: "rgba(0,0,0,0.7)", fontSize: 12, marginTop: 2 },
   scopeInline: {
     flexDirection: "row",
     alignItems: "center",
