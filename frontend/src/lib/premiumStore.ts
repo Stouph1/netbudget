@@ -293,6 +293,41 @@ export async function recordBudgetHistoryPoint(
   }
 }
 
+// DEV uniquement (bouton __DEV__ dans PremiumHomePanel) : remplit l'historique
+// avec 8 mois de démonstration pour visualiser le graphe sans attendre.
+// Le point du mois courant sera ré-écrasé par les vraies données du budget.
+export async function seedDemoBudgetHistory(
+  userId: string,
+  workspaceId: string | null,
+): Promise<BudgetHistoryPoint[]> {
+  const base = [
+    { net: 2980, expenses: 2210 },
+    { net: 2980, expenses: 2350 },
+    { net: 3050, expenses: 2180 },
+    { net: 3050, expenses: 2050 },
+    { net: 3050, expenses: 2400 },
+    { net: 3150, expenses: 2220 },
+    { net: 3150, expenses: 2100 },
+    { net: 3150, expenses: 1900 },
+  ];
+  const now = new Date();
+  const points: BudgetHistoryPoint[] = base.map((b, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (base.length - 1 - i), 1);
+    return {
+      month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      net: b.net,
+      expenses: b.expenses,
+      remaining: b.net - b.expenses,
+    };
+  });
+  if (!workspaceId) {
+    await writeCache(HISTORY_KEY, null, points);
+  } else {
+    await writePayload(HISTORY_KEY, userId, points, workspaceId);
+  }
+  return points;
+}
+
 // ============================================================================
 // API Profil advice — pour personnaliser les conseils Premium
 // ============================================================================

@@ -31,6 +31,7 @@ import { pickAndUploadAvatar } from "../lib/photos";
 import {
   loadBudgetHistory,
   loadS1,
+  seedDemoBudgetHistory,
   type BudgetHistoryPoint,
 } from "../lib/premiumStore";
 import { loadProfileBasics } from "../lib/profile";
@@ -343,7 +344,18 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       </View>
 
       {/* Évolution du budget — historique mensuel du scope actif */}
-      <BudgetHistoryCard points={history} scopeLabel={scopeLabel} />
+      <BudgetHistoryCard
+        points={history}
+        scopeLabel={scopeLabel}
+        onSeedDemo={
+          __DEV__
+            ? async () => {
+                if (!user?.id) return;
+                setHistory(await seedDemoBudgetHistory(user.id, workspaceId));
+              }
+            : undefined
+        }
+      />
 
       <ScopeSwitcher
         visible={switcherOpen}
@@ -358,16 +370,31 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
 function BudgetHistoryCard({
   points,
   scopeLabel,
+  onSeedDemo,
 }: {
   points: BudgetHistoryPoint[];
   scopeLabel: string;
+  onSeedDemo?: () => void; // __DEV__ uniquement — absent en prod
 }) {
   const last = points.slice(-12);
+
+  const header = (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <Text style={[styles.overviewLabel, { flex: 1 }]}>
+        Évolution du budget · {scopeLabel}
+      </Text>
+      {onSeedDemo ? (
+        <TouchableOpacity onPress={onSeedDemo} hitSlop={8}>
+          <Text style={styles.historyDemoBtn}>DEV · démo</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
 
   if (last.length === 0) {
     return (
       <View style={styles.historyCard}>
-        <Text style={styles.overviewLabel}>Évolution du budget · {scopeLabel}</Text>
+        {header}
         <Text style={styles.historyEmpty}>
           {"L'historique se construit tout seul, mois après mois, dès que le tab Budget est rempli dans ce scope. Reviens le mois prochain pour voir la tendance."}
         </Text>
@@ -382,7 +409,7 @@ function BudgetHistoryCard({
 
   return (
     <View style={styles.historyCard}>
-      <Text style={styles.overviewLabel}>Évolution du budget · {scopeLabel}</Text>
+      {header}
 
       <View style={styles.historyChart}>
         {last.map((p) => (
@@ -596,6 +623,18 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     marginTop: 4,
     marginBottom: 16,
+  },
+  historyDemoBtn: {
+    color: TEXT_3,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    overflow: "hidden",
   },
   historyEmpty: {
     color: TEXT_3,
