@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
@@ -46,8 +47,13 @@ import {
   explainBudgetSplit,
   getBudgetMixProfile,
 } from "../src/lib/adviceEngine";
-import { loadAdviceProfile } from "../src/lib/premiumStore";
+import {
+  loadAdviceProfile,
+  loadBudget,
+  saveBudget,
+} from "../src/lib/premiumStore";
 import { loadProfileDetails } from "../src/lib/profile";
+import ScopeSwitcher from "../src/components/ScopeSwitcher";
 import type { UserProfile } from "../src/types/advice";
 import {
   ensureMonthlyRemindersScheduled,
@@ -181,6 +187,19 @@ const DEFAULT_ITEMS: ExpenseItem[] = [
 function displayItemLabel(item: ExpenseItem, tt: (key: string) => string): string {
   if (item.labelKey) return tt(item.labelKey);
   return item.label;
+}
+
+// Backfill labelKey pour les items par défaut sauvegardés avant l'i18n des
+// labels — utilisé à l'hydratation ET au switch de scope budget.
+function backfillItemLabels(items: ExpenseItem[]): ExpenseItem[] {
+  return items.map((it) => {
+    if (it.labelKey) return it;
+    const def = DEFAULT_ITEMS.find((d) => d.id === it.id);
+    if (def && def.labelKey && it.label === def.label) {
+      return { ...it, labelKey: def.labelKey };
+    }
+    return it;
+  });
 }
 
 const FAMILY_PALETTE: Record<ExpenseFamily, string[]> = {
@@ -474,8 +493,11 @@ export default function Index() {
   // (50/30/20 par défaut) dans l'en-tête du tab Budget. Null si free tier.
   // Suit le scope actif : le mix du workspace "couple" peut différer du perso.
   const { user: premiumUser } = useSession();
-  const { workspaceId: activeWorkspaceId, workspaceKind: activeWorkspaceKind } =
-    useActiveScope();
+  const {
+    workspaceId: activeWorkspaceId,
+    workspaceKind: activeWorkspaceKind,
+    scopeLabel,
+  } = useActiveScope();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
   const [tithePercent, setTithePercent] = useState(0);
@@ -620,16 +642,7 @@ export default function Index() {
         }
         if (stored.rent !== undefined) setRent(stored.rent as string);
         if (Array.isArray(stored.expenseItems) && stored.expenseItems.length > 0) {
-          // Backfill labelKey pour les items par defaut sauvegardes avant l'i18n des labels
-          const items = (stored.expenseItems as ExpenseItem[]).map((it) => {
-            if (it.labelKey) return it;
-            const def = DEFAULT_ITEMS.find((d) => d.id === it.id);
-            if (def && def.labelKey && it.label === def.label) {
-              return { ...it, labelKey: def.labelKey };
-            }
-            return it;
-          });
-          setExpenseItems(items);
+          setExpenseItems(backfillItemLabels(stored.expenseItems as ExpenseItem[]));
         }
         if (Array.isArray(stored.loans)) setLoans(stored.loans as Loan[]);
         if (stored.cityId) {
@@ -796,19 +809,102 @@ export default function Index() {
       .map((x) => x.c);
   }, [citySearch, pickerCountry]);
 
+  // ----- Budget scopé par workspace (Premium) -----
+  // Les données budget en mémoire appartiennent à `budgetScope` (null = perso).
+  // Perso / free tier : AsyncStorage local, strictement comme avant.
+  // Workspace : cloud partagé entre membres (encrypted_payloads "budget")
+  // + cache local par scope pour l'offline.
+  const budgetScopeTarget = premiumUser?.id ? activeWorkspaceId : null;
+  const [budgetScope, setBudgetScope] = useState<string | null>(null);
+  const [budgetSwitcherOpen, setBudgetSwitcherOpen] = useState(false);
+
+  const applyBudgetSnapshot = useCallback(
+    (d: {
+      incomes?: unknown[];
+      rent?: string;
+      expenseItems?: unknown[];
+      loans?: unknown[];
+    } | null) => {
+      setIncomes(
+        Array.isArray(d?.incomes) && d.incomes.length > 0
+          ? (d.incomes as IncomeSource[])
+          : [defaultIncomeSource()],
+      );
+      setRent(typeof d?.rent === "string" ? d.rent : "0");
+      setExpenseItems(
+        Array.isArray(d?.expenseItems) && d.expenseItems.length > 0
+          ? backfillItemLabels(d.expenseItems as ExpenseItem[])
+          : DEFAULT_ITEMS,
+      );
+      setLoans(Array.isArray(d?.loans) ? (d.loans as Loan[]) : []);
+    },
+    [],
+  );
+
+  // Changement de scope → charge le budget du scope cible avant de réactiver
+  // la sauvegarde (sinon on écrirait les données d'un scope dans l'autre).
+  useEffect(() => {
+    if (!hydrated) return;
+    if (budgetScopeTarget === budgetScope) return;
+    let cancelled = false;
+    (async () => {
+      if (budgetScopeTarget && premiumUser?.id) {
+        const b = await loadBudget(premiumUser.id, budgetScopeTarget);
+        if (cancelled) return;
+        applyBudgetSnapshot(b);
+      } else {
+        const stored = await loadState();
+        if (cancelled) return;
+        applyBudgetSnapshot(stored ?? null);
+      }
+      if (!cancelled) setBudgetScope(budgetScopeTarget);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, budgetScopeTarget, budgetScope, premiumUser?.id, applyBudgetSnapshot]);
+
   // ----- Persistance : sauvegarde à chaque changement (après hydratation) -----
   useEffect(() => {
     if (!hydrated) return;
-    saveState({
-      incomes,
-      rent,
-      expenseItems,
-      loans,
-      cityId: city.id,
-      currency,
-      lang,
-    });
-  }, [hydrated, incomes, rent, expenseItems, loans, city, currency, lang]);
+    // Switch de scope en cours : suspend la sauvegarde jusqu'au chargement.
+    if (budgetScope !== budgetScopeTarget) return;
+    if (budgetScope === null) {
+      saveState({
+        incomes,
+        rent,
+        expenseItems,
+        loans,
+        cityId: city.id,
+        currency,
+        lang,
+      });
+    } else if (premiumUser?.id) {
+      saveBudget(
+        premiumUser.id,
+        { incomes, rent, expenseItems, loans },
+        budgetScope,
+      );
+      // Devise / langue / ville restent des réglages device : on les merge
+      // dans le stockage local SANS toucher au budget perso qui y vit.
+      (async () => {
+        const stored = await loadState();
+        await saveState({ ...(stored ?? {}), cityId: city.id, currency, lang });
+      })();
+    }
+  }, [
+    hydrated,
+    budgetScope,
+    budgetScopeTarget,
+    incomes,
+    rent,
+    expenseItems,
+    loans,
+    city,
+    currency,
+    lang,
+    premiumUser?.id,
+  ]);
 
   function openAddLoan() {
     setEditingLoan(null);
@@ -1108,6 +1204,34 @@ export default function Index() {
             </TouchableOpacity>
           </View>
 
+          {/* Scope du budget (Premium connecté) : perso ou workspace partagé.
+              Tape pour changer — les données affichées suivent le scope. */}
+          {premiumUser ? (
+            <TouchableOpacity
+              style={styles.budgetScopeBadge}
+              onPress={() => setBudgetSwitcherOpen(true)}
+              activeOpacity={0.8}
+            >
+              <Feather
+                name={activeWorkspaceId ? "users" : "user"}
+                size={12}
+                color={GOLD}
+              />
+              <Text style={styles.budgetScopeBadgeText} numberOfLines={1}>
+                Budget : {scopeLabel}
+              </Text>
+              {budgetScope !== budgetScopeTarget ? (
+                <ActivityIndicator size="small" color={GOLD} />
+              ) : (
+                <Feather name="chevron-down" size={12} color={TEXT_3} />
+              )}
+            </TouchableOpacity>
+          ) : null}
+          <ScopeSwitcher
+            visible={budgetSwitcherOpen}
+            onClose={() => setBudgetSwitcherOpen(false)}
+          />
+
           {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
           {netMensuel <= 0 ? (
             <View style={styles.onboardingCard} testID="onboarding-card">
@@ -1229,25 +1353,31 @@ export default function Index() {
                   {fmt(totalBrutAnnuel)}
                 </Text>
               </View>
+              {/* Cascade mensuelle : brut moyen → dîme → net. L'annuel reste
+                  au-dessus, séparé, pour ne pas laisser croire que la dîme
+                  (mensuelle) se soustrait de l'annuel. */}
+              <View style={styles.revenusRow}>
+                <Text style={styles.revenusLabel}>{t("summary.brutMonthlyAvg")}</Text>
+                <Text style={styles.revenusTotalMuted}>{fmt(brutMensuel)}</Text>
+              </View>
               {monthlyTithe > 0 ? (
                 <View style={styles.revenusRow}>
                   <Text style={styles.revenusLabel}>
-                    Dîme ({tithePercent} %)
+                    Dîme ({tithePercent} % des revenus cochés)
                   </Text>
                   <Text style={styles.revenusTotalMuted}>
-                    − {fmt(monthlyTithe)}
+                    − {fmt(monthlyTithe)} / mois
                   </Text>
                 </View>
               ) : null}
               <View style={styles.revenusRow}>
-                <Text style={styles.revenusLabel}>{t("summary.netMonthlyEst")}</Text>
+                <Text style={styles.revenusLabel}>
+                  {t("summary.netMonthlyEst")}
+                  {monthlyTithe > 0 ? " (dîme déduite)" : ""}
+                </Text>
                 <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
                   {fmt(netMensuel)}
                 </Text>
-              </View>
-              <View style={styles.revenusRow}>
-                <Text style={styles.revenusLabel}>{t("summary.brutMonthlyAvg")}</Text>
-                <Text style={styles.revenusTotalMuted}>{fmt(brutMensuel)}</Text>
               </View>
             </View>
           </Section>
@@ -3116,6 +3246,25 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 2,
     fontVariant: ["tabular-nums"],
+  },
+  budgetScopeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginBottom: 14,
+  },
+  budgetScopeBadgeText: {
+    color: GOLD,
+    fontSize: 12,
+    fontWeight: "700",
+    maxWidth: 220,
   },
   eyebrow: {
     color: GOLD,

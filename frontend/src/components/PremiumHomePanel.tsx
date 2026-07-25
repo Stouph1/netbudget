@@ -89,29 +89,11 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
 
   const editUsername = useCallback(() => {
     if (!user?.id) return;
-    // Inscription pas terminée → écran complet (pseudo + nom + âge + dîme)
-    if (!username) {
-      router.push("/(premium)/complete-profile" as never);
-      return;
-    }
-    if (Platform.OS !== "ios") {
-      Alert.alert("Bientôt", "L'édition du nom arrive sur Android.");
-      return;
-    }
-    Alert.prompt(
-      "Modifier ton nom d'utilisateur",
-      "3 à 24 caractères : lettres, chiffres, points, tirets, underscores.",
-      async (value) => {
-        if (!value) return;
-        const result = await updateUsername(user.id, value);
-        if (result.ok) {
-          setUsername(value.trim());
-        } else {
-          Alert.alert("Impossible", result.error ?? "Erreur inconnue");
-        }
-      },
-      "plain-text",
-      username ?? "",
+    // Écran unique inscription/édition : photo, pseudo, nom, prénom, âge, dîme.
+    router.push(
+      (username
+        ? "/(premium)/complete-profile?edit=1"
+        : "/(premium)/complete-profile") as never,
     );
   }, [user?.id, username]);
 

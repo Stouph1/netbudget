@@ -218,6 +218,38 @@ export async function saveS1(
 }
 
 // ============================================================================
+// API Budget — le tab Budget scopé par workspace (Premium).
+//
+// Perso : le budget reste 100 % local (AsyncStorage `netbudget:state`),
+// géré par index.tsx — AUCUN changement pour le free tier.
+// Workspace : le budget vit ici (cloud + cache), partagé entre les membres.
+// Les types précis (IncomeSource, ExpenseItem, Loan) vivent dans index.tsx ;
+// on stocke "tel quel" comme le fait déjà utils/storage.ts.
+// ============================================================================
+
+export type BudgetPayload = {
+  incomes?: unknown[];
+  rent?: string;
+  expenseItems?: unknown[];
+  loans?: unknown[];
+};
+
+export async function loadBudget(
+  userId: string,
+  workspaceId: string,
+): Promise<BudgetPayload | null> {
+  return readPayload<BudgetPayload | null>("budget", userId, null, workspaceId);
+}
+
+export async function saveBudget(
+  userId: string,
+  payload: BudgetPayload,
+  workspaceId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  return writePayload<BudgetPayload>("budget", userId, payload, workspaceId);
+}
+
+// ============================================================================
 // API Profil advice — pour personnaliser les conseils Premium
 // ============================================================================
 

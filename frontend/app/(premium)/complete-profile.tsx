@@ -7,7 +7,7 @@
 // reçoive des conseils personnalisés dès la fin de l'inscription.
 
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,6 +25,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../../src/contexts/SessionContext";
+import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadAvatar } from "../../src/lib/photos";
 import { loadProfileDetails, updateProfileDetails } from "../../src/lib/profile";
 import { loadAdviceProfile, saveAdviceProfile } from "../../src/lib/premiumStore";
@@ -50,6 +51,11 @@ const AGE_OPTIONS: { value: AgeBracket; label: string }[] = [
 
 export default function CompleteProfile() {
   const { user, loading: sessionLoading } = useSession();
+  const { setScope } = useActiveScope();
+  // ?edit=1 → mode édition (depuis le Profil) : mêmes champs, sans le
+  // wording "inscription" ni l'enchaînement vers la config des conseils.
+  const { edit } = useLocalSearchParams<{ edit?: string }>();
+  const isEdit = edit === "1";
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [busyAvatar, setBusyAvatar] = useState(false);
@@ -68,13 +74,18 @@ export default function CompleteProfile() {
       return;
     }
     (async () => {
-      const details = await loadProfileDetails(user.id);
+      const [details, advicePerso] = await Promise.all([
+        loadProfileDetails(user.id),
+        // L'âge vit dans le profil conseils PERSO (jamais celui d'un workspace).
+        loadAdviceProfile(user.id, null),
+      ]);
       setAvatarUrl(details.avatar_url);
       setUsername(details.username ?? "");
       setFirstName(details.first_name ?? "");
       setLastName(details.last_name ?? "");
       setIsChristian(details.tithe_enabled);
       setTithePercent(String(details.tithe_percent));
+      if (advicePerso.age) setAge(advicePerso.age);
       setLoading(false);
     })();
   }, [user?.id]);
@@ -124,14 +135,25 @@ export default function CompleteProfile() {
       return;
     }
 
-    // Enchaîne sur la configuration du profil conseils
+    if (isEdit) {
+      Alert.alert("Profil mis à jour", "", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+      return;
+    }
+
+    // Enchaîne sur la configuration du profil conseils — en scope PERSO :
+    // l'inscription décrit la personne, pas le workspace actif du moment.
     Alert.alert(
       "Inscription terminée",
       "Dernière étape : configure ton profil pour recevoir des conseils personnalisés dès maintenant.",
       [
         {
           text: "Configurer mes conseils",
-          onPress: () => router.replace("/(premium)/advice" as never),
+          onPress: async () => {
+            await setScope(null);
+            router.replace("/(premium)/advice" as never);
+          },
         },
         { text: "Plus tard", style: "cancel", onPress: () => router.back() },
       ],
@@ -172,7 +194,7 @@ export default function CompleteProfile() {
           <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
             <Feather name="arrow-left" size={22} color={TEXT_1} />
           </TouchableOpacity>
-          <Text style={styles.title}>Ton inscription</Text>
+          <Text style={styles.title}>{isEdit ? "Mon profil" : "Ton inscription"}</Text>
           <View style={{ width: 22 }} />
         </View>
 
@@ -181,8 +203,9 @@ export default function CompleteProfile() {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.intro}>
-            Quelques infos pour personnaliser ton espace. Seul le pseudo est
-            obligatoire — le reste améliore tes conseils.
+            {isEdit
+              ? "Modifie tes informations — elles s'appliquent à ton compte, quel que soit le workspace actif."
+              : "Quelques infos pour personnaliser ton espace. Seul le pseudo est obligatoire — le reste améliore tes conseils."}
           </Text>
 
           {/* Photo */}
@@ -303,7 +326,9 @@ export default function CompleteProfile() {
             ) : (
               <>
                 <Feather name="check" size={18} color="#000" />
-                <Text style={styles.ctaBtnText}>Terminer mon inscription</Text>
+                <Text style={styles.ctaBtnText}>
+                  {isEdit ? "Enregistrer" : "Terminer mon inscription"}
+                </Text>
               </>
             )}
           </TouchableOpacity>
