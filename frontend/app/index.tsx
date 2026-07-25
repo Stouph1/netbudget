@@ -1848,8 +1848,15 @@ export default function Index() {
         </View>
       </Modal>
 
-      {/* Bottom Tab Bar */}
-      <View style={styles.tabBar}>
+      {/* Bottom Tab Bar — sur Android (edge-to-edge), la barre système
+          (3 boutons ou geste) recouvre le bas de l'app : on ajoute l'inset
+          bas du téléphone au padding pour que les onglets restent visibles. */}
+      <View
+        style={[
+          styles.tabBar,
+          Platform.OS === "android" ? { paddingBottom: 12 + insets.bottom } : null,
+        ]}
+      >
         {([
           { key: "settings", icon: "settings" },
           { key: "budget", icon: "pie-chart" },
