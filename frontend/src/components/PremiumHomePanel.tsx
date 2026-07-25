@@ -28,8 +28,12 @@ import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signOut } from "../lib/auth";
 import { pickAndUploadAvatar } from "../lib/photos";
-import { loadS1 } from "../lib/premiumStore";
-import { loadProfileBasics, updateUsername } from "../lib/profile";
+import {
+  loadBudgetHistory,
+  loadS1,
+  type BudgetHistoryPoint,
+} from "../lib/premiumStore";
+import { loadProfileBasics } from "../lib/profile";
 import type { S1Payload } from "../types/premium";
 
 const MIDNIGHT = "#0F172A";
@@ -51,6 +55,16 @@ function formatEuro(n: number): string {
   }).format(n);
 }
 
+const MONTHS_FR = [
+  "janv.", "févr.", "mars", "avr.", "mai", "juin",
+  "juil.", "août", "sept.", "oct.", "nov.", "déc.",
+];
+
+function monthLabel(month: string): string {
+  const idx = parseInt(month.slice(5), 10) - 1;
+  return MONTHS_FR[idx] ?? month;
+}
+
 type Props = {
   // Naviguer vers le tab Budget (depuis le tab: setTab; depuis la route: back)
   onGoBudget?: () => void;
@@ -60,6 +74,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
   const [s1, setS1] = useState<S1Payload | null>(null);
+  const [history, setHistory] = useState<BudgetHistoryPoint[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [busyAvatar, setBusyAvatar] = useState(false);
@@ -71,14 +86,16 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       if (!user?.id || scopeLoading) return;
       let cancelled = false;
       (async () => {
-        const [payload, basics] = await Promise.all([
+        const [payload, basics, hist] = await Promise.all([
           loadS1(user.id, workspaceId),
           loadProfileBasics(user.id),
+          loadBudgetHistory(user.id, workspaceId),
         ]);
         if (!cancelled) {
           setS1(payload);
           setAvatarUrl(basics.avatar_url);
           setUsername(basics.username);
+          setHistory(hist);
         }
       })();
       return () => {
@@ -325,11 +342,94 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
         />
       </View>
 
+      {/* Évolution du budget — historique mensuel du scope actif */}
+      <BudgetHistoryCard points={history} scopeLabel={scopeLabel} />
+
       <ScopeSwitcher
         visible={switcherOpen}
         onClose={() => setSwitcherOpen(false)}
       />
     </ScrollView>
+  );
+}
+
+// Graphe barres simple (12 derniers mois) : net vs dépenses, par scope.
+// Les points sont enregistrés automatiquement par le tab Budget.
+function BudgetHistoryCard({
+  points,
+  scopeLabel,
+}: {
+  points: BudgetHistoryPoint[];
+  scopeLabel: string;
+}) {
+  const last = points.slice(-12);
+
+  if (last.length === 0) {
+    return (
+      <View style={styles.historyCard}>
+        <Text style={styles.overviewLabel}>Évolution du budget · {scopeLabel}</Text>
+        <Text style={styles.historyEmpty}>
+          {"L'historique se construit tout seul, mois après mois, dès que le tab Budget est rempli dans ce scope. Reviens le mois prochain pour voir la tendance."}
+        </Text>
+      </View>
+    );
+  }
+
+  const max = Math.max(...last.map((p) => Math.max(p.net, p.expenses)), 1);
+  const latest = last[last.length - 1];
+  const prev = last.length > 1 ? last[last.length - 2] : null;
+  const delta = prev ? latest.remaining - prev.remaining : null;
+
+  return (
+    <View style={styles.historyCard}>
+      <Text style={styles.overviewLabel}>Évolution du budget · {scopeLabel}</Text>
+
+      <View style={styles.historyChart}>
+        {last.map((p) => (
+          <View key={p.month} style={styles.historyCol}>
+            <View style={styles.historyBars}>
+              <View
+                style={[
+                  styles.historyBar,
+                  {
+                    height: `${Math.max(3, (p.net / max) * 100)}%`,
+                    backgroundColor: GOLD,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.historyBar,
+                  {
+                    height: `${Math.max(3, (p.expenses / max) * 100)}%`,
+                    backgroundColor: "#F87171",
+                  },
+                ]}
+              />
+            </View>
+            <Text style={styles.historyMonth} numberOfLines={1}>
+              {monthLabel(p.month)}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.historyLegend}>
+        <View style={[styles.legendDot, { backgroundColor: GOLD }]} />
+        <Text style={styles.legendText}>Net</Text>
+        <View
+          style={[styles.legendDot, { backgroundColor: "#F87171", marginLeft: 14 }]}
+        />
+        <Text style={styles.legendText}>Dépenses</Text>
+      </View>
+
+      <Text style={styles.historyMeta}>
+        Reste à vivre : {formatEuro(latest.remaining)}
+        {delta !== null && prev
+          ? ` · ${delta >= 0 ? "+" : "−"}${formatEuro(Math.abs(delta))} vs ${monthLabel(prev.month)}`
+          : ""}
+      </Text>
+    </View>
   );
 }
 
@@ -487,6 +587,61 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressBarFill: { height: "100%", backgroundColor: MINT },
+
+  historyCard: {
+    padding: 20,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  historyEmpty: {
+    color: TEXT_3,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 10,
+  },
+  historyChart: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    height: 120,
+    marginTop: 16,
+    gap: 6,
+  },
+  historyCol: { flex: 1, alignItems: "center", height: "100%" },
+  historyBars: {
+    flex: 1,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    gap: 2,
+  },
+  historyBar: {
+    width: 7,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+  historyMonth: {
+    color: TEXT_3,
+    fontSize: 9,
+    marginTop: 6,
+  },
+  historyLegend: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+  },
+  legendDot: { width: 8, height: 8, borderRadius: 4, marginRight: 5 },
+  legendText: { color: TEXT_2, fontSize: 11 },
+  historyMeta: {
+    color: TEXT_2,
+    fontSize: 12,
+    marginTop: 10,
+    fontFamily: MONO_FONT,
+  },
 
   tilesRow: { flexDirection: "row", gap: 12, marginBottom: 12 },
   tile: {

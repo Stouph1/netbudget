@@ -250,6 +250,50 @@ export async function saveBudget(
 }
 
 // ============================================================================
+// API Historique budget — un point agrégé par mois et par scope, enregistré
+// automatiquement quand le budget change (voir index.tsx).
+// Perso : local uniquement (le budget perso ne quitte jamais le téléphone).
+// Workspace : cloud partagé entre membres + cache local.
+// ============================================================================
+
+export type BudgetHistoryPoint = {
+  month: string; // "2026-07"
+  net: number; // net mensuel moyen
+  expenses: number; // dépenses mensuelles totales
+  remaining: number; // reste à vivre
+};
+
+const HISTORY_KEY = "budget_history";
+const HISTORY_MAX_MONTHS = 24;
+
+export async function loadBudgetHistory(
+  userId: string,
+  workspaceId: string | null,
+): Promise<BudgetHistoryPoint[]> {
+  if (!workspaceId) {
+    return (await readCache<BudgetHistoryPoint[]>(HISTORY_KEY, null)) ?? [];
+  }
+  return readPayload<BudgetHistoryPoint[]>(HISTORY_KEY, userId, [], workspaceId);
+}
+
+export async function recordBudgetHistoryPoint(
+  userId: string,
+  workspaceId: string | null,
+  point: BudgetHistoryPoint,
+): Promise<void> {
+  const hist = await loadBudgetHistory(userId, workspaceId);
+  const next = hist.filter((h) => h.month !== point.month);
+  next.push(point);
+  next.sort((a, b) => a.month.localeCompare(b.month));
+  const trimmed = next.slice(-HISTORY_MAX_MONTHS);
+  if (!workspaceId) {
+    await writeCache(HISTORY_KEY, null, trimmed);
+  } else {
+    await writePayload(HISTORY_KEY, userId, trimmed, workspaceId);
+  }
+}
+
+// ============================================================================
 // API Profil advice — pour personnaliser les conseils Premium
 // ============================================================================
 

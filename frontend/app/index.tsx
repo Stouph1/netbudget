@@ -50,6 +50,7 @@ import {
 import {
   loadAdviceProfile,
   loadBudget,
+  recordBudgetHistoryPoint,
   saveBudget,
 } from "../src/lib/premiumStore";
 import { loadProfileDetails } from "../src/lib/profile";
@@ -904,6 +905,36 @@ export default function Index() {
     currency,
     lang,
     premiumUser?.id,
+  ]);
+
+  // ----- Historique budget (Premium) : un point agrégé par mois et par scope,
+  // pour la carte "Évolution du budget" de l'onglet Profil. Débounce 2,5 s
+  // pour ne pas écrire à chaque frappe. -----
+  useEffect(() => {
+    if (!hydrated || !premiumUser?.id) return;
+    if (budgetScope !== budgetScopeTarget) return;
+    if (netMensuel <= 0 && monthlyExpenses <= 0) return; // budget vide → pas de bruit
+    const userId = premiumUser.id;
+    const scope = budgetScope;
+    const timer = setTimeout(() => {
+      const now = new Date();
+      const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      recordBudgetHistoryPoint(userId, scope, {
+        month,
+        net: Math.round(netMensuel),
+        expenses: Math.round(monthlyExpenses),
+        remaining: Math.round(remaining),
+      });
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [
+    hydrated,
+    premiumUser?.id,
+    budgetScope,
+    budgetScopeTarget,
+    netMensuel,
+    monthlyExpenses,
+    remaining,
   ]);
 
   function openAddLoan() {
