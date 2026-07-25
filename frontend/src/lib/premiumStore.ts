@@ -256,11 +256,29 @@ export async function saveBudget(
 // Workspace : cloud partagé entre membres + cache local.
 // ============================================================================
 
+export type BudgetHistoryItemLine = {
+  id: string;
+  label: string; // label résolu au moment de l'enregistrement
+  family: string; // "besoins" | "loisirs" | "epargne"
+  amount: number;
+};
+
+// Détail du mois — permet la fiche mois et la comparaison ligne par ligne.
+export type BudgetHistoryBreakdown = {
+  rent: number;
+  loans: number;
+  besoins: number;
+  loisirs: number;
+  epargne: number;
+  items: BudgetHistoryItemLine[];
+};
+
 export type BudgetHistoryPoint = {
   month: string; // "2026-07"
   net: number; // net mensuel moyen
   expenses: number; // dépenses mensuelles totales
   remaining: number; // reste à vivre
+  breakdown?: BudgetHistoryBreakdown; // absent sur les points antérieurs à cette version
 };
 
 const HISTORY_KEY = "budget_history";
@@ -310,14 +328,37 @@ export async function seedDemoBudgetHistory(
     { net: 3150, expenses: 2100 },
     { net: 3150, expenses: 1900 },
   ];
+  const RENT = 900;
+  const LOANS = 250;
   const now = new Date();
   const points: BudgetHistoryPoint[] = base.map((b, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (base.length - 1 - i), 1);
+    // Ventilation cohérente : dépenses = loyer + prêts + besoins + loisirs + épargne
+    const rest = b.expenses - RENT - LOANS;
+    const besoins = Math.round(rest * 0.55);
+    const loisirs = Math.round(rest * 0.3);
+    const epargne = rest - besoins - loisirs;
+    const alimentation = Math.round(besoins * 0.6);
+    const sorties = Math.round(loisirs * 0.7);
     return {
       month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
       net: b.net,
       expenses: b.expenses,
       remaining: b.net - b.expenses,
+      breakdown: {
+        rent: RENT,
+        loans: LOANS,
+        besoins,
+        loisirs,
+        epargne,
+        items: [
+          { id: "alimentation", label: "Alimentation", family: "besoins", amount: alimentation },
+          { id: "transport", label: "Transport", family: "besoins", amount: besoins - alimentation },
+          { id: "sorties", label: "Sorties / Restos", family: "loisirs", amount: sorties },
+          { id: "streaming", label: "Streaming / Hobbies", family: "loisirs", amount: loisirs - sorties },
+          { id: "livret", label: "Livret A / LDDS", family: "epargne", amount: epargne },
+        ],
+      },
     };
   });
   if (!workspaceId) {

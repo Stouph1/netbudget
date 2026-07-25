@@ -924,6 +924,22 @@ export default function Index() {
         net: Math.round(netMensuel),
         expenses: Math.round(monthlyExpenses),
         remaining: Math.round(remaining),
+        // Détail du mois — alimente la fiche mois + la comparaison dans le Profil
+        breakdown: {
+          rent: Math.round(rentNum),
+          loans: Math.round(loansMonthly),
+          besoins: Math.round(familyTotals.besoins),
+          loisirs: Math.round(familyTotals.loisirs),
+          epargne: Math.round(familyTotals.epargne),
+          items: expenseItems
+            .map((it) => ({
+              id: it.id,
+              label: displayItemLabel(it, t),
+              family: it.family,
+              amount: Math.round(parseNumber(it.amount)),
+            }))
+            .filter((it) => it.amount > 0),
+        },
       });
     }, 2500);
     return () => clearTimeout(timer);
@@ -935,6 +951,10 @@ export default function Index() {
     netMensuel,
     monthlyExpenses,
     remaining,
+    rentNum,
+    loansMonthly,
+    expenseItems,
+    lang,
   ]);
 
   function openAddLoan() {

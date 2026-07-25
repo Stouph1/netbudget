@@ -365,8 +365,83 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   );
 }
 
-// Graphe barres simple (12 derniers mois) : net vs dépenses, par scope.
+// ============================================================================
+// Évolution du budget — graphe interactif (12 derniers mois) :
+//  - tap sur un mois → fiche détail (net, dépenses, reste + ventilation)
+//  - "Comparer" → tap sur un 2e mois → comparatif ligne par ligne avec écarts
 // Les points sont enregistrés automatiquement par le tab Budget.
+// ============================================================================
+
+const MONTHS_FULL_FR = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+];
+
+function monthFullLabel(month: string): string {
+  const idx = parseInt(month.slice(5), 10) - 1;
+  const name = MONTHS_FULL_FR[idx] ?? month;
+  return `${name} ${month.slice(0, 4)}`;
+}
+
+// Ligne de détail/comparaison. goodUp : une hausse est-elle une bonne
+// nouvelle (net, épargne, reste à vivre) ou une mauvaise (dépenses, loyer) ?
+type CompareRow = {
+  label: string;
+  a?: number;
+  b?: number;
+  goodUp: boolean;
+  indent?: boolean;
+  strong?: boolean;
+};
+
+function buildRows(
+  a: BudgetHistoryPoint,
+  b?: BudgetHistoryPoint,
+): CompareRow[] {
+  const rows: CompareRow[] = [
+    { label: "Net mensuel", a: a.net, b: b?.net, goodUp: true, strong: true },
+    { label: "Dépenses totales", a: a.expenses, b: b?.expenses, goodUp: false, strong: true },
+    { label: "Reste à vivre", a: a.remaining, b: b?.remaining, goodUp: true, strong: true },
+  ];
+  const ba = a.breakdown;
+  const bb = b?.breakdown;
+  if (ba || bb) {
+    rows.push({ label: "Loyer", a: ba?.rent, b: bb?.rent, goodUp: false });
+    rows.push({ label: "Prêts", a: ba?.loans, b: bb?.loans, goodUp: false });
+    rows.push({ label: "Besoins", a: ba?.besoins, b: bb?.besoins, goodUp: false });
+    rows.push({ label: "Loisirs", a: ba?.loisirs, b: bb?.loisirs, goodUp: false });
+    rows.push({ label: "Épargne", a: ba?.epargne, b: bb?.epargne, goodUp: true });
+    // Lignes détaillées : union des postes des deux mois
+    const labels = new Map<string, { label: string; family: string }>();
+    for (const it of ba?.items ?? []) labels.set(it.id, it);
+    for (const it of bb?.items ?? []) if (!labels.has(it.id)) labels.set(it.id, it);
+    for (const [id, meta] of labels) {
+      rows.push({
+        label: meta.label,
+        a: ba ? (ba.items.find((i) => i.id === id)?.amount ?? 0) : undefined,
+        b: b ? (bb ? (bb.items.find((i) => i.id === id)?.amount ?? 0) : undefined) : undefined,
+        goodUp: meta.family === "epargne",
+        indent: true,
+      });
+    }
+  }
+  return rows;
+}
+
+function DeltaText({ row }: { row: CompareRow }) {
+  if (row.a === undefined || row.b === undefined) {
+    return <Text style={styles.rowDeltaNeutral}>—</Text>;
+  }
+  const delta = row.b - row.a;
+  if (delta === 0) return <Text style={styles.rowDeltaNeutral}>=</Text>;
+  const good = delta > 0 ? row.goodUp : !row.goodUp;
+  return (
+    <Text style={[styles.rowDelta, { color: good ? MINT : "#F87171" }]}>
+      {delta > 0 ? "+" : "−"}{formatEuro(Math.abs(delta))}
+    </Text>
+  );
+}
+
 function BudgetHistoryCard({
   points,
   scopeLabel,
@@ -376,7 +451,30 @@ function BudgetHistoryCard({
   scopeLabel: string;
   onSeedDemo?: () => void; // __DEV__ uniquement — absent en prod
 }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [compare, setCompare] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
+
   const last = points.slice(-12);
+  const selectedPoint = last.find((p) => p.month === selected) ?? null;
+  const comparePoint = last.find((p) => p.month === compare) ?? null;
+
+  function tapMonth(month: string) {
+    if (picking && selected && month !== selected) {
+      setCompare(month);
+      setPicking(false);
+      return;
+    }
+    if (month === selected) {
+      setSelected(null);
+      setCompare(null);
+      setPicking(false);
+      return;
+    }
+    setSelected(month);
+    setCompare(null);
+    setPicking(false);
+  }
 
   const header = (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -405,40 +503,58 @@ function BudgetHistoryCard({
   const max = Math.max(...last.map((p) => Math.max(p.net, p.expenses)), 1);
   const latest = last[last.length - 1];
   const prev = last.length > 1 ? last[last.length - 2] : null;
-  const delta = prev ? latest.remaining - prev.remaining : null;
+  const trendDelta = prev ? latest.remaining - prev.remaining : null;
 
   return (
     <View style={styles.historyCard}>
       {header}
 
       <View style={styles.historyChart}>
-        {last.map((p) => (
-          <View key={p.month} style={styles.historyCol}>
-            <View style={styles.historyBars}>
-              <View
+        {last.map((p) => {
+          const isSel = p.month === selected;
+          const isCmp = p.month === compare;
+          return (
+            <TouchableOpacity
+              key={p.month}
+              style={[
+                styles.historyCol,
+                (isSel || isCmp) && styles.historyColSelected,
+              ]}
+              onPress={() => tapMonth(p.month)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.historyBars}>
+                <View
+                  style={[
+                    styles.historyBar,
+                    {
+                      height: `${Math.max(3, (p.net / max) * 100)}%`,
+                      backgroundColor: GOLD,
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.historyBar,
+                    {
+                      height: `${Math.max(3, (p.expenses / max) * 100)}%`,
+                      backgroundColor: "#F87171",
+                    },
+                  ]}
+                />
+              </View>
+              <Text
                 style={[
-                  styles.historyBar,
-                  {
-                    height: `${Math.max(3, (p.net / max) * 100)}%`,
-                    backgroundColor: GOLD,
-                  },
+                  styles.historyMonth,
+                  (isSel || isCmp) && { color: GOLD, fontWeight: "700" },
                 ]}
-              />
-              <View
-                style={[
-                  styles.historyBar,
-                  {
-                    height: `${Math.max(3, (p.expenses / max) * 100)}%`,
-                    backgroundColor: "#F87171",
-                  },
-                ]}
-              />
-            </View>
-            <Text style={styles.historyMonth} numberOfLines={1}>
-              {monthLabel(p.month)}
-            </Text>
-          </View>
-        ))}
+                numberOfLines={1}
+              >
+                {monthLabel(p.month)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <View style={styles.historyLegend}>
@@ -448,14 +564,102 @@ function BudgetHistoryCard({
           style={[styles.legendDot, { backgroundColor: "#F87171", marginLeft: 14 }]}
         />
         <Text style={styles.legendText}>Dépenses</Text>
+        <Text style={[styles.legendText, { marginLeft: "auto", color: TEXT_3 }]}>
+          Tape un mois pour le détail
+        </Text>
       </View>
 
-      <Text style={styles.historyMeta}>
-        Reste à vivre : {formatEuro(latest.remaining)}
-        {delta !== null && prev
-          ? ` · ${delta >= 0 ? "+" : "−"}${formatEuro(Math.abs(delta))} vs ${monthLabel(prev.month)}`
-          : ""}
-      </Text>
+      {!selectedPoint ? (
+        <Text style={styles.historyMeta}>
+          Reste à vivre : {formatEuro(latest.remaining)}
+          {trendDelta !== null && prev
+            ? ` · ${trendDelta >= 0 ? "+" : "−"}${formatEuro(Math.abs(trendDelta))} vs ${monthLabel(prev.month)}`
+            : ""}
+        </Text>
+      ) : (
+        <View style={styles.monthDetail}>
+          {/* En-tête de la fiche mois / comparaison */}
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.monthDetailTitle}>
+              {monthFullLabel(selectedPoint.month)}
+              {comparePoint ? ` → ${monthFullLabel(comparePoint.month)}` : ""}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setSelected(null);
+                setCompare(null);
+                setPicking(false);
+              }}
+              hitSlop={10}
+              style={{ marginLeft: "auto" }}
+            >
+              <Feather name="x" size={16} color={TEXT_3} />
+            </TouchableOpacity>
+          </View>
+
+          {picking ? (
+            <Text style={styles.pickingHint}>
+              Tape un autre mois dans le graphe pour comparer…
+            </Text>
+          ) : null}
+
+          {/* Colonnes */}
+          {comparePoint ? (
+            <View style={styles.rowHeader}>
+              <View style={{ flex: 1 }} />
+              <Text style={styles.rowHeaderCell}>{monthLabel(selectedPoint.month)}</Text>
+              <Text style={styles.rowHeaderCell}>{monthLabel(comparePoint.month)}</Text>
+              <Text style={styles.rowHeaderCell}>Écart</Text>
+            </View>
+          ) : null}
+
+          {buildRows(selectedPoint, comparePoint ?? undefined).map((row, i) => (
+            <View key={`${row.label}-${i}`} style={styles.detailRow}>
+              <Text
+                style={[
+                  styles.detailRowLabel,
+                  row.indent && { paddingLeft: 14, color: TEXT_3 },
+                  row.strong && { fontWeight: "700", color: TEXT_1 },
+                ]}
+                numberOfLines={1}
+              >
+                {row.label}
+              </Text>
+              <Text style={styles.detailRowValue}>
+                {row.a !== undefined ? formatEuro(row.a) : "—"}
+              </Text>
+              {comparePoint ? (
+                <>
+                  <Text style={styles.detailRowValue}>
+                    {row.b !== undefined ? formatEuro(row.b) : "—"}
+                  </Text>
+                  <View style={styles.detailRowDeltaCell}>
+                    <DeltaText row={row} />
+                  </View>
+                </>
+              ) : null}
+            </View>
+          ))}
+
+          {!selectedPoint.breakdown && !comparePoint?.breakdown ? (
+            <Text style={styles.historyEmpty}>
+              {"Le détail (loyer, catégories, postes) est enregistré à partir de maintenant — ce mois n'a que les totaux."}
+            </Text>
+          ) : null}
+
+          {/* Action comparer */}
+          {!comparePoint && !picking && last.length > 1 ? (
+            <TouchableOpacity
+              style={styles.compareBtn}
+              onPress={() => setPicking(true)}
+              activeOpacity={0.85}
+            >
+              <Feather name="repeat" size={14} color={GOLD} />
+              <Text style={styles.compareBtnText}>Comparer avec un autre mois</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }
@@ -649,7 +853,19 @@ const styles = StyleSheet.create({
     marginTop: 16,
     gap: 6,
   },
-  historyCol: { flex: 1, alignItems: "center", height: "100%" },
+  historyCol: {
+    flex: 1,
+    alignItems: "center",
+    height: "100%",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "transparent",
+    paddingHorizontal: 1,
+  },
+  historyColSelected: {
+    borderColor: GOLD,
+    backgroundColor: "rgba(74,222,128,0.08)",
+  },
   historyBars: {
     flex: 1,
     width: "100%",
@@ -681,6 +897,70 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontFamily: MONO_FONT,
   },
+  monthDetail: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
+  },
+  monthDetailTitle: {
+    color: TEXT_1,
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: "capitalize",
+  },
+  pickingHint: {
+    color: GOLD,
+    fontSize: 12,
+    marginTop: 8,
+    fontStyle: "italic",
+  },
+  rowHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    marginBottom: 2,
+  },
+  rowHeaderCell: {
+    width: 72,
+    textAlign: "right",
+    color: TEXT_3,
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: BORDER,
+  },
+  detailRowLabel: { flex: 1, color: TEXT_2, fontSize: 12 },
+  detailRowValue: {
+    width: 72,
+    textAlign: "right",
+    color: TEXT_1,
+    fontSize: 12,
+    fontFamily: MONO_FONT,
+  },
+  detailRowDeltaCell: { width: 72, alignItems: "flex-end" },
+  rowDelta: { fontSize: 12, fontWeight: "700", fontFamily: MONO_FONT },
+  rowDeltaNeutral: { color: TEXT_3, fontSize: 12, fontFamily: MONO_FONT },
+  compareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  compareBtnText: { color: GOLD, fontSize: 13, fontWeight: "600" },
 
   tilesRow: { flexDirection: "row", gap: 12, marginBottom: 12 },
   tile: {
