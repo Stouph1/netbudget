@@ -3,7 +3,7 @@
 // Affiche :
 //  - Section "Compte perso" (toujours dispo, non-supprimable)
 //  - Liste des workspaces où l'user est membre
-//  - Bouton "+ Créer un workspace"
+//  - Bouton "+ Créer un espace"
 //  - Sur chaque workspace : bouton pour switcher, voir membres, inviter, quitter
 //  - Bouton "Rejoindre via un code" pour accepter une invitation
 
@@ -111,9 +111,9 @@ export default function WorkspacesScreen() {
       await setScope(id, name, kind);
       // Feedback rapide
       Alert.alert(
-        id ? "Workspace activé" : "Compte perso activé",
+        id ? "Espace activé" : "Compte perso activé",
         id
-          ? "Tes objectifs S1 et données Premium sont maintenant scopés à ce workspace."
+          ? "Tes objectifs et données Premium suivent maintenant cet espace."
           : "Retour sur ton compte personnel.",
       );
     },
@@ -123,7 +123,7 @@ export default function WorkspacesScreen() {
   const activeLabel =
     activeId === null
       ? "Perso"
-      : workspaces.find((w) => w.id === activeId)?.name ?? "Workspace supprimé";
+      : workspaces.find((w) => w.id === activeId)?.name ?? "Espace supprimé";
 
   if (!user) {
     return (
@@ -148,7 +148,7 @@ export default function WorkspacesScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Workspaces</Text>
+        <Text style={styles.title}>Espaces partagés</Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <TouchableOpacity onPress={reload} hitSlop={10}>
             <Feather name="refresh-cw" size={18} color={TEXT_2} />
@@ -175,8 +175,8 @@ export default function WorkspacesScreen() {
               <Text style={styles.activeLabel}>Scope actif</Text>
               <Text style={styles.activeName}>{activeLabel}</Text>
               <Text style={styles.activeHint}>
-                Tes données Premium (objectifs S1, provisions, etc.) sont
-                enregistrées dans ce scope. Tape pour ouvrir S1 · Épargne.
+                Tes données Premium (objectifs, budget, conseils) sont
+                enregistrées dans ce scope. Tape pour ouvrir tes Objectifs.
               </Text>
             </View>
             <Feather name="chevron-right" size={22} color={TEXT_3} />
@@ -222,7 +222,7 @@ export default function WorkspacesScreen() {
           activeOpacity={0.85}
         >
           <Feather name="plus" size={18} color="#000" />
-          <Text style={styles.primaryBtnText}>Créer un workspace</Text>
+          <Text style={styles.primaryBtnText}>Créer un espace</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -349,7 +349,7 @@ function ScopeCard({
 }
 
 // ============================================================================
-// Modal "Créer un workspace"
+// Modal "Créer un espace"
 // ============================================================================
 
 function CreateModal({
@@ -378,7 +378,7 @@ function CreateModal({
 
   async function submit() {
     if (!name.trim()) {
-      Alert.alert("Nom manquant", "Donne un nom à ton workspace.");
+      Alert.alert("Nom manquant", "Donne un nom à ton espace.");
       return;
     }
     setBusy(true);
@@ -398,7 +398,7 @@ function CreateModal({
         <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Nouveau workspace</Text>
+            <Text style={styles.sheetTitle}>Nouvel espace</Text>
             <TouchableOpacity onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
@@ -455,7 +455,7 @@ function CreateModal({
             ) : (
               <>
                 <Feather name="plus" size={18} color="#000" />
-                <Text style={styles.primaryBtnText}>Créer le workspace</Text>
+                <Text style={styles.primaryBtnText}>Créer l'espace</Text>
               </>
             )}
           </TouchableOpacity>
@@ -501,7 +501,7 @@ function JoinModal({
       Alert.alert("Impossible de rejoindre", result.error ?? "Erreur inconnue");
       return;
     }
-    Alert.alert("Bienvenue !", "Tu as rejoint le workspace.");
+    Alert.alert("Bienvenue !", "Tu as rejoint l'espace.");
     onJoined();
   }
 
@@ -512,14 +512,14 @@ function JoinModal({
         <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Rejoindre un workspace</Text>
+            <Text style={styles.sheetTitle}>Rejoindre un espace</Text>
             <TouchableOpacity onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>
 
           <Text style={styles.sheetIntro}>
-            Colle le code d'invitation partagé par un membre du workspace. Le
+            Colle le code d'invitation partagé par un membre de l'espace. Le
             code n'est valide que pour l'email de ton compte Premium.
           </Text>
 
@@ -557,7 +557,7 @@ function JoinModal({
 }
 
 // ============================================================================
-// Modal "Détail workspace" (membres, inviter, quitter/supprimer)
+// Modal "Détail de l'espace" (membres, inviter, quitter/supprimer)
 // ============================================================================
 
 function WorkspaceDetailModal({
@@ -631,7 +631,7 @@ function WorkspaceDetailModal({
 
   function confirmDelete() {
     Alert.alert(
-      "Supprimer le workspace ?",
+      "Supprimer l'espace ?",
       `"${workspace.name}" et TOUTES ses données seront supprimées définitivement. Les membres perdent l'accès. Cette action est irréversible.`,
       [
         { text: "Annuler", style: "cancel" },
@@ -653,8 +653,8 @@ function WorkspaceDetailModal({
 
   function confirmLeave() {
     Alert.alert(
-      "Quitter le workspace ?",
-      "Tu perdras l'accès aux données partagées. Ce workspace continuera d'exister pour les autres membres.",
+      "Quitter l'espace ?",
+      "Tu perdras l'accès aux données partagées. Cet espace continuera d'exister pour les autres membres.",
       [
         { text: "Annuler", style: "cancel" },
         {
@@ -802,7 +802,7 @@ function WorkspaceDetailModal({
                   activeOpacity={0.85}
                 >
                   <Feather name="trash-2" size={16} color="#fff" />
-                  <Text style={styles.dangerBtnText}>Supprimer ce workspace</Text>
+                  <Text style={styles.dangerBtnText}>Supprimer cet espace</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -812,7 +812,7 @@ function WorkspaceDetailModal({
                 activeOpacity={0.85}
               >
                 <Feather name="log-out" size={16} color="#fff" />
-                <Text style={styles.dangerBtnText}>Quitter ce workspace</Text>
+                <Text style={styles.dangerBtnText}>Quitter cet espace</Text>
               </TouchableOpacity>
             )}
 

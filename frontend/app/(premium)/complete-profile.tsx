@@ -2,7 +2,7 @@
 // (Apple/Google) tant que le pseudo n'est pas choisi.
 //
 // Collecte : photo (optionnelle), pseudo (requis), prénom/nom (optionnels),
-// âge, et la question dîme (chrétien → % configurable, 10% par défaut).
+// âge, et la section Dons & cadeaux (part réservée % configurable, 10% par défaut).
 // À la fin : enchaîne sur le profil conseils (advice) pour que l'utilisateur
 // reçoive des conseils personnalisés dès la fin de l'inscription.
 
@@ -65,7 +65,7 @@ export default function CompleteProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [age, setAge] = useState<AgeBracket | undefined>(undefined);
-  const [isChristian, setIsChristian] = useState(false);
+  const [givingEnabled, setGivingEnabled] = useState(false); // dons/dîme/zakat
   const [tithePercent, setTithePercent] = useState("10");
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function CompleteProfile() {
       setUsername(details.username ?? "");
       setFirstName(details.first_name ?? "");
       setLastName(details.last_name ?? "");
-      setIsChristian(details.tithe_enabled);
+      setGivingEnabled(details.tithe_enabled);
       setTithePercent(String(details.tithe_percent));
       if (advicePerso.age) setAge(advicePerso.age);
       setLoading(false);
@@ -108,8 +108,8 @@ export default function CompleteProfile() {
       return;
     }
     const pct = parseFloat(tithePercent.replace(",", "."));
-    if (isChristian && (isNaN(pct) || pct < 0 || pct > 100)) {
-      Alert.alert("Dîme", "Le pourcentage doit être entre 0 et 100.");
+    if (givingEnabled && (isNaN(pct) || pct < 0 || pct > 100)) {
+      Alert.alert("Dons & cadeaux", "Le pourcentage doit être entre 0 et 100.");
       return;
     }
 
@@ -118,8 +118,8 @@ export default function CompleteProfile() {
       username,
       first_name: firstName,
       last_name: lastName,
-      tithe_enabled: isChristian,
-      tithe_percent: isChristian ? pct : 10,
+      tithe_enabled: givingEnabled,
+      tithe_percent: givingEnabled ? pct : 10,
     });
 
     // Pré-remplit l'âge du profil conseils (perso) pour que l'onboarding
@@ -204,7 +204,7 @@ export default function CompleteProfile() {
         >
           <Text style={styles.intro}>
             {isEdit
-              ? "Modifie tes informations — elles s'appliquent à ton compte, quel que soit le workspace actif."
+              ? "Modifie tes informations — elles s'appliquent à ton compte, quel que soit l'espace actif."
               : "Quelques infos pour personnaliser ton espace. Seul le pseudo est obligatoire — le reste améliore tes conseils."}
           </Text>
 
@@ -281,28 +281,31 @@ export default function CompleteProfile() {
             })}
           </View>
 
-          {/* Dîme */}
+          {/* Dons & cadeaux — formulation inclusive : couvre dîme, zakat,
+              dons associatifs, soutien familial, cadeaux réguliers. */}
           <View style={styles.titheCard}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.titheTitle}>Es-tu chrétien ?</Text>
+                <Text style={styles.titheTitle}>Dons & cadeaux</Text>
                 <Text style={styles.titheHint}>
-                  Si oui, NetBudget peut appliquer le principe de la dîme sur
-                  tes revenus — tu choisiras revenu par revenu.
+                  Tu réserves régulièrement une part de tes revenus pour donner
+                  (dons, dîme, zakat, soutien familial, cadeaux) ? NetBudget
+                  peut la déduire automatiquement — tu choisiras revenu par
+                  revenu.
                 </Text>
               </View>
               <Switch
-                value={isChristian}
-                onValueChange={setIsChristian}
+                value={givingEnabled}
+                onValueChange={setGivingEnabled}
                 trackColor={{ false: BORDER, true: GOLD }}
                 thumbColor="#fff"
                 ios_backgroundColor={BORDER}
               />
             </View>
 
-            {isChristian ? (
+            {givingEnabled ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
-                <Text style={styles.titheLabel}>Pourcentage de la dîme</Text>
+                <Text style={styles.titheLabel}>Part réservée</Text>
                 <TextInput
                   style={[styles.input, { width: 80, textAlign: "center", marginBottom: 0 }]}
                   value={tithePercent}

@@ -180,7 +180,7 @@ export default function S1Epargne() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>S1 · Épargne</Text>
+        <Text style={styles.title}>Objectifs</Text>
         <TouchableOpacity
           onPress={() =>
             router.navigate({ pathname: "/", params: { tab: "premium" } } as never)

@@ -42,6 +42,7 @@ import type {
   AdviceCard,
   AgeBracket,
   ChildAgeBracket,
+  Country,
   FamilyStatus,
   HousingStatus,
   Pet,
@@ -111,6 +112,15 @@ const CHILDREN_OPTIONS: { value: ChildAgeBracket; label: string }[] = [
   { value: "19+", label: "19+ ans (études sup / autonomes)" },
 ];
 
+const COUNTRY_OPTIONS: { value: Country; label: string }[] = [
+  { value: "FR", label: "France" },
+  { value: "BE", label: "Belgique" },
+  { value: "CH", label: "Suisse" },
+  { value: "LU", label: "Luxembourg" },
+  { value: "CA", label: "Canada" },
+  { value: "OTHER", label: "Autre pays" },
+];
+
 const SAVINGS_OPTIONS: { value: SavingsCapacity; label: string }[] = [
   { value: "under_100", label: "< 100 € / mois" },
   { value: "100_300", label: "100 - 300 € / mois" },
@@ -146,6 +156,8 @@ type OnboardingConfig = {
   askFoyer: boolean; // deux parents / parent solo (workspace famille)
   askKids: "auto" | "always" | "never"; // auto = si situation avec enfants
   kidsLabel: string;
+  askCountry: boolean;
+  countryLabel: string;
   askHousing: boolean;
   housingLabel: string;
   askTmi: boolean;
@@ -169,6 +181,8 @@ const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
     askFoyer: false,
     askKids: "auto",
     kidsLabel: "Âges de tes enfants",
+    askCountry: true,
+    countryLabel: "Ton pays",
     askHousing: true,
     housingLabel: "Ton logement",
     askTmi: true,
@@ -190,6 +204,8 @@ const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
     askFoyer: false,
     askKids: "always",
     kidsLabel: "Vos enfants (laisser vide si aucun)",
+    askCountry: true,
+    countryLabel: "Votre pays",
     askHousing: true,
     housingLabel: "Votre logement",
     askTmi: true,
@@ -212,6 +228,8 @@ const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
     askFoyer: true,
     askKids: "always",
     kidsLabel: "Âges des enfants",
+    askCountry: true,
+    countryLabel: "Votre pays",
     askHousing: true,
     housingLabel: "Votre logement",
     askTmi: true,
@@ -234,6 +252,8 @@ const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
     askFoyer: false,
     askKids: "never",
     kidsLabel: "",
+    askCountry: true,
+    countryLabel: "Votre pays",
     askHousing: true,
     housingLabel: "Votre logement",
     askTmi: false, // l'impôt reste individuel en coloc
@@ -255,6 +275,8 @@ const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
     askFoyer: false,
     askKids: "never",
     kidsLabel: "",
+    askCountry: false,
+    countryLabel: "",
     askHousing: false,
     housingLabel: "",
     askTmi: false,
@@ -338,6 +360,9 @@ function profileSummary(p: UserProfile, mode: AdviceMode): string {
       );
   }
   if (mode !== "coloc" && p.tmi) parts.push(`TMI ${p.tmi}%`);
+  if (p.country && p.country !== "FR") {
+    parts.push(COUNTRY_OPTIONS.find((o) => o.value === p.country)?.label);
+  }
   return parts.filter(Boolean).join(" · ");
 }
 
@@ -507,7 +532,7 @@ export default function AdviceScreen() {
             <Feather name="arrow-left" size={22} color={TEXT_1} />
           </TouchableOpacity>
           <Text style={styles.title}>
-            {mode === "perso" ? "Ton profil" : "Profil du workspace"}
+            {mode === "perso" ? "Ton profil" : "Profil de l'espace"}
           </Text>
           <View style={{ width: 22 }} />
         </View>
@@ -566,12 +591,22 @@ export default function AdviceScreen() {
             />
           ) : null}
 
-          {cfg.askHousing || cfg.askTmi || cfg.askSavings || cfg.askPets ? (
+          {cfg.askCountry || cfg.askHousing || cfg.askTmi || cfg.askSavings || cfg.askPets ? (
             <Text style={styles.optionalHeader}>
               Optionnel — plus tu remplis, plus c'est précis
             </Text>
           ) : null}
 
+          {cfg.askCountry ? (
+            <QuestionBlock
+              label={cfg.countryLabel}
+              hint="France par défaut. Les conseils s'adaptent à la fiscalité et aux dispositifs de ton pays."
+              options={COUNTRY_OPTIONS}
+              value={profile.country}
+              onSelect={(v) => updateField("country", v)}
+              allowDeselect
+            />
+          ) : null}
           {cfg.askHousing ? (
             <QuestionBlock
               label={cfg.housingLabel}
@@ -691,7 +726,7 @@ export default function AdviceScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Conseils personnalisés</Text>
+        <Text style={styles.title}>Coach budget</Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <TouchableOpacity onPress={() => setEditing(true)} hitSlop={10}>
             <Feather name="settings" size={20} color={TEXT_2} />

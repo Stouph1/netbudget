@@ -196,6 +196,9 @@ export type AdviceFigure = { label: string; value: string };
 export type AdviceCard = {
   id: string;
   category: AdviceCategory;
+  // Pays où le conseil est valable. Absent = ["FR"] (catalogue historique).
+  // "all" = universel (fonds d'urgence, répartition budgétaire…).
+  countries?: Country[] | "all";
   title: string;
   body: string | ((p: UserProfile) => string);
   action: AdviceAction | ((p: UserProfile) => AdviceAction);

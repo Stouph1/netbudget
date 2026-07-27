@@ -321,19 +321,19 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       <View style={styles.tilesRow}>
         <Tile
           icon="target"
-          label="S1 · Épargne"
+          label="Objectifs"
           onPress={() => router.push("/(premium)/s1-epargne" as never)}
         />
         <Tile
           icon="compass"
-          label="Conseils"
+          label="Coach"
           onPress={() => router.push("/(premium)/advice" as never)}
         />
       </View>
       <View style={styles.tilesRow}>
         <Tile
           icon="users"
-          label="Workspaces"
+          label="Espaces"
           onPress={() => router.push("/(premium)/workspaces" as never)}
         />
         <Tile

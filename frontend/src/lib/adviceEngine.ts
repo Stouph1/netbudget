@@ -414,6 +414,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "budget-split-personalized",
     category: "emergency",
+    countries: "all",
     title: "Ta répartition budgétaire idéale",
     body: (p) => {
       const s = computeBudgetSplit(p);
@@ -1574,6 +1575,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   },
   {
     id: "pets-ligne-budget-dediee",
+    countries: "all",
     category: "pets",
     title: "Un animal = une ligne budgétaire dédiée",
     body:
@@ -1586,18 +1588,566 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ],
     lastVerified: "2026-07-18",
   },
+
+  // ==========================================================================
+  // BELGIQUE — recherche vérifiée 2026-07-27 (SPF Finances, Wikifin/FSMA,
+  // Agence fédérale de la Dette). Pas de taux volatils codés en dur.
+  // ==========================================================================
+  {
+    id: "be-fonds-urgence",
+    category: "emergency",
+    countries: ["BE"],
+    title: "Ta réserve d'épargne : 3 à 6 mois de salaire net",
+    body:
+      "Wikifin (l'éducation financière officielle de la FSMA) considère qu'une réserve de 3 à 6 mois de salaire net est idéale. Garde-la sur un compte d'épargne accessible, séparée de l'épargne pour tes projets planifiés.",
+    action: {
+      label: "Comparer les comptes d'épargne sur Wikifin",
+      link: "https://www.wikifin.be/fr/epargner-et-investir/comparateur-de-comptes-depargne",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de salaire net" }],
+    sources: [
+      "https://www.wikifin.be/fr/budget-payer-emprunter-et-assurer/budget-et-gestion-de-budget/quest-ce-quune-reserve-depargne",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "be-epargne-reglementee",
+    category: "tax",
+    countries: ["BE"],
+    title: "Compte d'épargne réglementé : 1 020 € d'intérêts exonérés",
+    body:
+      "Les premiers 1 020 € d'intérêts par personne et par an sur les comptes d'épargne réglementés sont exonérés de précompte mobilier (15 % au-delà, au lieu de 30 %). Attention : l'exonération vaut par PERSONNE, pas par banque — si tu cumules plusieurs banques et dépasses le plafond, c'est à toi de régulariser via ta déclaration.",
+    action: {
+      label: "Vérifier le régime de tes comptes d'épargne",
+      link: "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/epargne-placements",
+    },
+    appliesWhen: always,
+    priority: 84,
+    figures: [
+      { label: "Exonérés / pers. / an", value: "1 020 €" },
+      { label: "Au-delà", value: "précompte 15 %" },
+    ],
+    sources: [
+      "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/epargne-placements",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "be-epargne-pension",
+    category: "retirement",
+    countries: ["BE"],
+    title: "Épargne-pension : vise 1 050 € — pas 1 200 €",
+    body:
+      "Deux régimes en 2026 : jusqu'à 1 050 €/an avec 30 % de réduction d'impôt, ou jusqu'à 1 350 €/an avec 25 % (sur demande explicite à ta banque). Zone piège : entre 1 050 et 1 260 € versés, ton avantage fiscal est INFÉRIEUR à celui d'un versement de 1 050 € pile. Soit tu restes à 1 050 €, soit tu vas franchement vers 1 350 €.",
+    action: {
+      label: "Vérifier ton plafond auprès de ta banque",
+      link: "https://fin.belgium.be/fr/particuliers/avantages-fiscaux/epargne-pension",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 86,
+    figures: [
+      { label: "Plafond de base", value: "1 050 € → 30 %" },
+      { label: "Plafond majoré", value: "1 350 € → 25 %" },
+      { label: "Zone à éviter", value: "1 050 - 1 260 €" },
+    ],
+    sources: [
+      "https://fin.belgium.be/fr/particuliers/avantages-fiscaux/epargne-pension",
+      "https://www.wikifin.be/fr/impots-emploi-et-revenus/declaration-dimpots/reductions-fiscales/lepargne-pension",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "be-taxe-plus-values",
+    category: "long_term",
+    countries: ["BE"],
+    title: "Plus-values : 10 % depuis 2026, mais 10 000 € de franchise",
+    body:
+      "Depuis le 1er janvier 2026, les plus-values sur actifs financiers des particuliers sont taxées à 10 % — avec une exonération annuelle de 10 000 € par contribuable. Pour les actifs achetés avant 2026, la valeur de référence est celle du 31 décembre 2025 (pas ton prix d'achat). Étaler tes ventes sur plusieurs années peut faire rester sous la franchise.",
+    action: {
+      label: "Lire le régime officiel de la taxe",
+      link: "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/taxe-plus-values",
+    },
+    appliesWhen: always,
+    priority: 78,
+    figures: [
+      { label: "Taux", value: "10 %" },
+      { label: "Franchise annuelle", value: "10 000 €" },
+    ],
+    sources: [
+      "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/taxe-plus-values",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "be-bons-etat",
+    category: "long_term",
+    countries: ["BE"],
+    title: "Bons d'État : une émission chaque trimestre",
+    body:
+      "L'Agence fédérale de la Dette émet des bons d'État début mars, juin, septembre et décembre. Les coupons subissent le précompte mobilier de 30 % : compare toujours le rendement NET avec les comptes à terme bancaires avant de souscrire — le gagnant change selon les émissions.",
+    action: {
+      label: "Voir les émissions en cours",
+      link: "https://www.debtagency.be/fr/productsbeinfo",
+    },
+    appliesWhen: always,
+    priority: 70,
+    sources: ["https://www.debtagency.be/fr/productsbeinfo"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "be-succession-regions",
+    category: "inheritance",
+    countries: ["BE"],
+    title: "Succession et donation : tout dépend de ta région",
+    body:
+      "Les droits de succession et de donation sont une compétence RÉGIONALE : les taux et abattements diffèrent entre la Flandre, la Wallonie et Bruxelles — et c'est le domicile fiscal du défunt ou du donateur qui compte, pas celui de l'héritier. Avant toute planification (donation mobilière, immobilière), vérifie les règles de TA région.",
+    action: {
+      label: "Vérifier les règles de ta région",
+      link: "https://www.wikifin.be/fr/famille/heriter",
+    },
+    appliesWhen: ageIn("36-50", "51-65", "66+"),
+    priority: 68,
+    sources: [
+      "https://www.wikifin.be/fr/famille/heriter",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // SUISSE — recherche vérifiée 2026-07-27 (AFC/estv, OFSP/priminfo, canton
+  // GE, banques de référence). Montants 3a = valeurs OFAS 2025-2026.
+  // ==========================================================================
+  {
+    id: "ch-fonds-urgence",
+    category: "emergency",
+    countries: ["CH"],
+    title: "Réserve de sécurité : 3 à 6 mois de dépenses",
+    body:
+      "Recommandation courante en Suisse : garder l'équivalent de 3 à 6 mois de dépenses courantes sur un compte épargne liquide (davantage si tu es indépendant). Exemple : 4 500 CHF de charges mensuelles → vise 13 500 à 27 000 CHF avant tout investissement.",
+    action: { label: "Calculer 3-6 mois de tes charges dans le tab Budget" },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    sources: ["https://www.cler.ch/fr/blog/blog/clever-auf-gratis-konten-sparen"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ch-pilier-3a",
+    category: "retirement",
+    countries: ["CH"],
+    title: "Pilier 3a : 7 258 CHF déductibles en 2026",
+    body:
+      "Verser dans le pilier 3a réduit directement ton revenu imposable (fédéral, cantonal et communal). Plafond 2026 : 7 258 CHF si tu as une caisse de pension ; 20 % du revenu net (max 36 288 CHF) sans caisse de pension. Dans un couple à deux revenus, CHACUN a son propre plafond. À créditer avant le 31 décembre.",
+    action: {
+      label: "Programmer un versement mensuel automatique vers le 3a",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 88,
+    figures: [
+      { label: "Avec caisse de pension", value: "7 258 CHF" },
+      { label: "Sans caisse de pension", value: "20 % · max 36 288 CHF" },
+    ],
+    sources: [
+      "https://www.ubs.com/ch/fr/services/pension/pillar-3/maximal-contribution.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ch-3a-rachat-retroactif",
+    category: "retirement",
+    countries: ["CH"],
+    title: "Nouveau : rattrape tes lacunes 3a (dès 2026)",
+    body:
+      "2026 est la première année où tu peux racheter rétroactivement une lacune de versement 3a — uniquement pour les lacunes apparues à partir de 2025, jusqu'à 10 ans en arrière. Conditions : avoir eu un revenu AVS l'année de la lacune et verser d'abord le maximum de l'année en cours. Chaque lacune se comble en un versement unique, déductible.",
+    action: { label: "Vérifier tes années incomplètes auprès de ta fondation 3a" },
+    appliesWhen: ageIn("26-35", "36-50", "51-65"),
+    priority: 80,
+    sources: [
+      "https://www.zurich.ch/fr/services/savoir/prevoyance-et-placement/erachats-ulterieurs-pilier-3a",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ch-rachat-lpp",
+    category: "retirement",
+    countries: ["CH"],
+    title: "Rachat dans ta caisse de pension : puissant mais encadré",
+    body:
+      "Les rachats volontaires dans le 2e pilier sont intégralement déductibles du revenu imposable. Ton potentiel de rachat figure sur ton certificat de prévoyance. Deux règles d'or : étale un gros rachat sur 2-3 ans pour casser la progression fiscale, et AUCUN retrait en capital dans les 3 ans qui suivent (art. 79b LPP), sinon la déduction est annulée avec rappel d'impôt.",
+    action: {
+      label: "Lire ton certificat de prévoyance (potentiel de rachat)",
+      link: "https://www.ge.ch/impot-prevoyance-retraite-du-2e-3e-pilier/comment-deduire-rachats-au-2e-3e-pilier",
+    },
+    appliesWhen: ageIn("36-50", "51-65"),
+    priority: 76,
+    figures: [{ label: "Blocage après rachat", value: "3 ans (art. 79b)" }],
+    sources: [
+      "https://www.ge.ch/impot-prevoyance-retraite-du-2e-3e-pilier/comment-deduire-rachats-au-2e-3e-pilier",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ch-impot-anticipe",
+    category: "tax",
+    countries: ["CH"],
+    title: "Impôt anticipé 35 % : récupère-le, c'est le tien",
+    body:
+      "35 % de tes intérêts et dividendes suisses sont retenus à la source — mais ce n'est PAS un impôt définitif. Déclare correctement ces rendements dans l'état des titres de ta déclaration et tu récupères l'intégralité (imputée sur tes impôts cantonaux). Délai : 3 ans après la fin de l'année concernée. Ne laisse pas dormir cet argent.",
+    action: {
+      label: "Vérifier ton état des titres",
+      link: "https://www.estv.admin.ch/estv/fr/accueil/impot-anticipe.html",
+    },
+    appliesWhen: always,
+    priority: 74,
+    figures: [
+      { label: "Retenue", value: "35 %" },
+      { label: "Récupérable", value: "100 % (délai 3 ans)" },
+    ],
+    sources: ["https://www.estv.admin.ch/estv/fr/accueil/impot-anticipe.html"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ch-lamal-franchise",
+    category: "insurance",
+    countries: ["CH"],
+    title: "LAMal : ta franchise est un levier budgétaire",
+    body:
+      "Adultes : franchise de 300 CHF (ordinaire) à 2 500 CHF (maximale), plus une quote-part de 10 % plafonnée à 700 CHF/an. Peu de frais médicaux → franchise haute et prime réduite ; frais réguliers → franchise basse. Le changement ne se fait qu'au 1er janvier. Et vérifie tes droits aux subsides : chaque canton réduit les primes des revenus modestes selon ses propres règles.",
+    action: {
+      label: "Comparer primes et franchises sur Priminfo",
+      link: "https://www.priminfo.admin.ch/fr/sparen/grundversicherung",
+    },
+    appliesWhen: always,
+    priority: 82,
+    figures: [
+      { label: "Franchises adultes", value: "300 → 2 500 CHF" },
+      { label: "Quote-part max", value: "700 CHF/an" },
+    ],
+    sources: [
+      "https://www.priminfo.admin.ch/fr/sparen/grundversicherung",
+      "https://www.bag.admin.ch/fr/assurance-maladie-reduction-des-primes",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ch-loyer-tiers",
+    category: "housing",
+    countries: ["CH"],
+    title: "La règle du tiers : ton loyer face aux régies",
+    body:
+      "Pratique standard des régies suisses : un dossier de location n'est accepté que si le revenu net fait au moins 3× le loyer charges comprises. Ce n'est pas une loi, mais c'est un double repère : critère d'acceptation ET garde-fou budgétaire. Dans les villes tendues où le tiers est dépassé, compense sur les autres postes.",
+    action: { label: "Vérifier ton ratio loyer/revenu dans le tab Budget" },
+    appliesWhen: housingIn("renter"),
+    priority: 72,
+    figures: [{ label: "Repère", value: "loyer ≤ 1/3 du revenu net" }],
+    sources: [
+      "https://www.bcbe.ch/la-bcbe/blog/logement/couts-de-location-maximum",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // LUXEMBOURG — recherche vérifiée 2026-07-27 (ACD/impotsdirects, guichet.lu,
+  // CAE, lëtzfin/CSSF). Plafond 111bis = 4 500 € depuis 2026 (loi 19.12.2025).
+  // ==========================================================================
+  {
+    id: "lu-fonds-urgence",
+    category: "emergency",
+    countries: ["LU"],
+    title: "Épargne de sécurité : 3 à 6 mois de salaire",
+    body:
+      "Lëtzfin (l'éducation financière de la CSSF) recommande de constituer une épargne de sécurité représentant 3 à 6 mois de salaire, sur un compte accessible. Une fois ce matelas en place, l'excédent peut aller vers des placements de plus long terme.",
+    action: {
+      label: "Lire la recommandation Lëtzfin",
+      link: "https://www.letzfin.lu/pourquoi-est-il-important-de-mettre-de-largent-de-cote-pour-des-situations-durgence/",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de salaire" }],
+    sources: [
+      "https://www.letzfin.lu/pourquoi-est-il-important-de-mettre-de-largent-de-cote-pour-des-situations-durgence/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "lu-prevoyance-111bis",
+    category: "retirement",
+    countries: ["LU"],
+    title: "Prévoyance-vieillesse : 4 500 € déductibles par an (nouveau)",
+    body:
+      "Depuis l'année d'imposition 2026, le plafond déductible d'un contrat de prévoyance-vieillesse (art. 111bis LIR) passe de 3 200 € à 4 500 € par contribuable et par an. Conditions : contrat d'au moins 10 ans, sortie entre 60 et 75 ans. Un remboursement anticipé est imposé au taux plein — c'est de l'épargne longue, pas un livret.",
+    action: {
+      label: "Vérifier le régime sur le site de l'ACD",
+      link: "https://impotsdirects.public.lu/fr/az/p/prevoyance_vieillesse.html",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 88,
+    figures: [
+      { label: "Plafond 2026", value: "4 500 € / an" },
+      { label: "Durée minimale", value: "10 ans" },
+    ],
+    sources: ["https://impotsdirects.public.lu/fr/az/p/prevoyance_vieillesse.html"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "lu-epargne-logement",
+    category: "real_estate",
+    countries: ["LU"],
+    title: "Épargne-logement : déduction doublée pour les jeunes",
+    body:
+      "Les cotisations d'épargne-logement sont déductibles jusqu'à 672 €/an — et le plafond est DOUBLÉ (1 344 €) pour les jeunes souscripteurs (jusqu'à 40 ans environ), puis majoré pour le conjoint imposé collectivement et chaque enfant. Contrat d'au moins 10 ans, affecté au financement de la résidence principale. Si tu comptes acheter un jour, plus tu commences jeune, plus la déduction est intéressante.",
+    action: {
+      label: "Voir les conditions officielles",
+      link: "https://impotsdirects.public.lu/fr/az/c/cotis-epargne-logement.html",
+    },
+    appliesWhen: and(
+      ageIn("18-25", "26-35"),
+      housingIn("renter", "free_housing"),
+    ),
+    priority: 78,
+    figures: [
+      { label: "Plafond jeune", value: "1 344 € / an" },
+      { label: "Plafond standard", value: "672 € / an" },
+    ],
+    sources: ["https://impotsdirects.public.lu/fr/az/c/cotis-epargne-logement.html"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "lu-frontaliers-assimilation",
+    category: "tax",
+    countries: ["LU"],
+    title: "Frontalier au Luxembourg ? L'assimilation change tout",
+    body:
+      "Sans assimilation fiscale, un frontalier n'a accès à AUCUNE déduction luxembourgeoise (prévoyance 111bis, épargne-logement, assurances). Tu peux demander le traitement équivalent résident si ≥ 90 % de tes revenus mondiaux sont imposables au Luxembourg (ou si tes revenus hors Luxembourg restent sous 13 000 € ; règle spéciale à 50 % pour les résidents belges). Ça se coche dans la déclaration.",
+    action: {
+      label: "Vérifier tes conditions d'assimilation",
+      link: "https://guichet.public.lu/fr/citoyens/fiscalite/declaration-impot-decompte/activite-professionnelle/declaration-revenus/assimilation-resident.html",
+    },
+    appliesWhen: always,
+    priority: 66,
+    figures: [
+      { label: "Seuil général", value: "≥ 90 % des revenus" },
+      { label: "Résidents belges", value: "50 % des revenus pro" },
+    ],
+    sources: [
+      "https://guichet.public.lu/fr/citoyens/fiscalite/declaration-impot-decompte/activite-professionnelle/declaration-revenus/assimilation-resident.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "lu-allocations-familiales",
+    category: "kids",
+    countries: ["LU"],
+    title: "Allocation pour l'avenir des enfants : à intégrer au budget",
+    body:
+      "La CAE verse 315,04 €/mois par enfant (valeur au 1er juin 2026, indexée), majorée à 338,85 € de 6 à 11 ans et 374,48 € à partir de 12 ans. Versée du mois de naissance aux 18 ans. Une ligne de revenu stable à intégrer dans ton budget — et idéalement à flécher en partie vers l'épargne de l'enfant.",
+    action: {
+      label: "Voir les montants à jour (CAE)",
+      link: "https://cae.public.lu/fr/allocations/allocation-pour-lavenir-des-enfants/montants.html",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 84,
+    figures: [
+      { label: "Base / enfant", value: "315,04 € / mois" },
+      { label: "12 ans et +", value: "374,48 € / mois" },
+    ],
+    sources: [
+      "https://cae.public.lu/fr/allocations/allocation-pour-lavenir-des-enfants/montants.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // CANADA — recherche vérifiée 2026-07-27 (ARC/canada.ca, Revenu Québec).
+  // Montants en dollars canadiens ($). Cycle ACE = juillet → juin.
+  // ==========================================================================
+  {
+    id: "ca-fonds-urgence",
+    category: "emergency",
+    countries: ["CA"],
+    title: "Fonds d'urgence : 3 à 6 mois de dépenses",
+    body:
+      "L'Agence de la consommation en matière financière du Canada recommande un fonds d'urgence couvrant 3 à 6 mois de dépenses courantes, sur un compte accessible (un CELI liquide fait très bien l'affaire : les retraits n'y sont pas imposés).",
+    action: {
+      label: "Lire la recommandation de l'ACFC",
+      link: "https://www.canada.ca/en/financial-consumer-agency/services/savings-investments/setting-up-emergency-funds.html",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    sources: [
+      "https://www.canada.ca/en/financial-consumer-agency/services/savings-investments/setting-up-emergency-funds.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ca-celi",
+    category: "long_term",
+    countries: ["CA"],
+    title: "CELI : 7 000 $ de plus en 2026, gains jamais imposés",
+    body:
+      "Le plafond CELI 2026 est de 7 000 $, et tes droits inutilisés depuis tes 18 ans (2009 au plus tôt) s'accumulent — jusqu'à 109 000 $ si tu n'as jamais cotisé. Gains et retraits : zéro impôt. Piège classique : un retrait ne recrée tes droits que le 1er JANVIER SUIVANT — re-cotiser la même année peut te coûter 1 %/mois de pénalité.",
+    action: {
+      label: "Vérifier tes droits CELI (Mon dossier ARC)",
+      link: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html",
+    },
+    appliesWhen: always,
+    priority: 88,
+    figures: [
+      { label: "Plafond 2026", value: "7 000 $" },
+      { label: "Cumul max depuis 2009", value: "109 000 $" },
+    ],
+    sources: [
+      "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ca-reer",
+    category: "retirement",
+    countries: ["CA"],
+    title: "REER : déduis jusqu'à 18 % de ton revenu",
+    body:
+      "Tes cotisations REER se déduisent de ton revenu imposable (fédéral ET provincial) : 18 % du revenu gagné de l'année précédente, max 33 810 $ en 2026, plus tes droits reportés. Date limite pour l'année d'imposition 2025 : 2 mars 2026. Plus ton taux marginal est élevé, plus le REER bat le CELI — et l'inverse en début de carrière.",
+    action: {
+      label: "Vérifier ton maximum déductible (avis de cotisation)",
+      link: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans.html",
+    },
+    appliesWhen: ageIn("26-35", "36-50", "51-65"),
+    priority: 84,
+    figures: [
+      { label: "Taux", value: "18 % du revenu" },
+      { label: "Max 2026", value: "33 810 $" },
+    ],
+    sources: [
+      "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ca-celiapp",
+    category: "real_estate",
+    countries: ["CA"],
+    title: "CELIAPP : ouvre-le même avec 1 $, le compteur ne démarre qu'après",
+    body:
+      "Pour une première propriété : 8 000 $/an, 40 000 $ à vie — cotisations déductibles comme un REER ET retrait non imposé comme un CELI. Le meilleur des deux mondes. Contrairement au CELI, tes droits ne commencent à s'accumuler qu'à l'OUVERTURE du compte (report max 8 000 $) : ouvre-le dès que l'achat devient un projet, même de loin.",
+    action: {
+      label: "Voir les règles du CELIAPP",
+      link: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/first-home-savings-account.html",
+    },
+    appliesWhen: and(
+      ageIn("18-25", "26-35", "36-50"),
+      housingIn("renter", "free_housing"),
+    ),
+    priority: 86,
+    figures: [
+      { label: "Par an", value: "8 000 $" },
+      { label: "À vie", value: "40 000 $" },
+    ],
+    sources: [
+      "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/first-home-savings-account/contributing-your-fhsa.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ca-reee",
+    category: "kids",
+    countries: ["CA"],
+    title: "REEE : 20 % de subvention immédiate pour les études",
+    body:
+      "Chaque dollar versé au REEE de ton enfant rapporte 20 % de subvention fédérale (SCEE) sur les premiers 2 500 $/an — soit 500 $ offerts chaque année, max 7 200 $ à vie. Au Québec, l'IQEE ajoute 10 % (max 3 600 $ à vie) : jusqu'à 30 % de rendement garanti avant même d'investir. Aucun placement ne bat ça.",
+    action: {
+      label: "Estimer les subventions REEE",
+      link: "https://www.canada.ca/en/services/benefits/education/education-savings/estimating-amounts.html",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 90,
+    figures: [
+      { label: "SCEE fédérale", value: "20 % · max 500 $/an" },
+      { label: "IQEE (Québec)", value: "+10 %" },
+      { label: "SCEE à vie", value: "7 200 $" },
+    ],
+    sources: [
+      "https://www.canada.ca/en/services/benefits/education/education-savings/estimating-amounts.html",
+      "https://www.revenuquebec.ca/en/citizens/tax-credits/quebec-education-savings-incentive/determining-the-qesi-amount/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "ca-ace",
+    category: "kids",
+    countries: ["CA"],
+    title: "Allocation canadienne pour enfants : jusqu'à 679 $/mois",
+    body:
+      "L'ACE (non imposable) atteint 8 157 $/an (679,75 $/mois) par enfant de moins de 6 ans et 6 883 $/an de 6 à 17 ans pour la période juillet 2026 - juin 2027, dégressive au-delà de 38 237 $ de revenu familial net. Elle est recalculée chaque juillet sur le revenu de l'année précédente — déclare tes impôts à temps même sans revenu, sinon elle s'arrête.",
+    action: {
+      label: "Voir le calcul de l'ACE",
+      link: "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit-overview.html",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 88,
+    figures: [
+      { label: "< 6 ans", value: "max 679,75 $/mois" },
+      { label: "6-17 ans", value: "max 573,58 $/mois" },
+    ],
+    sources: [
+      "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit-overview/canada-child-benefit-we-calculate-your-ccb.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // AUTRE PAYS — conseils universels sans dispositif fiscal local.
+  // ==========================================================================
+  {
+    id: "other-fonds-urgence",
+    category: "emergency",
+    countries: ["OTHER"],
+    title: "Le socle universel : 3 à 6 mois de dépenses de côté",
+    body:
+      "Quel que soit le pays, la règle ne change pas : garde l'équivalent de 3 à 6 mois de dépenses courantes sur un compte accessible, séparé du compte courant. C'est ce matelas qui transforme un imprévu (panne, perte d'emploi, santé) en simple contrariété au lieu d'une dette.",
+    action: { label: "Calculer 3-6 mois de tes charges dans le tab Budget" },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "other-epargne-automatique",
+    category: "emergency",
+    countries: ["OTHER"],
+    title: "Automatise ton épargne le jour de paie",
+    body:
+      "Programme un virement automatique vers ton épargne le jour où ton revenu arrive — pas en fin de mois avec « ce qui reste ». Se payer en premier est le levier d'épargne le plus robuste, dans tous les systèmes fiscaux. Renseigne-toi ensuite sur les enveloppes fiscalement avantagées de ton pays (retraite, logement, études).",
+    action: { label: "Programmer un virement automatique jour de paie" },
+    appliesWhen: always,
+    priority: 84,
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-07-27",
+  },
 ];
 
 // ============================================================================
 // Moteur : match + tri + grouping
 // ============================================================================
 
+// Un conseil ne s'affiche que s'il est valable dans le pays de l'utilisateur.
+// Sans pays renseigné → France (comportement historique du catalogue).
+function countryMatches(card: AdviceCard, profile: UserProfile): boolean {
+  const scope = card.countries ?? ["FR"];
+  if (scope === "all") return true;
+  return scope.includes(profile.country ?? "FR");
+}
+
 export function matchAdvice(
   profile: UserProfile,
   catalog: AdviceCard[] = ADVICE_CATALOG_FR,
 ): AdviceCard[] {
   return catalog
-    .filter((card) => card.appliesWhen(profile))
+    .filter((card) => countryMatches(card, profile) && card.appliesWhen(profile))
     .sort((a, b) => b.priority - a.priority);
 }
 

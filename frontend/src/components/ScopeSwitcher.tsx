@@ -139,7 +139,7 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
             activeOpacity={0.85}
           >
             <Feather name="settings" size={16} color={TEXT_2} />
-            <Text style={styles.manageBtnText}>Gérer les workspaces</Text>
+            <Text style={styles.manageBtnText}>Gérer mes espaces</Text>
           </TouchableOpacity>
         </View>
       </View>

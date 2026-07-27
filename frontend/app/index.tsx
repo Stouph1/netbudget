@@ -1426,7 +1426,7 @@ export default function Index() {
               {monthlyTithe > 0 ? (
                 <View style={styles.revenusRow}>
                   <Text style={styles.revenusLabel}>
-                    Dîme ({tithePercent} % des revenus cochés)
+                    Dons & cadeaux ({tithePercent} % des revenus cochés)
                   </Text>
                   <Text style={styles.revenusTotalMuted}>
                     − {fmt(monthlyTithe)} / mois
@@ -1436,7 +1436,7 @@ export default function Index() {
               <View style={styles.revenusRow}>
                 <Text style={styles.revenusLabel}>
                   {t("summary.netMonthlyEst")}
-                  {monthlyTithe > 0 ? " (dîme déduite)" : ""}
+                  {monthlyTithe > 0 ? " (dons déduits)" : ""}
                 </Text>
                 <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
                   {fmt(netMensuel)}
@@ -1935,67 +1935,6 @@ export default function Index() {
               />
             </View>
           </Section>
-
-          {__DEV__ ? (
-            <Section title="Premium (DEV)">
-              <View style={[styles.toggleRow, { marginBottom: 8 }]}>
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 5,
-                    backgroundColor: premiumUser ? SUCCESS : TEXT_3,
-                    marginRight: 10,
-                  }}
-                />
-                <Text style={[styles.toggleLabel, { flex: 1 }]} numberOfLines={1}>
-                  {premiumUser
-                    ? `Connecté · ${premiumUser.email ?? "email masqué"}`
-                    : "Non connecté"}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => router.push("/premium-test" as never)}
-                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER }]}
-                activeOpacity={0.85}
-              >
-                <Feather name="key" size={18} color={GOLD} />
-                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
-                  Test auth (Apple Sign In)
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/(premium)/s1-epargne" as never)}
-                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
-                activeOpacity={0.85}
-              >
-                <Feather name="target" size={18} color={GOLD} />
-                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
-                  S1 · Épargne (Grand Dispatching)
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/(premium)/advice" as never)}
-                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
-                activeOpacity={0.85}
-              >
-                <Feather name="compass" size={18} color={GOLD} />
-                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
-                  Conseils personnalisés
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/(premium)/workspaces" as never)}
-                style={[styles.exportBtn, { backgroundColor: SURFACE_2, borderWidth: 1, borderColor: BORDER, marginTop: 8 }]}
-                activeOpacity={0.85}
-              >
-                <Feather name="users" size={18} color={GOLD} />
-                <Text style={[styles.exportBtnTextDark, { color: GOLD }]}>
-                  Workspaces (couple / famille)
-                </Text>
-              </TouchableOpacity>
-            </Section>
-          ) : null}
 
           <Section title={t("settings.danger.title")}>
             <TouchableOpacity
@@ -2727,7 +2666,7 @@ export default function Index() {
                     />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.toggleLabel}>
-                        Appliquer la dîme ({tithePercent} %)
+                        Réserver {tithePercent} % pour les dons
                       </Text>
                       <Text style={{ color: TEXT_3, fontSize: 12, marginTop: 2 }}>
                         Déduite du net de ce revenu.
