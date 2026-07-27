@@ -154,7 +154,9 @@ export default function WorkspacesScreen() {
             <Feather name="refresh-cw" size={18} color={TEXT_2} />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => router.push("/(premium)/home" as never)}
+            onPress={() =>
+            router.navigate({ pathname: "/", params: { tab: "premium" } } as never)
+          }
             hitSlop={10}
           >
             <Feather name="home" size={18} color={TEXT_2} />

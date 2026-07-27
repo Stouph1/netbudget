@@ -22,7 +22,7 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -290,6 +290,18 @@ export default function Index() {
   type Tab = "settings" | "budget" | "converter" | "premium";
   const TAB_ORDER: Tab[] = ["settings", "budget", "converter", "premium"];
   const [tab, setTab] = useState<Tab>("budget");
+
+  // Retour depuis les écrans Premium (icône maison) : ils naviguent vers "/"
+  // avec ?tab=premium pour rouvrir l'app sur l'onglet Profil AVEC la tab bar.
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  useEffect(() => {
+    if (!tabParam) return;
+    if ((TAB_ORDER as string[]).includes(tabParam)) {
+      setTab(tabParam as Tab);
+    }
+    router.setParams({ tab: "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabParam]);
 
   const screenW = Dimensions.get("window").width;
   const tabIndexSV = useSharedValue(1); // 1 = budget par défaut

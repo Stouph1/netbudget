@@ -182,7 +182,9 @@ export default function S1Epargne() {
         </TouchableOpacity>
         <Text style={styles.title}>S1 · Épargne</Text>
         <TouchableOpacity
-          onPress={() => router.push("/(premium)/home" as never)}
+          onPress={() =>
+            router.navigate({ pathname: "/", params: { tab: "premium" } } as never)
+          }
           hitSlop={10}
         >
           <Feather name="home" size={20} color={TEXT_2} />
