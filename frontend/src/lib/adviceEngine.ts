@@ -2104,7 +2104,8 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "other-fonds-urgence",
     category: "emergency",
-    countries: ["OTHER"],
+    // "OTHER" + pays sans recommandation officielle locale de fonds d'urgence
+    countries: ["OTHER", "MA", "DZ", "TN", "SN", "CI", "CM"],
     title: "Le socle universel : 3 à 6 mois de dépenses de côté",
     body:
       "Quel que soit le pays, la règle ne change pas : garde l'équivalent de 3 à 6 mois de dépenses courantes sur un compte accessible, séparé du compte courant. C'est ce matelas qui transforme un imprévu (panne, perte d'emploi, santé) en simple contrariété au lieu d'une dette.",
@@ -2118,7 +2119,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "other-epargne-automatique",
     category: "emergency",
-    countries: ["OTHER"],
+    countries: ["OTHER", "MA", "DZ", "TN", "SN", "CI", "CM"],
     title: "Automatise ton épargne le jour de paie",
     body:
       "Programme un virement automatique vers ton épargne le jour où ton revenu arrive — pas en fin de mois avec « ce qui reste ». Se payer en premier est le levier d'épargne le plus robuste, dans tous les systèmes fiscaux. Renseigne-toi ensuite sur les enveloppes fiscalement avantagées de ton pays (retraite, logement, études).",
@@ -2995,6 +2996,264 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 74,
     figures: [{ label: "Retenue particuliers", value: "30 % libératoire" }],
     sources: ["Code Général des Impôts 2026, art. 73-II (DGI)"],
+    lastVerified: "2026-07-28",
+  },
+
+  // ==========================================================================
+  // SÉNÉGAL & CÔTE D'IVOIRE (UEMOA, XOF) — recherche vérifiée 2026-07-28
+  // (CGI SN art. 105/173 lu intégralement, DGI CI, UMOA-Titres, BCEAO, CLEISS,
+  // tarifs officiels Wave/Orange). Devise : franc CFA XOF, parité fixe EUR.
+  // ==========================================================================
+  {
+    id: "uemoa-oat-tresor",
+    category: "long_term",
+    countries: ["SN", "CI"],
+    title: "Obligations du Trésor : accessibles dès 10 000 FCFA",
+    body:
+      "Le marché des titres publics UEMOA est ouvert aux particuliers : les Obligations Assimilables du Trésor (OAT) ont un nominal de 10 000 FCFA — le vrai point d'entrée (les Bons à 1 000 000 FCFA sont hors de portée). Souscription via une banque ou une SGI avec un compte-titres, et les intérêts des titres de TON État sont exonérés d'impôt pour ses résidents.",
+    action: {
+      label: "Voir le guide particuliers UMOA-Titres",
+      link: "https://www.umoatitres.org/particuliers/",
+    },
+    appliesWhen: always,
+    priority: 76,
+    figures: [
+      { label: "OAT (nominal)", value: "10 000 FCFA" },
+      { label: "Intérêts résidents", value: "exonérés" },
+    ],
+    sources: ["https://www.umoatitres.org/particuliers/"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "uemoa-tontine-sfd",
+    category: "emergency",
+    countries: ["SN", "CI"],
+    title: "Tontine : sécurise-la, ou passe par un SFD agréé",
+    body:
+      "La tontine n'a aucun statut juridique dans l'UEMOA — tout repose sur la confiance. Bonnes pratiques : règlement écrit signé, registre des versements, trésorier distinct du président, et versements tracés via mobile money plutôt qu'en espèces. L'alternative réglementée : les Systèmes Financiers Décentralisés agréés (mutuelles, microfinance), supervisés par la BCEAO — l'épargne y est encadrée.",
+    action: { label: "Formaliser la tontine ou comparer avec un SFD agréé" },
+    appliesWhen: always,
+    priority: 80,
+    sources: [
+      "https://www.bceao.int/fr/reglementations/loi-portant-reglementation-des-systemes-financiers-decentralises-de-lumoa",
+    ],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "sn-livret-exonere",
+    category: "tax",
+    countries: ["SN"],
+    title: "Ton livret d'épargne est exonéré d'impôt",
+    body:
+      "Le CGI sénégalais (art. 105-3°) exonère d'impôt sur le revenu les intérêts des livrets d'épargne des personnes physiques servis par une banque, un SFD ou une caisse d'épargne au Sénégal — dans la limite d'un plafond fixé par arrêté ministériel. Hors livret, les intérêts de comptes de dépôt subissent une retenue de 8 % (16 % en droit commun). Le livret d'abord, donc.",
+    action: { label: "Ouvrir un livret d'épargne bancaire ou SFD" },
+    appliesWhen: always,
+    priority: 86,
+    figures: [
+      { label: "Livret", value: "intérêts exonérés" },
+      { label: "Compte de dépôt", value: "retenue 8 %" },
+    ],
+    sources: ["Code général des impôts (Sénégal), art. 105-3° et 173-2"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "sn-allocations-css",
+    category: "kids",
+    countries: ["SN"],
+    title: "Allocations familiales CSS : 2 600 FCFA par enfant",
+    body:
+      "La Caisse de Sécurité Sociale verse 2 600 FCFA par mois et par enfant (payés par trimestre, maximum 6 enfants) aux travailleurs salariés déclarés — enfants de 2 à 14 ans, prolongé à 18 ans si scolarisé et 21 ans pour études. Ça suppose d'être déclaré par ton employeur : c'est aussi un argument pour exiger la formalisation.",
+    action: { label: "Vérifier tes droits auprès de la CSS" },
+    appliesWhen: hasAnyKids,
+    priority: 82,
+    figures: [{ label: "Par enfant", value: "2 600 FCFA/mois" }],
+    sources: ["https://www.cleiss.fr/docs/regimes/regime_senegal.html"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "sn-mobile-money",
+    category: "emergency",
+    countries: ["SN"],
+    title: "Mobile money : compare avant chaque transfert",
+    body:
+      "Au Sénégal, Wave facture 1 % le transfert (dépôts et retraits gratuits) et Orange Money 0,8 % (retrait devenu gratuit). Les grilles bougent souvent : compare avant les gros transferts. Et rappelle-toi que l'argent qui dort sur un wallet n'est pas rémunéré — bascule l'excédent vers un livret exonéré.",
+    action: { label: "Comparer Wave / Orange Money sur ton usage réel" },
+    appliesWhen: always,
+    priority: 78,
+    figures: [
+      { label: "Wave transfert", value: "1 %" },
+      { label: "Orange Money", value: "0,8 %" },
+    ],
+    sources: [
+      "https://www.wave.com/fr/",
+      "https://assistance.orange.sn/questions/2386693-orange-money-tarifs-envoi-retrait-argent",
+    ],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ci-allocations-cnps",
+    category: "kids",
+    countries: ["CI"],
+    title: "Allocations familiales CNPS : 5 000 FCFA par enfant",
+    body:
+      "La CNPS verse 5 000 FCFA par mois et par enfant (paiement trimestriel) aux salariés du privé — condition : 18 jours ou 120 h de travail par mois, enfants de 12 mois à 14 ans (18 ans en apprentissage, 21 ans pour études). Les fonctionnaires relèvent d'un autre régime (7 500 FCFA versés par l'État). Être déclaré, c'est aussi ça.",
+    action: { label: "Vérifier tes droits auprès de la CNPS" },
+    appliesWhen: hasAnyKids,
+    priority: 82,
+    figures: [
+      { label: "Privé (CNPS)", value: "5 000 FCFA/mois" },
+      { label: "Fonctionnaires", value: "7 500 FCFA/mois" },
+    ],
+    sources: [
+      "https://www.cleiss.fr/docs/regimes/regime_cotedivoire.html",
+      "https://www.dgbf.ci/wp-content/uploads/2024/06/ALLOCATIONS-FAMILIALES.pdf",
+    ],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ci-epargne-fiscalite",
+    category: "tax",
+    countries: ["CI"],
+    title: "Compte d'épargne populaire : des intérêts sans impôt",
+    body:
+      "En Côte d'Ivoire, les intérêts des comptes d'épargne populaire sont exonérés d'IRC, et les bons et obligations du Trésor sont exonérés d'IGR. Les comptes de dépôt classiques bénéficient de taux réduits selon la durée (jusqu'à 13,5 % pour un particulier, contre 18 % en droit commun). Choisir la bonne enveloppe change directement ton rendement net.",
+    action: { label: "Demander un compte d'épargne populaire à ta banque" },
+    appliesWhen: always,
+    priority: 84,
+    figures: [
+      { label: "Épargne populaire", value: "exonérée d'IRC" },
+      { label: "Droit commun", value: "18 %" },
+    ],
+    sources: ["DGI Côte d'Ivoire — Impôts et taxes (IRC, art. 192 s. CGI)"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ci-mobile-money",
+    category: "emergency",
+    countries: ["CI"],
+    title: "Mobile money : le transfert peut être gratuit, le retrait non",
+    body:
+      "En Côte d'Ivoire, Orange Money facture 0 FCFA le transfert national OM→OM mais 1 % le retrait ; Wave facture 1 % le transfert avec dépôts et retraits gratuits. Selon que tu envoies ou que tu retires, le gagnant change — compare sur TON usage. Et l'argent qui dort sur le wallet n'est pas rémunéré.",
+    action: { label: "Comparer Orange Money / Wave sur ton usage réel" },
+    appliesWhen: always,
+    priority: 78,
+    figures: [
+      { label: "OM transfert national", value: "0 FCFA" },
+      { label: "OM retrait", value: "1 %" },
+    ],
+    sources: [
+      "https://www.orange.ci/fr/tarifs-orange-money.html",
+      "https://www.wave.com/fr/",
+    ],
+    lastVerified: "2026-07-28",
+  },
+
+  // ==========================================================================
+  // ALGÉRIE — recherche vérifiée 2026-07-28 (cnas.dz, règlement Banque
+  // d'Algérie 2020-02). Taux CNEP non affichés (partiellement vérifiés,
+  // sites officiels inaccessibles depuis l'étranger). Devise : dinar (DA).
+  // ==========================================================================
+  {
+    id: "dz-allocations-cnas",
+    category: "kids",
+    countries: ["DZ"],
+    title: "Allocations familiales CNAS : vérifie ton barème",
+    body:
+      "La CNAS verse 600 DA/mois par enfant (du 1er au 5e) si ton revenu mensuel est ≤ 15 000 DA, 300 DA sinon — plus une prime de scolarité annuelle de 800 DA par enfant (barème réduit au-delà du 5e enfant). Enfants couverts jusqu'à 17 ans (21 ans si études). Réservé aux salariés déclarés : vérifie que ton employeur te déclare.",
+    action: {
+      label: "Vérifier tes droits sur cnas.dz",
+      link: "https://cnas.dz",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 82,
+    figures: [
+      { label: "Revenu ≤ 15 000 DA", value: "600 DA/mois/enfant" },
+      { label: "Prime scolarité", value: "800 DA/an" },
+    ],
+    sources: ["https://cnas.dz (page المنح العائلية)"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "dz-epargne-logement",
+    category: "real_estate",
+    countries: ["DZ"],
+    title: "Livret Épargne Logement : la porte du crédit préférentiel",
+    body:
+      "Le Livret Épargne Logement (CNEP-Banque, aussi via Algérie Poste) donne accès, après une phase d'épargne, à des crédits immobiliers à conditions préférentielles — en plus de rémunérer ton épargne. Les taux ne sont pas publiés en ligne de façon fiable : compare en agence le LEL et le Livret Épargne Populaire selon ton projet.",
+    action: { label: "Comparer LEL et LEP en agence CNEP ou Algérie Poste" },
+    appliesWhen: housingIn("renter", "free_housing"),
+    priority: 80,
+    sources: ["https://www.poste.dz/services/particular/cnep-ecnep"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "dz-finance-islamique",
+    category: "long_term",
+    countries: ["DZ"],
+    title: "Finance islamique : un cadre officiel depuis 2020",
+    body:
+      "Le règlement 2020-02 de la Banque d'Algérie encadre la finance islamique : mourabaha, ijara, moudaraba, comptes d'investissement — sans intérêts, avec certification de conformité charia obligatoire. Les banques publiques (BNA, CPA, BEA…) et des banques dédiées (Al Baraka, Al Salam) proposent ces guichets. Une épargne conforme ET supervisée, si c'est ton critère.",
+    action: { label: "Comparer les guichets finance islamique des banques" },
+    appliesWhen: always,
+    priority: 74,
+    sources: [
+      "Règlement n° 2020-02 du 15 mars 2020 de la Banque d'Algérie (JO 22/03/2020)",
+    ],
+    lastVerified: "2026-07-28",
+  },
+
+  // ==========================================================================
+  // TUNISIE — recherche vérifiée 2026-07-28 (BCT pour le TRE, art. 39 code
+  // IRPP/IS, sources bancaires agréées concordantes). Devise : dinar (DT).
+  // Allocations CNSS exclues des cartes (montants ≈ 7 DT/mois, plafond 122
+  // DT/trimestre — documentées au corpus).
+  // ==========================================================================
+  {
+    id: "tn-epargne-tre",
+    category: "emergency",
+    countries: ["TN"],
+    title: "Ton épargne de précaution mérite au moins le TRE",
+    body:
+      "Les comptes d'épargne (bancaires et postaux) sont rémunérés au minimum au Taux de Rémunération de l'Épargne fixé par la Banque Centrale — 6 % depuis janvier 2026. Avec une inflation autour de 5 %, le rendement réel reste mince : le TRE protège ton matelas de précaution, mais il ne construit pas un patrimoine — pour ça, regarde le CEA et l'assurance-vie.",
+    action: { label: "Vérifier que ton compte épargne sert bien le TRE" },
+    appliesWhen: always,
+    priority: 90,
+    figures: [{ label: "TRE (janv. 2026)", value: "6 %/an" }],
+    sources: ["Banque Centrale de Tunisie — décision du 30/12/2025"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "tn-cea",
+    category: "tax",
+    countries: ["TN"],
+    title: "CEA : déduis jusqu'à 100 000 DT de ton assiette IRPP",
+    body:
+      "Le Compte Épargne en Actions déduit tes versements de l'assiette IRPP (jusqu'à 100 000 DT/an), investis à 80 % minimum en actions cotées à la BVMT. Conditions : principal bloqué 5 ans (dividendes disponibles), et l'avantage est plafonné par le minimum d'impôt — la déduction ne ramène jamais ton impôt à zéro. Retrait anticipé = reprise de l'impôt + pénalités.",
+    action: { label: "Ouvrir un CEA auprès d'une banque ou d'un intermédiaire" },
+    appliesWhen: always,
+    priority: 84,
+    figures: [
+      { label: "Déduction max", value: "100 000 DT/an" },
+      { label: "Blocage", value: "5 ans" },
+    ],
+    sources: ["Art. 39 code IRPP/IS · loi 89-114 (minimum d'impôt)"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "tn-assurance-vie",
+    category: "retirement",
+    countries: ["TN"],
+    title: "Assurance-vie : 100 000 DT déductibles, sortie exonérée",
+    body:
+      "Les primes d'assurance-vie (et takaful) sont déductibles de l'assiette IRPP jusqu'à 100 000 DT/an — plafond relevé par la loi de finances 2021, beaucoup de contenus citent encore l'ancien 10 000 DT. Contrat d'au moins 8 ans, capitaux exonérés à la sortie, avantage soumis au minimum d'impôt. Le pilier retraite long terme tunisien.",
+    action: { label: "Comparer les contrats d'assureurs agréés" },
+    appliesWhen: ageIn("26-35", "36-50", "51-65"),
+    priority: 84,
+    figures: [
+      { label: "Déduction max", value: "100 000 DT/an" },
+      { label: "Durée minimale", value: "8 ans" },
+    ],
+    sources: ["Art. 39 §2 code IRPP/IS · loi de finances 2021"],
     lastVerified: "2026-07-28",
   },
 ];
