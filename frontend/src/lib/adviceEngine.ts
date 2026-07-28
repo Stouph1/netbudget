@@ -2887,6 +2887,116 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ],
     lastVerified: "2026-07-28",
   },
+
+  // ==========================================================================
+  // MAROC — recherche vérifiée 2026-07-28 (CGI 2026 art. 28/68/73, maroc.ma,
+  // FMEF). La FMEF ne publie PAS de règle "3-6 mois" → fonds d'urgence via
+  // les cartes universelles. Devise : dirham (DH).
+  // ==========================================================================
+  {
+    id: "ma-pea",
+    category: "long_term",
+    countries: ["MA"],
+    title: "PEA marocain : la Bourse de Casablanca sans impôt",
+    body:
+      "Le Plan d'Épargne en Actions exonère dividendes et plus-values (au lieu de 15 % et 20 % de retenue) pour les titres cotés à Casablanca — plafond de versements de 2 000 000 DH (l'ancien plafond de 600 000 DH qui circule encore est périmé). Condition : garder le plan au moins 5 ans, sinon clôture automatique et imposition de droit commun.",
+    action: { label: "Ouvrir un PEA auprès d'une banque ou société de bourse" },
+    appliesWhen: always,
+    priority: 84,
+    figures: [
+      { label: "Plafond", value: "2 000 000 DH" },
+      { label: "Durée minimale", value: "5 ans" },
+    ],
+    sources: ["Code Général des Impôts 2026, art. 68 (DGI)"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ma-pel",
+    category: "real_estate",
+    countries: ["MA"],
+    title: "PEL : des intérêts nets d'impôt pour ton futur logement",
+    body:
+      "Le Plan d'Épargne Logement exonère d'IR les intérêts, dans la limite de 400 000 DH de versements — à condition de garder le plan au moins 3 ans et d'affecter les fonds à l'acquisition ou la construction de ta résidence principale. Un retrait anticipé clôture le plan et rend les gains imposables.",
+    action: { label: "Comparer les PEL des banques marocaines" },
+    appliesWhen: housingIn("renter", "free_housing"),
+    priority: 80,
+    figures: [
+      { label: "Plafond", value: "400 000 DH" },
+      { label: "Durée minimale", value: "3 ans" },
+    ],
+    sources: ["Code Général des Impôts 2026, art. 68 (DGI)"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ma-pee",
+    category: "kids",
+    countries: ["MA"],
+    title: "PEE : épargne défiscalisée pour les études des enfants",
+    body:
+      "Le Plan d'Épargne Éducation exonère d'IR les intérêts, jusqu'à 300 000 DH PAR ENFANT à charge, si les fonds financent leurs études (tous cycles + formation professionnelle). Durée minimale 5 ans, un seul PEE par personne. Commencer tôt transforme les années de primaire en capital pour le supérieur.",
+    action: { label: "Ouvrir un PEE au nom de chaque enfant" },
+    appliesWhen: hasAnyKids,
+    priority: 86,
+    figures: [
+      { label: "Plafond / enfant", value: "300 000 DH" },
+      { label: "Durée minimale", value: "5 ans" },
+    ],
+    sources: ["Code Général des Impôts 2026, art. 68 (DGI)"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ma-retraite-deduction",
+    category: "retirement",
+    countries: ["MA"],
+    title: "Retraite complémentaire : une déduction massive pour les salariés",
+    body:
+      "Les cotisations d'assurance retraite (CIMR ou assureur marocain) sont déductibles jusqu'à 50 % de ton salaire net imposable si tes revenus sont exclusivement salariaux (10 % du revenu global sinon). Conditions : contrat d'au moins 8 ans, prestations à partir de 45 ans, et l'option pour la déductibilité mentionnée sur l'attestation.",
+    action: {
+      label: "Se renseigner auprès de la CIMR",
+      link: "https://www.cimr.ma/cotiser-a-la-cimr/",
+    },
+    appliesWhen: ageIn("26-35", "36-50", "51-65"),
+    priority: 84,
+    figures: [
+      { label: "Salariés", value: "jusqu'à 50 % du net imposable" },
+      { label: "Durée minimale", value: "8 ans" },
+    ],
+    sources: ["Code Général des Impôts 2026, art. 28-III (DGI)"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ma-allocations-cnss",
+    category: "kids",
+    countries: ["MA"],
+    title: "Allocations CNSS : 300 DH par enfant — et la hausse du 4e au 6e",
+    body:
+      "La CNSS verse 300 DH/mois pour chacun des trois premiers enfants, et 100 DH/mois du 4e au 6e (relevé de 36 DH par le décret d'octobre 2025, avec effet rétroactif à janvier 2023 — vérifie que le rappel t'a bien été versé). Enfants couverts jusqu'à 12 ans automatiquement, au-delà avec certificat de scolarité.",
+    action: { label: "Vérifier tes allocations et le rappel rétroactif (CNSS)" },
+    appliesWhen: hasAnyKids,
+    priority: 84,
+    figures: [
+      { label: "Enfants 1-3", value: "300 DH/mois" },
+      { label: "Enfants 4-6", value: "100 DH/mois" },
+    ],
+    sources: [
+      "https://www.maroc.ma/fr/actualites/plus-de-136000-familles-beneficieront-des-allocations-familiales-accordees-par-la-cnss",
+    ],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "ma-compte-carnet",
+    category: "tax",
+    countries: ["MA"],
+    title: "Compte sur carnet : 30 % retenus sur tes intérêts",
+    body:
+      "Les intérêts des comptes sur carnet subissent une retenue à la source de 30 % (libératoire) pour les particuliers sans activité professionnelle — 20 % imputable si tu es imposé au régime professionnel. Compare toujours le rendement NET, et pour l'épargne longue regarde les enveloppes exonérées (PEL, PEE, PEA) avant le carnet.",
+    action: { label: "Comparer carnet vs enveloppes exonérées selon ton objectif" },
+    appliesWhen: always,
+    priority: 74,
+    figures: [{ label: "Retenue particuliers", value: "30 % libératoire" }],
+    sources: ["Code Général des Impôts 2026, art. 73-II (DGI)"],
+    lastVerified: "2026-07-28",
+  },
 ];
 
 // ============================================================================
