@@ -2128,6 +2128,592 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: ["Principe universel de finances personnelles"],
     lastVerified: "2026-07-27",
   },
+
+  // ==========================================================================
+  // ROYAUME-UNI — recherche vérifiée 2026-07-27 (gov.uk, MoneyHelper, Hansard).
+  // Année fiscale 6 avril → 5 avril. Réforme Cash ISA au 06/04/2027 anticipée.
+  // ==========================================================================
+  {
+    id: "gb-fonds-urgence",
+    category: "emergency",
+    countries: ["GB"],
+    title: "Emergency fund : 3 mois de dépenses essentielles",
+    body:
+      "MoneyHelper (le service public d'éducation financière) recommande au minimum 3 mois de dépenses essentielles sur un compte à accès immédiat — 3 à 6 mois pour être confortable. Exemple : 1 000 £ de dépenses mensuelles → vise 3 000 £ avant tout investissement.",
+    action: {
+      label: "Lire la recommandation MoneyHelper",
+      link: "https://www.moneyhelper.org.uk/en/savings/types-of-savings/emergency-savings-how-much-is-enough",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    sources: [
+      "https://www.moneyhelper.org.uk/en/savings/types-of-savings/emergency-savings-how-much-is-enough",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "gb-isa",
+    category: "long_term",
+    countries: ["GB"],
+    title: "ISA : 20 000 £ par an, gains jamais imposés",
+    body:
+      "Chaque année fiscale (6 avril - 5 avril), tu peux verser jusqu'à 20 000 £ en ISA — intérêts et plus-values totalement exonérés, à vie. À répartir librement entre Cash ISA et Stocks & Shares ISA. Attention : à partir d'avril 2027, la part versable en Cash ISA sera limitée à 12 000 £/an pour les moins de 65 ans — le reste devra aller vers l'investissement.",
+    action: {
+      label: "Voir les règles ISA officielles",
+      link: "https://www.gov.uk/individual-savings-accounts",
+    },
+    appliesWhen: always,
+    priority: 88,
+    figures: [
+      { label: "Plafond annuel", value: "20 000 £" },
+      { label: "Cash ISA dès 04/2027", value: "12 000 £ (< 65 ans)" },
+    ],
+    sources: ["https://www.gov.uk/individual-savings-accounts"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "gb-lisa",
+    category: "real_estate",
+    countries: ["GB"],
+    title: "Lifetime ISA : 25 % offerts pour ta première maison",
+    body:
+      "Entre 18 et 39 ans, ouvre un LISA : l'État ajoute 25 % à tes versements (max 4 000 £/an → 1 000 £ de bonus). Utilisable pour une première résidence ≤ 450 000 £ (compte ouvert depuis 12 mois min) ou à partir de 60 ans. Piège : tout autre retrait subit une pénalité de 25 % qui entame ton capital, pas seulement le bonus.",
+    action: {
+      label: "Voir les conditions du LISA",
+      link: "https://www.gov.uk/lifetime-isa",
+    },
+    appliesWhen: and(
+      ageIn("18-25", "26-35"),
+      housingIn("renter", "free_housing"),
+    ),
+    priority: 86,
+    figures: [
+      { label: "Bonus d'État", value: "25 % · max 1 000 £/an" },
+      { label: "Plafond achat", value: "450 000 £" },
+    ],
+    sources: ["https://www.gov.uk/lifetime-isa"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "gb-auto-enrolment",
+    category: "retirement",
+    countries: ["GB"],
+    title: "Pension : ne quitte jamais l'auto-enrolment",
+    body:
+      "Ta pension d'entreprise reçoit au minimum 8 % des « qualifying earnings » (la tranche 6 240 - 50 270 £), dont 3 % payés par l'employeur — de l'argent gratuit que tu perds si tu opt-out. Beaucoup d'employeurs matchent au-delà du minimum : demande aux RH jusqu'où ils montent et cotise assez pour capter tout le match.",
+    action: {
+      label: "Vérifier les taux de ta workplace pension",
+      link: "https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 90,
+    figures: [
+      { label: "Minimum total", value: "8 %" },
+      { label: "Dont employeur", value: "3 %" },
+    ],
+    sources: [
+      "https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "gb-psa",
+    category: "tax",
+    countries: ["GB"],
+    title: "Tes intérêts hors ISA ont un plafond non imposé",
+    body:
+      "La Personal Savings Allowance exonère 1 000 £ d'intérêts par an si tu es imposé à 20 %, 500 £ à 40 %, rien à 45 %. Au-delà, les intérêts sont imposés — alors que dans un ISA ils ne le sont jamais. Si ton épargne hors ISA génère plus que ta PSA, bascule le surplus en ISA en priorité.",
+    action: {
+      label: "Vérifier ta PSA",
+      link: "https://www.gov.uk/apply-tax-free-interest-on-savings",
+    },
+    appliesWhen: always,
+    priority: 74,
+    figures: [
+      { label: "Basic rate", value: "1 000 £" },
+      { label: "Higher rate", value: "500 £" },
+    ],
+    sources: ["https://www.gov.uk/apply-tax-free-interest-on-savings"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "gb-child-benefit",
+    category: "kids",
+    countries: ["GB"],
+    title: "Child Benefit : réclame-le même si tu gagnes bien",
+    body:
+      "27,05 £/semaine pour l'aîné, 17,90 £ par enfant supplémentaire (2026/27). La reprise fiscale (HICBC) démarre à 60 000 £ de revenu INDIVIDUEL — pas du foyer : deux parents à 59 000 £ chacun ne rendent rien. Même au-delà de 80 000 £, réclamer sans paiement protège tes droits de retraite (crédits National Insurance).",
+    action: {
+      label: "Vérifier tes droits Child Benefit",
+      link: "https://www.gov.uk/child-benefit/what-youll-get",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 86,
+    figures: [
+      { label: "Aîné", value: "27,05 £/sem" },
+      { label: "Seuil de reprise", value: "60 000 £ individuel" },
+    ],
+    sources: [
+      "https://www.gov.uk/child-benefit/what-youll-get",
+      "https://www.gov.uk/child-benefit-tax-charge",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // ÉTATS-UNIS — recherche vérifiée 2026-07-27 (irs.gov Notice 2025-67,
+  // Rev. Proc. 2025-19, consumerfinance.gov). Montants tax year 2026.
+  // ==========================================================================
+  {
+    id: "us-fonds-urgence",
+    category: "emergency",
+    countries: ["US"],
+    title: "Emergency fund : commence par 1 mois, vise 3 à 6",
+    body:
+      "La recherche du CFPB montre qu'avoir au moins 1 mois de revenu d'avance réduit fortement le risque d'impayés — c'est le premier palier. La règle couramment citée par les planificateurs est 3 à 6 mois de dépenses. Méthode CFPB : virement automatique le jour de paie et affecter les rentrées exceptionnelles (remboursement d'impôt) à l'épargne.",
+    action: {
+      label: "Lire le guide du CFPB",
+      link: "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [
+      { label: "Premier palier", value: "1 mois de revenu" },
+      { label: "Cible courante", value: "3-6 mois" },
+    ],
+    sources: [
+      "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "us-401k-match",
+    category: "retirement",
+    countries: ["US"],
+    title: "401(k) : capte tout le match de ton employeur",
+    body:
+      "Le plafond de cotisation salarié 2026 est de 24 500 $ (+8 000 $ de catch-up à partir de 50 ans). Mais la priorité absolue : cotiser au moins jusqu'au match complet de ton employeur — c'est un rendement immédiat qu'aucun placement ne bat. Le match s'ajoute à ton plafond personnel, il ne le consomme pas.",
+    action: {
+      label: "Vérifier la formule de match de ton employeur (HR)",
+      link: "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 92,
+    figures: [
+      { label: "Plafond salarié 2026", value: "24 500 $" },
+      { label: "Catch-up 50+", value: "+8 000 $" },
+    ],
+    sources: [
+      "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "us-ira-roth",
+    category: "retirement",
+    countries: ["US"],
+    title: "IRA : 7 500 $ de plus, et le choix Roth ou traditionnel",
+    body:
+      "Après le match 401(k), l'IRA : 7 500 $ en 2026 (traditionnel + Roth combinés, +1 100 $ à 50 ans et plus). Traditionnel = déduction aujourd'hui, imposé à la retraite ; Roth = pas de déduction, mais croissance et retraits exonérés à vie — souvent gagnant en début de carrière quand ton taux d'imposition est bas. Le Roth a des limites de revenu (phase-out dès 153 000 $ célibataire en 2026).",
+    action: {
+      label: "Comparer IRA traditionnel et Roth (IRS)",
+      link: "https://www.irs.gov/retirement-plans/individual-retirement-arrangements-iras",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 84,
+    figures: [
+      { label: "Plafond 2026 (combiné)", value: "7 500 $" },
+      { label: "Catch-up 50+", value: "+1 100 $" },
+    ],
+    sources: [
+      "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "us-hsa",
+    category: "insurance",
+    countries: ["US"],
+    title: "HSA : le seul compte à triple avantage fiscal",
+    body:
+      "Si ta couverture santé est un HDHP (franchise élevée), le HSA cumule trois avantages : cotisations déductibles, croissance non imposée, retraits exonérés pour les dépenses médicales. Plafonds 2026 : 4 400 $ (individuel) / 8 750 $ (famille), +1 000 $ à partir de 55 ans. Le compte te suit d'employeur en employeur — et après 65 ans il fonctionne comme une retraite complémentaire.",
+    action: {
+      label: "Voir les règles HSA (IRS Pub. 969)",
+      link: "https://www.irs.gov/publications/p969",
+    },
+    appliesWhen: always,
+    priority: 80,
+    figures: [
+      { label: "Individuel 2026", value: "4 400 $" },
+      { label: "Famille 2026", value: "8 750 $" },
+    ],
+    sources: ["https://www.irs.gov/pub/irs-drop/rp-25-19.pdf"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "us-529",
+    category: "kids",
+    countries: ["US"],
+    title: "529 plan : les études grandissent en franchise d'impôt",
+    body:
+      "Les cotisations ne sont pas déductibles au fédéral, mais la croissance est exonérée et les retraits pour études qualifiées aussi. Nouveau en 2026 : le plafond K-12 (école privée) passe à 20 000 $/an. Beaucoup d'États ajoutent une déduction sur l'impôt d'État — vérifie le plan de TON État avant d'en choisir un autre.",
+    action: {
+      label: "Voir les règles 529 (IRS)",
+      link: "https://www.irs.gov/taxtopics/tc313",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 86,
+    figures: [{ label: "K-12 dès 2026", value: "20 000 $/an" }],
+    sources: ["https://www.irs.gov/taxtopics/tc313"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "us-credit-score",
+    category: "emergency",
+    countries: ["US"],
+    title: "Ton credit score est une ligne de budget invisible",
+    body:
+      "Un bon score réduit le coût de TOUT ce que tu empruntes (hypothèque, auto, cartes). Les experts cités par le CFPB conseillent de garder l'utilisation de ton crédit sous 30 % de tes limites — et payer le solde en entier chaque mois est optimal : inutile de « porter un solde » pour bâtir son score, c'est un mythe qui coûte des intérêts.",
+    action: {
+      label: "Lire les conseils score du CFPB",
+      link: "https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318/",
+    },
+    appliesWhen: always,
+    priority: 76,
+    figures: [{ label: "Utilisation conseillée", value: "< 30 %" }],
+    sources: [
+      "https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // ALLEMAGNE — recherche vérifiée 2026-07-27 (finanzamt.nrw, Arbeitsagentur,
+  // Deutsche Rentenversicherung/BBG, Finanztip, Stiftung Warentest).
+  // Riester exclu (réforme en cours, successeur non voté).
+  // ==========================================================================
+  {
+    id: "de-notgroschen",
+    category: "emergency",
+    countries: ["DE"],
+    title: "Notgroschen : 3 à 6 salaires nets sur un Tagesgeld",
+    body:
+      "Recommandation Finanztip : garde 3 à 6 salaires mensuels nets (jamais moins de 3) sur un Tagesgeldkonto — disponible à tout moment et couvert par la garantie légale des dépôts. Exemple : 2 000 € nets/mois → 6 000 à 12 000 €. Ajuste vers le haut si famille, propriété ou emploi moins stable.",
+    action: { label: "Calculer 3-6 mois de tes charges dans le tab Budget" },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 salaires nets" }],
+    sources: ["https://www.finanztip.de/tagesgeld/"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "de-sparerpauschbetrag",
+    category: "tax",
+    countries: ["DE"],
+    title: "1 000 € de revenus du capital non imposés — si tu le demandes",
+    body:
+      "Le Sparerpauschbetrag exonère 1 000 € par personne et par an (2 000 € pour un couple marié) d'intérêts, dividendes et plus-values. Mais la banque prélève l'impôt à la source SAUF si tu as déposé un Freistellungsauftrag. Si tu as plusieurs banques, répartis-le — la somme de tous tes ordres ne doit pas dépasser ton plafond.",
+    action: {
+      label: "Vérifier tes Freistellungsaufträge dans chaque banque",
+      link: "https://www.finanzamt.nrw.de/steuerinfos/privatpersonen/einkuenfte-aus-kapitalvermoegen/sparerpauschbetrag-freistellungsauftrag",
+    },
+    appliesWhen: always,
+    priority: 84,
+    figures: [
+      { label: "Par personne", value: "1 000 €/an" },
+      { label: "Couple marié", value: "2 000 €/an" },
+    ],
+    sources: [
+      "https://www.finanzamt.nrw.de/steuerinfos/privatpersonen/einkuenfte-aus-kapitalvermoegen/sparerpauschbetrag-freistellungsauftrag",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "de-bav",
+    category: "retirement",
+    countries: ["DE"],
+    title: "bAV : ton employeur doit ajouter 15 %",
+    body:
+      "En convertissant du salaire brut vers une retraite d'entreprise (Entgeltumwandlung), tu économises impôt et cotisations — et depuis 2022 ton employeur est OBLIGÉ d'ajouter 15 % sur la part convertie. En 2026 : jusqu'à 8 112 €/an exonérés d'impôt, dont 4 056 € aussi exonérés de cotisations sociales. Vérifie les frais du contrat proposé avant de signer.",
+    action: { label: "Demander l'offre bAV et le Zuschuss aux RH" },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 86,
+    figures: [
+      { label: "Zuschuss employeur", value: "15 % obligatoire" },
+      { label: "Exonéré d'impôt 2026", value: "8 112 €/an" },
+    ],
+    sources: [
+      "https://www.bundesregierung.de/breg-de/aktuelles/beitragsgemessungsgrenzen-2386514",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "de-etf-sparplan",
+    category: "long_term",
+    countries: ["DE"],
+    title: "ETF-Sparplan : la machine à épargner allemande",
+    body:
+      "Un plan d'épargne programmé sur un ETF actions monde largement diversifié, souvent dès 25 €/mois. Les règles de Finanztip et Stiftung Warentest : horizon d'au moins 15 ans, ETF monde (type MSCI World/FTSE All-World), frais courants sous 0,3 %. Ce n'est pas une garantie de rendement — c'est une discipline d'investissement long terme.",
+    action: {
+      label: "Comparer les ETF-Sparpläne (Finanztip)",
+      link: "https://www.finanztip.de/indexfonds-etf/fondssparplan/",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50"),
+    priority: 80,
+    figures: [
+      { label: "Horizon minimum", value: "15 ans" },
+      { label: "Frais (TER)", value: "< 0,3 %" },
+    ],
+    sources: [
+      "https://www.finanztip.de/indexfonds-etf/fondssparplan/",
+      "https://www.test.de/ETF-Sparplan-Vergleich-5015866-0/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "de-kindergeld",
+    category: "kids",
+    countries: ["DE"],
+    title: "Kindergeld 2026 : 259 € par mois et par enfant",
+    body:
+      "Le Kindergeld passe à 259 €/mois par enfant au 1er janvier 2026 (versement automatique, sans nouvelle demande). Familles à revenus modestes : le Kinderzuschlag peut ajouter jusqu'à 297 €/mois par enfant — il faut le demander, beaucoup d'ayants droit passent à côté. Intègre ces montants dans ton budget et flèche une partie vers l'épargne de l'enfant.",
+    action: {
+      label: "Vérifier tes droits (Arbeitsagentur)",
+      link: "https://www.arbeitsagentur.de/news/kindergeld-steigt-2026",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 86,
+    figures: [
+      { label: "Kindergeld 2026", value: "259 €/mois/enfant" },
+      { label: "Kinderzuschlag max", value: "297 €/mois" },
+    ],
+    sources: ["https://www.arbeitsagentur.de/news/kindergeld-steigt-2026"],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "de-vl",
+    category: "emergency",
+    countries: ["DE"],
+    title: "VL : jusqu'à 40 €/mois offerts par ton employeur",
+    body:
+      "Les vermögenswirksame Leistungen sont un versement de l'employeur (jusqu'à 40 €/mois selon ta convention collective) dans un contrat d'épargne à ton nom — fonds actions, Bausparvertrag ou remboursement de crédit immobilier. Beaucoup de salariés ne les réclament jamais. Selon ton revenu, l'État ajoute en plus une prime (Arbeitnehmersparzulage).",
+    action: { label: "Demander aux RH si tu as droit aux VL" },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 78,
+    figures: [{ label: "Max employeur", value: "40 €/mois (480 €/an)" }],
+    sources: [
+      "https://www.buhl.de/steuer/tipps/vermoegenswirksame-leistungen/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // ESPAGNE — recherche vérifiée 2026-07-27 (AEAT Manual Renta 2025,
+  // finanzasparatodos.es BdE/CNMV, BOE RD 42/2022, Ministerio de Inclusión).
+  // País Vasco / Navarra (régime foral) : règles différentes, non couvertes.
+  // ==========================================================================
+  {
+    id: "es-fondo-emergencia",
+    category: "emergency",
+    countries: ["ES"],
+    title: "Fondo de emergencia : 3 à 6 mois de dépenses essentielles",
+    body:
+      "Finanzas para Todos (Banco de España + CNMV) recommande 3 à 6 mois de dépenses fixes essentielles sur un compte disponible : 3 mois suffisent avec des revenus stables, vise 6 mois si tu es autónomo ou avec des personnes à charge.",
+    action: {
+      label: "Lire la recommandation officielle",
+      link: "https://www.finanzasparatodos.es/cuanto-debe-tener-tu-fondo-de-emergencia",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    sources: [
+      "https://www.finanzasparatodos.es/cuanto-debe-tener-tu-fondo-de-emergencia",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "es-plan-pensiones",
+    category: "retirement",
+    countries: ["ES"],
+    title: "Plan de pensiones : 1 500 € seul, jusqu'à 10 000 € via l'entreprise",
+    body:
+      "Le plafond de réduction IRPF d'un plan individuel n'est que de 1 500 €/an — mais il monte jusqu'à 10 000 € au total quand ton entreprise contribue à un plan d'emploi (+8 500 €). Si ton employeur propose un plan de pensiones de empleo, c'est là que se joue l'avantage fiscal, pas sur le plan individuel.",
+    action: {
+      label: "Vérifier si ton entreprise a un plan de empleo",
+      link: "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025.html",
+    },
+    appliesWhen: ageIn("26-35", "36-50", "51-65"),
+    priority: 84,
+    figures: [
+      { label: "Plan individuel", value: "1 500 €/an" },
+      { label: "Avec l'entreprise", value: "jusqu'à 10 000 €" },
+    ],
+    sources: [
+      "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "es-ahorro-fiscalidad",
+    category: "tax",
+    countries: ["ES"],
+    title: "Ton épargne est imposée de 19 à 30 % — planifie tes ventes",
+    body:
+      "Intérêts, dividendes et plus-values suivent le barème de l'épargne : 19 % jusqu'à 6 000 €, 21 % jusqu'à 50 000 €, 23 % jusqu'à 200 000 €, 27 % puis 30 % au-delà de 300 000 € (durci en 2025). La banque retient 19 % à la source, régularisé en déclaration. Étaler une grosse vente sur deux exercices peut réduire la tranche applicable.",
+    action: { label: "Anticiper la fiscalité avant une vente importante" },
+    appliesWhen: always,
+    priority: 76,
+    figures: [
+      { label: "Jusqu'à 6 000 €", value: "19 %" },
+      { label: "> 300 000 €", value: "30 %" },
+    ],
+    sources: [
+      "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025/c15-calculo-impuesto-determinacion-cuotas-integras/gravamen-base-liquidable-ahorro/gravamen-estatal.html",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "es-bono-alquiler-joven",
+    category: "housing",
+    countries: ["ES"],
+    title: "Bono Alquiler Joven : 250 €/mois si tu as 35 ans ou moins",
+    body:
+      "L'aide d'État au loyer des jeunes : 250 €/mois pendant 2 ans, pour les 35 ans ou moins avec revenus réguliers (foyer < 3× IPREM), loyer ≤ 600 €/mois (jusqu'à 900 € selon les régions). Chaque communauté autonome ouvre ses propres fenêtres de candidature et les fonds s'épuisent vite : surveille la sede electrónica de TA région.",
+    action: {
+      label: "Voir les conditions officielles",
+      link: "https://www.mivau.gob.es/vivienda/bono-alquiler-joven",
+    },
+    appliesWhen: and(ageIn("18-25", "26-35"), housingIn("renter")),
+    priority: 86,
+    figures: [
+      { label: "Aide", value: "250 €/mois · 2 ans" },
+      { label: "Loyer max", value: "600 € (900 € selon CCAA)" },
+    ],
+    sources: [
+      "https://www.boe.es/buscar/act.php?id=BOE-A-2022-802",
+      "https://www.mivau.gob.es/vivienda/bono-alquiler-joven",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "es-ayudas-hijos",
+    category: "kids",
+    countries: ["ES"],
+    title: "Moins de 3 ans : 1 200 €/an de deducción por maternidad",
+    body:
+      "La deducción por maternidad vaut 1 200 €/an par enfant de moins de 3 ans — versement anticipé de 100 €/mois possible (modelo 140). Familles à revenus modestes : le CAPI verse en plus 115 €/mois (< 3 ans), 80,50 € (3-6 ans) ou 57,50 € (6-18 ans) par enfant — mais il est incompatible avec la deducción les mois où il est perçu : compare les deux.",
+    action: {
+      label: "Vérifier deducción et CAPI",
+      link: "https://sede.agenciatributaria.gob.es/Sede/ciudadanos-familias-personas-discapacidad/deducciones-relacionadas-hijos-descendientes/deduccion-maternidad.html",
+    },
+    appliesWhen: kids("0-6"),
+    priority: 86,
+    figures: [
+      { label: "Maternidad < 3 ans", value: "1 200 €/an" },
+      { label: "CAPI < 3 ans", value: "115 €/mois" },
+    ],
+    sources: [
+      "https://sede.agenciatributaria.gob.es/Sede/ciudadanos-familias-personas-discapacidad/deducciones-relacionadas-hijos-descendientes/deduccion-maternidad.html",
+      "https://www.inclusion.gob.es/en/web/inclusion/que-es-el-capi",
+    ],
+    lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // CAMEROUN (CEMAC, XAF) — recherche vérifiée 2026-07-27 (MINFI, DGTCFM,
+  // décret 2024/056 multi-sources). Devise : franc CFA XAF, parité fixe EUR.
+  // ==========================================================================
+  {
+    id: "cm-epargne-exoneree",
+    category: "tax",
+    countries: ["CM"],
+    title: "Ton livret d'épargne est net d'impôt jusqu'à 10 millions FCFA",
+    body:
+      "Le Code général des impôts exonère d'IRCM les intérêts des comptes d'épargne dont le placement ne dépasse pas 10 000 000 FCFA (ainsi que l'épargne-logement). Au-delà, les intérêts subissent 16,5 % retenus à la source. Un compte d'épargne bancaire sous ce seuil est donc doublement gagnant : intérêts nets et dépôt couvert par la garantie bancaire.",
+    action: {
+      label: "Voir les exonérations du CGI (MINFI)",
+      link: "https://minfi.gov.cm/les-exonerations-fiscales-a-caractere-social-dans-le-code-general-des-impots/",
+    },
+    appliesWhen: always,
+    priority: 88,
+    figures: [
+      { label: "Exonéré jusqu'à", value: "10 M FCFA" },
+      { label: "Au-delà", value: "IRCM 16,5 %" },
+    ],
+    sources: [
+      "https://minfi.gov.cm/les-exonerations-fiscales-a-caractere-social-dans-le-code-general-des-impots/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "cm-allocations-cnps",
+    category: "kids",
+    countries: ["CM"],
+    title: "Allocations familiales CNPS : 4 500 FCFA par enfant",
+    body:
+      "Depuis le décret 2024/056, les allocations familiales CNPS sont de 4 500 FCFA par enfant et par mois (jusqu'à 18 ans, 21 ans si étudiant ou apprenti). C'est financé par la cotisation patronale — rien n'est prélevé sur ton salaire, mais il faut que ton employeur t'ait déclaré et que tu constitues le dossier. Beaucoup d'ayants droit ne les réclament jamais.",
+    action: { label: "Constituer le dossier allocations auprès de la CNPS" },
+    appliesWhen: hasAnyKids,
+    priority: 86,
+    figures: [{ label: "Par enfant", value: "4 500 FCFA/mois" }],
+    sources: [
+      "Décret n° 2024/056 du 21 février 2024",
+      "https://iskm.issa.int/node/7557",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "cm-mobile-money",
+    category: "emergency",
+    countries: ["CM"],
+    title: "Mobile money : la taxe frappe deux fois",
+    body:
+      "La taxe sur les transferts d'argent (0,2 %) s'applique à l'ENVOI et au RETRAIT : un cycle complet coûte 0,4 % de taxe, plus les frais de l'opérateur qui pèsent bien davantage — surtout sur les petits montants. Regroupe tes transferts, garde l'argent dans le wallet quand c'est possible (le dépôt n'est pas taxé), et compare les grilles Orange Money / MTN MoMo.",
+    action: { label: "Regrouper les transferts et comparer les grilles tarifaires" },
+    appliesWhen: always,
+    priority: 82,
+    figures: [
+      { label: "Taxe envoi", value: "0,2 %" },
+      { label: "Cycle envoi + retrait", value: "0,4 % + frais" },
+    ],
+    sources: [
+      "https://blog.avocats.deloitte.fr/les-specificites-de-la-taxe-sur-les-transferts-dargent-au-cameroun/",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "cm-tontine",
+    category: "emergency",
+    countries: ["CM"],
+    title: "Tontine (njangi) : sécurise-la comme un vrai contrat",
+    body:
+      "La tontine est un formidable outil d'épargne collective — mais sans aucune protection légale des fonds, tout repose sur la confiance. Les bonnes pratiques : règlement intérieur écrit, registre signé à chaque séance, double signature sur la caisse, ordre de ramassage tiré au sort, et adosse la caisse à un compte bancaire ou mobile money pour la traçabilité. Ne place jamais TOUTE ton épargne en tontine.",
+    action: { label: "Formaliser le règlement et le registre de ta tontine" },
+    appliesWhen: always,
+    priority: 78,
+    sources: [
+      "https://droit.cairn.info/revue-revue-de-lersuma-2021-HS3-page-277",
+    ],
+    lastVerified: "2026-07-27",
+  },
+  {
+    id: "cm-titres-publics",
+    category: "long_term",
+    countries: ["CM"],
+    title: "Titres publics : des intérêts exonérés d'impôt",
+    body:
+      "Les Obligations du Trésor (OTA) camerounaises versent des intérêts exonérés d'IRCM — et la loi de finances 2026 étend l'exonération aux titres des autres États CEMAC. La souscription passe par les banques agréées SVT, avec un ticket minimum réel d'environ 1 000 000 FCFA. Une option de diversification une fois ton épargne de précaution constituée.",
+    action: {
+      label: "Se renseigner auprès d'une banque SVT",
+      link: "https://dgtcfm.cm/pourquoi-investir-dans-les-titres-publics/",
+    },
+    appliesWhen: always,
+    priority: 70,
+    figures: [{ label: "Ticket minimum", value: "~1 M FCFA" }],
+    sources: ["https://dgtcfm.cm/pourquoi-investir-dans-les-titres-publics/"],
+    lastVerified: "2026-07-27",
+  },
 ];
 
 // ============================================================================

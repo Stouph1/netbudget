@@ -29,7 +29,11 @@ export type IncomeBracket = "low" | "medium" | "high" | "very_high"; // dérivab
 
 export type TaxBracket = "0" | "11" | "30" | "41" | "45"; // TMI FR 2026
 
-export type Country = "FR" | "BE" | "CH" | "LU" | "CA" | "OTHER";
+export type Country =
+  | "FR" | "BE" | "CH" | "LU" | "CA"
+  | "DE" | "GB" | "US" | "ES" | "IT" | "PT"
+  | "MA" | "DZ" | "TN" | "SN" | "CI" | "CM"
+  | "OTHER";
 
 // Tranches d'âge des enfants — les conseils diffèrent radicalement selon l'âge.
 export type ChildAgeBracket = "0-6" | "7-11" | "12-15" | "16-18" | "19+";

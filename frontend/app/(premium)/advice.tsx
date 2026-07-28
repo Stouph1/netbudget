@@ -118,6 +118,18 @@ const COUNTRY_OPTIONS: { value: Country; label: string }[] = [
   { value: "CH", label: "Suisse" },
   { value: "LU", label: "Luxembourg" },
   { value: "CA", label: "Canada" },
+  { value: "DE", label: "Allemagne" },
+  { value: "GB", label: "Royaume-Uni" },
+  { value: "US", label: "États-Unis" },
+  { value: "ES", label: "Espagne" },
+  { value: "IT", label: "Italie" },
+  { value: "PT", label: "Portugal" },
+  { value: "MA", label: "Maroc" },
+  { value: "DZ", label: "Algérie" },
+  { value: "TN", label: "Tunisie" },
+  { value: "SN", label: "Sénégal" },
+  { value: "CI", label: "Côte d'Ivoire" },
+  { value: "CM", label: "Cameroun" },
   { value: "OTHER", label: "Autre pays" },
 ];
 
@@ -598,13 +610,12 @@ export default function AdviceScreen() {
           ) : null}
 
           {cfg.askCountry ? (
-            <QuestionBlock
+            <ChipsBlock
               label={cfg.countryLabel}
               hint="France par défaut. Les conseils s'adaptent à la fiscalité et aux dispositifs de ton pays."
               options={COUNTRY_OPTIONS}
               value={profile.country}
               onSelect={(v) => updateField("country", v)}
-              allowDeselect
             />
           ) : null}
           {cfg.askHousing ? (
@@ -887,6 +898,46 @@ function QuestionBlock<T extends string>({
                 ) : null}
               </View>
               <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// Grille de chips compacte — pour les questions à beaucoup d'options (pays).
+// Retape la sélection pour la retirer (déselection toujours permise).
+function ChipsBlock<T extends string>({
+  label,
+  hint,
+  options,
+  value,
+  onSelect,
+}: {
+  label: string;
+  hint?: string;
+  options: { value: T; label: string }[];
+  value: T | undefined;
+  onSelect: (v: T | undefined) => void;
+}) {
+  return (
+    <View style={{ marginBottom: 20 }}>
+      <Text style={styles.qLabel}>{label}</Text>
+      {hint ? <Text style={styles.qHint}>{hint}</Text> : null}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+        {options.map((opt) => {
+          const active = opt.value === value;
+          return (
+            <TouchableOpacity
+              key={opt.value}
+              onPress={() => onSelect(active ? undefined : opt.value)}
+              style={[styles.chip, active && styles.chipActive]}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -1191,6 +1242,18 @@ const styles = StyleSheet.create({
   },
   optionText: { color: TEXT_1, fontSize: 14 },
   optionTextActive: { fontWeight: "600" },
+
+  chip: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: SURFACE,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  chipActive: { backgroundColor: GOLD, borderColor: GOLD },
+  chipText: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
+  chipTextActive: { color: "#000", fontWeight: "700" },
 
   ctaBtn: {
     flexDirection: "row",
