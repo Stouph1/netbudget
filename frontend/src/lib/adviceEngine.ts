@@ -2714,6 +2714,179 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: ["https://dgtcfm.cm/pourquoi-investir-dans-les-titres-publics/"],
     lastVerified: "2026-07-27",
   },
+
+  // ==========================================================================
+  // ITALIE — recherche vérifiée 2026-07-28 (Legge di Bilancio 2026 via Mefop/
+  // Assogestioni, circolare INPS 7/2026, Poste Italiane). Plafond fonds de
+  // pension relevé à 5 300 € en 2026 (l'ancien 5 164,57 € reste valable pour
+  // la déclaration des revenus 2025).
+  // ==========================================================================
+  {
+    id: "it-fondo-emergenza",
+    category: "emergency",
+    countries: ["IT"],
+    title: "Fondo di emergenza : 3 à 6 mois de dépenses essentielles",
+    body:
+      "Recommandation usuelle en Italie : garder 3 à 6 mois de dépenses essentielles sur un support liquide (conto deposito svincolabile, libretto), jusqu'à 12 mois si tes revenus sont irréguliers. C'est le prérequis avant fonds de pension et investissements.",
+    action: {
+      label: "Voir le portail d'éducation financière de la Banca d'Italia",
+      link: "https://economiapertutti.bancaditalia.it/",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    sources: ["https://economiapertutti.bancaditalia.it/"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "it-fondi-pensione",
+    category: "retirement",
+    countries: ["IT"],
+    title: "Fondo pensione : 5 300 € déductibles (nouveau plafond 2026)",
+    body:
+      "La Legge di Bilancio 2026 a relevé le plafond de déductibilité de la previdenza complementare de 5 164,57 € à 5 300 €/an (contributions salarié + employeur ; le TFR versé au fonds ne compte PAS dans le plafond). À la sortie, la prestation est taxée 15 %, taux qui descend jusqu'à 9 % avec l'ancienneté — bien mieux que le TFR laissé en entreprise.",
+    action: { label: "Vérifier ton fonds de catégorie (contrat collectif)" },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 86,
+    figures: [
+      { label: "Plafond 2026", value: "5 300 €/an" },
+      { label: "Taxation sortie", value: "15 % → 9 %" },
+    ],
+    sources: [
+      "https://www.mefop.it/blog/blog-mefop/deducibilita-extradeducibilita-post-legge-bilancio-2026",
+    ],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "it-assegno-unico",
+    category: "kids",
+    countries: ["IT"],
+    title: "Assegno unico : jusqu'à 203,80 €/mois — mais mets ton ISEE à jour",
+    body:
+      "En 2026, l'assegno unico va de 58,30 € à 203,80 €/mois par enfant mineur selon l'ISEE (+50 % pour un enfant de moins d'1 an). Piège administratif : sans DSU/ISEE à jour, tu ne touches que le MINIMUM à partir de mars — renouvelle l'ISEE en début d'année, c'est plusieurs centaines d'euros par an.",
+    action: {
+      label: "Mettre à jour l'ISEE et vérifier le montant (INPS)",
+      link: "https://www.inps.it/it/it/dettaglio-scheda.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 88,
+    figures: [
+      { label: "Max (ISEE bas)", value: "203,80 €/mois" },
+      { label: "< 1 an", value: "+50 %" },
+    ],
+    sources: ["Circolare INPS n. 7 del 30/01/2026"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "it-bfp-fiscalita",
+    category: "long_term",
+    countries: ["IT"],
+    title: "12,5 % vs 26 % : la fiscalité fait la moitié du rendement",
+    body:
+      "Les Buoni Fruttiferi Postali et les titres d'État sont taxés à 12,5 % sur les intérêts ; un conto deposito ou une obligation privée à 26 %. À taux facial proche, compare toujours le NET — et n'oublie pas l'imposta di bollo de 0,2 %/an au-delà de 5 000 € qui rogne le rendement réel.",
+    action: {
+      label: "Comparer les rendements nets",
+      link: "https://buonielibretti.poste.it/faq-buoni-e-libretti",
+    },
+    appliesWhen: always,
+    priority: 76,
+    figures: [
+      { label: "BFP / titres d'État", value: "12,5 %" },
+      { label: "Conto deposito", value: "26 %" },
+    ],
+    sources: ["https://buonielibretti.poste.it/faq-buoni-e-libretti"],
+    lastVerified: "2026-07-28",
+  },
+
+  // ==========================================================================
+  // PORTUGAL — recherche vérifiée 2026-07-28 (portaldasfinancas EBF art. 21,
+  // IGCP AforroNet, gov.pt/OCC pour IRS Jovem). Abono de família exclu
+  // (montants non confirmés sur seg-social.pt).
+  // ==========================================================================
+  {
+    id: "pt-fundo-emergencia",
+    category: "emergency",
+    countries: ["PT"],
+    title: "Fundo de emergência : 4 à 6 mois de dépenses",
+    body:
+      "Recommandation usuelle au Portugal : garder l'équivalent de 4 à 6 mois de dépenses mensuelles totales (fixes + variables) sur un support à liquidité immédiate — jusqu'à 12 mois pour les indépendants. À constituer avant tout PPR ou investissement.",
+    action: {
+      label: "Voir Todos Contam (Banco de Portugal)",
+      link: "https://www.todoscontam.pt/pt-pt/fundo-de-emergencia",
+    },
+    appliesWhen: always,
+    priority: 98,
+    figures: [{ label: "Cible", value: "4-6 mois de dépenses" }],
+    sources: ["https://www.todoscontam.pt/pt-pt/fundo-de-emergencia"],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "pt-ppr",
+    category: "retirement",
+    countries: ["PT"],
+    title: "PPR : 20 % de tes versements remboursés par l'IRS",
+    body:
+      "Le PPR donne une déduction d'IRS de 20 % des versements : jusqu'à 400 € (< 35 ans au 1er janvier), 350 € (35-50 ans), 300 € (> 50 ans). Deux avertissements : la limite globale des deduções à coleta selon ton revenu peut réduire le gain réel, et un rachat hors conditions légales rembourse les déductions MAJORÉES de 10 % par an écoulé — c'est un engagement long terme.",
+    action: {
+      label: "Voir l'art. 21 de l'EBF (Portal das Finanças)",
+      link: "https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/bf/Pages/bf-artigo-21-ordm-.aspx",
+    },
+    appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
+    priority: 86,
+    figures: [
+      { label: "Déduction", value: "20 % des versements" },
+      { label: "Max < 35 ans", value: "400 €/an" },
+    ],
+    sources: [
+      "https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/bf/Pages/bf-artigo-21-ordm-.aspx",
+    ],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "pt-certificados-aforro",
+    category: "long_term",
+    countries: ["PT"],
+    title: "Certificados de Aforro : l'épargne d'État dès 100 €",
+    body:
+      "La Série F rémunère selon l'Euribor 3 mois (plafonnée à 2,5 %) plus une prime de permanence qui monte jusqu'à 1,75 % à partir de la 2e année. Souscription dès 100 €, rachat possible après 3 mois, intérêts imposés à 28 % retenus à la source par l'IGCP — rien à déclarer. Une brique simple entre le fonds d'urgence et l'investissement.",
+    action: {
+      label: "Voir les conditions IGCP (AforroNet)",
+      link: "https://aforronet.igcp.pt/iimf.aforronet.ui/condicoes/CondicoesSubscricao.aspx",
+    },
+    appliesWhen: always,
+    priority: 78,
+    figures: [
+      { label: "Minimum", value: "100 €" },
+      { label: "Prime permanence", value: "jusqu'à +1,75 %" },
+    ],
+    sources: [
+      "https://aforronet.igcp.pt/iimf.aforronet.ui/condicoes/CondicoesSubscricao.aspx",
+    ],
+    lastVerified: "2026-07-28",
+  },
+  {
+    id: "pt-irs-jovem",
+    category: "tax",
+    countries: ["PT"],
+    title: "IRS Jovem : jusqu'à 10 ans d'impôt allégé avant 35 ans",
+    body:
+      "Si tu as entre 18 et 35 ans (et n'es plus à charge), l'IRS Jovem exonère tes revenus du travail pendant 10 ans : 100 % la 1re année, 75 % les années 2-4, 50 % les années 5-7, 25 % les années 8-10 — dans la limite d'un plafond annuel (55 × IAS). Applicable dès la retenue mensuelle : signale-le à ton employeur, ne le découvre pas à la déclaration.",
+    action: {
+      label: "Vérifier ton éligibilité (gov.pt)",
+      link: "https://www.gov.pt/noticias/novo-modelo-de-irs-jovem-em-2025",
+    },
+    appliesWhen: ageIn("18-25", "26-35"),
+    priority: 88,
+    figures: [
+      { label: "Année 1", value: "100 % exonéré" },
+      { label: "Durée", value: "10 ans" },
+    ],
+    sources: [
+      "https://www.gov.pt/noticias/novo-modelo-de-irs-jovem-em-2025",
+      "https://www.occ.pt/sites/default/files/public/2025-02/Guia_Pratico_IRS_J6fevCa.pdf",
+    ],
+    lastVerified: "2026-07-28",
+  },
 ];
 
 // ============================================================================
