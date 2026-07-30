@@ -132,7 +132,7 @@ const fr: Catalog = {
   // Reviews
   "reviews.eyebrow": "Ils utilisent NETbudget",
   "reviews.title": "Ce qu'en pensent les utilisateurs",
-  "reviews.subtitle": "Avis publics récupérés directement depuis l'App Store, mis à jour à chaque build du site.",
+  "reviews.subtitle": "Avis publics récupérés directement depuis l'App Store et Google Play, mis à jour à chaque build du site.",
 
   // Privacy
   "privacy.eyebrow": "Vie privée par défaut",
@@ -343,7 +343,7 @@ const en: Catalog = {
   // Reviews
   "reviews.eyebrow": "They use NETbudget",
   "reviews.title": "What users say",
-  "reviews.subtitle": "Public reviews pulled directly from the App Store, refreshed at every site build.",
+  "reviews.subtitle": "Public reviews pulled directly from the App Store and Google Play, refreshed at every site build.",
 
   // Privacy
   "privacy.eyebrow": "Privacy by default",
