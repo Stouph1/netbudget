@@ -7,9 +7,8 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-const videoSrc = locale === "fr"
-  ? "/videos/netbudget-spot-fr.mp4"
-  : "/videos/netbudget-spot-en.mp4";
+// Animation de logo (sans son) — même fichier pour toutes les locales.
+const videoSrc = "/videos/netbudget-logo-reveal.mp4";
 ---
 
 <section class="relative overflow-hidden">
@@ -75,17 +74,17 @@ const videoSrc = locale === "fr"
         <p class="text-xs text-text-3">{t("hero.note")}</p>
       </div>
 
-      <!-- Right: autoplay spot video in a phone-like frame (Apple/Tesla style) -->
+      <!-- Right: animation de logo, muette, dans une carte premium -->
       <div class="relative flex justify-center md:justify-end">
-        <!-- Outer breathing glow -->
+        <!-- Halo ambiant "respirant" derrière la carte -->
         <div
           aria-hidden="true"
-          class="pointer-events-none absolute -inset-6 -z-10 rounded-[60px] bg-mint-500/15 blur-3xl animate-float"
+          class="pointer-events-none absolute -inset-8 -z-10 rounded-[64px] bg-mint-500/15 blur-3xl animate-float"
         >
         </div>
 
         <div
-          class="group/spot relative aspect-[9/16] w-full max-w-[300px] overflow-hidden rounded-[44px] border border-midnight-600/70 bg-midnight-900 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.75),0_0_70px_-10px_rgba(110,231,183,0.35)] sm:max-w-[340px] md:max-w-[420px] lg:max-w-[460px]"
+          class="relative aspect-[35/24] w-full max-w-[440px] overflow-hidden rounded-[28px] border border-white/10 bg-[#121D31] shadow-[0_40px_90px_-24px_rgba(0,0,0,0.7),0_0_60px_-12px_rgba(110,231,183,0.3)] sm:max-w-[500px] md:max-w-[540px] lg:max-w-[580px]"
         >
           <video
             id="hero-spot-video"
@@ -100,65 +99,12 @@ const videoSrc = locale === "fr"
           >
           </video>
 
-          <!-- Sound toggle (top-right) -->
-          <button
-            id="hero-spot-sound"
-            type="button"
-            aria-label={t("spot.unmute")}
-            data-unmute-label={t("spot.unmute")}
-            data-mute-label={t("spot.mute")}
-            class="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-black/55 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint-300"
-          >
-            <svg
-              id="hero-icon-muted"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <line x1="22" y1="9" x2="16" y2="15"></line>
-              <line x1="16" y1="9" x2="22" y2="15"></line>
-            </svg>
-            <svg
-              id="hero-icon-unmuted"
-              class="hidden"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-            </svg>
-          </button>
-
-          <!-- Bottom gradient for visual finish over the video tail -->
+          <!-- Liseré interne subtil pour la finition verre -->
           <div
             aria-hidden="true"
-            class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent"
+            class="pointer-events-none absolute inset-0 rounded-[28px] ring-1 ring-inset ring-white/5"
           >
           </div>
-        </div>
-
-        <!-- Small "Tap for sound" hint floating beside the video -->
-        <div
-          class="pointer-events-none absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-midnight-600/70 bg-midnight-800/80 px-3 py-1 text-xs font-medium text-text-2 backdrop-blur"
-        >
-          🔊 {t("spot.unmute")}
         </div>
       </div>
     </div>
@@ -168,37 +114,8 @@ const videoSrc = locale === "fr"
 <script is:inline>
   (function () {
     const video = document.getElementById("hero-spot-video");
-    const btn = document.getElementById("hero-spot-sound");
-    const iconMuted = document.getElementById("hero-icon-muted");
-    const iconUnmuted = document.getElementById("hero-icon-unmuted");
-    if (!video || !btn || !iconMuted || !iconUnmuted) return;
-    const muteLabel = btn.getAttribute("data-mute-label") || "Mute";
-    const unmuteLabel = btn.getAttribute("data-unmute-label") || "Unmute";
-
-    function updateUI() {
-      if (video.muted) {
-        iconMuted.classList.remove("hidden");
-        iconUnmuted.classList.add("hidden");
-        btn.setAttribute("aria-label", unmuteLabel);
-      } else {
-        iconMuted.classList.add("hidden");
-        iconUnmuted.classList.remove("hidden");
-        btn.setAttribute("aria-label", muteLabel);
-      }
-    }
-
-    btn.addEventListener("click", function () {
-      video.muted = !video.muted;
-      if (!video.muted) {
-        video.volume = 1;
-        video.currentTime = 0;
-        const p = video.play();
-        if (p && typeof p.catch === "function") p.catch(function () {});
-      }
-      updateUI();
-    });
-
-    // Pause when scrolled out of view, resume when back
+    if (!video) return;
+    // Vidéo muette en boucle : pause hors écran, reprise au retour
     if ("IntersectionObserver" in window) {
       const io = new IntersectionObserver(
         function (entries) {
@@ -215,7 +132,5 @@ const videoSrc = locale === "fr"
       );
       io.observe(video);
     }
-
-    updateUI();
   })();
 </script>
