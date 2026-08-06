@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
+import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import {
@@ -110,27 +111,6 @@ const CHILDREN_OPTIONS: { value: ChildAgeBracket; label: string }[] = [
   { value: "12-15", label: "12 - 15 ans (collège)" },
   { value: "16-18", label: "16 - 18 ans (lycée)" },
   { value: "19+", label: "19+ ans (études sup / autonomes)" },
-];
-
-const COUNTRY_OPTIONS: { value: Country; label: string }[] = [
-  { value: "FR", label: "France" },
-  { value: "BE", label: "Belgique" },
-  { value: "CH", label: "Suisse" },
-  { value: "LU", label: "Luxembourg" },
-  { value: "CA", label: "Canada" },
-  { value: "DE", label: "Allemagne" },
-  { value: "GB", label: "Royaume-Uni" },
-  { value: "US", label: "États-Unis" },
-  { value: "ES", label: "Espagne" },
-  { value: "IT", label: "Italie" },
-  { value: "PT", label: "Portugal" },
-  { value: "MA", label: "Maroc" },
-  { value: "DZ", label: "Algérie" },
-  { value: "TN", label: "Tunisie" },
-  { value: "SN", label: "Sénégal" },
-  { value: "CI", label: "Côte d'Ivoire" },
-  { value: "CM", label: "Cameroun" },
-  { value: "OTHER", label: "Autre pays" },
 ];
 
 const SAVINGS_OPTIONS: { value: SavingsCapacity; label: string }[] = [
@@ -375,6 +355,7 @@ function profileSummary(p: UserProfile, mode: AdviceMode): string {
   if (p.country && p.country !== "FR") {
     parts.push(COUNTRY_OPTIONS.find((o) => o.value === p.country)?.label);
   }
+  if ((p.country ?? "FR") === "FR" && p.region) parts.push(p.region);
   return parts.filter(Boolean).join(" · ");
 }
 
@@ -616,6 +597,15 @@ export default function AdviceScreen() {
               options={COUNTRY_OPTIONS}
               value={profile.country}
               onSelect={(v) => updateField("country", v)}
+            />
+          ) : null}
+          {cfg.askCountry && (profile.country ?? "FR") === "FR" ? (
+            <ChipsBlock
+              label={mode === "perso" ? "Ta région (France)" : "Votre région (France)"}
+              hint="Les aides locales varient (transport jeunes, cartes région, bourses). Retape ta sélection pour la retirer."
+              options={FR_REGIONS.map((r) => ({ value: r, label: r }))}
+              value={profile.region}
+              onSelect={(v) => updateField("region", v)}
             />
           ) : null}
           {cfg.askHousing ? (

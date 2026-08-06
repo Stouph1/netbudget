@@ -73,6 +73,7 @@ export type UserProfile = {
   income?: IncomeBracket;
   tmi?: TaxBracket;
   country?: Country;
+  region?: string; // région française (les aides locales varient) — voir constants/geo.ts
   hasEmergencyFund?: boolean;
   children?: ChildAgeBracket[];      // multi-select des tranches d'âge
   monthlySavingsCapacity?: SavingsCapacity;

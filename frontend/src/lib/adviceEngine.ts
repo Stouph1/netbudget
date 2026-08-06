@@ -57,6 +57,17 @@ const and =
   (p) =>
     preds.every((f) => f(p));
 
+const or =
+  (...preds: AdvicePredicate[]): AdvicePredicate =>
+  (p) =>
+    preds.some((f) => f(p));
+
+// Région française déclarée (les aides locales varient fortement).
+const regionIs =
+  (...regions: string[]): AdvicePredicate =>
+  (p) =>
+    !!p.region && regions.includes(p.region);
+
 // Matche si le scope actif est un workspace d'un de ces types.
 // (workspaceKind est injecté par l'app depuis le scope actif — pas demandé
 // dans l'onboarding.)
@@ -2128,6 +2139,65 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 84,
     sources: ["Principe universel de finances personnelles"],
     lastVerified: "2026-07-27",
+  },
+
+  // ==========================================================================
+  // FRANCE — AIDES RÉGIONALES. Les dispositifs existent et sont sourcés ;
+  // les tarifs changent chaque rentrée → AUCUN montant codé en dur.
+  // ==========================================================================
+  {
+    id: "fr-idf-imagine-r",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Imagine R : le transport francilien à tarif étudiant",
+    body:
+      "En Île-de-France, le forfait Imagine R (scolaires, étudiants et jeunes) donne accès à tout le réseau à tarif très réduit par rapport au Navigo classique — souvent l'un des premiers postes d'économie d'un foyer francilien avec ados ou étudiants. Les tarifs changent chaque rentrée : vérifie le prix en vigueur et les aides (certains départements en remboursent une partie).",
+    action: {
+      label: "Voir les tarifs Imagine R en vigueur",
+      link: "https://www.iledefrance-mobilites.fr/titres-et-tarifs",
+    },
+    appliesWhen: and(
+      regionIs("Île-de-France"),
+      or(ageIn("under_18", "18-25"), kids("12-15", "16-18", "19+")),
+    ),
+    priority: 82,
+    sources: ["https://www.iledefrance-mobilites.fr/titres-et-tarifs"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-occitanie-carte-jeune",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Carte Jeune Région : les aides occitanes pour les 15-25 ans",
+    body:
+      "En Occitanie, la Carte Jeune Région (gratuite) ouvre des aides concrètes aux lycéens et jeunes : manuels scolaires, prêt d'ordinateur, aides à la lecture, au sport et à la mobilité. Les montants évoluent chaque année scolaire — le réflexe : créer la carte dès l'entrée au lycée et activer chaque aide à laquelle le foyer a droit.",
+    action: {
+      label: "Créer la Carte Jeune Région",
+      link: "https://www.laregion.fr/-cartejeune-",
+    },
+    appliesWhen: and(
+      regionIs("Occitanie"),
+      or(ageIn("under_18", "18-25"), kids("12-15", "16-18", "19+")),
+    ),
+    priority: 82,
+    sources: ["https://www.laregion.fr/-cartejeune-"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-region-aides-jeunes",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Ta région distribue des aides que presque personne ne réclame",
+    body:
+      "Chaque région française finance des dispositifs jeunesse : cartes jeunes, transport scolaire subventionné, aide au permis, au BAFA, à la culture et au sport, primes de rentrée. Ce sont des centaines d'euros par an qui ne demandent qu'un dossier. Le point d'entrée : le site de TA région (rubrique jeunesse/éducation) et le simulateur national 1jeune1solution.",
+    action: {
+      label: "Simuler tes aides sur 1jeune1solution",
+      link: "https://www.1jeune1solution.gouv.fr/mes-aides",
+    },
+    appliesWhen: or(ageIn("under_18", "18-25"), hasAnyKids),
+    priority: 74,
+    sources: ["https://www.1jeune1solution.gouv.fr/mes-aides"],
+    lastVerified: "2026-08-06",
   },
 
   // ==========================================================================

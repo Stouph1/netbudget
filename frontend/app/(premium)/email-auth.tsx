@@ -8,7 +8,6 @@ import { router } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -20,6 +19,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { signInWithEmail, signUpWithEmail } from "../../src/lib/auth";
+import { recordConsent } from "../../src/lib/profile";
+import { notify } from "../../src/utils/notify";
 import { loadProfileBasics } from "../../src/lib/profile";
 
 const MIDNIGHT = "#0F172A";
@@ -41,6 +42,7 @@ export default function EmailAuth() {
   const isSignup = mode === "signup";
 
   async function afterAuth(userId: string) {
+    await recordConsent(userId); // case RGPD cochée en amont (hero Profil)
     // Même enchaînement qu'Apple/Google : inscription incomplète → écran dédié
     const basics = await loadProfileBasics(userId);
     if (!basics.username) {
@@ -53,15 +55,15 @@ export default function EmailAuth() {
   async function submit() {
     const mail = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      Alert.alert("E-mail", "Adresse e-mail invalide.");
+      notify("E-mail", "Adresse e-mail invalide.");
       return;
     }
     if (password.length < 8) {
-      Alert.alert("Mot de passe", "8 caractères minimum.");
+      notify("Mot de passe", "8 caractères minimum.");
       return;
     }
     if (isSignup && password !== confirm) {
-      Alert.alert("Mot de passe", "Les deux mots de passe ne correspondent pas.");
+      notify("Mot de passe", "Les deux mots de passe ne correspondent pas.");
       return;
     }
 
@@ -76,10 +78,10 @@ export default function EmailAuth() {
       return;
     }
     if (result.reason === "confirm_email") {
-      Alert.alert(
+      notify(
         "Vérifie ta boîte mail",
         `Un e-mail de confirmation a été envoyé à ${mail}. Clique sur le lien puis reviens te connecter.`,
-        [{ text: "OK", onPress: () => setMode("signin") }],
+        () => setMode("signin"),
       );
       return;
     }
@@ -87,7 +89,7 @@ export default function EmailAuth() {
       result.message === "Invalid login credentials"
         ? "E-mail ou mot de passe incorrect."
         : (result.message ?? "Erreur inconnue");
-    Alert.alert(isSignup ? "Inscription impossible" : "Connexion impossible", msg);
+    notify(isSignup ? "Inscription impossible" : "Connexion impossible", msg);
   }
 
   return (

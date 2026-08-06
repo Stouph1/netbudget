@@ -17,6 +17,7 @@ import {
   Alert,
   Image,
   Platform,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,6 +29,8 @@ import ScopeSwitcher from "./ScopeSwitcher";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
+import { recordConsent } from "../lib/profile";
+import { notify } from "../utils/notify";
 import { pickAndUploadAvatar } from "../lib/photos";
 import {
   loadBudgetHistory,
@@ -81,6 +84,8 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const [username, setUsername] = useState<string | null>(null);
   const [busyAvatar, setBusyAvatar] = useState(false);
   const [busyAuth, setBusyAuth] = useState(false);
+  // RGPD : la case doit être cochée AVANT toute création de compte.
+  const [consentOk, setConsentOk] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useFocusEffect(
@@ -133,15 +138,27 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
     }
   }, [user?.id]);
 
-  // Après n'importe quel provider : inscription incomplète → écran dédié
+  // Après n'importe quel provider : consentement horodaté (la case était
+  // obligatoire) puis inscription incomplète → écran dédié
   async function afterSignIn(userId: string) {
+    await recordConsent(userId);
     const basics = await loadProfileBasics(userId);
     if (!basics.username) {
       router.push("/(premium)/complete-profile" as never);
     }
   }
 
+  function requireConsent(): boolean {
+    if (consentOk) return true;
+    notify(
+      "Un instant",
+      "Coche d'abord la case pour accepter la politique de confidentialité et les conditions d'utilisation.",
+    );
+    return false;
+  }
+
   async function handleApple() {
+    if (!requireConsent()) return;
     setBusyAuth(true);
     const result = await signInWithApple();
     setBusyAuth(false);
@@ -153,6 +170,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   }
 
   async function handleGoogle() {
+    if (!requireConsent()) return;
     setBusyAuth(true);
     const result = await signInWithGoogle();
     setBusyAuth(false);
@@ -192,12 +210,42 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
             personnalisés.
           </Text>
 
+          {/* Consentement RGPD — obligatoire avant toute création de compte */}
+          <TouchableOpacity
+            style={styles.consentRow}
+            onPress={() => setConsentOk(!consentOk)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.consentBox, consentOk && styles.consentBoxOn]}>
+              {consentOk ? <Feather name="check" size={13} color="#000" /> : null}
+            </View>
+            <Text style={styles.consentText}>
+              J'ai lu et j'accepte la{" "}
+              <Text
+                style={styles.consentLink}
+                onPress={() => Linking.openURL("https://www.netbudget.app/privacy")}
+              >
+                politique de confidentialité
+              </Text>{" "}
+              et les{" "}
+              <Text
+                style={styles.consentLink}
+                onPress={() => Linking.openURL("https://www.netbudget.app/terms")}
+              >
+                conditions d'utilisation
+              </Text>
+              .
+            </Text>
+          </TouchableOpacity>
+
           {busyAuth ? (
-            <View style={{ height: 52, marginTop: 24, justifyContent: "center" }}>
+            <View style={{ height: 52, marginTop: 12, justifyContent: "center" }}>
               <ActivityIndicator color={GOLD} />
             </View>
           ) : (
-            <View style={{ width: "100%", marginTop: 24, gap: 10 }}>
+            <View
+              style={{ width: "100%", marginTop: 12, gap: 10, opacity: consentOk ? 1 : 0.45 }}
+            >
               {/* 1. Apple (iOS uniquement — exigence App Store) */}
               {Platform.OS === "ios" ? (
                 <AppleAuthentication.AppleAuthenticationButton
@@ -231,7 +279,10 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
               {/* 3. E-mail + mot de passe (création de compte ou connexion) */}
               <TouchableOpacity
                 style={styles.providerBtn}
-                onPress={() => router.push("/(premium)/email-auth" as never)}
+                onPress={() => {
+                  if (!requireConsent()) return;
+                  router.push("/(premium)/email-auth" as never);
+                }}
                 activeOpacity={0.85}
               >
                 <Feather name="mail" size={17} color={TEXT_1} />
@@ -755,6 +806,28 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     textAlign: "center",
   },
+  consentRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    marginTop: 22,
+    paddingHorizontal: 2,
+  },
+  consentBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    backgroundColor: SURFACE_2,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  consentBoxOn: { backgroundColor: GOLD, borderColor: GOLD },
+  consentText: { color: TEXT_2, fontSize: 12, lineHeight: 18, flex: 1, textAlign: "left" },
+  consentLink: { color: GOLD, textDecorationLine: "underline" },
+
   providerBtn: {
     flexDirection: "row",
     alignItems: "center",

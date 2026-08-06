@@ -83,6 +83,16 @@ export async function loadProfileDetails(
   };
 }
 
+// Enregistre l'acceptation RGPD (horodatée) — preuve de consentement.
+// Appelé une fois après la première connexion (la case était obligatoire).
+export async function recordConsent(userId: string): Promise<void> {
+  await supabase
+    .from("profiles")
+    .update({ consent_at: new Date().toISOString() })
+    .eq("id", userId)
+    .is("consent_at", null);
+}
+
 export async function updateProfileDetails(
   userId: string,
   details: {
@@ -91,6 +101,9 @@ export async function updateProfileDetails(
     last_name?: string;
     tithe_enabled?: boolean;
     tithe_percent?: number;
+    country?: string;
+    region?: string;
+    city?: string;
   },
 ): Promise<{ ok: boolean; error?: string }> {
   const cleanUsername = details.username.trim();
@@ -115,6 +128,9 @@ export async function updateProfileDetails(
       ...(details.tithe_percent !== undefined
         ? { tithe_percent: details.tithe_percent }
         : {}),
+      ...(details.country !== undefined ? { country: details.country || null } : {}),
+      ...(details.region !== undefined ? { region: details.region || null } : {}),
+      ...(details.city !== undefined ? { city: details.city?.trim() || null } : {}),
     })
     .eq("id", userId);
   if (error) {

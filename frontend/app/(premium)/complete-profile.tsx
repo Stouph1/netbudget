@@ -11,7 +11,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -24,12 +23,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadAvatar } from "../../src/lib/photos";
 import { loadProfileDetails, updateProfileDetails } from "../../src/lib/profile";
 import { loadAdviceProfile, saveAdviceProfile } from "../../src/lib/premiumStore";
-import type { AgeBracket } from "../../src/types/advice";
+import { notify } from "../../src/utils/notify";
+import type { AgeBracket, Country } from "../../src/types/advice";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -65,6 +66,9 @@ export default function CompleteProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [age, setAge] = useState<AgeBracket | undefined>(undefined);
+  const [country, setCountry] = useState<Country | undefined>(undefined);
+  const [region, setRegion] = useState<string | undefined>(undefined);
+  const [city, setCity] = useState("");
   const [givingEnabled, setGivingEnabled] = useState(false); // dons/dîme/zakat
   const [tithePercent, setTithePercent] = useState("10");
 
@@ -86,6 +90,8 @@ export default function CompleteProfile() {
       setGivingEnabled(details.tithe_enabled);
       setTithePercent(String(details.tithe_percent));
       if (advicePerso.age) setAge(advicePerso.age);
+      if (advicePerso.country) setCountry(advicePerso.country);
+      if (advicePerso.region) setRegion(advicePerso.region);
       setLoading(false);
     })();
   }, [user?.id]);
@@ -97,19 +103,19 @@ export default function CompleteProfile() {
     setBusyAvatar(false);
     if (result.ok) setAvatarUrl(result.url);
     else if (result.reason === "error") {
-      Alert.alert("Upload échoué", result.message ?? "Erreur inconnue");
+      notify("Upload échoué", result.message ?? "Erreur inconnue");
     }
   }
 
   async function submit() {
     if (!user?.id) return;
     if (!username.trim()) {
-      Alert.alert("Pseudo requis", "Choisis un nom d'utilisateur pour continuer.");
+      notify("Pseudo requis", "Choisis un nom d'utilisateur pour continuer.");
       return;
     }
     const pct = parseFloat(tithePercent.replace(",", "."));
     if (givingEnabled && (isNaN(pct) || pct < 0 || pct > 100)) {
-      Alert.alert("Dons & cadeaux", "Le pourcentage doit être entre 0 et 100.");
+      notify("Dons & cadeaux", "Le pourcentage doit être entre 0 et 100.");
       return;
     }
 
@@ -120,44 +126,43 @@ export default function CompleteProfile() {
       last_name: lastName,
       tithe_enabled: givingEnabled,
       tithe_percent: givingEnabled ? pct : 10,
+      country: country ?? "",
+      region: country === "FR" ? (region ?? "") : "",
+      city,
     });
 
-    // Pré-remplit l'âge du profil conseils (perso) pour que l'onboarding
-    // advice démarre avec le champ requis déjà coché.
-    if (result.ok && age) {
+    // Pré-remplit le profil conseils PERSO (âge, pays, région) pour que
+    // l'onboarding Coach démarre déjà personnalisé.
+    if (result.ok && (age || country)) {
       const adviceProfile = await loadAdviceProfile(user.id, null);
-      await saveAdviceProfile(user.id, { ...adviceProfile, age }, null);
+      await saveAdviceProfile(
+        user.id,
+        {
+          ...adviceProfile,
+          ...(age ? { age } : {}),
+          ...(country ? { country } : {}),
+          ...(country === "FR" && region ? { region } : {}),
+        },
+        null,
+      );
     }
     setBusy(false);
 
     if (!result.ok) {
-      Alert.alert("Impossible", result.error ?? "Erreur inconnue");
+      notify("Impossible", result.error ?? "Erreur inconnue");
       return;
     }
 
     if (isEdit) {
-      Alert.alert("Profil mis à jour", "", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      notify("Profil mis à jour", undefined, () => router.back());
       return;
     }
 
-    // Enchaîne sur la configuration du profil conseils — en scope PERSO :
-    // l'inscription décrit la personne, pas le workspace actif du moment.
-    Alert.alert(
-      "Inscription terminée",
-      "Dernière étape : configure ton profil pour recevoir des conseils personnalisés dès maintenant.",
-      [
-        {
-          text: "Configurer mes conseils",
-          onPress: async () => {
-            await setScope(null);
-            router.replace("/(premium)/advice" as never);
-          },
-        },
-        { text: "Plus tard", style: "cancel", onPress: () => router.back() },
-      ],
-    );
+    // Enchaînement DIRECT vers le Coach (en scope PERSO) : l'utilisateur
+    // remplit naturellement son profil conseils dans la foulée.
+    // (Pas d'Alert ici : les popups à boutons sont muettes sur le web.)
+    await setScope(null);
+    router.replace("/(premium)/advice" as never);
   }
 
   if (sessionLoading || loading) {
@@ -281,6 +286,66 @@ export default function CompleteProfile() {
             })}
           </View>
 
+          {/* Lieu : personnalise les conseils (fiscalité pays, aides région) */}
+          <Text style={styles.label}>Où vis-tu ?</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {COUNTRY_OPTIONS.map((opt) => {
+              const active = country === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  onPress={() => {
+                    setCountry(active ? undefined : opt.value);
+                    if (opt.value !== "FR") setRegion(undefined);
+                  }}
+                  style={[styles.chip, active && styles.chipActive]}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {country === "FR" ? (
+            <>
+              <Text style={styles.label}>Ta région</Text>
+              <Text style={styles.hint}>
+                Les aides locales changent d'une région à l'autre (transport
+                jeunes, cartes région, bourses) — tes conseils s'y adaptent.
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {FR_REGIONS.map((r) => {
+                  const active = region === r;
+                  return (
+                    <TouchableOpacity
+                      key={r}
+                      onPress={() => setRegion(active ? undefined : r)}
+                      style={[styles.chip, active && styles.chipActive]}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                        {r}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          ) : null}
+
+          <Text style={styles.label}>Ta ville (optionnel)</Text>
+          <TextInput
+            style={styles.input}
+            value={city}
+            onChangeText={setCity}
+            placeholder="Paris, Douala, Montréal…"
+            placeholderTextColor={TEXT_3}
+            autoCapitalize="words"
+          />
+
           {/* Dons & cadeaux — formulation inclusive : couvre dîme, zakat,
               dons associatifs, soutien familial, cadeaux réguliers. */}
           <View style={styles.titheCard}>
@@ -335,6 +400,16 @@ export default function CompleteProfile() {
               </>
             )}
           </TouchableOpacity>
+
+          {/* Réassurance sécurité / confidentialité */}
+          <View style={styles.secureNote}>
+            <Feather name="lock" size={13} color={TEXT_3} />
+            <Text style={styles.secureNoteText}>
+              Tes données sont chiffrées et stockées en Europe. Elles ne sont
+              jamais vendues ni partagées — elles servent uniquement à
+              personnaliser tes conseils.
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -378,6 +453,21 @@ const styles = StyleSheet.create({
     borderColor: MIDNIGHT,
   },
   avatarHint: { color: TEXT_3, fontSize: 12, marginTop: 10 },
+  hint: { color: TEXT_3, fontSize: 12, lineHeight: 17, marginBottom: 8 },
+  secureNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 14,
+  },
+  secureNoteText: {
+    color: TEXT_3,
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: "center",
+    flexShrink: 1,
+  },
 
   label: {
     color: TEXT_2,
