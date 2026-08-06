@@ -25,6 +25,9 @@ export type IncomeSource = {
   // Spécifique aux salaires
   proStatus?: ProStatus;
   timeMode?: "plein" | "partiel";
+  // Dîme (utilisateurs chrétiens, Premium) : si true, le pourcentage de dîme
+  // du profil est déduit du net de CETTE source. Optionnel — rétrocompatible.
+  titheApplied?: boolean;
 };
 
 // Estimations de charges par type — sources : service-public.fr, urssaf.fr.
@@ -101,22 +104,49 @@ function frequencyFactorMonthly(
 }
 
 // Net mensuel attendu pour une source à un mois donné (0–11).
+// `tithePercent` : pourcentage de dîme du profil (0 si non applicable) —
+// déduit du net UNIQUEMENT si la source a titheApplied.
 export function monthlyNetForSource(
   s: IncomeSource,
-  monthIndex: number
+  monthIndex: number,
+  tithePercent: number = 0,
 ): number {
   const amount = parseNumber(s.amount);
   if (amount <= 0) return 0;
   const charges = Math.max(0, Math.min(60, parseNumber(s.chargesPercent)));
-  const net = amount * (1 - charges / 100);
+  let net = amount * (1 - charges / 100);
+  if (s.titheApplied && tithePercent > 0) {
+    net = net * (1 - Math.min(100, tithePercent) / 100);
+  }
   return net * frequencyFactorMonthly(s, monthIndex);
 }
 
-// Moyenne sur 12 mois (utile pour les widgets « net mensuel »).
-export function averageMonthlyNet(sources: IncomeSource[]): number {
+// Montant mensuel moyen de la dîme (pour affichage récap).
+export function averageMonthlyTithe(
+  sources: IncomeSource[],
+  tithePercent: number,
+): number {
+  if (tithePercent <= 0) return 0;
   let sum = 0;
   for (let i = 0; i < 12; i++) {
-    for (const s of sources) sum += monthlyNetForSource(s, i);
+    for (const s of sources) {
+      if (!s.titheApplied) continue;
+      // net avant dîme − net après dîme
+      const before = monthlyNetForSource({ ...s, titheApplied: false }, i, 0);
+      sum += before * (Math.min(100, tithePercent) / 100);
+    }
+  }
+  return sum / 12;
+}
+
+// Moyenne sur 12 mois (utile pour les widgets « net mensuel »).
+export function averageMonthlyNet(
+  sources: IncomeSource[],
+  tithePercent: number = 0,
+): number {
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    for (const s of sources) sum += monthlyNetForSource(s, i, tithePercent);
   }
   return sum / 12;
 }
@@ -141,14 +171,20 @@ export function annualGross(sources: IncomeSource[]): number {
 }
 
 // Net annuel total (après charges).
-export function annualNet(sources: IncomeSource[]): number {
-  return averageMonthlyNet(sources) * 12;
+export function annualNet(
+  sources: IncomeSource[],
+  tithePercent: number = 0,
+): number {
+  return averageMonthlyNet(sources, tithePercent) * 12;
 }
 
 // Net mensuel par mois (tableau 12)
-export function monthlyNetSeries(sources: IncomeSource[]): number[] {
+export function monthlyNetSeries(
+  sources: IncomeSource[],
+  tithePercent: number = 0,
+): number[] {
   return Array.from({ length: 12 }, (_, i) =>
-    sources.reduce((s, src) => s + monthlyNetForSource(src, i), 0)
+    sources.reduce((s, src) => s + monthlyNetForSource(src, i, tithePercent), 0)
   );
 }
 

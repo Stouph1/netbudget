@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
@@ -21,6 +22,7 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -36,6 +38,24 @@ import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
+import PremiumHomePanel from "../src/components/PremiumHomePanel";
+import { useSession } from "../src/contexts/SessionContext";
+import { useActiveScope } from "../src/hooks/useActiveScope";
+import {
+  computeBudgetSplit,
+  deriveMatchingProfile,
+  explainBudgetSplit,
+  getBudgetMixProfile,
+} from "../src/lib/adviceEngine";
+import {
+  loadAdviceProfile,
+  loadBudget,
+  recordBudgetHistoryPoint,
+  saveBudget,
+} from "../src/lib/premiumStore";
+import { loadProfileDetails } from "../src/lib/profile";
+import ScopeSwitcher from "../src/components/ScopeSwitcher";
+import type { UserProfile } from "../src/types/advice";
 import {
   ensureMonthlyRemindersScheduled,
   getMonthlyEnabled,
@@ -85,6 +105,7 @@ import {
   TYPE_DEFAULT_CHARGES,
   TYPE_HINT,
   averageMonthlyNet,
+  averageMonthlyTithe,
   annualGross,
   monthlyNetSeries,
   defaultIncomeSource,
@@ -167,6 +188,19 @@ const DEFAULT_ITEMS: ExpenseItem[] = [
 function displayItemLabel(item: ExpenseItem, tt: (key: string) => string): string {
   if (item.labelKey) return tt(item.labelKey);
   return item.label;
+}
+
+// Backfill labelKey pour les items par défaut sauvegardés avant l'i18n des
+// labels — utilisé à l'hydratation ET au switch de scope budget.
+function backfillItemLabels(items: ExpenseItem[]): ExpenseItem[] {
+  return items.map((it) => {
+    if (it.labelKey) return it;
+    const def = DEFAULT_ITEMS.find((d) => d.id === it.id);
+    if (def && def.labelKey && it.label === def.label) {
+      return { ...it, labelKey: def.labelKey };
+    }
+    return it;
+  });
 }
 
 const FAMILY_PALETTE: Record<ExpenseFamily, string[]> = {
@@ -253,9 +287,21 @@ export default function Index() {
   // Les 3 onglets sont rendus en rangée horizontale ; on translate le container
   // pour suivre le doigt en temps réel (style Instagram/Twitter), puis on snap
   // au plus proche au relâchement.
-  type Tab = "settings" | "budget" | "converter";
-  const TAB_ORDER: Tab[] = ["settings", "budget", "converter"];
+  type Tab = "settings" | "budget" | "converter" | "premium";
+  const TAB_ORDER: Tab[] = ["settings", "budget", "converter", "premium"];
   const [tab, setTab] = useState<Tab>("budget");
+
+  // Retour depuis les écrans Premium (icône maison) : ils naviguent vers "/"
+  // avec ?tab=premium pour rouvrir l'app sur l'onglet Profil AVEC la tab bar.
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  useEffect(() => {
+    if (!tabParam) return;
+    if ((TAB_ORDER as string[]).includes(tabParam)) {
+      setTab(tabParam as Tab);
+    }
+    router.setParams({ tab: "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabParam]);
 
   const screenW = Dimensions.get("window").width;
   const tabIndexSV = useSharedValue(1); // 1 = budget par défaut
@@ -456,6 +502,53 @@ export default function Index() {
     [t],
   );
 
+  // Profil Premium (advice engine) — pour personnaliser le ratio budgétaire
+  // (50/30/20 par défaut) dans l'en-tête du tab Budget. Null si free tier.
+  // Suit le scope actif : le mix du workspace "couple" peut différer du perso.
+  const { user: premiumUser } = useSession();
+  const {
+    workspaceId: activeWorkspaceId,
+    workspaceKind: activeWorkspaceKind,
+    scopeLabel,
+  } = useActiveScope();
+  const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
+  // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
+  const [tithePercent, setTithePercent] = useState(0);
+  const reloadPremiumProfile = useCallback(async () => {
+    if (!premiumUser?.id) {
+      setPremiumProfile(null);
+      setTithePercent(0);
+      return;
+    }
+    const [p, details] = await Promise.all([
+      loadAdviceProfile(premiumUser.id, activeWorkspaceId),
+      loadProfileDetails(premiumUser.id),
+    ]);
+    // Même dérivation que l'écran Conseils : en scope couple la situation
+    // familiale est déduite du workspace, en scope association le profil
+    // perso est neutralisé (mix 50/30/20 par défaut).
+    setPremiumProfile(deriveMatchingProfile(p, activeWorkspaceKind));
+    setTithePercent(details.tithe_enabled ? details.tithe_percent : 0);
+  }, [premiumUser?.id, activeWorkspaceId, activeWorkspaceKind]);
+  useEffect(() => {
+    reloadPremiumProfile();
+  }, [reloadPremiumProfile]);
+  // Recharge à chaque switch vers le tab Budget (au cas où le profil ait été
+  // modifié dans l'écran Conseils personnalisés Premium).
+  useEffect(() => {
+    if (tab === "budget") {
+      reloadPremiumProfile();
+    }
+  }, [tab, reloadPremiumProfile]);
+
+  const budgetRatio = useMemo(() => {
+    if (premiumProfile && premiumProfile.age && premiumProfile.family) {
+      const s = computeBudgetSplit(premiumProfile);
+      return { ...s, personalized: true };
+    }
+    return { besoins: 50, envies: 30, epargne: 20, personalized: false };
+  }, [premiumProfile]);
+
   // Prompt de note App Store : se déclenche une seule fois, quand l'utilisateur
   // scrolle jusqu'en bas de l'onglet Budget après avoir rempli quelques données.
   const RATE_KEY = "netbudget:ratePromptShown";
@@ -562,16 +655,7 @@ export default function Index() {
         }
         if (stored.rent !== undefined) setRent(stored.rent as string);
         if (Array.isArray(stored.expenseItems) && stored.expenseItems.length > 0) {
-          // Backfill labelKey pour les items par defaut sauvegardes avant l'i18n des labels
-          const items = (stored.expenseItems as ExpenseItem[]).map((it) => {
-            if (it.labelKey) return it;
-            const def = DEFAULT_ITEMS.find((d) => d.id === it.id);
-            if (def && def.labelKey && it.label === def.label) {
-              return { ...it, labelKey: def.labelKey };
-            }
-            return it;
-          });
-          setExpenseItems(items);
+          setExpenseItems(backfillItemLabels(stored.expenseItems as ExpenseItem[]));
         }
         if (Array.isArray(stored.loans)) setLoans(stored.loans as Loan[]);
         if (stored.cityId) {
@@ -590,9 +674,19 @@ export default function Index() {
   }, []);
 
   // ---- Calculs revenus (multi-sources) ----
-  const netSeries = useMemo(() => monthlyNetSeries(incomes), [incomes]);
-  const netMensuel = useMemo(() => averageMonthlyNet(incomes), [incomes]);
+  const netSeries = useMemo(
+    () => monthlyNetSeries(incomes, tithePercent),
+    [incomes, tithePercent],
+  );
+  const netMensuel = useMemo(
+    () => averageMonthlyNet(incomes, tithePercent),
+    [incomes, tithePercent],
+  );
   const totalBrutAnnuel = useMemo(() => annualGross(incomes), [incomes]);
+  const monthlyTithe = useMemo(
+    () => averageMonthlyTithe(incomes, tithePercent),
+    [incomes, tithePercent],
+  );
   const netAnnuel = netMensuel * 12;
   const brutMensuel = totalBrutAnnuel / 12;
 
@@ -637,8 +731,16 @@ export default function Index() {
         loisirs: familyTotals.loisirs,
         epargne: familyTotals.epargne,
         remaining,
+        // Seuils basés sur le mix personnalisé si Premium loggé (sinon 50/30/20)
+        targetSplit: budgetRatio.personalized
+          ? {
+              besoins: budgetRatio.besoins,
+              envies: budgetRatio.envies,
+              epargne: budgetRatio.epargne,
+            }
+          : undefined,
       }),
-    [netMensuel, rentNum, loansMonthly, familyTotals, remaining]
+    [netMensuel, rentNum, loansMonthly, familyTotals, remaining, budgetRatio]
   );
 
   // Donut
@@ -720,19 +822,152 @@ export default function Index() {
       .map((x) => x.c);
   }, [citySearch, pickerCountry]);
 
+  // ----- Budget scopé par workspace (Premium) -----
+  // Les données budget en mémoire appartiennent à `budgetScope` (null = perso).
+  // Perso / free tier : AsyncStorage local, strictement comme avant.
+  // Workspace : cloud partagé entre membres (encrypted_payloads "budget")
+  // + cache local par scope pour l'offline.
+  const budgetScopeTarget = premiumUser?.id ? activeWorkspaceId : null;
+  const [budgetScope, setBudgetScope] = useState<string | null>(null);
+  const [budgetSwitcherOpen, setBudgetSwitcherOpen] = useState(false);
+
+  const applyBudgetSnapshot = useCallback(
+    (d: {
+      incomes?: unknown[];
+      rent?: string;
+      expenseItems?: unknown[];
+      loans?: unknown[];
+    } | null) => {
+      setIncomes(
+        Array.isArray(d?.incomes) && d.incomes.length > 0
+          ? (d.incomes as IncomeSource[])
+          : [defaultIncomeSource()],
+      );
+      setRent(typeof d?.rent === "string" ? d.rent : "0");
+      setExpenseItems(
+        Array.isArray(d?.expenseItems) && d.expenseItems.length > 0
+          ? backfillItemLabels(d.expenseItems as ExpenseItem[])
+          : DEFAULT_ITEMS,
+      );
+      setLoans(Array.isArray(d?.loans) ? (d.loans as Loan[]) : []);
+    },
+    [],
+  );
+
+  // Changement de scope → charge le budget du scope cible avant de réactiver
+  // la sauvegarde (sinon on écrirait les données d'un scope dans l'autre).
+  useEffect(() => {
+    if (!hydrated) return;
+    if (budgetScopeTarget === budgetScope) return;
+    let cancelled = false;
+    (async () => {
+      if (budgetScopeTarget && premiumUser?.id) {
+        const b = await loadBudget(premiumUser.id, budgetScopeTarget);
+        if (cancelled) return;
+        applyBudgetSnapshot(b);
+      } else {
+        const stored = await loadState();
+        if (cancelled) return;
+        applyBudgetSnapshot(stored ?? null);
+      }
+      if (!cancelled) setBudgetScope(budgetScopeTarget);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, budgetScopeTarget, budgetScope, premiumUser?.id, applyBudgetSnapshot]);
+
   // ----- Persistance : sauvegarde à chaque changement (après hydratation) -----
   useEffect(() => {
     if (!hydrated) return;
-    saveState({
-      incomes,
-      rent,
-      expenseItems,
-      loans,
-      cityId: city.id,
-      currency,
-      lang,
-    });
-  }, [hydrated, incomes, rent, expenseItems, loans, city, currency, lang]);
+    // Switch de scope en cours : suspend la sauvegarde jusqu'au chargement.
+    if (budgetScope !== budgetScopeTarget) return;
+    if (budgetScope === null) {
+      saveState({
+        incomes,
+        rent,
+        expenseItems,
+        loans,
+        cityId: city.id,
+        currency,
+        lang,
+      });
+    } else if (premiumUser?.id) {
+      saveBudget(
+        premiumUser.id,
+        { incomes, rent, expenseItems, loans },
+        budgetScope,
+      );
+      // Devise / langue / ville restent des réglages device : on les merge
+      // dans le stockage local SANS toucher au budget perso qui y vit.
+      (async () => {
+        const stored = await loadState();
+        await saveState({ ...(stored ?? {}), cityId: city.id, currency, lang });
+      })();
+    }
+  }, [
+    hydrated,
+    budgetScope,
+    budgetScopeTarget,
+    incomes,
+    rent,
+    expenseItems,
+    loans,
+    city,
+    currency,
+    lang,
+    premiumUser?.id,
+  ]);
+
+  // ----- Historique budget (Premium) : un point agrégé par mois et par scope,
+  // pour la carte "Évolution du budget" de l'onglet Profil. Débounce 2,5 s
+  // pour ne pas écrire à chaque frappe. -----
+  useEffect(() => {
+    if (!hydrated || !premiumUser?.id) return;
+    if (budgetScope !== budgetScopeTarget) return;
+    if (netMensuel <= 0 && monthlyExpenses <= 0) return; // budget vide → pas de bruit
+    const userId = premiumUser.id;
+    const scope = budgetScope;
+    const timer = setTimeout(() => {
+      const now = new Date();
+      const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      recordBudgetHistoryPoint(userId, scope, {
+        month,
+        net: Math.round(netMensuel),
+        expenses: Math.round(monthlyExpenses),
+        remaining: Math.round(remaining),
+        // Détail du mois — alimente la fiche mois + la comparaison dans le Profil
+        breakdown: {
+          rent: Math.round(rentNum),
+          loans: Math.round(loansMonthly),
+          besoins: Math.round(familyTotals.besoins),
+          loisirs: Math.round(familyTotals.loisirs),
+          epargne: Math.round(familyTotals.epargne),
+          items: expenseItems
+            .map((it) => ({
+              id: it.id,
+              label: displayItemLabel(it, t),
+              family: it.family,
+              amount: Math.round(parseNumber(it.amount)),
+            }))
+            .filter((it) => it.amount > 0),
+        },
+      });
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [
+    hydrated,
+    premiumUser?.id,
+    budgetScope,
+    budgetScopeTarget,
+    netMensuel,
+    monthlyExpenses,
+    remaining,
+    rentNum,
+    loansMonthly,
+    expenseItems,
+    lang,
+  ]);
 
   function openAddLoan() {
     setEditingLoan(null);
@@ -995,7 +1230,7 @@ export default function Index() {
         style={{ flex: 1 }}
       >
         <GestureDetector gesture={swipeGesture}>
-        <Animated.View style={[{ flex: 1, width: screenW * 3, flexDirection: "row" }, swipeAnimStyle]}>
+        <Animated.View style={[{ flex: 1, width: screenW * 4, flexDirection: "row" }, swipeAnimStyle]}>
         <View style={{ width: screenW, position: "absolute", left: screenW, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
@@ -1013,7 +1248,52 @@ export default function Index() {
               </Text>
               <Text style={styles.title}>NETbudget</Text>
             </View>
+            <TouchableOpacity
+              onPress={() => setRuleInfoOpen(true)}
+              style={styles.ratioWidget}
+              testID="budget-ratio-widget"
+              activeOpacity={0.85}
+            >
+              {budgetRatio.personalized && premiumProfile ? (
+                <Text style={styles.ratioMixName} numberOfLines={1}>
+                  {getBudgetMixProfile(premiumProfile).name}
+                </Text>
+              ) : (
+                <Text style={styles.ratioLabel}>Repère</Text>
+              )}
+              <Text style={styles.ratioValue}>
+                {budgetRatio.besoins}/{budgetRatio.envies}/{budgetRatio.epargne}
+              </Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Scope du budget (Premium connecté) : perso ou workspace partagé.
+              Tape pour changer — les données affichées suivent le scope. */}
+          {premiumUser ? (
+            <TouchableOpacity
+              style={styles.budgetScopeBadge}
+              onPress={() => setBudgetSwitcherOpen(true)}
+              activeOpacity={0.8}
+            >
+              <Feather
+                name={activeWorkspaceId ? "users" : "user"}
+                size={12}
+                color={GOLD}
+              />
+              <Text style={styles.budgetScopeBadgeText} numberOfLines={1}>
+                Budget : {scopeLabel}
+              </Text>
+              {budgetScope !== budgetScopeTarget ? (
+                <ActivityIndicator size="small" color={GOLD} />
+              ) : (
+                <Feather name="chevron-down" size={12} color={TEXT_3} />
+              )}
+            </TouchableOpacity>
+          ) : null}
+          <ScopeSwitcher
+            visible={budgetSwitcherOpen}
+            onClose={() => setBudgetSwitcherOpen(false)}
+          />
 
           {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
           {netMensuel <= 0 ? (
@@ -1085,7 +1365,7 @@ export default function Index() {
               </View>
             ) : (
               incomes.map((src) => {
-                const monthly = averageMonthlyNet([src]);
+                const monthly = averageMonthlyNet([src], tithePercent);
                 const freqLabel =
                   src.frequency === "monthly"
                     ? t("freq.monthly")
@@ -1136,15 +1416,31 @@ export default function Index() {
                   {fmt(totalBrutAnnuel)}
                 </Text>
               </View>
-              <View style={styles.revenusRow}>
-                <Text style={styles.revenusLabel}>{t("summary.netMonthlyEst")}</Text>
-                <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
-                  {fmt(netMensuel)}
-                </Text>
-              </View>
+              {/* Cascade mensuelle : brut moyen → dîme → net. L'annuel reste
+                  au-dessus, séparé, pour ne pas laisser croire que la dîme
+                  (mensuelle) se soustrait de l'annuel. */}
               <View style={styles.revenusRow}>
                 <Text style={styles.revenusLabel}>{t("summary.brutMonthlyAvg")}</Text>
                 <Text style={styles.revenusTotalMuted}>{fmt(brutMensuel)}</Text>
+              </View>
+              {monthlyTithe > 0 ? (
+                <View style={styles.revenusRow}>
+                  <Text style={styles.revenusLabel}>
+                    Dons & cadeaux ({tithePercent} % des revenus cochés)
+                  </Text>
+                  <Text style={styles.revenusTotalMuted}>
+                    − {fmt(monthlyTithe)} / mois
+                  </Text>
+                </View>
+              ) : null}
+              <View style={styles.revenusRow}>
+                <Text style={styles.revenusLabel}>
+                  {t("summary.netMonthlyEst")}
+                  {monthlyTithe > 0 ? " (dons déduits)" : ""}
+                </Text>
+                <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
+                  {fmt(netMensuel)}
+                </Text>
               </View>
             </View>
           </Section>
@@ -1245,20 +1541,7 @@ export default function Index() {
                   </TouchableOpacity>
                 }
               >
-                <View style={styles.familySubRow}>
-                  <Text style={styles.familySub}>{t(`family.${family}.sub`)}</Text>
-                  {family === "besoins" && (
-                    <TouchableOpacity
-                      onPress={() => setRuleInfoOpen(true)}
-                      hitSlop={10}
-                      style={styles.familyInfoBtn}
-                      testID="open-rule-info"
-                    >
-                      <Feather name="info" size={14} color={GOLD} />
-                      <Text style={styles.familyInfoBtnText}>50/30/20</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+                <Text style={styles.familySub}>{t(`family.${family}.sub`)}</Text>
                 {items.length === 0 ? (
                   <View style={styles.emptyCard}>
                     <Feather name={meta.icon} size={22} color={TEXT_3} />
@@ -1561,7 +1844,11 @@ export default function Index() {
               testID="open-currency-picker"
               activeOpacity={0.85}
             >
-              <Text style={[styles.currencyFlag, { marginRight: 12 }]}>{getCurrency(currency).flag}</Text>
+              <View style={[styles.currencySymbolBig, { marginRight: 12 }]}>
+                <Text style={styles.currencySymbolBigText}>
+                  {getCurrency(currency).symbol}
+                </Text>
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.inputLabel}>{getCurrency(currency).code}</Text>
                 <Text style={styles.inputValue}>{getCurrency(currency).name}</Text>
@@ -1665,6 +1952,17 @@ export default function Index() {
           <View style={{ height: 40 }} />
         </ScrollView>
         </View>
+
+        {/* ====== Premium / Profil tab (style Instagram : tout à droite) ====== */}
+        <View style={{ width: screenW, position: "absolute", left: screenW * 3, top: 0, bottom: 0 }}>
+          <View style={[styles.header, { paddingHorizontal: 20 }]}>
+            <View>
+              <Text style={styles.eyebrow}>{t("tab.premium")}</Text>
+              <Text style={styles.title}>NETbudget</Text>
+            </View>
+          </View>
+          <PremiumHomePanel onGoBudget={() => setTab("budget")} />
+        </View>
         </Animated.View>
         </GestureDetector>
       </KeyboardAvoidingView>
@@ -1724,13 +2022,12 @@ export default function Index() {
                     testID={`conv-currency-${c.code}`}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.currencyFlag}>{c.flag}</Text>
+                    <View style={[styles.currencySymbolBig, { marginRight: 12 }]}>
+                      <Text style={styles.currencySymbolBigText}>{c.symbol}</Text>
+                    </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.currencyName}>{c.name}</Text>
-                      <Text style={styles.currencyMeta}>{c.code}</Text>
-                    </View>
-                    <View style={styles.currencySymbol}>
-                      <Text style={styles.currencySymbolText}>{c.symbol}</Text>
+                      <Text style={styles.currencyMeta}>{c.flag} {c.code}</Text>
                     </View>
                     {active && (
                       <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />
@@ -1831,13 +2128,12 @@ export default function Index() {
                     testID={`currency-option-${c.code}`}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.currencyFlag}>{c.flag}</Text>
+                    <View style={[styles.currencySymbolBig, { marginRight: 12 }]}>
+                      <Text style={styles.currencySymbolBigText}>{c.symbol}</Text>
+                    </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.currencyName}>{c.name}</Text>
-                      <Text style={styles.currencyMeta}>{c.code}</Text>
-                    </View>
-                    <View style={styles.currencySymbol}>
-                      <Text style={styles.currencySymbolText}>{c.symbol}</Text>
+                      <Text style={styles.currencyMeta}>{c.flag} {c.code}</Text>
                     </View>
                     {active && <Feather name="check" size={18} color={GOLD} style={{ marginLeft: 10 }} />}
                   </TouchableOpacity>
@@ -1861,6 +2157,7 @@ export default function Index() {
           { key: "settings", icon: "settings" },
           { key: "budget", icon: "pie-chart" },
           { key: "converter", icon: "refresh-cw" },
+          { key: "premium", icon: "user" },
         ] as { key: Tab; icon: keyof typeof Feather.glyphMap }[]).map((it) => {
           const active = tab === it.key;
           return (
@@ -2125,7 +2422,7 @@ export default function Index() {
         </View>
       </Modal>
 
-      {/* 50/30/20 Rule Info Modal */}
+      {/* Ratio budgétaire — Info Modal (personnalisée si Premium loggé) */}
       <Modal
         visible={ruleInfoOpen}
         transparent
@@ -2138,25 +2435,61 @@ export default function Index() {
             onPress={() => setRuleInfoOpen(false)}
           />
           <View style={styles.confirmBox}>
-            <Text style={styles.confirmTitle}>{t("rule.title")}</Text>
-            <Text style={styles.confirmMessage}>
-              {t("rule.intro")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 10 }]}>
-              <Text style={{ color: "#10B981", fontWeight: "800" }}>{t("rule.needsHead")} </Text>
-              {t("rule.needsBody")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
-              <Text style={{ color: "#A855F7", fontWeight: "800" }}>{t("rule.wantsHead")} </Text>
-              {t("rule.wantsBody")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
-              <Text style={{ color: "#F59E0B", fontWeight: "800" }}>{t("rule.savingsHead")} </Text>
-              {t("rule.savingsBody")}
-            </Text>
-            <Text style={[styles.confirmMessage, { marginTop: 12, fontStyle: "italic" }]}>
-              {t("rule.tip")}
-            </Text>
+            {(() => {
+              const info = explainBudgetSplit(premiumProfile ?? {});
+              return (
+                <>
+                  <Text style={styles.confirmTitle}>
+                    {info.isPersonalized
+                      ? `${info.mix.name} · ${info.split.besoins}/${info.split.envies}/${info.split.epargne}`
+                      : "L'Équilibré · 50/30/20"}
+                  </Text>
+                  {info.isPersonalized ? (
+                    <>
+                      <Text style={[styles.confirmMessage, { fontStyle: "italic", marginTop: 2 }]}>
+                        {info.mix.tagline}
+                      </Text>
+                      <Text style={[styles.confirmMessage, { marginTop: 10 }]}>
+                        {info.mix.description}
+                      </Text>
+                      <Text style={[styles.confirmMessage, { marginTop: 12, color: TEXT_3, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }]}>
+                        Détail de ton mix
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.confirmMessage}>
+                      Ta situation suit le repère 50/30/20 classique. Voici comment le lire :
+                    </Text>
+                  )}
+                  <Text style={[styles.confirmMessage, { marginTop: 12 }]}>
+                    <Text style={{ color: "#10B981", fontWeight: "800" }}>
+                      BESOINS {info.split.besoins}% ·{" "}
+                    </Text>
+                    {info.besoinsReason}
+                  </Text>
+                  <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
+                    <Text style={{ color: "#A855F7", fontWeight: "800" }}>
+                      ENVIES {info.split.envies}% ·{" "}
+                    </Text>
+                    {info.enviesReason}
+                  </Text>
+                  <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
+                    <Text style={{ color: "#F59E0B", fontWeight: "800" }}>
+                      ÉPARGNE {info.split.epargne}% ·{" "}
+                    </Text>
+                    {info.epargneReason}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.confirmMessage,
+                      { marginTop: 14, fontStyle: "italic" },
+                    ]}
+                  >
+                    {info.reminder}
+                  </Text>
+                </>
+              );
+            })()}
             <TouchableOpacity
               style={styles.infoCloseBtn}
               onPress={() => setRuleInfoOpen(false)}
@@ -2321,6 +2654,35 @@ export default function Index() {
                   hintText={TYPE_HINT[incomeForm.type]}
                   testID="income-charges"
                 />
+
+                {/* Dîme — visible seulement si activée dans le profil (Premium) */}
+                {tithePercent > 0 ? (
+                  <View style={styles.toggleRow}>
+                    <Feather
+                      name="heart"
+                      size={20}
+                      color={incomeForm.titheApplied ? GOLD : TEXT_3}
+                      style={{ marginRight: 12 }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.toggleLabel}>
+                        Réserver {tithePercent} % pour les dons
+                      </Text>
+                      <Text style={{ color: TEXT_3, fontSize: 12, marginTop: 2 }}>
+                        Déduite du net de ce revenu.
+                      </Text>
+                    </View>
+                    <Switch
+                      value={incomeForm.titheApplied ?? false}
+                      onValueChange={(v) =>
+                        setIncomeForm((f) => ({ ...f, titheApplied: v }))
+                      }
+                      trackColor={{ false: BORDER, true: GOLD }}
+                      thumbColor="#fff"
+                      ios_backgroundColor={BORDER}
+                    />
+                  </View>
+                ) : null}
               </ScrollView>
               <View style={styles.sheetFooter}>
                 <TouchableOpacity
@@ -2864,6 +3226,55 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
   },
+  ratioWidget: {
+    alignItems: "flex-end",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  ratioLabel: {
+    color: TEXT_3,
+    fontSize: 9,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  ratioMixName: {
+    color: GOLD,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+    maxWidth: 120,
+  },
+  ratioValue: {
+    color: TEXT,
+    fontSize: 14,
+    fontWeight: "700",
+    marginTop: 2,
+    fontVariant: ["tabular-nums"],
+  },
+  budgetScopeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginBottom: 14,
+  },
+  budgetScopeBadgeText: {
+    color: GOLD,
+    fontSize: 12,
+    fontWeight: "700",
+    maxWidth: 220,
+  },
   eyebrow: {
     color: GOLD,
     fontSize: 11,
@@ -2901,6 +3312,17 @@ const styles = StyleSheet.create({
     borderRadius: 10, minWidth: 50, alignItems: "center",
   },
   currencySymbolText: { color: GOLD, fontSize: 13, fontWeight: "700" },
+  currencySymbolBig: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  currencySymbolBigText: { color: GOLD, fontSize: 18, fontWeight: "800" },
 
   convResultBox: {
     backgroundColor: SURFACE, borderRadius: 16,
