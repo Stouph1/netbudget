@@ -447,6 +447,13 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           onPress={() => router.push("/(premium)/celebrations" as never)}
         />
       </View>
+      <View style={styles.tilesRow}>
+        <Tile
+          icon="calendar"
+          label="Événements"
+          onPress={() => router.push("/(premium)/events" as never)}
+        />
+      </View>
       {__DEV__ && onDevReplayBirthday ? (
         <TouchableOpacity
           onPress={onDevReplayBirthday}

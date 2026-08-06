@@ -407,6 +407,60 @@ export async function saveCelebrations(
   await writePayload(CELEBRATIONS_KEY, userId, list, null);
 }
 
+// ============================================================================
+// API Budgets d'événements — mariage, voyage, naissance, funérailles, fêtes…
+// Scopé par workspace : un événement créé dans un espace couple/famille est
+// partagé ; en Perso il reste local à l'utilisateur.
+// ============================================================================
+
+export type EventLineItem = {
+  id: string;
+  label: string;
+  emoji?: string;
+  estimated: number; // budget prévu (€)
+  actual?: number | null; // dépensé/devisé réel
+  paidBy?: string; // qui paie / a payé (texte libre, utile à plusieurs)
+  done?: boolean; // poste réglé
+};
+
+export type EventMilestone = {
+  id: string;
+  label: string;
+  monthsBefore: number; // jalons du rétro-planning (0 = jour J)
+  done?: boolean;
+};
+
+export type EventProject = {
+  id: string;
+  type: string; // clé du template (wedding, travel, baby…)
+  name: string;
+  emoji: string;
+  dateIso: string; // date de l'événement "AAAA-MM-JJ"
+  guests?: number | null;
+  tier?: "low" | "mid" | "high";
+  items: EventLineItem[];
+  milestones: EventMilestone[];
+  saved: number; // épargne déjà mise de côté pour l'événement
+  createdAt: string; // ISO
+};
+
+const EVENTS_KEY = "events";
+
+export async function loadEvents(
+  userId: string,
+  workspaceId: string | null,
+): Promise<EventProject[]> {
+  return readPayload<EventProject[]>(EVENTS_KEY, userId, [], workspaceId);
+}
+
+export async function saveEvents(
+  userId: string,
+  list: EventProject[],
+  workspaceId: string | null,
+): Promise<void> {
+  await writePayload(EVENTS_KEY, userId, list, workspaceId);
+}
+
 const SAVED_ADVICE_KEY = "saved_advice";
 
 export async function loadSavedAdvice(userId: string): Promise<SavedAdviceItem[]> {
