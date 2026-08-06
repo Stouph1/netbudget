@@ -64,6 +64,64 @@ function progressPct(goal: SavingsGoal): number {
   return Math.min(100, (goal.currentAmount / goal.targetAmount) * 100);
 }
 
+// Conseil temporel : combien verser par mois pour tenir l'échéance,
+// et alerte si le versement prévu ne suffit pas / si l'échéance est dépassée.
+function goalPlan(
+  goal: SavingsGoal,
+): { text: string; tone: "ok" | "late" } | null {
+  const remaining = goal.targetAmount - goal.currentAmount;
+  if (remaining <= 0) return { text: "Objectif atteint — bravo !", tone: "ok" };
+
+  const monthLabel = (d: Date) =>
+    d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const euro = (n: number) =>
+    new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(n);
+
+  if (goal.targetDate) {
+    const monthsLeft =
+      (new Date(goal.targetDate).getTime() - Date.now()) /
+      (1000 * 60 * 60 * 24 * 30.44);
+    const dateStr = monthLabel(new Date(goal.targetDate));
+    if (monthsLeft <= 0.25) {
+      return {
+        text: `Échéance dépassée — il manque ${euro(remaining)}. Décale la date ou augmente le versement.`,
+        tone: "late",
+      };
+    }
+    const required = remaining / monthsLeft;
+    if (goal.monthlyContribution && goal.monthlyContribution > 0) {
+      if (goal.monthlyContribution >= required) {
+        return {
+          text: `Au rythme de ${euro(goal.monthlyContribution)}/mois, objectif tenu pour ${dateStr}.`,
+          tone: "ok",
+        };
+      }
+      return {
+        text: `Il faut ≈ ${euro(required)}/mois d'ici ${dateStr} (prévu : ${euro(goal.monthlyContribution)}). Augmente le versement ou décale l'échéance.`,
+        tone: "late",
+      };
+    }
+    return {
+      text: `≈ ${euro(required)}/mois pour y arriver d'ici ${dateStr}.`,
+      tone: "ok",
+    };
+  }
+
+  if (goal.monthlyContribution && goal.monthlyContribution > 0) {
+    const months = remaining / goal.monthlyContribution;
+    const eta = new Date(Date.now() + months * 30.44 * 24 * 60 * 60 * 1000);
+    return {
+      text: `À ${euro(goal.monthlyContribution)}/mois, objectif atteint vers ${monthLabel(eta)}.`,
+      tone: "ok",
+    };
+  }
+  return null;
+}
+
 export default function S1Epargne() {
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
@@ -252,8 +310,18 @@ export default function S1Epargne() {
             </Text>
           </View>
         ) : (
-          payload.goals.map((item, i) => {
+          // Urgents d'abord, optionnels en dernier — puis ordre d'origine
+          [...payload.goals]
+            .map((g, i) => ({ g, i }))
+            .sort((a, b) => {
+              const rank = { urgent: 0, normal: 1, optional: 2 } as const;
+              const ra = rank[a.g.priority ?? "normal"];
+              const rb = rank[b.g.priority ?? "normal"];
+              return ra !== rb ? ra - rb : a.i - b.i;
+            })
+            .map(({ g: item, i }) => {
             const color = item.color ?? SEGMENT_COLORS[i % SEGMENT_COLORS.length];
+            const plan = goalPlan(item);
             return (
               <TouchableOpacity
                 key={item.id}
@@ -268,9 +336,17 @@ export default function S1Epargne() {
                   <View style={[styles.colorDot, { backgroundColor: color }]} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.goalLabel}>{item.label}</Text>
-                    {item.extraP ? (
-                      <Text style={styles.extraPTag}>Extra-budgétaire</Text>
-                    ) : null}
+                    <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
+                      {item.priority === "urgent" ? (
+                        <Text style={[styles.priorityTag, styles.priorityUrgent]}>Urgent</Text>
+                      ) : null}
+                      {item.priority === "optional" ? (
+                        <Text style={[styles.priorityTag, styles.priorityOptional]}>Optionnel</Text>
+                      ) : null}
+                      {item.extraP ? (
+                        <Text style={styles.extraPTag}>Extra-budgétaire</Text>
+                      ) : null}
+                    </View>
                   </View>
                   <Text style={styles.goalPct}>
                     {progressPct(item).toFixed(0)}%
@@ -292,6 +368,23 @@ export default function S1Epargne() {
                     ]}
                   />
                 </View>
+                {plan ? (
+                  <View style={styles.goalPlanRow}>
+                    <Feather
+                      name={plan.tone === "late" ? "alert-circle" : "calendar"}
+                      size={13}
+                      color={plan.tone === "late" ? "#F87171" : TEXT_3}
+                    />
+                    <Text
+                      style={[
+                        styles.goalPlanText,
+                        plan.tone === "late" && { color: "#F87171" },
+                      ]}
+                    >
+                      {plan.text}
+                    </Text>
+                  </View>
+                ) : null}
               </TouchableOpacity>
             );
           })
@@ -436,6 +529,22 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
+  priorityTag: {
+    fontSize: 10,
+    marginTop: 2,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  priorityUrgent: { color: "#F87171" },
+  priorityOptional: { color: TEXT_3 },
+  goalPlanRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 10,
+  },
+  goalPlanText: { color: TEXT_2, fontSize: 12, lineHeight: 17, flex: 1 },
   goalRow: { flexDirection: "row", alignItems: "flex-end", marginBottom: 8 },
   goalCurrent: {
     color: TEXT_1,

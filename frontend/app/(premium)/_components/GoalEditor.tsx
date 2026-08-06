@@ -86,6 +86,21 @@ export default function GoalEditor({
   const [current, setCurrent] = useState("");
   const [monthly, setMonthly] = useState("");
   const [extraP, setExtraP] = useState(false);
+  const [priority, setPriority] = useState<SavingsGoal["priority"]>("normal");
+  // Échéance en mois (undefined = pas d'échéance) → convertie en targetDate
+  const [horizon, setHorizon] = useState<number | undefined>(undefined);
+
+  // Retrouve le chip d'échéance le plus proche depuis une targetDate existante
+  function horizonFromDate(iso?: string): number | undefined {
+    if (!iso) return undefined;
+    const months =
+      (new Date(iso).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30.44);
+    if (months <= 0) return 3;
+    const options = [3, 6, 12, 24, 36];
+    return options.reduce((best, o) =>
+      Math.abs(o - months) < Math.abs(best - months) ? o : best,
+    );
+  }
 
   useEffect(() => {
     if (visible) {
@@ -96,6 +111,8 @@ export default function GoalEditor({
         goal?.monthlyContribution ? String(goal.monthlyContribution) : "",
       );
       setExtraP(goal?.extraP ?? false);
+      setPriority(goal?.priority ?? "normal");
+      setHorizon(horizonFromDate(goal?.targetDate));
     }
   }, [visible, goal]);
 
@@ -110,6 +127,10 @@ export default function GoalEditor({
       return;
     }
     const now = new Date().toISOString();
+    // Échéance choisie en mois → date butoir ISO
+    const targetDate = horizon
+      ? new Date(Date.now() + horizon * 30.44 * 24 * 60 * 60 * 1000).toISOString()
+      : undefined;
     const merged: SavingsGoal = {
       id: goal?.id ?? genId(),
       label: label.trim(),
@@ -117,7 +138,8 @@ export default function GoalEditor({
       currentAmount: Math.max(0, parseAmount(current)),
       monthlyContribution: monthly ? parseAmount(monthly) : undefined,
       extraP,
-      targetDate: goal?.targetDate,
+      targetDate,
+      priority,
       color: goal?.color,
       createdAt: goal?.createdAt ?? now,
       updatedAt: now,
@@ -205,6 +227,66 @@ export default function GoalEditor({
               placeholderTextColor={TEXT_3}
               keyboardType="decimal-pad"
             />
+
+            <Text style={styles.label}>Priorité</Text>
+            <View style={styles.chipsRow}>
+              {(
+                [
+                  ["urgent", "Urgent", "#F87171"],
+                  ["normal", "Normal", GOLD],
+                  ["optional", "Optionnel", "#94A3B8"],
+                ] as const
+              ).map(([value, lbl, color]) => {
+                const active = priority === value;
+                return (
+                  <TouchableOpacity
+                    key={value}
+                    onPress={() => setPriority(value)}
+                    style={[
+                      styles.chip,
+                      active && { backgroundColor: color, borderColor: color },
+                    ]}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                      {lbl}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={styles.label}>Échéance</Text>
+            <Text style={styles.helper}>
+              Avec une échéance, NetBudget calcule le versement mensuel
+              nécessaire pour tenir l'objectif.
+            </Text>
+            <View style={styles.chipsRow}>
+              {(
+                [
+                  [undefined, "Aucune"],
+                  [3, "3 mois"],
+                  [6, "6 mois"],
+                  [12, "1 an"],
+                  [24, "2 ans"],
+                  [36, "3 ans"],
+                ] as const
+              ).map(([value, lbl]) => {
+                const active = horizon === value;
+                return (
+                  <TouchableOpacity
+                    key={lbl}
+                    onPress={() => setHorizon(value)}
+                    style={[styles.chip, active && styles.chipActive]}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                      {lbl}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
             <View style={styles.toggleRow}>
               <View style={{ flex: 1 }}>
@@ -299,6 +381,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   helper: { color: TEXT_3, fontSize: 12, marginTop: 4 },
+  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
+  chip: {
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 11,
+    backgroundColor: SURFACE,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  chipActive: { backgroundColor: GOLD, borderColor: GOLD },
+  chipText: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
+  chipTextActive: { color: "#000", fontWeight: "700" },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",

@@ -33,6 +33,7 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
@@ -2144,37 +2145,40 @@ export default function Index() {
         </View>
       </Modal>
 
-      {/* Bottom Tab Bar — sur Android (edge-to-edge), la barre système
-          (3 boutons ou geste) recouvre le bas de l'app : on ajoute l'inset
-          bas du téléphone au padding pour que les onglets restent visibles. */}
+      {/* Bottom Tab Bar — bulle flottante translucide (style Instagram) :
+          pilule arrondie détachée des bords, fond flouté (BlurView), l'onglet
+          actif reçoit une pastille. L'inset bas Android (barre système
+          edge-to-edge) est ajouté sous la pilule. */}
       <View
         style={[
-          styles.tabBar,
-          Platform.OS === "android" ? { paddingBottom: 12 + insets.bottom } : null,
+          styles.tabBarWrap,
+          { paddingBottom: Math.max(insets.bottom, Platform.OS === "ios" ? 18 : 10) },
         ]}
       >
-        {([
-          { key: "settings", icon: "settings" },
-          { key: "budget", icon: "pie-chart" },
-          { key: "converter", icon: "refresh-cw" },
-          { key: "premium", icon: "user" },
-        ] as { key: Tab; icon: keyof typeof Feather.glyphMap }[]).map((it) => {
-          const active = tab === it.key;
-          return (
-            <TouchableOpacity
-              key={it.key}
-              onPress={() => setTab(it.key)}
-              style={styles.tabBtn}
-              testID={`tab-${it.key}`}
-              activeOpacity={0.7}
-            >
-              <Feather name={it.icon} size={22} color={active ? GOLD : TEXT_3} />
-              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-                {t(`tab.${it.key}`)}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+        <BlurView intensity={40} tint="dark" style={styles.tabBarPill}>
+          {([
+            { key: "settings", icon: "settings" },
+            { key: "budget", icon: "pie-chart" },
+            { key: "converter", icon: "refresh-cw" },
+            { key: "premium", icon: "user" },
+          ] as { key: Tab; icon: keyof typeof Feather.glyphMap }[]).map((it) => {
+            const active = tab === it.key;
+            return (
+              <TouchableOpacity
+                key={it.key}
+                onPress={() => setTab(it.key)}
+                style={[styles.tabBtn, active && styles.tabBtnActive]}
+                testID={`tab-${it.key}`}
+                activeOpacity={0.7}
+              >
+                <Feather name={it.icon} size={21} color={active ? GOLD : TEXT_3} />
+                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                  {t(`tab.${it.key}`)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </BlurView>
       </View>
 
       {/* City Picker Modal (2-step : pays → ville) */}
@@ -3392,16 +3396,34 @@ const styles = StyleSheet.create({
   historyMain: { color: TEXT, fontSize: 14, fontWeight: "700" },
   historyMeta: { color: TEXT_3, fontSize: 11, marginTop: 4 },
 
-  tabBar: {
-    flexDirection: "row",
-    paddingVertical: 8,
-    paddingBottom: Platform.OS === "ios" ? 24 : 12,
-    paddingHorizontal: 8,
-    backgroundColor: "#0F0F12",
-    borderTopWidth: 1,
-    borderTopColor: BORDER,
+  tabBarWrap: {
+    paddingHorizontal: 14,
+    paddingTop: 6,
+    backgroundColor: "transparent",
   },
-  tabBtn: { flex: 1, alignItems: "center", paddingVertical: 6, gap: 4 },
+  tabBarPill: {
+    flexDirection: "row",
+    borderRadius: 28,
+    overflow: "hidden",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: "rgba(17,22,36,0.72)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.09)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  tabBtn: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 7,
+    gap: 3,
+    borderRadius: 20,
+  },
+  tabBtnActive: { backgroundColor: "rgba(74,222,128,0.12)" },
   tabLabel: { color: TEXT_3, fontSize: 11, fontWeight: "600" },
   tabLabelActive: { color: GOLD, fontWeight: "800" },
 

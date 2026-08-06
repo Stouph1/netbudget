@@ -19,6 +19,7 @@ export type SavingsGoal = {
   targetAmount: number;       // montant cible en devise
   currentAmount: number;      // épargné à date
   targetDate?: string;        // ISO 8601 — date butoir optionnelle
+  priority?: "urgent" | "normal" | "optional"; // catégorisation utilisateur
   monthlyContribution?: number; // versement mensuel prévu
   extraP: boolean;            // "ExtraP" = extra-budgétaire (n'entre pas dans le grand total)
   color?: string;             // pour la data-viz (hex)
