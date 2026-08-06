@@ -41,6 +41,8 @@ import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import { useSession } from "../src/contexts/SessionContext";
+import { deleteAccount } from "../src/lib/auth";
+import { notify } from "../src/utils/notify";
 import { useActiveScope } from "../src/hooks/useActiveScope";
 import {
   computeBudgetSplit,
@@ -1224,6 +1226,43 @@ export default function Index() {
     });
   }
 
+  // Suppression du COMPTE (cloud) — double confirmation, irréversible.
+  // Le budget local du téléphone n'est pas touché (free tier préservé).
+  function askDeleteAccount() {
+    setConfirm({
+      open: true,
+      title: "Supprimer ton compte ?",
+      message:
+        "Ton compte, tes espaces partagés (dont tu es propriétaire) et toutes tes données cloud seront définitivement effacés. Ton budget local sur ce téléphone n'est pas touché.",
+      danger: true,
+      confirmLabel: "Continuer",
+      onConfirm: () => {
+        // Deuxième confirmation après fermeture de la première modale
+        setTimeout(() => {
+          setConfirm({
+            open: true,
+            title: "Dernière confirmation",
+            message:
+              "Cette action est irréversible. Supprimer définitivement le compte ?",
+            danger: true,
+            confirmLabel: "Supprimer définitivement",
+            onConfirm: async () => {
+              const res = await deleteAccount();
+              if (res.ok) {
+                notify(
+                  "Compte supprimé",
+                  "Ton compte et tes données cloud ont été effacés. L'app reste utilisable en local, sans compte.",
+                );
+              } else {
+                notify("Suppression impossible", res.error ?? "Erreur inconnue");
+              }
+            },
+          });
+        }, 400);
+      },
+    });
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
@@ -1949,6 +1988,32 @@ export default function Index() {
                 {t("settings.reset.btn")}
               </Text>
             </TouchableOpacity>
+
+            {/* Suppression du COMPTE (RGPD + exigence App Store) — visible
+                seulement si connecté. Double confirmation, irréversible :
+                efface le compte, les workspaces possédés et toutes les
+                données cloud (cascade + Edge Function delete-account). */}
+            {premiumUser ? (
+              <TouchableOpacity
+                onPress={askDeleteAccount}
+                style={[
+                  styles.exportBtn,
+                  {
+                    backgroundColor: "transparent",
+                    borderWidth: 1,
+                    borderColor: DANGER,
+                    marginTop: 10,
+                  },
+                ]}
+                testID="settings-delete-account"
+                activeOpacity={0.85}
+              >
+                <Feather name="user-x" size={18} color={DANGER} />
+                <Text style={[styles.exportBtnTextDark, { color: DANGER }]}>
+                  Supprimer mon compte
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </Section>
           <View style={{ height: 40 }} />
         </ScrollView>

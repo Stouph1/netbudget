@@ -8,6 +8,7 @@
 // La session est gérée par supabase-js et persistée dans AsyncStorage.
 // Utiliser useSession() (voir src/contexts/SessionContext.tsx) côté UI.
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Platform } from "react-native";
 import { supabase } from "./supabase";
@@ -211,4 +212,30 @@ export async function signInWithEmailMagicLink(
 
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
+}
+
+// Suppression DÉFINITIVE du compte (RGPD / App Store) via l'Edge Function
+// `delete-account` (le client n'a pas le droit de s'auto-supprimer).
+// Purge ensuite les caches Premium locaux et la session.
+export async function deleteAccount(): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke("delete-account");
+    if (error) return { ok: false, error: error.message };
+    const res = data as { ok?: boolean; error?: string } | null;
+    if (!res?.ok) {
+      return { ok: false, error: res?.error ?? "La suppression a échoué." };
+    }
+    // Purge locale : caches par scope, scope actif, session
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      await AsyncStorage.multiRemove(
+        keys.filter((k) => k.startsWith("netbudget:premium")),
+      );
+    } catch {}
+    await supabase.auth.signOut();
+    return { ok: true };
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    return { ok: false, error: err.message };
+  }
 }
