@@ -356,6 +356,46 @@ export default function Index() {
     transform: [{ translateX: swipeX.value }],
   }));
 
+  // ----- Tab bar "liquid glass" : bulle de sélection -----
+  // La bulle suit swipeX (donc glisse aussi pendant les swipes d'écran,
+  // proportionnellement, comme la tab bar d'Apple/Instagram).
+  const [tabBarWidth, setTabBarWidth] = useState(0);
+  const tabIndicatorStyle = useAnimatedStyle(() => {
+    const tabW = tabBarWidth > 0 ? (tabBarWidth - 20) / TAB_ORDER.length : 0;
+    const progress = -swipeX.value / screenW; // 0..3 continu pendant le swipe
+    return {
+      transform: [{ translateX: 10 + progress * tabW }],
+      opacity: tabBarWidth > 0 ? 1 : 0,
+    };
+  }, [tabBarWidth, screenW]);
+
+  // Maintenir le doigt sur la barre puis glisser = la sélection suit le doigt
+  // (Pan activé après un appui long court, pour ne pas gêner les taps).
+  const lastSlideIdx = useSharedValue(-1);
+  const tabSlideGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activateAfterLongPress(180)
+        .onBegin(() => {
+          "worklet";
+          lastSlideIdx.value = -1;
+        })
+        .onUpdate((e) => {
+          "worklet";
+          if (tabBarWidth <= 0) return;
+          const tabW = (tabBarWidth - 20) / TAB_ORDER.length;
+          const idx = Math.min(
+            TAB_ORDER.length - 1,
+            Math.max(0, Math.floor((e.x - 10) / tabW)),
+          );
+          if (idx !== lastSlideIdx.value) {
+            lastSlideIdx.value = idx;
+            runOnJS(setTabFromIndex)(idx);
+          }
+        }),
+    [tabBarWidth, setTabFromIndex, lastSlideIdx],
+  );
+
   // Convertisseur de devise
   const [convFrom, setConvFrom] = useState<CurrencyCode>("EUR");
   const [convTo, setConvTo] = useState<CurrencyCode>("USD");
@@ -2210,40 +2250,62 @@ export default function Index() {
         </View>
       </Modal>
 
-      {/* Bottom Tab Bar — bulle flottante translucide (style Instagram) :
-          pilule arrondie détachée des bords, fond flouté (BlurView), l'onglet
-          actif reçoit une pastille. L'inset bas Android (barre système
-          edge-to-edge) est ajouté sous la pilule. */}
+      {/* Bottom Tab Bar — bulle "liquid glass" façon Apple :
+          - flotte AU-DESSUS du contenu (absolute) → le contenu défile derrière
+            et transparaît à travers le flou
+          - une bulle de sélection GLISSE entre les onglets (spring), et suit
+            en temps réel les swipes d'écran (pilotée par swipeX)
+          - maintenir le doigt sur la barre puis glisser déplace la sélection
+            (Pan après appui long, comme iOS) */}
       <View
         style={[
           styles.tabBarWrap,
           { paddingBottom: Math.max(insets.bottom, Platform.OS === "ios" ? 18 : 10) },
         ]}
+        pointerEvents="box-none"
       >
-        <BlurView intensity={40} tint="dark" style={styles.tabBarPill}>
-          {([
-            { key: "settings", icon: "settings" },
-            { key: "budget", icon: "pie-chart" },
-            { key: "converter", icon: "refresh-cw" },
-            { key: "premium", icon: "user" },
-          ] as { key: Tab; icon: keyof typeof Feather.glyphMap }[]).map((it) => {
-            const active = tab === it.key;
-            return (
-              <TouchableOpacity
-                key={it.key}
-                onPress={() => setTab(it.key)}
-                style={[styles.tabBtn, active && styles.tabBtnActive]}
-                testID={`tab-${it.key}`}
-                activeOpacity={0.7}
-              >
-                <Feather name={it.icon} size={21} color={active ? GOLD : TEXT_3} />
-                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-                  {t(`tab.${it.key}`)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </BlurView>
+        <GestureDetector gesture={tabSlideGesture}>
+          <BlurView
+            intensity={55}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            style={styles.tabBarPill}
+            onLayout={(e) => setTabBarWidth(e.nativeEvent.layout.width)}
+          >
+            {/* Bulle de sélection animée (derrière les icônes) */}
+            {tabBarWidth > 0 ? (
+              <Animated.View
+                style={[
+                  styles.tabIndicator,
+                  { width: (tabBarWidth - 20) / TAB_ORDER.length },
+                  tabIndicatorStyle,
+                ]}
+              />
+            ) : null}
+            {([
+              { key: "settings", icon: "settings" },
+              { key: "budget", icon: "pie-chart" },
+              { key: "converter", icon: "refresh-cw" },
+              { key: "premium", icon: "user" },
+            ] as { key: Tab; icon: keyof typeof Feather.glyphMap }[]).map((it) => {
+              const active = tab === it.key;
+              return (
+                <TouchableOpacity
+                  key={it.key}
+                  onPress={() => setTab(it.key)}
+                  style={styles.tabBtn}
+                  testID={`tab-${it.key}`}
+                  activeOpacity={0.7}
+                >
+                  <Feather name={it.icon} size={21} color={active ? GOLD : TEXT_3} />
+                  <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                    {t(`tab.${it.key}`)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </BlurView>
+        </GestureDetector>
       </View>
 
       {/* City Picker Modal (2-step : pays → ville) */}
@@ -3282,7 +3344,9 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    // La tab bar flotte au-dessus du contenu (position absolute) : on
+    // réserve sa hauteur pour que le bas des listes reste atteignable.
+    paddingBottom: 130,
     maxWidth: 720,
     width: "100%",
     alignSelf: "center",
@@ -3462,9 +3526,16 @@ const styles = StyleSheet.create({
   historyMeta: { color: TEXT_3, fontSize: 11, marginTop: 4 },
 
   tabBarWrap: {
+    // Flotte au-dessus du contenu : le contenu défile derrière et
+    // transparaît à travers le flou (vrai effet "liquid glass").
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: 14,
     paddingTop: 6,
     backgroundColor: "transparent",
+    zIndex: 50,
   },
   tabBarPill: {
     flexDirection: "row",
@@ -3472,14 +3543,24 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingVertical: 8,
     paddingHorizontal: 10,
-    backgroundColor: "rgba(17,22,36,0.72)",
+    backgroundColor: "rgba(14,19,33,0.45)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.09)",
+    borderColor: "rgba(255,255,255,0.12)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.35,
     shadowRadius: 20,
     elevation: 12,
+  },
+  tabIndicator: {
+    position: "absolute",
+    top: 8,
+    bottom: 8,
+    left: 0,
+    borderRadius: 19,
+    backgroundColor: "rgba(74,222,128,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.22)",
   },
   tabBtn: {
     flex: 1,
@@ -3488,7 +3569,6 @@ const styles = StyleSheet.create({
     gap: 3,
     borderRadius: 20,
   },
-  tabBtnActive: { backgroundColor: "rgba(74,222,128,0.12)" },
   tabLabel: { color: TEXT_3, fontSize: 11, fontWeight: "600" },
   tabLabelActive: { color: GOLD, fontWeight: "800" },
 
