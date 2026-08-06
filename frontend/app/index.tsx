@@ -58,6 +58,7 @@ import {
   getBudgetMixProfile,
 } from "../src/lib/adviceEngine";
 import {
+  addSavedAdvice,
   loadAdviceProfile,
   loadBudget,
   recordBudgetHistoryPoint,
@@ -2280,6 +2281,18 @@ export default function Index() {
       <BirthdayCelebration
         visible={bdayOpen}
         cards={bdayCards ?? []}
+        onKeep={(c) => {
+          if (!premiumUser?.id) return;
+          addSavedAdvice(premiumUser.id, {
+            id: `bday-${new Date().getFullYear()}-${c.title}`,
+            emoji: c.emoji,
+            title: c.title,
+            body: c.body,
+            tone: c.tone,
+            savedAt: new Date().toISOString(),
+            source: "birthday",
+          });
+        }}
         onClose={() => setBdayOpen(false)}
       />
 

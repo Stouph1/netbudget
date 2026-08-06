@@ -370,6 +370,49 @@ export async function seedDemoBudgetHistory(
 }
 
 // ============================================================================
+// API Dépôt de conseils — les cartes que l'utilisateur GARDE (swipe droite
+// à l'anniversaire, plus tard depuis le Coach). Perso uniquement.
+// ============================================================================
+
+export type SavedAdviceItem = {
+  id: string;
+  emoji?: string;
+  title: string;
+  body: string;
+  tone?: "good" | "gold" | "bad" | "neutral";
+  savedAt: string; // ISO
+  source: string; // "birthday" | "coach" | …
+};
+
+const SAVED_ADVICE_KEY = "saved_advice";
+
+export async function loadSavedAdvice(userId: string): Promise<SavedAdviceItem[]> {
+  return readPayload<SavedAdviceItem[]>(SAVED_ADVICE_KEY, userId, [], null);
+}
+
+export async function addSavedAdvice(
+  userId: string,
+  item: SavedAdviceItem,
+): Promise<void> {
+  const list = await loadSavedAdvice(userId);
+  if (list.some((x) => x.id === item.id)) return; // déjà gardé
+  await writePayload(SAVED_ADVICE_KEY, userId, [item, ...list], null);
+}
+
+export async function removeSavedAdvice(
+  userId: string,
+  id: string,
+): Promise<void> {
+  const list = await loadSavedAdvice(userId);
+  await writePayload(
+    SAVED_ADVICE_KEY,
+    userId,
+    list.filter((x) => x.id !== id),
+    null,
+  );
+}
+
+// ============================================================================
 // API Profil advice — pour personnaliser les conseils Premium
 // ============================================================================
 

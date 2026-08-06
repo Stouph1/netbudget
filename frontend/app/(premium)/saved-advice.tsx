@@ -1,0 +1,150 @@
+// Dépôt de conseils — les cartes gardées (swipe droite à l'anniversaire).
+// Accessible depuis le Profil. Suppression à l'unité.
+
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
+import { useSession } from "../../src/contexts/SessionContext";
+import {
+  loadSavedAdvice,
+  removeSavedAdvice,
+  type SavedAdviceItem,
+} from "../../src/lib/premiumStore";
+
+const MIDNIGHT = "#0F172A";
+const SURFACE = "#1A2238";
+const TEXT_1 = "#FFFFFF";
+const TEXT_2 = "#94A3B8";
+const TEXT_3 = "#64748B";
+const GOLD = "#4ADE80";
+const BORDER = "rgba(255,255,255,0.08)";
+
+const TONE_BORDER: Record<string, string> = {
+  good: "#4ADE80",
+  gold: "#FCD34D",
+  bad: "#F87171",
+  neutral: "rgba(255,255,255,0.12)",
+};
+
+export default function SavedAdvice() {
+  const { user, loading: sessionLoading } = useSession();
+  const [items, setItems] = useState<SavedAdviceItem[] | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+      let cancelled = false;
+      loadSavedAdvice(user.id).then((list) => {
+        if (!cancelled) setItems(list);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, [user?.id]),
+  );
+
+  async function remove(id: string) {
+    if (!user?.id) return;
+    setItems((prev) => (prev ?? []).filter((x) => x.id !== id));
+    await removeSavedAdvice(user.id, id);
+  }
+
+  return (
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+          <Feather name="arrow-left" size={22} color={TEXT_1} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Conseils gardés</Text>
+        <View style={{ width: 22 }} />
+      </View>
+
+      {sessionLoading || items === null ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={GOLD} />
+        </View>
+      ) : items.length === 0 ? (
+        <View style={styles.center}>
+          <Feather name="bookmark" size={30} color={TEXT_3} />
+          <Text style={styles.emptyTitle}>Rien de gardé pour l'instant</Text>
+          <Text style={styles.emptyBody}>
+            Le jour de ton anniversaire, swipe les cartes vers la droite pour
+            les retrouver ici.
+          </Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+          {items.map((it) => (
+            <View
+              key={it.id}
+              style={[
+                styles.card,
+                { borderLeftColor: TONE_BORDER[it.tone ?? "neutral"] },
+              ]}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                {it.emoji ? <Text style={{ fontSize: 20 }}>{it.emoji}</Text> : null}
+                <Text style={styles.cardTitle}>{it.title}</Text>
+                <TouchableOpacity
+                  onPress={() => remove(it.id)}
+                  hitSlop={10}
+                  style={{ marginLeft: "auto" }}
+                >
+                  <Feather name="trash-2" size={16} color={TEXT_3} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.cardBody}>{it.body}</Text>
+              <Text style={styles.cardMeta}>
+                Gardé le {new Date(it.savedAt).toLocaleDateString("fr-FR")}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: MIDNIGHT },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  title: { color: TEXT_1, fontSize: 18, fontWeight: "600" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
+  emptyTitle: { color: TEXT_1, fontSize: 16, fontWeight: "600", marginTop: 14 },
+  emptyBody: {
+    color: TEXT_2,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center",
+    marginTop: 8,
+    maxWidth: 280,
+  },
+  card: {
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderLeftWidth: 4,
+    padding: 16,
+    marginBottom: 12,
+  },
+  cardTitle: { color: TEXT_1, fontSize: 15, fontWeight: "700", flexShrink: 1 },
+  cardBody: { color: TEXT_2, fontSize: 13, lineHeight: 19, marginTop: 8 },
+  cardMeta: { color: TEXT_3, fontSize: 11, marginTop: 10 },
+});

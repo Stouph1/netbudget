@@ -433,6 +433,13 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           onPress={() => (onGoBudget ? onGoBudget() : router.back())}
         />
       </View>
+      <View style={styles.tilesRow}>
+        <Tile
+          icon="bookmark"
+          label="Conseils gardés"
+          onPress={() => router.push("/(premium)/saved-advice" as never)}
+        />
+      </View>
 
       {/* Évolution du budget — historique mensuel du scope actif */}
       <BudgetHistoryCard
