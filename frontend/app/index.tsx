@@ -40,6 +40,7 @@ import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import PremiumHomePanel from "../src/components/PremiumHomePanel";
+import EventsPanel, { eventNeedsAttention } from "../src/components/EventsPanel";
 import { useSession } from "../src/contexts/SessionContext";
 import { deleteAccount } from "../src/lib/auth";
 import { notify } from "../src/utils/notify";
@@ -67,6 +68,7 @@ import {
   loadCelebrations,
   loadAdviceProfile,
   loadBudget,
+  loadEvents,
   recordBudgetHistoryPoint,
   saveBudget,
 } from "../src/lib/premiumStore";
@@ -304,8 +306,8 @@ export default function Index() {
   // Les 3 onglets sont rendus en rangée horizontale ; on translate le container
   // pour suivre le doigt en temps réel (style Instagram/Twitter), puis on snap
   // au plus proche au relâchement.
-  type Tab = "settings" | "budget" | "converter" | "premium";
-  const TAB_ORDER: Tab[] = ["settings", "budget", "converter", "premium"];
+  type Tab = "settings" | "events" | "budget" | "converter" | "premium";
+  const TAB_ORDER: Tab[] = ["settings", "events", "budget", "converter", "premium"];
   const [tab, setTab] = useState<Tab>("budget");
 
   // Retour depuis les écrans Premium (icône maison) : ils naviguent vers "/"
@@ -321,8 +323,8 @@ export default function Index() {
   }, [tabParam]);
 
   const screenW = Dimensions.get("window").width;
-  const tabIndexSV = useSharedValue(1); // 1 = budget par défaut
-  const swipeX = useSharedValue(-screenW);
+  const tabIndexSV = useSharedValue(2); // 2 = budget par défaut
+  const swipeX = useSharedValue(-screenW * 2);
 
   const setTabFromIndex = useCallback((idx: number) => {
     setTab(TAB_ORDER[idx]);
@@ -569,6 +571,9 @@ export default function Index() {
     scopeLabel,
   } = useActiveScope();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
+  // Points rouges de la tab bar : un signal par onglet (événement en retard /
+  // J-7 sous-financé sur Événements, fête d'anniversaire prête sur Profil).
+  const [tabBadges, setTabBadges] = useState<Partial<Record<Tab, boolean>>>({});
   // Anniversaire : cartes de célébration (une fois par an, le jour J)
   const [bdayCards, setBdayCards] = useState<BirthdayCard[] | null>(null);
   const [bdayOpen, setBdayOpen] = useState(false);
@@ -576,6 +581,25 @@ export default function Index() {
   const [bdaySource, setBdaySource] = useState("birthday");
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
   const [tithePercent, setTithePercent] = useState(0);
+  useEffect(() => {
+    if (!premiumUser?.id) {
+      setTabBadges((b) => ({ ...b, events: false }));
+      return;
+    }
+    let cancelled = false;
+    loadEvents(premiumUser.id, activeWorkspaceId).then((evs) => {
+      if (cancelled) return;
+      setTabBadges((b) => ({ ...b, events: evs.some((e) => eventNeedsAttention(e)) }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [premiumUser?.id, activeWorkspaceId, tab]);
+
+  useEffect(() => {
+    setTabBadges((b) => ({ ...b, premium: bdayOpen }));
+  }, [bdayOpen]);
+
   const reloadPremiumProfile = useCallback(async () => {
     if (!premiumUser?.id) {
       setPremiumProfile(null);
@@ -1389,8 +1413,13 @@ export default function Index() {
         style={{ flex: 1 }}
       >
         <GestureDetector gesture={swipeGesture}>
-        <Animated.View style={[{ flex: 1, width: screenW * 4, flexDirection: "row" }, swipeAnimStyle]}>
+        <Animated.View style={[{ flex: 1, width: screenW * 5, flexDirection: "row" }, swipeAnimStyle]}>
+        {/* Écran Événements (onglet 1, entre Réglages et Budget) */}
         <View style={{ width: screenW, position: "absolute", left: screenW, top: 0, bottom: 0 }}>
+          <EventsPanel />
+        </View>
+
+        <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -1848,7 +1877,7 @@ export default function Index() {
         </View>
 
         {/* ====== Converter tab (Google Translate style) ====== */}
-        <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
+        <View style={{ width: screenW, position: "absolute", left: screenW * 3, top: 0, bottom: 0 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -2139,7 +2168,7 @@ export default function Index() {
         </View>
 
         {/* ====== Premium / Profil tab (style Instagram : tout à droite) ====== */}
-        <View style={{ width: screenW, position: "absolute", left: screenW * 3, top: 0, bottom: 0 }}>
+        <View style={{ width: screenW, position: "absolute", left: screenW * 4, top: 0, bottom: 0 }}>
           <View style={[styles.header, { paddingHorizontal: 20 }]}>
             <View>
               <Text style={styles.eyebrow}>{t("tab.premium")}</Text>
@@ -2383,6 +2412,7 @@ export default function Index() {
             ) : null}
             {([
               { key: "settings", icon: "settings" },
+              { key: "events", icon: "calendar" },
               { key: "budget", icon: "pie-chart" },
               { key: "converter", icon: "refresh-cw" },
               { key: "premium", icon: "user" },
@@ -2396,7 +2426,10 @@ export default function Index() {
                   testID={`tab-${it.key}`}
                   activeOpacity={0.7}
                 >
-                  <Feather name={it.icon} size={21} color={active ? GOLD : TEXT_3} />
+                  <View>
+                    <Feather name={it.icon} size={21} color={active ? GOLD : TEXT_3} />
+                    {tabBadges[it.key] ? <View style={styles.tabBadge} /> : null}
+                  </View>
                   <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
                     {t(`tab.${it.key}`)}
                   </Text>
@@ -3650,6 +3683,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 20,
     elevation: 12,
+  },
+  tabBadge: {
+    position: "absolute",
+    top: -3,
+    right: -5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#F87171",
   },
   tabIndicator: {
     position: "absolute",

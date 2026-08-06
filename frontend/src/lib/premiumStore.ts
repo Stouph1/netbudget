@@ -430,6 +430,16 @@ export type EventMilestone = {
   done?: boolean;
 };
 
+// Relevé de prix : l'utilisateur note un devis/prix repéré (vol, hôtel,
+// traiteur…) à une date donnée — l'app montre l'évolution entre relevés.
+export type EventQuote = {
+  id: string;
+  label: string; // "Vol Paris-Dakar", "Traiteur Maison X"…
+  price: number;
+  date: string; // ISO
+  source?: string; // site/prestataire (texte libre)
+};
+
 export type EventProject = {
   id: string;
   type: string; // clé du template (wedding, travel, baby…)
@@ -438,8 +448,10 @@ export type EventProject = {
   dateIso: string; // date de l'événement "AAAA-MM-JJ"
   guests?: number | null;
   tier?: "low" | "mid" | "high";
+  style?: string; // réponse au mini-questionnaire (aventure, détente…)
   items: EventLineItem[];
   milestones: EventMilestone[];
+  quotes?: EventQuote[]; // suivi des prix dans le temps
   saved: number; // épargne déjà mise de côté pour l'événement
   createdAt: string; // ISO
 };

@@ -24,6 +24,15 @@ type TemplateItem = {
   optional?: boolean; // proposé décoché à la création
 };
 
+export type EventStyle = {
+  key: string;
+  label: string;
+  // Conseils concrets affichés dans le détail — adaptés au style choisi.
+  tip: string;
+  // Multiplicateur doux appliqué aux montants proposés (0.8 = style économe).
+  factor?: number;
+};
+
 export type EventTemplate = {
   type: string;
   emoji: string;
@@ -32,6 +41,7 @@ export type EventTemplate = {
   asksGuests: boolean;
   guestsLabel?: string;
   tierLabels: Record<EventTier, string>;
+  styles?: EventStyle[]; // mini-questionnaire « quel esprit ? »
   items: TemplateItem[];
   milestones: { label: string; monthsBefore: number }[];
   // Messages personnalisés selon l'avancement (voir eventMessages()).
@@ -58,6 +68,12 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     asksGuests: true,
     guestsLabel: "Nombre d'invités",
     tierLabels: { low: "Intime", mid: "Classique", high: "Grand mariage" },
+    styles: [
+      { key: "champetre", label: "🌾 Champêtre", tip: "Les domaines hors samedi et hors juin-septembre coûtent 20 à 30 % de moins — et un lieu qui autorise ton propre traiteur change tout le budget. Les fleurs de saison locales divisent le poste déco.", factor: 0.95 },
+      { key: "urbain", label: "🏙️ Urbain chic", tip: "En ville, le lieu et le photographe concentrent le budget (à Paris compte +30-40 % sur ces postes). Piste : une belle salle de restaurant privatisée remplace salle + traiteur en un seul devis.", factor: 1.1 },
+      { key: "traditionnel", label: "🎊 Traditionnel / multi-cérémonies", tip: "Religieux + civil + traditionnel = trois budgets distincts. Pose les trois enveloppes dès le départ (la dot et les tenues de cérémonie ont leur propre poste) et répartis les contributions familiales noir sur blanc.", factor: 1.0 },
+      { key: "eco", label: "💚 Petit budget malin", tip: "Les trois postes qui pardonnent : papeterie (numérique), déco (seconde main + fleurs de saison), musique (playlist + enceintes louées). Le traiteur en buffet plutôt qu'assis économise ~30 %/invité.", factor: 0.8 },
+    ],
     items: [
       { label: "Réception & traiteur (par invité)", emoji: "🍽️", kind: "perGuest", tiers: { low: 55, mid: 95, high: 140 } },
       { label: "Lieu de réception", emoji: "🏛️", kind: "fixed", tiers: { low: 1500, mid: 4500, high: 8000 } },
@@ -101,6 +117,12 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     asksGuests: true,
     guestsLabel: "Nombre de voyageurs",
     tierLabels: { low: "Sac à dos", mid: "Confort", high: "Coup de folie" },
+    styles: [
+      { key: "aventure", label: "🥾 Aventure pas chère", tip: "Auberges, trains locaux, street food : vise 30-40 €/jour hors transport. Réserve le vol 3-4 mois avant (mardi/mercredi, aéroports secondaires) et voyage hors vacances scolaires — l'écart haute/basse saison atteint 40 % sur l'hébergement.", factor: 0.75 },
+      { key: "detente", label: "🏖️ Détente", tip: "Resorts et clubs : le « tout compris » réservé tôt bat presque toujours le à-la-carte. Compare le même hôtel sur 2-3 plateformes ET son site direct — et note les prix ici pour voir la tendance.", factor: 1.0 },
+      { key: "culture", label: "🏛️ City-trip culture", tip: "Les city-pass (musées + transports) s'amortissent dès 2 visites/jour. Loge près d'une ligne de métro plutôt qu'au centre : -30 % sur l'hébergement pour 15 minutes de trajet.", factor: 0.9 },
+      { key: "famille", label: "👨‍👩‍👧 En famille", tip: "Appartement avec cuisine > hôtel dès 4 personnes (les repas sur place sont le poste qui explose). Vérifie les gratuités enfants (transports, musées) du pays — souvent jusqu'à 12 ans.", factor: 0.95 },
+    ],
     items: [
       { label: "Transport aller-retour (par personne)", emoji: "✈️", kind: "perGuest", tiers: { low: 100, mid: 400, high: 1000 } },
       { label: "Hébergement (total séjour, par personne)", emoji: "🏨", kind: "perGuest", tiers: { low: 150, mid: 500, high: 1200 } },
@@ -194,6 +216,11 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     asksGuests: true,
     guestsLabel: "Nombre d'invités",
     tierLabels: { low: "À la maison", mid: "Avec salle", high: "Grande fête" },
+    styles: [
+      { key: "enfant", label: "🎈 Enfant", tip: "Moyenne constatée ~200 € tout compris à domicile. L'animateur pro (200-300 €) est le poste décisif : des jeux organisés par deux parents font le même effet à 5 ans.", factor: 0.9 },
+      { key: "adulte", label: "🥂 Adulte", tip: "Le format apéritif dînatoire coûte moitié moins qu'un repas assis et fait circuler les gens. Demande à chacun d'amener une bouteille — classique et efficace.", factor: 1.0 },
+      { key: "surprise", label: "🎁 Surprise", tip: "Budget secret = paiements étalés discrets. Crée l'événement dans ton espace Perso (pas le partagé !) pour que la surprise reste une surprise.", factor: 1.0 },
+    ],
     items: [
       { label: "Nourriture & boissons (par invité)", emoji: "🥂", kind: "perGuest", tiers: { low: 10, mid: 25, high: 60 } },
       { label: "Salle / lieu", emoji: "🏠", kind: "fixed", tiers: { low: 0, mid: 300, high: 1200 }, optional: true },
@@ -276,11 +303,17 @@ export function templateFor(type: string): EventTemplate | undefined {
 }
 
 // Construit les postes d'un nouvel événement à partir du template.
+export function styleFor(tpl: EventTemplate, key?: string): EventStyle | undefined {
+  return tpl.styles?.find((s) => s.key === key);
+}
+
 export function buildEventItems(
   tpl: EventTemplate,
   tier: EventTier,
   guests: number | null,
+  styleKey?: string,
 ): EventLineItem[] {
+  const factor = styleFor(tpl, styleKey)?.factor ?? 1;
   return tpl.items
     .filter((it) => !it.optional)
     .concat(tpl.items.filter((it) => it.optional))
@@ -288,6 +321,7 @@ export function buildEventItems(
       let estimated = 0;
       if (it.kind === "perGuest" && it.tiers) estimated = it.tiers[tier] * Math.max(1, guests ?? 1);
       else if (it.kind === "fixed" && it.tiers) estimated = it.tiers[tier];
+      estimated = Math.round(estimated * factor);
       // Postes optionnels : proposés à 0, l'utilisateur active en saisissant.
       if (it.optional) estimated = 0;
       return {

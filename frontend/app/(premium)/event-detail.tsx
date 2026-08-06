@@ -19,13 +19,17 @@ import {
   eventTotals,
   monthlyNeeded,
   monthsUntil,
+  styleFor,
+  templateFor,
 } from "../../src/constants/eventTemplates";
 import { useActiveScope } from "../../src/contexts/ScopeContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import {
+  loadAdviceProfile,
   loadEvents,
   saveEvents,
   type EventProject,
+  type EventQuote,
 } from "../../src/lib/premiumStore";
 import {
   cancelEventNotifications,
@@ -56,6 +60,10 @@ export default function EventDetail() {
   const [draftActual, setDraftActual] = useState("");
   const [draftPaidBy, setDraftPaidBy] = useState("");
   const [savedDraft, setSavedDraft] = useState<string | null>(null);
+  const [placeLabel, setPlaceLabel] = useState<string | null>(null);
+  const [quoteLabel, setQuoteLabel] = useState("");
+  const [quotePrice, setQuotePrice] = useState("");
+  const [quoteSource, setQuoteSource] = useState("");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useFocusEffect(
@@ -64,6 +72,11 @@ export default function EventDetail() {
       let cancelled = false;
       loadEvents(user.id, workspaceId).then((l) => {
         if (!cancelled) setAll(l);
+      });
+      loadAdviceProfile(user.id, null).then((prof) => {
+        if (cancelled) return;
+        const parts = [prof.region, prof.country].filter(Boolean) as string[];
+        setPlaceLabel(parts.length ? parts.join(", ") : null);
       });
       return () => {
         cancelled = true;
@@ -152,6 +165,40 @@ export default function EventDetail() {
     );
   }
 
+  function addQuote() {
+    if (!ev) return;
+    const price = Math.max(0, parseFloat(quotePrice.replace(",", ".")) || 0);
+    if (!quoteLabel.trim() || !price) {
+      notify("Relevé de prix", "Indique au moins un intitulé et un prix (ex. Vol Paris-Dakar, 480).");
+      return;
+    }
+    const q: EventQuote = {
+      id: `q-${Date.now()}`,
+      label: quoteLabel.trim(),
+      price,
+      date: new Date().toISOString(),
+      source: quoteSource.trim() || undefined,
+    };
+    persist({ ...ev, quotes: [q, ...(ev.quotes ?? [])] });
+    setQuoteLabel(q.label); // garder l'intitulé : on suit le MÊME prix dans le temps
+    setQuotePrice("");
+    setQuoteSource("");
+  }
+
+  function removeQuote(qid: string) {
+    if (!ev) return;
+    persist({ ...ev, quotes: (ev.quotes ?? []).filter((q) => q.id !== qid) });
+  }
+
+  // Delta vs relevé précédent du même intitulé (insensible à la casse).
+  function quoteDelta(q: EventQuote): number | null {
+    const others = (ev?.quotes ?? [])
+      .filter((x) => x.id !== q.id && x.label.toLowerCase() === q.label.toLowerCase())
+      .filter((x) => x.date < q.date)
+      .sort((a, b) => b.date.localeCompare(a.date));
+    return others.length ? q.price - others[0].price : null;
+  }
+
   const { planned, spent } = eventTotals(ev);
   const pct = planned > 0 ? Math.min(100, (ev.saved / planned) * 100) : 0;
   const monthly = monthlyNeeded(ev);
@@ -213,6 +260,22 @@ export default function EventDetail() {
             <Text style={styles.coachText}>{message}</Text>
           </View>
         ) : null}
+
+        {/* Suggestion selon le style choisi + lieu de vie */}
+        {(() => {
+          const tpl = templateFor(ev.type);
+          const st = styleFor(tpl!, ev.style);
+          if (!st) return null;
+          return (
+            <View style={styles.styleBox}>
+              <Text style={styles.styleTitle}>{st.label}</Text>
+              <Text style={styles.styleTip}>{st.tip}</Text>
+              {placeLabel ? (
+                <Text style={styles.stylePlace}>📍 Pensé depuis {placeLabel} — les prix locaux peuvent varier, note tes vrais devis ci-dessous.</Text>
+              ) : null}
+            </View>
+          );
+        })()}
 
         {/* Épargne mise de côté */}
         <Text style={styles.sectionTitle}>Financement</Text>
@@ -345,6 +408,69 @@ export default function EventDetail() {
                 </Text>
               </View>
             </TouchableOpacity>
+          );
+        })}
+
+        {/* Suivi des prix — vols, hôtels, prestataires : on note, on compare */}
+        <Text style={styles.sectionTitle}>Suivi des prix</Text>
+        <Text style={styles.trackerHint}>
+          Repère un prix (vol, hôtel, traiteur…), note-le ici, et re-note-le
+          plus tard : l'app te montre s'il monte ou descend — le bon moment
+          pour réserver se voit d'un coup d'œil.
+        </Text>
+        <View style={styles.quoteForm}>
+          <TextInput
+            style={styles.quoteInput}
+            value={quoteLabel}
+            onChangeText={setQuoteLabel}
+            placeholder="Quoi ? (ex. Vol CDG-DSS, Salle Château X)"
+            placeholderTextColor={TEXT_3}
+          />
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <TextInput
+              style={[styles.quoteInput, { flex: 1 }]}
+              value={quotePrice}
+              onChangeText={setQuotePrice}
+              placeholder="Prix (€)"
+              placeholderTextColor={TEXT_3}
+              keyboardType="decimal-pad"
+            />
+            <TextInput
+              style={[styles.quoteInput, { flex: 1.4 }]}
+              value={quoteSource}
+              onChangeText={setQuoteSource}
+              placeholder="Où ? (site, agence…)"
+              placeholderTextColor={TEXT_3}
+            />
+            <TouchableOpacity style={styles.quoteAddBtn} onPress={addQuote} activeOpacity={0.85}>
+              <Feather name="plus" size={18} color="#000" />
+            </TouchableOpacity>
+          </View>
+        </View>
+        {(ev.quotes ?? []).map((q) => {
+          const delta = quoteDelta(q);
+          return (
+            <View key={q.id} style={styles.quoteRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.quoteLabel}>{q.label}</Text>
+                <Text style={styles.quoteMeta}>
+                  {new Date(q.date).toLocaleDateString("fr-FR")}
+                  {q.source ? ` · ${q.source}` : ""}
+                </Text>
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={styles.quotePrice}>{fmt(q.price)}</Text>
+                {delta !== null ? (
+                  <Text style={[styles.quoteDelta, { color: delta > 0 ? "#F87171" : delta < 0 ? GOLD : TEXT_3 }]}>
+                    {delta > 0 ? "↗ +" : delta < 0 ? "↘ " : "= "}
+                    {delta === 0 ? "stable" : fmt(Math.abs(delta))}
+                  </Text>
+                ) : null}
+              </View>
+              <TouchableOpacity onPress={() => removeQuote(q.id)} hitSlop={8}>
+                <Feather name="x" size={15} color={TEXT_3} />
+              </TouchableOpacity>
+            </View>
           );
         })}
 
@@ -510,6 +636,52 @@ const styles = StyleSheet.create({
   },
   msLabel: { color: TEXT_1, fontSize: 13.5 },
   msDate: { color: TEXT_3, fontSize: 11.5, marginTop: 2, textTransform: "capitalize" },
+  styleBox: {
+    backgroundColor: SURFACE,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 14,
+    marginTop: 12,
+    gap: 6,
+  },
+  styleTitle: { color: TEXT_1, fontSize: 14, fontWeight: "700" },
+  styleTip: { color: TEXT_2, fontSize: 13, lineHeight: 19 },
+  stylePlace: { color: TEXT_3, fontSize: 12, lineHeight: 17 },
+  trackerHint: { color: TEXT_3, fontSize: 12, lineHeight: 17, marginBottom: 10 },
+  quoteForm: { gap: 8, marginBottom: 10 },
+  quoteInput: {
+    backgroundColor: SURFACE,
+    color: TEXT_1,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 14,
+  },
+  quoteAddBtn: {
+    backgroundColor: GOLD,
+    borderRadius: 10,
+    width: 42,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quoteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: SURFACE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 12,
+    marginBottom: 8,
+  },
+  quoteLabel: { color: TEXT_1, fontSize: 13.5, fontWeight: "600" },
+  quoteMeta: { color: TEXT_3, fontSize: 11.5, marginTop: 2 },
+  quotePrice: { color: TEXT_1, fontSize: 14, fontWeight: "700" },
+  quoteDelta: { fontSize: 11.5, fontWeight: "700", marginTop: 1 },
   notifBtn: {
     flexDirection: "row",
     alignItems: "center",
