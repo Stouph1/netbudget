@@ -459,6 +459,7 @@ export type EventProject = {
   guests?: number | null;
   tier?: "low" | "mid" | "high";
   style?: string; // réponse au mini-questionnaire (aventure, détente…)
+  destinations?: string[]; // voyage : une ou plusieurs étapes
   items: EventLineItem[];
   milestones: EventMilestone[];
   quotes?: EventQuote[]; // suivi des prix dans le temps

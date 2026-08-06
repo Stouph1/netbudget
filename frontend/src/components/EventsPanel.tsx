@@ -24,6 +24,7 @@ import {
   templateFor,
   type EventTier,
 } from "../constants/eventTemplates";
+import ScopeSwitcher from "./ScopeSwitcher";
 import { useActiveScope } from "../contexts/ScopeContext";
 import { useSession } from "../contexts/SessionContext";
 import {
@@ -87,6 +88,9 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   const [guests, setGuests] = useState("");
   const [tier, setTier] = useState<EventTier>("mid");
   const [styleKey, setStyleKey] = useState<string | null>(null);
+  const [destInput, setDestInput] = useState("");
+  const [destinations, setDestinations] = useState<string[]>([]);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -124,6 +128,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       guests: g,
       tier,
       style: styleKey ?? undefined,
+      destinations: destinations.length ? destinations : undefined,
       items: buildEventItems(tpl, tier, g, styleKey ?? undefined),
       milestones: buildEventMilestones(tpl),
       quotes: [],
@@ -141,7 +146,16 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     setGuests("");
     setTier("mid");
     setStyleKey(null);
+    setDestinations([]);
+    setDestInput("");
     router.push({ pathname: "/(premium)/event-detail", params: { id: ev.id } } as never);
+  }
+
+  function addDestination() {
+    const d = destInput.trim();
+    if (!d) return;
+    setDestinations((prev) => (prev.includes(d) ? prev : [...prev, d]));
+    setDestInput("");
   }
 
   if (sessionLoading || (user?.id && list === null)) {
@@ -173,9 +187,23 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       {!standalone ? <Text style={styles.pageTitle}>Événements</Text> : null}
       <Text style={styles.intro}>
         Mariage, voyage, naissance, fête… prépare chaque grand moment avec un
-        budget guidé, un rétro-planning et des rappels — ici dans «{" "}
-        {scopeLabel} ».
+        budget guidé, un rétro-planning et des rappels.
       </Text>
+
+      {/* Espace actif : les événements d'un espace partagé sont visibles par
+          tous ses membres. Changer d'espace recharge la liste. */}
+      <TouchableOpacity
+        style={styles.scopeBar}
+        activeOpacity={0.85}
+        onPress={() => setSwitcherOpen(true)}
+      >
+        <Feather name="users" size={15} color={GOLD} />
+        <Text style={styles.scopeBarText} numberOfLines={1}>
+          {scopeLabel}
+        </Text>
+        <Text style={styles.scopeBarHint}>changer</Text>
+        <Feather name="chevron-down" size={16} color={TEXT_3} />
+      </TouchableOpacity>
 
       {(list ?? []).length === 0 && !creating ? (
         <View style={styles.emptyBox}>
@@ -215,6 +243,11 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                     })}
                     {ev.guests ? ` · ${ev.guests} pers.` : ""}
                   </Text>
+                  {ev.destinations?.length ? (
+                    <Text style={styles.cardMeta} numberOfLines={1}>
+                      ✈️ {ev.destinations.join(" → ")}
+                    </Text>
+                  ) : null}
                 </View>
                 <Feather name="chevron-right" size={18} color={TEXT_3} />
               </View>
@@ -268,6 +301,52 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 keyboardType="numbers-and-punctuation"
                 maxLength={10}
               />
+              {tpl.asksDestinations ? (
+                <>
+                  <View style={{ flexDirection: "row", gap: 8 }}>
+                    <TextInput
+                      style={[styles.input, { flex: 1 }]}
+                      value={destInput}
+                      onChangeText={setDestInput}
+                      placeholder="Destination (ex. Lisbonne)"
+                      placeholderTextColor={TEXT_3}
+                      onSubmitEditing={addDestination}
+                      returnKeyType="done"
+                    />
+                    <TouchableOpacity
+                      style={styles.addDestBtn}
+                      onPress={addDestination}
+                      activeOpacity={0.85}
+                    >
+                      <Feather name="plus" size={18} color="#000" />
+                    </TouchableOpacity>
+                  </View>
+                  {destinations.length ? (
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                      {destinations.map((d, i) => (
+                        <TouchableOpacity
+                          key={`${d}-${i}`}
+                          style={styles.destChip}
+                          onPress={() =>
+                            setDestinations((prev) => prev.filter((_, j) => j !== i))
+                          }
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.destChipText}>
+                            {i + 1}. {d}
+                          </Text>
+                          <Feather name="x" size={12} color={TEXT_3} />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.hint}>
+                      Ajoute une ou plusieurs étapes — un tour d'Europe se
+                      budgète mieux ville par ville.
+                    </Text>
+                  )}
+                </>
+              ) : null}
               {tpl.asksGuests ? (
                 <TextInput
                   style={styles.input}
@@ -348,6 +427,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
           <Text style={styles.primaryBtnText}>Nouvel événement</Text>
         </TouchableOpacity>
       )}
+
+      <ScopeSwitcher visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />
     </ScrollView>
   );
 }
@@ -359,6 +440,39 @@ const styles = StyleSheet.create({
   emptyBox: { alignItems: "center", paddingVertical: 28, gap: 8 },
   emptyTitle: { color: TEXT_1, fontSize: 16, fontWeight: "600" },
   emptyBody: { color: TEXT_2, fontSize: 13, textAlign: "center", maxWidth: 280, lineHeight: 19 },
+  scopeBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: SURFACE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  scopeBarText: { color: TEXT_1, fontSize: 14, fontWeight: "600", flex: 1 },
+  scopeBarHint: { color: TEXT_3, fontSize: 12 },
+  addDestBtn: {
+    backgroundColor: GOLD,
+    borderRadius: 11,
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  destChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: MIDNIGHT,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: BORDER,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+  },
+  destChipText: { color: TEXT_1, fontSize: 12.5, fontWeight: "600" },
   card: {
     backgroundColor: SURFACE,
     borderRadius: 16,

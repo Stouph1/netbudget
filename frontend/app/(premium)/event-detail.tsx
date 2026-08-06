@@ -7,6 +7,7 @@ import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -192,6 +193,48 @@ export default function EventDetail() {
     setQuoteSource("");
   }
 
+  // Partage : un résumé TEXTE via la feuille de partage du système (WhatsApp,
+  // Mail, Notes…). Rien ne transite par nos serveurs. Pour une vraie
+  // co-édition, l'événement doit vivre dans un espace partagé.
+  async function shareEvent() {
+    if (!ev) return;
+    const { planned: p, spent: sp } = eventTotals(ev);
+    const date = new Date(ev.dateIso + "T12:00:00").toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const lines: string[] = [
+      `${ev.emoji} ${ev.name} — ${date}`,
+      ev.destinations?.length ? `Étapes : ${ev.destinations.join(" → ")}` : "",
+      ev.guests ? `${ev.guests} personnes` : "",
+      "",
+      `Budget prévu : ${fmt(p)}`,
+      `Déjà mis de côté : ${fmt(ev.saved)}`,
+      sp > 0 ? `Déjà dépensé : ${fmt(sp)}` : "",
+      "",
+      "Postes :",
+      ...ev.items
+        .filter((it) => (it.actual ?? it.estimated) > 0)
+        .map(
+          (it) =>
+            `• ${it.label} : ${fmt(it.actual ?? it.estimated)}` +
+            (it.paidBy ? ` (${it.paidBy})` : "") +
+            (it.done ? " ✓" : ""),
+        ),
+      "",
+      "Préparé avec NetBudget",
+    ];
+    try {
+      await Share.share({
+        message: lines.filter((l) => l !== "").join("\n"),
+        title: ev.name,
+      });
+    } catch {
+      // partage annulé : rien à faire
+    }
+  }
+
   function removeQuote(qid: string) {
     if (!ev) return;
     persist({ ...ev, quotes: (ev.quotes ?? []).filter((q) => q.id !== qid) });
@@ -221,9 +264,14 @@ export default function EventDetail() {
         <Text style={styles.title} numberOfLines={1}>
           {ev.emoji} {ev.name}
         </Text>
-        <TouchableOpacity onPress={remove} hitSlop={10}>
-          <Feather name="trash-2" size={18} color={TEXT_3} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <TouchableOpacity onPress={shareEvent} hitSlop={10}>
+            <Feather name="share-2" size={18} color={GOLD} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={remove} hitSlop={10}>
+            <Feather name="trash-2" size={18} color={TEXT_3} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
@@ -265,6 +313,14 @@ export default function EventDetail() {
           <View style={styles.coachBox}>
             <Text style={{ fontSize: 18 }}>💬</Text>
             <Text style={styles.coachText}>{message}</Text>
+          </View>
+        ) : null}
+
+        {/* Étapes du voyage */}
+        {ev.destinations?.length ? (
+          <View style={styles.destBox}>
+            <Text style={styles.destTitle}>Itinéraire</Text>
+            <Text style={styles.destList}>{ev.destinations.join("  →  ")}</Text>
           </View>
         ) : null}
 
@@ -498,6 +554,16 @@ export default function EventDetail() {
           <Feather name="bell" size={16} color={GOLD} />
           <Text style={styles.notifBtnText}>Programmer les rappels</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.shareBtn} onPress={shareEvent} activeOpacity={0.85}>
+          <Feather name="share-2" size={16} color="#000" />
+          <Text style={styles.shareBtnText}>Partager le récapitulatif</Text>
+        </TouchableOpacity>
+        <Text style={styles.shareHint}>
+          Envoie le budget par message ou mail. Pour préparer l'événement À
+          PLUSIEURS (chacun modifie de son téléphone), crée-le plutôt dans un
+          espace partagé : Profil → Espaces, puis invite les participants.
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -689,6 +755,35 @@ const styles = StyleSheet.create({
   quoteMeta: { color: TEXT_3, fontSize: 11.5, marginTop: 2 },
   quotePrice: { color: TEXT_1, fontSize: 14, fontWeight: "700" },
   quoteDelta: { fontSize: 11.5, fontWeight: "700", marginTop: 1 },
+  destBox: {
+    backgroundColor: SURFACE,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 14,
+    marginTop: 12,
+    gap: 4,
+  },
+  destTitle: {
+    color: TEXT_3,
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  destList: { color: TEXT_1, fontSize: 14.5, fontWeight: "600", lineHeight: 21 },
+  shareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: GOLD,
+    borderRadius: 11,
+    paddingVertical: 12,
+    marginTop: 10,
+  },
+  shareBtnText: { color: "#000", fontSize: 14, fontWeight: "700" },
+  shareHint: { color: TEXT_3, fontSize: 11.5, lineHeight: 17, marginTop: 8 },
   notifBtn: {
     flexDirection: "row",
     alignItems: "center",

@@ -38,6 +38,7 @@ export type EventTemplate = {
   emoji: string;
   label: string;
   tagline: string; // une phrase d'accroche dans le sélecteur
+  asksDestinations?: boolean; // voyage : une ou plusieurs étapes
   asksGuests: boolean;
   guestsLabel?: string;
   tierLabels: Record<EventTier, string>;
@@ -114,6 +115,7 @@ export const EVENT_TEMPLATES: EventTemplate[] = [
     emoji: "✈️",
     label: "Voyage",
     tagline: "Transport, logement, sur place — le budget qui évite les mauvaises surprises.",
+    asksDestinations: true,
     asksGuests: true,
     guestsLabel: "Nombre de voyageurs",
     tierLabels: { low: "Sac à dos", mid: "Confort", high: "Coup de folie" },

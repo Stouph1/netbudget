@@ -2430,7 +2430,12 @@ export default function Index() {
                     <Feather name={it.icon} size={21} color={active ? GOLD : TEXT_3} />
                     {tabBadges[it.key] ? <View style={styles.tabBadge} /> : null}
                   </View>
-                  <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                  <Text
+                    style={[styles.tabLabel, active && styles.tabLabelActive]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
+                  >
                     {t(`tab.${it.key}`)}
                   </Text>
                 </TouchableOpacity>
@@ -3706,11 +3711,13 @@ const styles = StyleSheet.create({
   tabBtn: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 7,
+    paddingHorizontal: 2,
     gap: 3,
     borderRadius: 20,
   },
-  tabLabel: { color: TEXT_3, fontSize: 11, fontWeight: "600" },
+  tabLabel: { color: TEXT_3, fontSize: 10.5, fontWeight: "600", textAlign: "center" },
   tabLabelActive: { color: GOLD, fontWeight: "800" },
 
   topSummary: {

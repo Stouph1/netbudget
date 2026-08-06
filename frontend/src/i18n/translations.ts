@@ -98,7 +98,7 @@ const fr: Catalog = {
 
   // Tabs
   "tab.settings": "Réglages",
-  "tab.events": "Événements",
+  "tab.events": "Projets",
   "tab.budget": "Budget",
   "tab.converter": "Convertir",
   "tab.premium": "Profil",
