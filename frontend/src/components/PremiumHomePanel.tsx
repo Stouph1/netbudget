@@ -23,10 +23,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import ScopeSwitcher from "./ScopeSwitcher";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
-import { signInWithApple, signOut } from "../lib/auth";
+import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
 import { pickAndUploadAvatar } from "../lib/photos";
 import {
   loadBudgetHistory,
@@ -132,6 +133,14 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
     }
   }, [user?.id]);
 
+  // Après n'importe quel provider : inscription incomplète → écran dédié
+  async function afterSignIn(userId: string) {
+    const basics = await loadProfileBasics(userId);
+    if (!basics.username) {
+      router.push("/(premium)/complete-profile" as never);
+    }
+  }
+
   async function handleApple() {
     setBusyAuth(true);
     const result = await signInWithApple();
@@ -140,13 +149,18 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       Alert.alert("Connexion", result.message ?? result.reason);
       return;
     }
-    if (result.ok) {
-      // Première connexion (ou inscription incomplète) → écran d'inscription
-      const basics = await loadProfileBasics(result.userId);
-      if (!basics.username) {
-        router.push("/(premium)/complete-profile" as never);
-      }
+    if (result.ok) await afterSignIn(result.userId);
+  }
+
+  async function handleGoogle() {
+    setBusyAuth(true);
+    const result = await signInWithGoogle();
+    setBusyAuth(false);
+    if (!result.ok && result.reason !== "cancelled") {
+      Alert.alert("Connexion Google", result.message ?? result.reason);
+      return;
     }
+    if (result.ok) await afterSignIn(result.userId);
   }
 
   if (sessionLoading || scopeLoading) {
@@ -178,28 +192,54 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
             personnalisés.
           </Text>
 
-          {Platform.OS === "ios" ? (
-            busyAuth ? (
-              <View style={{ height: 52, marginTop: 24, justifyContent: "center" }}>
-                <ActivityIndicator color={GOLD} />
-              </View>
-            ) : (
-              <AppleAuthentication.AppleAuthenticationButton
-                buttonType={
-                  AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
-                }
-                buttonStyle={
-                  AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-                }
-                cornerRadius={12}
-                style={{ width: "100%", height: 52, marginTop: 24 }}
-                onPress={handleApple}
-              />
-            )
+          {busyAuth ? (
+            <View style={{ height: 52, marginTop: 24, justifyContent: "center" }}>
+              <ActivityIndicator color={GOLD} />
+            </View>
           ) : (
-            <Text style={[styles.signinBody, { marginTop: 24, fontStyle: "italic" }]}>
-              La connexion Google arrive bientôt sur Android.
-            </Text>
+            <View style={{ width: "100%", marginTop: 24, gap: 10 }}>
+              {/* 1. Apple (iOS uniquement — exigence App Store) */}
+              {Platform.OS === "ios" ? (
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={
+                    AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
+                  }
+                  buttonStyle={
+                    AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                  }
+                  cornerRadius={12}
+                  style={{ width: "100%", height: 52 }}
+                  onPress={handleApple}
+                />
+              ) : null}
+
+              {/* 2. Google (Android + iOS — development build requis) */}
+              <TouchableOpacity
+                style={styles.providerBtn}
+                onPress={handleGoogle}
+                activeOpacity={0.85}
+              >
+                <Svg width={18} height={18} viewBox="0 0 24 24">
+                  <Path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.46c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.1 3.56-5.18 3.56-8.81z" />
+                  <Path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.72-4.95H1.27v3.1C3.24 21.3 7.31 24 12 24z" />
+                  <Path fill="#FBBC05" d="M5.28 14.28A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.38-2.28v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.38l4.01-3.1z" />
+                  <Path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.95 1.19 15.23 0 12 0 7.31 0 3.24 2.7 1.27 6.62l4.01 3.1C6.22 6.88 8.87 4.77 12 4.77z" />
+                </Svg>
+                <Text style={styles.providerBtnText}>Continuer avec Google</Text>
+              </TouchableOpacity>
+
+              {/* 3. E-mail + mot de passe (création de compte ou connexion) */}
+              <TouchableOpacity
+                style={styles.providerBtn}
+                onPress={() => router.push("/(premium)/email-auth" as never)}
+                activeOpacity={0.85}
+              >
+                <Feather name="mail" size={17} color={TEXT_1} />
+                <Text style={styles.providerBtnText}>
+                  Continuer avec un e-mail
+                </Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           <Text style={styles.signinFootnote}>
@@ -715,6 +755,19 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     textAlign: "center",
   },
+  providerBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: SURFACE_2,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  providerBtnText: { color: TEXT_1, fontSize: 15, fontWeight: "600" },
+
   signinFootnote: {
     color: TEXT_3,
     fontSize: 11,
