@@ -3802,6 +3802,218 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F23369", "https://www.francetravail.fr"],
     lastVerified: "2026-08-06",
   },
+
+  // ==========================================================================
+  // VAGUE IDF + CULTURE + IMPÔTS + ENFANTS + ANIMAUX — vérifiée 2026-08-06
+  // (IDFM, iledefrance.fr, culture.gouv.fr, impots.gouv.fr, service-public,
+  // solidarites.gouv.fr, agriculture.gouv.fr).
+  // ==========================================================================
+  {
+    id: "fr-idf-solidarite-transport",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Solidarité Transport : ton Navigo de −50 % à gratuit",
+    body:
+      "En Île-de-France, la tarification Solidarité Transport réduit le passe Navigo selon ton statut : gratuité (RSA sous conditions), −75 % (Complémentaire santé solidaire, ASS), −50 % (AME) — et pour le RSA/CSS, ça vaut pour tout le foyer. Des centaines d'euros par an, sur simple dossier en ligne.",
+    action: {
+      label: "Vérifier mon éligibilité Solidarité Transport",
+      link: "https://www.iledefrance-mobilites.fr/aide-et-contacts/reductions-et-gratuite/quest-ce-que-la-tarification-solidarite-transport",
+    },
+    appliesWhen: regionIs("Île-de-France"),
+    priority: 86,
+    figures: [{ label: "Réduction", value: "50 % à 100 %" }],
+    sources: ["https://www.iledefrance-mobilites.fr/aide-et-contacts/reductions-et-gratuite/quest-ce-que-la-tarification-solidarite-transport"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-idf-labaz-permis",
+    category: "emergency",
+    countries: ["FR"],
+    title: "1 000 € pour ton permis via LABAZ",
+    body:
+      "La Région Île-de-France finance 1 000 € du permis B pour les 18-25 ans en insertion professionnelle (mission locale, formation régionale, demandeur d'emploi de moins de 26 ans en QPV ou zone rurale), code déjà obtenu. Demande uniquement via l'appli LABAZ — qui regorge aussi de bons plans 15-25 ans (aide vélo 100 €, places de festivals).",
+    action: {
+      label: "Télécharger LABAZ et vérifier l'éligibilité",
+      link: "https://www.iledefrance.fr/tous-les-services/labaz-lappli-pour-les-15-25-ans",
+    },
+    appliesWhen: and(regionIs("Île-de-France"), ageIn("18-25")),
+    priority: 82,
+    figures: [{ label: "Aide permis", value: "1 000 €" }],
+    sources: ["https://www.iledefrance.fr/tous-les-services/labaz-lappli-pour-les-15-25-ans"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-musees-gratuits-26",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Musées et monuments nationaux : gratuits avant 26 ans",
+    body:
+      "Les collections permanentes d'une cinquantaine de musées nationaux et une centaine de monuments sont GRATUITES pour les 18-25 ans résidant dans l'UE (et pour tous les mineurs) — Orsay, Versailles, Arc de Triomphe… sur simple pièce d'identité. Beaucoup sont aussi gratuits le 1er dimanche du mois (mais plus le Louvre). La culture n'a pas besoin de faire mal au budget.",
+    action: {
+      label: "Voir la liste officielle",
+      link: "https://www.culture.gouv.fr/thematiques/musees/Les-musees-en-France/les-politiques-des-musees-de-france/politique-des-publics/la-gratuite-des-collections-permanentes-pour-les-moins-de-26-ans-dans-les-musees-nationaux",
+    },
+    appliesWhen: or(ageIn("under_18", "18-25"), hasAnyKids),
+    priority: 72,
+    sources: ["https://www.culture.gouv.fr/thematiques/musees/Les-musees-en-France/les-politiques-des-musees-de-france/politique-des-publics/la-gratuite-des-collections-permanentes-pour-les-moins-de-26-ans-dans-les-musees-nationaux"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-opera-jeunes",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Opéra et théâtre nationaux : les tarifs « moins de 28 ans »",
+    body:
+      "L'Opéra de Paris propose des avant-premières jeunes à prix symbolique et un pass saison dédié ; la Comédie-Française a des tarifs réduits permanents et des places offertes certains lundis — tous réservés aux moins de 28 ans. Les grandes scènes nationales sont accessibles : le réflexe est de passer par leurs pages « jeunes », pas par la billetterie standard.",
+    action: {
+      label: "Voir les offres jeunes de l'Opéra de Paris",
+      link: "https://www.operadeparis.fr/billetterie/billets-services/offres-spectateurs/avant-premieres-jeunes",
+    },
+    appliesWhen: ageIn("18-25", "26-35"),
+    priority: 64,
+    sources: ["https://www.operadeparis.fr/billetterie/billets-services/offres-spectateurs/avant-premieres-jeunes", "https://www.comedie-francaise.fr/moins-de-28-ans"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-billet-conge-annuel",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Le billet de congé annuel SNCF : −25 % une fois par an",
+    body:
+      "Dispositif méconnu et toujours en vigueur : une fois par an, salariés, fonctionnaires, retraités et demandeurs d'emploi ont droit à −25 % sur un aller-retour de plus de 200 km en France, pour toute la famille du foyer. Non cumulable avec les cartes de réduction — compare, mais pour un long trajet familial, c'est souvent gagnant.",
+    action: { label: "Demander le billet congé annuel (guichet ou SNCF Connect)" },
+    appliesWhen: always,
+    months: [4, 5, 6, 7],
+    priority: 70,
+    figures: [{ label: "Réduction", value: "−25 % · 1×/an" }],
+    sources: ["https://www.aide-sociale.fr/billet-annuel-sncf/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-credit-impot-garde",
+    category: "kids",
+    countries: ["FR"],
+    title: "Garde d'enfant : l'État rembourse la moitié",
+    body:
+      "Crèche, halte-garderie, assistante maternelle agréée, périscolaire : 50 % de crédit d'impôt jusqu'à 3 500 € de dépenses par enfant de moins de 6 ans (soit 1 750 € max par enfant) — après déduction du CMG. Et à domicile, les services à la personne donnent aussi 50 % (plafond 12 000 € + 1 500 €/enfant). Vérifie que tout est déclaré, les cases se pré-remplissent mal.",
+    action: {
+      label: "Vérifier le crédit garde d'enfant",
+      link: "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
+    },
+    appliesWhen: kids("0-6"),
+    priority: 88,
+    figures: [
+      { label: "Crédit d'impôt", value: "50 %" },
+      { label: "Max / enfant < 6 ans", value: "1 750 €" },
+    ],
+    sources: ["https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-cmg-reforme",
+    category: "kids",
+    countries: ["FR"],
+    title: "CMG : la réforme 2025 a changé ton reste à charge",
+    body:
+      "Le Complément de libre choix du Mode de Garde est calculé autrement depuis septembre 2025 (revenus, nombre d'enfants, heures réelles de garde) — ton reste à charge a pu monter ou baisser sans que tu t'en rendes compte. Nouveautés : CMG jusqu'aux 12 ans de l'enfant pour les parents isolés, et partageable en résidence alternée. Refais le point sur monenfant.fr.",
+    action: {
+      label: "Vérifier mon CMG",
+      link: "https://www.caf.fr/allocataires/actualites/actualites-nationales/reforme-du-cmg-la-foire-aux-questions",
+    },
+    appliesWhen: kids("0-6", "7-11"),
+    priority: 84,
+    sources: ["https://solidarites.gouv.fr/complement-de-libre-choix-du-mode-de-garde", "https://www.caf.fr/allocataires/actualites/actualites-nationales/reforme-du-cmg-la-foire-aux-questions"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-pension-alimentaire-majeur",
+    category: "tax",
+    countries: ["FR"],
+    title: "Tu aides ton enfant majeur ? C'est déductible",
+    body:
+      "La pension versée à un enfant majeur NON rattaché à ton foyer fiscal se déduit de ton revenu imposable : jusqu'à 6 855 € par enfant (revenus 2025), et un forfait de 4 075 € sans justificatifs s'il vit sous ton toit. Compare chaque année : rattachement (quotient familial) ou pension déduite — le gagnant dépend de ta TMI.",
+    action: {
+      label: "Voir les plafonds à jour",
+      link: "https://www.service-public.gouv.fr/particuliers/actualites/A15453",
+    },
+    appliesWhen: kids("19+"),
+    priority: 84,
+    figures: [
+      { label: "Plafond (revenus 2025)", value: "6 855 €" },
+      { label: "Forfait sous ton toit", value: "4 075 €" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A15453"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-dons-coluche-double",
+    category: "tax",
+    countries: ["FR"],
+    title: "Dons « Coluche » : le plafond des 75 % a doublé",
+    body:
+      "Les dons aux organismes d'aide aux personnes en difficulté donnent 75 % de réduction d'impôt — et le plafond est passé à 2 000 € pour les dons effectués depuis le 14 octobre 2025 (au-delà, l'excédent bascule à 66 %). Presque tout le web affiche encore 1 000 €. Si tu donnes régulièrement, c'est jusqu'à 1 500 € d'impôt en moins.",
+    action: {
+      label: "Voir la règle officielle",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F426",
+    },
+    appliesWhen: always,
+    priority: 78,
+    figures: [
+      { label: "Réduction", value: "75 %" },
+      { label: "Plafond (dons ≥ 14/10/2025)", value: "2 000 €" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F426"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-parent-isole-case-t",
+    category: "tax",
+    countries: ["FR"],
+    title: "Parent solo : la case T vaut une part entière",
+    body:
+      "Si tu vis seul·e avec tes enfants à charge, coche la case T : ton premier enfant compte pour une part ENTIÈRE de quotient familial au lieu d'une demi-part (avantage plafonné, réindexé chaque année). C'est l'une des cases les plus oubliées de la déclaration — et l'une des plus rentables.",
+    action: {
+      label: "Vérifier la case T sur ma déclaration",
+      link: "https://www.impots.gouv.fr",
+    },
+    appliesWhen: familyIn("single_parent"),
+    priority: 90,
+    sources: ["https://www.impots.gouv.fr (brochure IR — parent isolé, case T)"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-cantine-bourses",
+    category: "kids",
+    countries: ["FR"],
+    title: "Cantine à 1 € et bourses scolaires : as-tu vérifié ?",
+    body:
+      "Plus de 4 000 communes rurales proposent la cantine à 1 € (ou moins) selon le quotient familial — demande à ta mairie. Et les bourses de collège/lycée se demandent en ligne via EduConnect, avec un simulateur officiel. Deux dispositifs sous-utilisés faute d'être connus.",
+    action: {
+      label: "Simuler les bourses scolaires",
+      link: "https://www.education.gouv.fr/les-aides-financieres-au-college-4970",
+    },
+    appliesWhen: kids("7-11", "12-15", "16-18"),
+    priority: 82,
+    sources: ["https://www.education.gouv.fr/les-aides-financieres-au-college-4970", "https://www.economie.gouv.fr/particuliers/gerer-mon-argent/beneficier-daides-et-de-reductions-dimpots/restauration-scolaire-et-etudiante-quelles-aides-pouvez-vous-obtenir"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "pets-identification-obligatoire",
+    category: "pets",
+    countries: ["FR"],
+    title: "Identification : obligatoire, et l'amende pique",
+    body:
+      "L'identification (puce ou tatouage, fichier I-CAD) est obligatoire : chiens dès 4 mois, chats dès 7 mois — défaut = amende jusqu'à 750 €. Compte une fourchette de 50 à 100 € chez le vétérinaire (prix libre). Depuis 2022, un certificat d'engagement gratuit est aussi exigé 7 jours avant toute acquisition : il liste les vrais coûts récurrents — lis-le, c'est ton budget.",
+    action: {
+      label: "Vérifier l'identification sur I-CAD",
+      link: "https://www.i-cad.fr",
+    },
+    appliesWhen: hasAnyPet,
+    priority: 76,
+    figures: [{ label: "Amende encourue", value: "750 €" }],
+    sources: ["https://www.i-cad.fr", "https://agriculture.gouv.fr/animaux-de-compagnie-equides-tout-savoir-sur-le-certificat-dengagement-et-de-connaissance"],
+    lastVerified: "2026-08-06",
+  },
 ];
 
 // ============================================================================

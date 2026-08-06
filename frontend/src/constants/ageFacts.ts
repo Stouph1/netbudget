@@ -17,30 +17,51 @@ export type BirthdayCard = {
   title: string;
   body: string;
   tone: BirthdayTone;
+  sources?: string[]; // liens officiels — affichés dans le dépôt de conseils
 };
 
 type C = BirthdayCard;
-const card = (tone: BirthdayTone, emoji: string, title: string, body: string): C =>
-  ({ tone, emoji, title, body });
+const card = (tone: BirthdayTone, emoji: string, title: string, body: string, sources?: string[]): C =>
+  ({ tone, emoji, title, body, sources });
+
+// Point fort régional pour la carte anniversaire (dispositifs vérifiés 2026-08).
+const REGION_HIGHLIGHTS: Record<string, { title: string; body: string; sources: string[] }> = {
+  "Île-de-France": {
+    title: "Île-de-France : le transport, ton gisement d'économies",
+    body: "Imagine R pour les scolaires/étudiants (remboursé à 100 % par la Ville pour les jeunes Parisiens !), tarification Solidarité Transport (50 à 100 % de réduction selon statut RSA/CSS/ASS), aide au permis de 1 000 € via l'appli LABAZ pour les 18-25 en insertion, et cantine des lycées au quotient familial dès 0,50 €.",
+    sources: ["https://www.iledefrance-mobilites.fr/aide-et-contacts/reductions-et-gratuite/quest-ce-que-la-tarification-solidarite-transport", "https://www.iledefrance.fr/tous-les-services/labaz-lappli-pour-les-15-25-ans"],
+  },
+  "Occitanie": { title: "Occitanie : la Carte Jeune Région t'attend", body: "Gratuite, elle finance manuels, ordinateur prêté, aides lecture/sport/mobilité pour lycéens et jeunes. Chaque aide non activée est perdue.", sources: ["https://www.laregion.fr/-cartejeune-"] },
+  "Auvergne-Rhône-Alpes": { title: "AURA : active ton PASS'Région jeunes", body: "Manuels gratuits, avantages sport, culture, ciné et santé pour lycéens et 16-25 ans selon statut. Gratuit — autant tout activer.", sources: ["https://www.auvergnerhonealpes.fr/passregionjeunes"] },
+  "Hauts-de-France": { title: "Hauts-de-France : l'aide transport méconnue", body: "20 €/mois pour les salariés à plus de 20 km du travail (15 € apprentis), sous plafonds. Un dossier en ligne, plus de 200 €/an.", sources: ["https://guide-aides.hautsdefrance.fr/dispositif458"] },
+  "Grand Est": { title: "Grand Est : Jeun'Est pour tous les 15-29 ans", body: "Réductions ciné, livres, spectacles, sport et aide premiers secours — ouvert à tous les 15-29 ans. Inscription gratuite.", sources: ["https://www.jeunest.fr/"] },
+  "Pays de la Loire": { title: "Pays de la Loire : 8 € → plus de 130 € d'avantages", body: "L'e.pass culture sport (15-19 ans) coûte 8 €/an et débloque coupons sport, événements, patrimoine, BAFA.", sources: ["https://www.epassjeunes-paysdelaloire.fr/"] },
+  "Provence-Alpes-Côte d'Azur": { title: "Région Sud : ZOU! Études et Pass Santé", body: "Transports régionaux illimités pour scolaires/étudiants et prestations santé gratuites. L'ancien e-PASS Jeunes n'existe plus.", sources: ["https://www.maregionsud.fr/ma-region/cest-quoi-la-region/education-orientation-et-apprentissage/toutes-vos-aides-en-1-clic"] },
+  "Guadeloupe": { title: "Guadeloupe : LADOM et abattement d'impôt", body: "Billets vers l'Hexagone aidés (LADOM), réduction automatique d'impôt de 30 % (plafonnée), panier Bouclier Qualité Prix en magasin.", sources: ["https://ladom.fr"] },
+  "Martinique": { title: "Martinique : LADOM et abattement d'impôt", body: "Billets vers l'Hexagone aidés (LADOM), réduction automatique d'impôt de 30 % (plafonnée), panier Bouclier Qualité Prix en magasin.", sources: ["https://ladom.fr"] },
+  "Guyane": { title: "Guyane : 40 % d'abattement d'impôt", body: "Réduction automatique d'impôt de 40 % (plafonnée) — le plus fort taux des DROM avec Mayotte — plus LADOM et le Bouclier Qualité Prix.", sources: ["https://ladom.fr"] },
+  "La Réunion": { title: "La Réunion : LADOM et abattement d'impôt", body: "Billets vers l'Hexagone aidés (LADOM), réduction automatique d'impôt de 30 % (plafonnée), Bouclier Qualité Prix renégocié chaque année.", sources: ["https://www.reunion.gouv.fr/Actions-de-l-Etat/Economie-commerce-exterieur-et-fiscalite-locale/Bouclier-qualite-prix-BQP"] },
+  "Mayotte": { title: "Mayotte : 40 % d'abattement d'impôt", body: "Réduction automatique d'impôt de 40 % (plafonnée) — le plus fort taux des DROM avec la Guyane — plus LADOM pour la mobilité études.", sources: ["https://ladom.fr"] },
+};
 
 function frFacts(age: number): C[] {
   const out: C[] = [];
-  if (age === 12) out.push(card("good", "🏦", "Le Livret Jeune s'ouvre à toi", "Dès 12 ans, tu peux avoir un Livret Jeune : plafond 1 600 €, intérêts exonérés d'impôt et taux au moins égal au Livret A. Le premier réflexe épargne."));
-  if (age === 16) out.push(card("good", "💳", "Ton argent, tes retraits", "À 16 ans, tu peux retirer seul sur ton Livret Jeune (sauf opposition des parents) et avoir un vrai compte avec carte. L'apprentissage s'ouvre aussi — avec un salaire."));
-  if (age === 17) out.push(card("good", "🎭", "50 € de pass Culture", "À 17 ans, le pass Culture crédite 50 € pour livres, ciné, concerts, jeux. Ils se cumulent avec le crédit des 18 ans et restent utilisables jusqu'à la veille de tes 21 ans."));
+  if (age === 12) out.push(card("good", "🏦", "Le Livret Jeune s'ouvre à toi", "Dès 12 ans, tu peux avoir un Livret Jeune : plafond 1 600 €, intérêts exonérés d'impôt et taux au moins égal au Livret A. Le premier réflexe épargne.", ["https://www.economie.gouv.fr/particuliers/gerer-mon-argent"]));
+  if (age === 16) out.push(card("good", "💳", "Ton argent, tes retraits", "À 16 ans, tu peux retirer seul sur ton Livret Jeune (sauf opposition des parents) et avoir un vrai compte avec carte. L'apprentissage s'ouvre aussi — avec un salaire.", ["https://code.travail.gouv.fr/fiche-service-public/contrat-dapprentissage"]));
+  if (age === 17) out.push(card("good", "🎭", "50 € de pass Culture", "À 17 ans, le pass Culture crédite 50 € pour livres, ciné, concerts, jeux. Ils se cumulent avec le crédit des 18 ans et restent utilisables jusqu'à la veille de tes 21 ans.", ["https://pass.culture.fr/reforme-du-pass-culture"]));
   if (age === 18) {
-    out.push(card("gold", "🔓", "Majorité financière", "Crédit, découvert, tous moyens de paiement : tout devient possible — et engageant. Le pass Culture ajoute 150 €, et tu peux demander les APL à ton nom (attention : ça recalcule les aides de tes parents)."));
-    out.push(card("good", "🚆", "Voyages malins", "La carte Avantage Jeune SNCF (12-27 ans) réduit de 30 % les TGV et Intercités. Si tu travailles, la prime d'activité peut compléter tes revenus dès 18 ans."));
+    out.push(card("gold", "🔓", "Majorité financière", "Crédit, découvert, tous moyens de paiement : tout devient possible — et engageant. Le pass Culture ajoute 150 €, et tu peux demander les APL à ton nom (attention : ça recalcule les aides de tes parents).", ["https://pass.culture.fr/reforme-du-pass-culture", "https://www.caf.fr"]));
+    out.push(card("good", "🚆", "Voyages malins", "La carte Avantage Jeune SNCF (12-27 ans) réduit de 30 % les TGV et Intercités. Si tu travailles, la prime d'activité peut compléter tes revenus dès 18 ans.", ["https://www.sncf-connect.com/catalogue/description/carte-avantage-jeune"]));
   }
-  if (age === 20) out.push(card("bad", "👨‍👩‍👧", "Le cap des 20 ans côté CAF", "À 20 ans, tu ne comptes généralement plus comme enfant à charge pour les prestations familiales de tes parents. Si tu vis encore chez eux, c'est le bon moment pour parler budget familial."));
-  if (age === 21) out.push(card("bad", "⏳", "Dernière ligne droite pass Culture", "Tes crédits pass Culture expirent à la veille de tes 21 ans — dépense-les ! Et si tu n'es pas étudiant, le rattachement fiscal au foyer de tes parents s'arrête."));
-  if (age === 25) out.push(card("good", "🛡️", "Le RSA devient accessible", "À 25 ans, le RSA s'ouvre sans les conditions restrictives des moins de 25 ans — un filet de sécurité à connaître. C'est aussi la dernière année du Livret Jeune et du rattachement fiscal étudiant."));
-  if (age === 26 || age === 27) out.push(card("good", "🚄", "Profite encore des tarifs jeunes", "La carte Avantage Jeune SNCF marche jusqu'à la veille de tes 28 ans — plus longtemps que la plupart des tarifs jeunes. Vérifie aussi les bornes d'âge de tes transports régionaux."));
-  if (age === 28) out.push(card("bad", "🎫", "Fin des tarifs jeunes SNCF", "La carte Avantage Jeune s'arrête à 28 ans. Compense en anticipant tes billets et en comparant les cartes Avantage adulte selon ta fréquence de voyage."));
-  if (age === 30) out.push(card("bad", "🏠", "Visale change de règles", "La garantie locative gratuite Visale n'est plus automatique après 30 ans (conditions : CDD, mutation, période d'essai…). Si un déménagement se profile, c'est un paramètre à anticiper."));
-  if (age >= 33 && age <= 36) out.push(card("gold", "🏡", "Emprunter sans questionnaire médical", "Loi Lemoine : pas de questionnaire de santé si la part assurée est ≤ 200 000 € ET que le prêt se termine avant tes 60 ans. Un prêt de 25 ans souscrit après 35 ans franchit cette limite — le calendrier compte."));
-  if (age >= 50 && age <= 61) out.push(card("gold", "🧭", "La retraite se prépare maintenant", "Vérifie ton relevé de carrière sur info-retraite.fr (les erreurs sont fréquentes et corrigibles). L'âge légal dépend de ton année de naissance — la réforme est suspendue jusqu'en 2028, entre 62 ans 9 mois et 64 ans."));
-  if (age >= 62 && age <= 66) out.push(card("gold", "🌅", "L'heure des choix", "Selon ton année de naissance, ton âge légal se situe entre 62 ans 9 mois et 64 ans (réforme suspendue). À 65 ans, l'ASPA garantit un minimum de ressources sous conditions. Fais tes simulations sur info-retraite.fr."));
+  if (age === 20) out.push(card("bad", "👨‍👩‍👧", "Le cap des 20 ans côté CAF", "À 20 ans, tu ne comptes généralement plus comme enfant à charge pour les prestations familiales de tes parents. Si tu vis encore chez eux, c'est le bon moment pour parler budget familial.", ["https://www.caf.fr/allocataires/aides-et-demarches/ma-situation/vie-personnelle/l-aine-de-mes-enfants-20-ans"]));
+  if (age === 21) out.push(card("bad", "⏳", "Dernière ligne droite pass Culture", "Tes crédits pass Culture expirent à la veille de tes 21 ans — dépense-les ! Et si tu n'es pas étudiant, le rattachement fiscal au foyer de tes parents s'arrête.", ["https://www.service-public.gouv.fr/particuliers/vosdroits/F3085"]));
+  if (age === 25) out.push(card("good", "🛡️", "Le RSA devient accessible", "À 25 ans, le RSA s'ouvre sans les conditions restrictives des moins de 25 ans — un filet de sécurité à connaître. C'est aussi la dernière année du Livret Jeune et du rattachement fiscal étudiant.", ["https://www.service-public.gouv.fr/particuliers/vosdroits/F286"]));
+  if (age === 26 || age === 27) out.push(card("good", "🚄", "Profite encore des tarifs jeunes", "La carte Avantage Jeune SNCF marche jusqu'à la veille de tes 28 ans — plus longtemps que la plupart des tarifs jeunes. Vérifie aussi les bornes d'âge de tes transports régionaux.", ["https://www.sncf-connect.com/catalogue/description/carte-avantage-jeune"]));
+  if (age === 28) out.push(card("bad", "🎫", "Fin des tarifs jeunes SNCF", "La carte Avantage Jeune s'arrête à 28 ans. Compense en anticipant tes billets et en comparant les cartes Avantage adulte selon ta fréquence de voyage.", ["https://www.sncf-connect.com/catalogue/description/carte-avantage-jeune"]));
+  if (age === 30) out.push(card("bad", "🏠", "Visale change de règles", "La garantie locative gratuite Visale n'est plus automatique après 30 ans (conditions : CDD, mutation, période d'essai…). Si un déménagement se profile, c'est un paramètre à anticiper.", ["https://www.visale.fr/vos-questions/faq-locataires/locataire-de-plus-de-30-ans-suis-je-eligible/"]));
+  if (age >= 33 && age <= 36) out.push(card("gold", "🏡", "Emprunter sans questionnaire médical", "Loi Lemoine : pas de questionnaire de santé si la part assurée est ≤ 200 000 € ET que le prêt se termine avant tes 60 ans. Un prêt de 25 ans souscrit après 35 ans franchit cette limite — le calendrier compte.", ["https://www.service-public.gouv.fr/particuliers/vosdroits/F36526"]));
+  if (age >= 50 && age <= 61) out.push(card("gold", "🧭", "La retraite se prépare maintenant", "Vérifie ton relevé de carrière sur info-retraite.fr (les erreurs sont fréquentes et corrigibles). L'âge légal dépend de ton année de naissance — la réforme est suspendue jusqu'en 2028, entre 62 ans 9 mois et 64 ans.", ["https://www.service-public.gouv.fr/particuliers/actualites/A18825"]));
+  if (age >= 62 && age <= 66) out.push(card("gold", "🌅", "L'heure des choix", "Selon ton année de naissance, ton âge légal se situe entre 62 ans 9 mois et 64 ans (réforme suspendue). À 65 ans, l'ASPA garantit un minimum de ressources sous conditions. Fais tes simulations sur info-retraite.fr.", ["https://www.service-public.gouv.fr/particuliers/actualites/A18825"]));
   return out;
 }
 
@@ -111,7 +132,12 @@ export function buildBirthdayCards(
   } else if (profile.occupation === "student") {
     cards.push(card("good", "🎓", "Étudiant·e et malin·e", "Bourses, aides locales, tarifs jeunes, logement : à ton âge, des centaines d'euros d'aides existent. Le Coach NetBudget les connaît — vérifie que ton profil est à jour."));
   } else if (country === "FR" && profile.region) {
-    cards.push(card("good", "📍", "Ta région a des choses pour toi", `${profile.region} finance des aides que peu de gens réclament (transport, culture, formation). Jette un œil aux conseils régionaux du Coach.`));
+    const r = REGION_HIGHLIGHTS[profile.region];
+    if (r) {
+      cards.push(card("good", "📍", r.title, r.body, r.sources));
+    } else {
+      cards.push(card("good", "📍", "Ta région a des choses pour toi", `${profile.region} finance des aides que peu de gens réclament (transport, culture, formation). Le simulateur national les recense en 5 minutes.`, ["https://www.1jeune1solution.gouv.fr/mes-aides"]));
+    }
   }
 
   // 8. Clôture
@@ -119,4 +145,58 @@ export function buildBirthdayCards(
     "Un an de plus, de nouveaux objectifs : mets à jour ton profil Coach, fixe un objectif d'épargne pour l'année, et laisse NetBudget s'occuper du reste. Bonne année à toi !"));
 
   return cards.slice(0, 8);
+}
+
+// ============================================================================
+// Anniversaire d'un ENFANT — vu du parent (France pour l'instant).
+// ============================================================================
+export function buildChildBirthdayCards(
+  age: number,
+  childName: string,
+  profile: UserProfile,
+): BirthdayCard[] {
+  const cards: BirthdayCard[] = [];
+  cards.push(card("gold", "🎂", `${childName} a ${age} ans !`,
+    `Joyeux anniversaire à ${childName} de la part de NetBudget ! Swipe pour voir ce qui change côté budget et droits.`));
+
+  const isFR = (profile.country ?? "FR") === "FR";
+  if (isFR) {
+    if (age === 3) cards.push(card("bad", "🍼", "Fin de la PAJE de base", "L'allocation de base de la PAJE s'arrête aux 3 ans de l'enfant, et le CMG (garde) change de règles à 3 ans aussi. Anticipe la bascule dans le budget garde/école.", ["https://www.caf.fr"]));
+    if (age === 6) cards.push(card("good", "🎒", "L'ARS commence", "Dès 6 ans, l'allocation de rentrée scolaire est versée sous conditions de ressources, chaque fin août. Vérifie ton éligibilité sur caf.fr — c'est automatique si tu es allocataire.", ["https://www.service-public.gouv.fr/particuliers/vosdroits/F1878"]));
+    if (age === 12) cards.push(card("good", "🏦", "Le Livret Jeune s'ouvre", `${childName} peut avoir un Livret Jeune : plafond 1 600 €, exonéré d'impôt. Une belle façon d'apprendre l'épargne — et d'y verser les étrennes.`, ["https://www.economie.gouv.fr"]));
+    if (age === 16) cards.push(card("gold", "📋", "ARS : il faut maintenant la déclarer", "À partir de 16 ans, l'ARS n'est plus automatique : tu dois confirmer chaque rentrée que l'enfant est scolarisé ou apprenti sur caf.fr. Et l'apprentissage rémunéré devient possible.", ["https://www.caf.fr"]));
+    if (age === 17) cards.push(card("good", "🎭", "50 € de pass Culture pour lui/elle", `${childName} peut activer son pass Culture : 50 € à 17 ans, cumulables avec les 150 € des 18 ans, valables jusqu'à la veille des 21 ans.`, ["https://pass.culture.fr/reforme-du-pass-culture"]));
+    if (age === 18) cards.push(card("gold", "⚖️", "Rattachement ou indépendance fiscale ?", `${childName} est majeur : rattaché à ton foyer fiscal (quotient familial) ou détaché (pension alimentaire déductible, APL en son nom) ? Le bon choix dépend de vos revenus — fais les deux simulations.`, ["https://www.service-public.gouv.fr/particuliers/vosdroits/F3085"]));
+    if (age === 20) cards.push(card("bad", "📉", "Fin des prestations familiales", `À 20 ans, ${childName} ne compte généralement plus pour tes prestations CAF. Recalcule le budget familial — et regarde le complément familial et les aides logement qui vont, eux, jusqu'à 21 ans.`, ["https://www.caf.fr/allocataires/aides-et-demarches/ma-situation/vie-personnelle/l-aine-de-mes-enfants-20-ans"]));
+    if (age === 25) cards.push(card("bad", "🎓", "Fin du rattachement fiscal étudiant", `Dernière année possible de rattachement fiscal pour ${childName} (moins de 25 ans au 1er janvier, étudiant). Ensuite : déclaration séparée, et pension alimentaire déductible si tu l'aides.`, ["https://www.service-public.gouv.fr/particuliers/vosdroits/F3085"]));
+  }
+  if (cards.length === 1) {
+    cards.push(card("good", "💝", "Une année de plus, un budget qui évolue", `Chaque âge de ${childName} change le budget familial : activités, école, équipement. Mets à jour la tranche d'âge dans ton profil Coach pour des conseils ajustés.`));
+  }
+  cards.push(card("neutral", "🎁", "Et si on épargnait pour plus tard ?", `Un objectif d'épargne au nom de ${childName} (études, permis, premier logement) transforme les anniversaires en capital. Crée-le dans Objectifs — même 20 €/mois font des milliers d'euros à 18 ans.`));
+  return cards.slice(0, 8);
+}
+
+// ============================================================================
+// Anniversaire d'un ANIMAL — budget vétérinaire, assurance, prévention.
+// Chiffres assurance/budget : vérifiés 2026-07 (corpus animaux).
+// ============================================================================
+export function buildPetBirthdayCards(
+  petName: string,
+  species: "dog" | "cat" | "other",
+): BirthdayCard[] {
+  const cards: BirthdayCard[] = [];
+  cards.push(card("gold", species === "dog" ? "🐶" : species === "cat" ? "🐱" : "🐾",
+    `Joyeux anniversaire ${petName} !`,
+    `Un an de plus pour ${petName} — l'occasion parfaite de faire le point sur son budget santé et bien-être.`));
+  cards.push(card("good", "🩺", "Le bilan vétérinaire annuel", `L'anniversaire est un excellent rappel : vaccins, vermifuge, bilan de santé. Un contrôle annuel coûte bien moins cher qu'une pathologie découverte tard — et c'est le moment de vérifier que la puce d'identification est à jour.`));
+  if (species === "dog") {
+    cards.push(card("gold", "🛡️", "Assurance chien : le bon moment pour comparer", "En 2026, une assurance chien coûte en moyenne de 12 € (formule de base) à 44 € (premium) par mois. Plus l'animal vieillit, plus les primes montent et les exclusions s'accumulent — comparer maintenant peut figer de meilleures conditions.", ["https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026"]));
+  } else if (species === "cat") {
+    cards.push(card("gold", "🛡️", "Assurance chat : de 9 à 35 €/mois", "Une assurance chat coûte en moyenne de 9 à 35 €/mois selon la couverture (budget annuel d'un chat : souvent 600 à 1 000 €). L'anniversaire est le bon rappel pour comparer — les primes grimpent avec l'âge.", ["https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026"]));
+  } else {
+    cards.push(card("good", "🛡️", "Prévoir plutôt que subir", `Même pour ${petName}, une provision mensuelle dédiée (vétérinaire, alimentation, équipement) évite que les imprévus santé ne percutent le budget du foyer.`));
+  }
+  cards.push(card("neutral", "📊", "Une ligne budget à son nom", `Crée une ligne « ${petName} » dans tes dépenses : alimentation, vétérinaire, accessoires. Ce qu'on mesure, on le maîtrise — et les imprévus deviennent des provisions.`));
+  return cards;
 }

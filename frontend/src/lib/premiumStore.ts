@@ -380,9 +380,32 @@ export type SavedAdviceItem = {
   title: string;
   body: string;
   tone?: "good" | "gold" | "bad" | "neutral";
+  sources?: string[]; // liens officiels
   savedAt: string; // ISO
-  source: string; // "birthday" | "coach" | …
+  source: string; // "birthday" | "child:<nom>" | "pet:<nom>" | "coach" | …
 };
+
+// Anniversaires suivis (enfants, animaux) — même mécanique de cartes le jour J.
+export type CelebrationPerson = {
+  id: string;
+  kind: "child" | "pet";
+  name: string;
+  birthdate: string; // ISO "AAAA-MM-JJ"
+  species?: "dog" | "cat" | "other";
+};
+
+const CELEBRATIONS_KEY = "celebrations";
+
+export async function loadCelebrations(userId: string): Promise<CelebrationPerson[]> {
+  return readPayload<CelebrationPerson[]>(CELEBRATIONS_KEY, userId, [], null);
+}
+
+export async function saveCelebrations(
+  userId: string,
+  list: CelebrationPerson[],
+): Promise<void> {
+  await writePayload(CELEBRATIONS_KEY, userId, list, null);
+}
 
 const SAVED_ADVICE_KEY = "saved_advice";
 

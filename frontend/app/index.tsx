@@ -44,7 +44,12 @@ import { useSession } from "../src/contexts/SessionContext";
 import { deleteAccount } from "../src/lib/auth";
 import { notify } from "../src/utils/notify";
 import BirthdayCelebration from "../src/components/BirthdayCelebration";
-import { buildBirthdayCards, type BirthdayCard } from "../src/constants/ageFacts";
+import {
+  buildBirthdayCards,
+  buildChildBirthdayCards,
+  buildPetBirthdayCards,
+  type BirthdayCard,
+} from "../src/constants/ageFacts";
 import {
   computeAge,
   isBirthdayToday,
@@ -59,6 +64,7 @@ import {
 } from "../src/lib/adviceEngine";
 import {
   addSavedAdvice,
+  loadCelebrations,
   loadAdviceProfile,
   loadBudget,
   recordBudgetHistoryPoint,
@@ -566,6 +572,8 @@ export default function Index() {
   // Anniversaire : cartes de célébration (une fois par an, le jour J)
   const [bdayCards, setBdayCards] = useState<BirthdayCard[] | null>(null);
   const [bdayOpen, setBdayOpen] = useState(false);
+  // Source du dépôt pour la fête en cours : "birthday" | "child:Nom" | "pet:Nom"
+  const [bdaySource, setBdaySource] = useState("birthday");
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
   const [tithePercent, setTithePercent] = useState(0);
   const reloadPremiumProfile = useCallback(async () => {
@@ -584,19 +592,43 @@ export default function Index() {
     setPremiumProfile(deriveMatchingProfile(p, activeWorkspaceKind));
     setTithePercent(details.tithe_enabled ? details.tithe_percent : 0);
 
-    // Anniversaire : notification du prochain + célébration le jour J
-    // (ballons + cartes), une seule fois par an.
+    // Anniversaires : le sien + ceux des enfants/animaux suivis.
+    // Une célébration par personne et par an ; la sienne est prioritaire.
+    const year = new Date().getFullYear();
+    let opened = false;
     if (details.birthdate) {
       scheduleBirthdayNotification(details.birthdate, details.first_name);
       if (isBirthdayToday(details.birthdate)) {
-        const yearKey = `netbudget:bday:${new Date().getFullYear()}`;
+        const yearKey = `netbudget:bday:${year}`;
         const seen = await AsyncStorage.getItem(yearKey).catch(() => null);
         if (!seen) {
           await AsyncStorage.setItem(yearKey, "1").catch(() => {});
           const a = computeAge(new Date(details.birthdate));
+          setBdaySource("birthday");
           setBdayCards(buildBirthdayCards(a, details.first_name, p));
           setBdayOpen(true);
+          opened = true;
         }
+      }
+    }
+    if (!opened && premiumUser?.id) {
+      const celebs = await loadCelebrations(premiumUser.id).catch(() => []);
+      for (const c of celebs) {
+        if (!isBirthdayToday(c.birthdate)) continue;
+        const key = `netbudget:bday:${c.id}:${year}`;
+        const seen = await AsyncStorage.getItem(key).catch(() => null);
+        if (seen) continue;
+        await AsyncStorage.setItem(key, "1").catch(() => {});
+        if (c.kind === "child") {
+          const a = computeAge(new Date(c.birthdate));
+          setBdaySource(`child:${c.name}`);
+          setBdayCards(buildChildBirthdayCards(a, c.name, p));
+        } else {
+          setBdaySource(`pet:${c.name}`);
+          setBdayCards(buildPetBirthdayCards(c.name, c.species ?? "other"));
+        }
+        setBdayOpen(true);
+        break; // une fête à la fois
       }
     }
   }, [premiumUser?.id, activeWorkspaceId, activeWorkspaceKind]);
@@ -2284,13 +2316,14 @@ export default function Index() {
         onKeep={(c) => {
           if (!premiumUser?.id) return;
           addSavedAdvice(premiumUser.id, {
-            id: `bday-${new Date().getFullYear()}-${c.title}`,
+            id: `bday-${new Date().getFullYear()}-${bdaySource}-${c.title}`,
             emoji: c.emoji,
             title: c.title,
             body: c.body,
             tone: c.tone,
+            sources: c.sources,
             savedAt: new Date().toISOString(),
-            source: "birthday",
+            source: bdaySource,
           });
         }}
         onClose={() => setBdayOpen(false)}

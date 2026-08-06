@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,6 +29,28 @@ const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#64748B";
 const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
+
+// Regroupe par origine : mon anniversaire, celui d'un enfant, d'un animal…
+function groupBySource(
+  items: SavedAdviceItem[],
+): { label: string; entries: SavedAdviceItem[] }[] {
+  const byLabel = new Map<string, SavedAdviceItem[]>();
+  const labelOf = (src: string): string => {
+    if (src === "birthday") return "🎂 Mon anniversaire";
+    if (src.startsWith("child:")) return `👶 ${src.slice(6)}`;
+    if (src.startsWith("pet:")) return `🐾 ${src.slice(4)}`;
+    if (src === "coach") return "🧭 Coach";
+    return "Autres";
+  };
+  for (const it of items) {
+    const label = labelOf(it.source);
+    byLabel.set(label, [...(byLabel.get(label) ?? []), it]);
+  }
+  return [...byLabel.entries()].map(([label, entries]) => ({
+    label,
+    entries: entries.sort((a, b) => b.savedAt.localeCompare(a.savedAt)),
+  }));
+}
 
 const TONE_BORDER: Record<string, string> = {
   good: "#4ADE80",
@@ -84,29 +107,50 @@ export default function SavedAdvice() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
-          {items.map((it) => (
-            <View
-              key={it.id}
-              style={[
-                styles.card,
-                { borderLeftColor: TONE_BORDER[it.tone ?? "neutral"] },
-              ]}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                {it.emoji ? <Text style={{ fontSize: 20 }}>{it.emoji}</Text> : null}
-                <Text style={styles.cardTitle}>{it.title}</Text>
-                <TouchableOpacity
-                  onPress={() => remove(it.id)}
-                  hitSlop={10}
-                  style={{ marginLeft: "auto" }}
+          {groupBySource(items).map(({ label, entries }) => (
+            <View key={label} style={{ marginBottom: 10 }}>
+              <Text style={styles.sectionTitle}>{label}</Text>
+              {entries.map((it) => (
+                <View
+                  key={it.id}
+                  style={[
+                    styles.card,
+                    { borderLeftColor: TONE_BORDER[it.tone ?? "neutral"] },
+                  ]}
                 >
-                  <Feather name="trash-2" size={16} color={TEXT_3} />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.cardBody}>{it.body}</Text>
-              <Text style={styles.cardMeta}>
-                Gardé le {new Date(it.savedAt).toLocaleDateString("fr-FR")}
-              </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    {it.emoji ? <Text style={{ fontSize: 20 }}>{it.emoji}</Text> : null}
+                    <Text style={styles.cardTitle}>{it.title}</Text>
+                    <TouchableOpacity
+                      onPress={() => remove(it.id)}
+                      hitSlop={10}
+                      style={{ marginLeft: "auto" }}
+                    >
+                      <Feather name="trash-2" size={16} color={TEXT_3} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.cardBody}>{it.body}</Text>
+                  {it.sources?.length ? (
+                    <View style={{ marginTop: 8, gap: 4 }}>
+                      {it.sources.map((src, i) => (
+                        <TouchableOpacity
+                          key={i}
+                          onPress={() => src.startsWith("http") && Linking.openURL(src)}
+                          style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+                        >
+                          <Feather name="external-link" size={11} color={GOLD} />
+                          <Text style={styles.sourceLink} numberOfLines={1}>
+                            {src.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : null}
+                  <Text style={styles.cardMeta}>
+                    Gardé le {new Date(it.savedAt).toLocaleDateString("fr-FR")}
+                  </Text>
+                </View>
+              ))}
             </View>
           ))}
         </ScrollView>
@@ -147,4 +191,13 @@ const styles = StyleSheet.create({
   cardTitle: { color: TEXT_1, fontSize: 15, fontWeight: "700", flexShrink: 1 },
   cardBody: { color: TEXT_2, fontSize: 13, lineHeight: 19, marginTop: 8 },
   cardMeta: { color: TEXT_3, fontSize: 11, marginTop: 10 },
+  sectionTitle: {
+    color: TEXT_2,
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 10,
+  },
+  sourceLink: { color: GOLD, fontSize: 12, flexShrink: 1 },
 });
