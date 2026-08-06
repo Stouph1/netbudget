@@ -73,9 +73,11 @@ function monthLabel(month: string): string {
 type Props = {
   // Naviguer vers le tab Budget (depuis le tab: setTab; depuis la route: back)
   onGoBudget?: () => void;
+  // __DEV__ uniquement : rejoue la fête d'anniversaire (ignore le verrou annuel)
+  onDevReplayBirthday?: () => void;
 };
 
-export default function PremiumHomePanel({ onGoBudget }: Props) {
+export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Props) {
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
   const [s1, setS1] = useState<S1Payload | null>(null);
@@ -445,6 +447,15 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           onPress={() => router.push("/(premium)/celebrations" as never)}
         />
       </View>
+      {__DEV__ && onDevReplayBirthday ? (
+        <TouchableOpacity
+          onPress={onDevReplayBirthday}
+          style={{ alignSelf: "center", marginBottom: 12 }}
+          hitSlop={8}
+        >
+          <Text style={styles.historyDemoBtn}>DEV · rejouer la fête 🎂</Text>
+        </TouchableOpacity>
+      ) : null}
 
       {/* Évolution du budget — historique mensuel du scope actif */}
       <BudgetHistoryCard

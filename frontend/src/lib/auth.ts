@@ -229,7 +229,7 @@ export async function deleteAccount(): Promise<{ ok: boolean; error?: string }> 
     try {
       const keys = await AsyncStorage.getAllKeys();
       await AsyncStorage.multiRemove(
-        keys.filter((k) => k.startsWith("netbudget:premium")),
+        keys.filter((k) => k.startsWith("netbudget:premium") || k.startsWith("netbudget:bday")),
       );
     } catch {}
     await supabase.auth.signOut();
