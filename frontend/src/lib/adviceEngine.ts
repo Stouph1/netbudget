@@ -2671,7 +2671,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     countries: ["ES"],
     title: "Bono Alquiler Joven : 250 €/mois si tu as 35 ans ou moins",
     body:
-      "L'aide d'État au loyer des jeunes : 250 €/mois pendant 2 ans, pour les 35 ans ou moins avec revenus réguliers (foyer < 3× IPREM), loyer ≤ 600 €/mois (jusqu'à 900 € selon les régions). Chaque communauté autonome ouvre ses propres fenêtres de candidature et les fonds s'épuisent vite : surveille la sede electrónica de TA région.",
+      "L'aide d'État au loyer des jeunes (35 ans ou moins, revenus réguliers, foyer < 3× IPREM) : 250 €/mois pendant 2 ans sur l'ancien régime, et le nouveau Plan Estatal de Vivienda 2026-2030 prévoit jusqu'à 300 €/mois, déployé par les communautés autonomes courant 2026. Tout passe par TA communauté autonome : surveille sa sede electrónica, les fonds s'épuisent vite.",
     action: {
       label: "Voir les conditions officielles",
       link: "https://www.mivau.gob.es/vivienda/bono-alquiler-joven",
@@ -2710,6 +2710,75 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       "https://www.inclusion.gob.es/en/web/inclusion/que-es-el-capi",
     ],
     lastVerified: "2026-07-27",
+  },
+
+  {
+    id: "es-avales-ico",
+    category: "real_estate",
+    countries: ["ES"],
+    title: "Aval ICO : acheter avec 100 % de financement avant 36 ans",
+    body:
+      "L'État garantit jusqu'à 20 % de ton prêt immobilier (25 % si le logement a un certificat énergétique D ou mieux), ce qui permet aux banques de financer jusqu'à 100 % de ta première résidence principale. Pour les 35 ans ou moins et les familles avec mineurs à charge, gratuit, demande directement auprès de ta banque. Prorogé jusqu'au 31/12/2027, critères assouplis en 2026.",
+    action: {
+      label: "Voir les conditions (ICO)",
+      link: "https://www.ico.es/en/linea-avales-hipoteca-primera-vivienda",
+    },
+    appliesWhen: and(housingIn("renter", "free_housing"), or(ageIn("18-25", "26-35"), hasAnyKids)),
+    priority: 84,
+    figures: [{ label: "Garantie", value: "20-25 % du prêt" }],
+    sources: ["https://www.ico.es/en/linea-avales-hipoteca-primera-vivienda"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "es-imv",
+    category: "emergency",
+    countries: ["ES"],
+    title: "Ingreso Mínimo Vital : le filet de sécurité se demande en ligne",
+    body:
+      "L'IMV garantit un revenu minimum (733,60 €/mois pour une personne seule en 2026, majoré selon le foyer). Beaucoup d'ayants droit ne le demandent jamais. Le simulateur officiel prend 5 minutes — et le complemento de infancia (CAPI) peut se demander séparément si tu as des enfants et des revenus modestes, même sans toucher l'IMV complet.",
+    action: {
+      label: "Faire la simulation (Seguridad Social)",
+      link: "https://imv.seg-social.es/",
+    },
+    appliesWhen: or(savingsCapacityLow, occupationIs("unemployed")),
+    priority: 90,
+    figures: [{ label: "Personne seule 2026", value: "733,60 €/mois" }],
+    sources: ["https://revista.seg-social.es/-/gu%C3%ADa-sobre-el-nuevo-complemento-a-la-infancia-del-imv"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "es-sialp",
+    category: "long_term",
+    countries: ["ES"],
+    title: "Plan Ahorro 5 : des intérêts exonérés d'impôt après 5 ans",
+    body:
+      "Le SIALP/CIALP (« Plan de Ahorro 5 ») exonère totalement d'IRPF les rendements si tu ne retires rien pendant 5 ans : max 5 000 € de versements par an, un seul plan par personne, capital garanti à 85 % minimum, sortie en capital. Retrait anticipé = imposition normale. Une brique prudente entre le fonds d'urgence et l'investissement.",
+    action: {
+      label: "Voir le régime fiscal (Agencia Tributaria)",
+      link: "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025/c05-rendimientos-capital-mobiliario/rendimientos-integrar-base-imponible-ahorro/rendimientos-operaciones-capitalizacion-seguros-vida-invalidez/planes-ahorro-largo-plazo/caracteristicas-requisitos.html",
+    },
+    appliesWhen: always,
+    priority: 74,
+    figures: [{ label: "Versements max", value: "5 000 €/an" }],
+    sources: ["https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025/c05-rendimientos-capital-mobiliario/rendimientos-integrar-base-imponible-ahorro/rendimientos-operaciones-capitalizacion-seguros-vida-invalidez/planes-ahorro-largo-plazo/caracteristicas-requisitos.html"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "es-bono-cultural",
+    category: "emergency",
+    countries: ["ES"],
+    title: "Bono Cultural Joven : 400 € l'année de tes 18 ans",
+    body:
+      "Si tu as 18 ans cette année, l'État t'offre 400 € pour la culture : livres, concerts, cinéma, musique, cours culturels, instruments. Édition 2026 confirmée (nés en 2008, demande du 22/06 au 31/10/2026, un an pour dépenser). La reconduction se joue chaque année — demande-le dès l'ouverture de la fenêtre.",
+    action: {
+      label: "Demander le bono",
+      link: "https://bonoculturajoven.gob.es/",
+    },
+    appliesWhen: ageIn("18-25"),
+    priority: 78,
+    figures: [{ label: "Aide", value: "400 €" }],
+    sources: ["https://www.cultura.gob.es/actualidad/2026/06/260622-bono-cultural-joven-2026.html"],
+    lastVerified: "2026-08-06",
   },
 
   // ==========================================================================
@@ -2890,6 +2959,90 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     lastVerified: "2026-07-28",
   },
 
+  {
+    id: "it-tfr-scelta",
+    category: "retirement",
+    countries: ["IT"],
+    title: "TFR : les 6 mois qui engagent toute ta carrière",
+    body:
+      "À ta première embauche, tu as 6 mois pour choisir : laisser le TFR (environ 6,91 % du salaire annuel) dans l'entreprise, ou le verser à un fondo pensione. Le silence vaut versement automatique au fonds de ta convention collective (« silenzio-assenso ») — et le versement au fonds est IRRÉVERSIBLE, alors que le maintien en entreprise se change à tout moment. Depuis 2026, l'adhésion automatique ajoute une fenêtre de 60 jours : vérifie ta situation dès l'embauche.",
+    action: {
+      label: "Comprendre le choix du TFR (COVIP)",
+      link: "https://www.covip.it/per-il-cittadino/educazione-previdenziale/faq/conferimento-tfr",
+    },
+    appliesWhen: occupationIs("employee"),
+    priority: 84,
+    sources: ["https://www.covip.it/per-il-cittadino/educazione-previdenziale/faq/conferimento-tfr"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "it-garanzia-prima-casa",
+    category: "real_estate",
+    countries: ["IT"],
+    title: "Moins de 36 ans : l'État garantit jusqu'à 80 % de ton prêt immobilier",
+    body:
+      "Le Fondo di garanzia prima casa (CONSAP) garantit jusqu'à 80 % du prêt pour les moins de 36 ans avec ISEE ≤ 40 000 € (prêt ≤ 250 000 €, résidence principale non de luxe) — prorogé jusqu'au 31/12/2027. Attention : les exonérations fiscales « prima casa under 36 » (registro, TVA) ont EXPIRÉ et n'ont pas été reconduites — seule la garantie subsiste. Demande via ta banque.",
+    action: {
+      label: "Voir le fonds de garantie (CONSAP)",
+      link: "https://www.consap.it/fondi-di-garanzia/casa/fondo-prima-casa/",
+    },
+    appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
+    priority: 84,
+    figures: [{ label: "Garantie", value: "jusqu'à 80 % du prêt" }],
+    sources: ["https://www.consap.it/fondi-di-garanzia/casa/fondo-prima-casa/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "it-bonus-nido",
+    category: "kids",
+    countries: ["IT"],
+    title: "Bonus asilo nido : jusqu'à 3 600 €/an pour la crèche",
+    body:
+      "L'INPS rembourse jusqu'à 3 600 €/an de frais de crèche agréée (ou d'assistance à domicile pour enfant malade chronique), versés en 11 mensualités, selon ton ISEE. Nouveauté 2026 : l'ISEE « prestations familiales » déduit désormais l'Assegno Unico perçu — beaucoup de familles montent d'une tranche. Demande en ligne (SPID/CIE) ou via un patronato, avec les justificatifs de paiement.",
+    action: {
+      label: "Faire la demande (INPS)",
+      link: "https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.03.bonus-asilo-nido-2026-attivo-il-servizio-per-la-domanda.html",
+    },
+    appliesWhen: kids("0-6"),
+    priority: 86,
+    figures: [{ label: "Plafond", value: "3 600 €/an" }],
+    sources: ["https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.03.bonus-asilo-nido-2026-attivo-il-servizio-per-la-domanda.html"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "it-carte-giovani",
+    category: "emergency",
+    countries: ["IT"],
+    title: "18 ans : jusqu'à 1 000 € de cartes culture cumulables",
+    body:
+      "Deux aides à réclamer l'année de tes 18 ans : la Carta della cultura giovani (500 €, ISEE familial ≤ 35 000 €) et la Carta del merito (500 € pour un bac à 100/100, sans condition de revenus) — cumulables. Livres, cinéma, concerts, musées, cours. Fenêtre de demande limitée dans l'année (en 2026 : du 31/01 au 30/06) — ne la rate pas, l'aide n'est jamais rétroactive.",
+    action: {
+      label: "Demander tes cartes",
+      link: "https://cartegiovani.cultura.gov.it/",
+    },
+    appliesWhen: ageIn("18-25"),
+    priority: 80,
+    figures: [{ label: "Cumul max", value: "1 000 €" }],
+    sources: ["https://cartegiovani.cultura.gov.it/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "it-isee-annuale",
+    category: "tax",
+    countries: ["IT"],
+    title: "Refais ton ISEE chaque janvier : c'est la clé de toutes les aides",
+    body:
+      "L'ISEE expire le 31 décembre : sans DSU renouvelée, l'Assegno Unico retombe au minimum dès mars et tu perds bonus nido, aides universitaires et tarifs sociaux. La DSU précompilée se fait en ligne en 20 minutes. Bonne nouvelle 2026 : la franchise sur la résidence principale est relevée (91 500 €, 120 000 € dans les métropoles) — ton ISEE peut baisser, et tes aides monter.",
+    action: {
+      label: "Faire ta DSU précompilée (INPS)",
+      link: "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-strumenti.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee-53358.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee.html",
+    },
+    appliesWhen: always,
+    priority: 82,
+    sources: ["https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-strumenti.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee-53358.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee.html"],
+    lastVerified: "2026-08-06",
+  },
+
   // ==========================================================================
   // PORTUGAL — recherche vérifiée 2026-07-28 (portaldasfinancas EBF art. 21,
   // IGCP AforroNet, gov.pt/OCC pour IRS Jovem). Abono de família exclu
@@ -2978,6 +3131,72 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       "https://www.occ.pt/sites/default/files/public/2025-02/Guia_Pratico_IRS_J6fevCa.pdf",
     ],
     lastVerified: "2026-07-28",
+  },
+
+  {
+    id: "pt-porta65",
+    category: "housing",
+    countries: ["PT"],
+    title: "Porta 65 Jovem : l'État paie une partie de ton loyer",
+    body:
+      "De 18 à 35 ans (en couple, l'un peut avoir jusqu'à 37 ans), avec un revenu du foyer sous environ 4 SMIC, l'IHRU subventionne ton loyer par périodes de 12 mois renouvelables. Les colocations sont éligibles si chacun remplit les critères. Les candidatures ouvrent par vagues sur le Portal da Habitação — prépare bail et justificatifs à l'avance, les fenêtres sont courtes.",
+    action: {
+      label: "Candidater (Portal da Habitação)",
+      link: "https://www.portaldahabitacao.pt/web/guest/porta-65-jovem",
+    },
+    appliesWhen: and(housingIn("renter"), ageIn("18-25", "26-35")),
+    priority: 86,
+    sources: ["https://www.portaldahabitacao.pt/web/guest/porta-65-jovem"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "pt-garantia-publica",
+    category: "real_estate",
+    countries: ["PT"],
+    title: "Garantie publique ≤ 35 ans : financer 100 % — contrats jusqu'à fin 2026",
+    body:
+      "L'État se porte garant jusqu'à 15 % de ton prêt pour la première habitação própria e permanente : la banque peut financer 100 % du bien, sans apport. Conditions : 18-35 ans, revenus jusqu'au 8e échelon IRS, non-propriétaire. ÉCHÉANCE FERME : contrats signés jusqu'au 31/12/2026 — la prorogation n'est pas actée. Si un achat se profile, ne tarde pas.",
+    action: {
+      label: "Voir le dispositif (gov.pt)",
+      link: "https://www.gov.pt/servicos/pedir-a-garantia-publica-para-credito-a-habitacao",
+    },
+    appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
+    priority: 88,
+    figures: [{ label: "Garantie", value: "jusqu'à 15 % du prêt" }],
+    sources: ["https://www.gov.pt/servicos/pedir-a-garantia-publica-para-credito-a-habitacao"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "pt-imt-jovem",
+    category: "real_estate",
+    countries: ["PT"],
+    title: "IMT Jovem : zéro impôt d'achat avant 36 ans",
+    body:
+      "Première acquisition d'habitação própria e permanente avant 36 ans : exonération TOTALE d'IMT et d'Imposto do Selo jusqu'à un plafond de valeur réévalué chaque année (exonération partielle au-delà, nulle pour les biens les plus chers). Contrairement à la garantie publique, ce régime n'a PAS de date de fin. À demander via le Portal das Finanças AVANT l'acte — pas de rétroactivité.",
+    action: {
+      label: "Vérifier ton éligibilité (Portal das Finanças)",
+      link: "https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/IMT_Jovem/Pages/default.aspx",
+    },
+    appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
+    priority: 86,
+    sources: ["https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/IMT_Jovem/Pages/default.aspx"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "pt-abono-familia",
+    category: "kids",
+    countries: ["PT"],
+    title: "Abono de família : vérifie ton échelon chaque année",
+    body:
+      "L'abono de família dépend de ton échelon de revenus (ISS) et de l'âge de l'enfant : montant majoré avant 36 mois, +50 % pour les familles monoparentales, majoration si plusieurs enfants de moins de 36 mois. Les montants sont revalorisés chaque année et un changement de revenus peut te faire changer d'échelon — refais la simulation sur seg-social.pt après chaque changement de situation.",
+    action: {
+      label: "Simuler ton abono (Segurança Social)",
+      link: "https://www.seg-social.pt/abono-de-familia-para-criancas-e-jovens",
+    },
+    appliesWhen: hasAnyKids,
+    priority: 84,
+    sources: ["https://www.seg-social.pt/abono-de-familia-para-criancas-e-jovens"],
+    lastVerified: "2026-08-06",
   },
 
   // ==========================================================================
@@ -4114,6 +4333,179 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     appliesWhen: and(housingIn("renter"), ageIn("18-25", "26-35")),
     priority: 82,
     sources: ["https://www.actionlogement.fr"],
+    lastVerified: "2026-08-06",
+  },
+
+  // ==========================================================================
+  // TRANSVERSE FRANCE — banque, énergie, santé, télécom (recherche vérifiée
+  // 2026-08-06, sources : service-public, Banque de France, ARCEP, ameli,
+  // médiateur de l'énergie). Montants volatils signalés en corpus.
+  // ==========================================================================
+  {
+    id: "fr-mobilite-bancaire",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Changer de banque : ta nouvelle banque fait tout, gratuitement",
+    body:
+      "Le service d'aide à la mobilité bancaire est gratuit et automatisé : tu signes un mandat à la banque d'arrivée, elle récupère tes prélèvements et virements récurrents et prévient tous les émetteurs — le tout en 22 jours ouvrés max. Et pour choisir, compare d'abord les frais sur le comparateur PUBLIC tarifs-bancaires.gouv.fr, pas sur les sites commerciaux.",
+    action: {
+      label: "Comparer les tarifs (site public)",
+      link: "https://www.tarifs-bancaires.gouv.fr",
+    },
+    appliesWhen: always,
+    priority: 78,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F33881", "https://www.tarifs-bancaires.gouv.fr"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-frais-incidents",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Frais d'incidents : des plafonds légaux existent, fais-les respecter",
+    body:
+      "Si ta banque te détecte « fragile financièrement », tes frais d'incidents sont plafonnés à 25 €/mois. L'Offre spécifique Clientèle Fragile (3 €/mois max) descend le plafond à 20 €/mois et 200 €/an, commissions d'intervention à 4 € l'opération. Et si aucune banque ne veut de toi : le droit au compte (Banque de France) impose l'ouverture d'un compte avec services de base gratuits.",
+    action: {
+      label: "Vérifier tes droits (Banque de France)",
+      link: "https://www.banque-france.fr/fr/a-votre-service/particuliers/connaitre-pratiques-bancaires-assurance/compte-frais/le-plafonnement-des-frais-bancaires-et-loffre-clientele-fragile",
+    },
+    appliesWhen: savingsCapacityLow,
+    priority: 92,
+    figures: [
+      { label: "Fragilité détectée", value: "25 €/mois max" },
+      { label: "Avec l'OCF", value: "20 €/mois · 200 €/an" },
+    ],
+    sources: ["https://www.banque-france.fr/fr/a-votre-service/particuliers/connaitre-pratiques-bancaires-assurance/compte-frais/le-plafonnement-des-frais-bancaires-et-loffre-clientele-fragile"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-frais-succession",
+    category: "inheritance",
+    countries: ["FR"],
+    title: "Frais bancaires de succession : plafonnés depuis fin 2025",
+    body:
+      "Les frais de clôture des comptes d'un défunt sont désormais plafonnés à 1 % du total des soldes, avec un maximum de 857 € (montant 2026, réindexé chaque année). Attention : les cas de gratuité initialement prévus (défunt mineur, petit solde) ont été censurés par le Conseil constitutionnel en juin 2026 — seul le plafond subsiste. Vérifie la facture, les erreurs sont fréquentes.",
+    action: {
+      label: "Voir la règle en vigueur",
+      link: "https://www.service-public.gouv.fr/particuliers/actualites/A18973",
+    },
+    appliesWhen: always,
+    priority: 60,
+    figures: [{ label: "Plafond 2026", value: "1 % · max 857 €" }],
+    sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A18973"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-cheque-energie",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Chèque énergie : automatique — mais réclame-le si rien n'arrive",
+    body:
+      "En 2026, le chèque énergie (48 à 277 € selon revenus et foyer) redevient AUTOMATIQUE : envoi en avril-mai à 4,5 millions de foyers, par croisement fiscal. Si tu es éligible mais rien ne vient (déménagement, premier logement…), le guichet de réclamation est ouvert d'avril à décembre sur chequeenergie.gouv.fr. À savoir : il ne paie plus les travaux de rénovation, uniquement les factures d'énergie.",
+    action: {
+      label: "Vérifier / réclamer ton chèque",
+      link: "https://chequeenergie.gouv.fr",
+    },
+    appliesWhen: savingsCapacityLow,
+    priority: 90,
+    figures: [{ label: "Montant 2026", value: "48 à 277 €" }],
+    sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A17885", "https://chequeenergie.gouv.fr/beneficiaire/faq"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-energie-fournisseur",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Électricité et gaz : changer de fournisseur est gratuit, sans coupure",
+    body:
+      "Tu peux changer de fournisseur d'énergie à tout moment, gratuitement, sans engagement et sans risque de coupure — le nouveau résilie l'ancien automatiquement. Le seul comparateur vraiment indépendant est celui du médiateur national de l'énergie (comparateur-offres.energie-info.fr). Refais la comparaison chaque année : les écarts se chiffrent en centaines d'euros.",
+    action: {
+      label: "Comparer (médiateur de l'énergie)",
+      link: "https://comparateur-offres.energie-info.fr",
+    },
+    appliesWhen: always,
+    priority: 82,
+    sources: ["https://www.energie-info.fr/fiche_pratique/je-souhaite-changer-de-fournisseur-delectricite-ou-de-gaz-naturel/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-c2s",
+    category: "insurance",
+    countries: ["FR"],
+    title: "Complémentaire santé solidaire : une mutuelle gratuite ou à moins d'1 €/jour",
+    body:
+      "Sous plafonds de ressources (revalorisés chaque avril), la C2S est une vraie complémentaire santé GRATUITE — ou avec une petite participation selon l'âge au-dessus du plafond. Des millions d'ayants droit ne la demandent jamais. La simulation prend 5 minutes sur ameli.fr ou mesdroitssociaux.gouv.fr, la demande se fait depuis le compte ameli.",
+    action: {
+      label: "Faire la simulation (ameli)",
+      link: "https://www.ameli.fr/assure/droits-demarches/difficultes-acces-droits-soins/complementaire-sante/complementaire-sante-beneficiaires",
+    },
+    appliesWhen: savingsCapacityLow,
+    priority: 92,
+    sources: ["https://www.complementaire-sante-solidaire.gouv.fr/presentation-du-droit"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-100-sante",
+    category: "insurance",
+    countries: ["FR"],
+    title: "Lunettes, dents, audition : le panier 100 % Santé = zéro reste à charge",
+    body:
+      "Avec n'importe quel contrat de mutuelle « responsable » (la quasi-totalité du marché) ou la C2S, tu as droit à des montures, verres, couronnes, dentiers et aides auditives SANS aucun reste à charge — il suffit de demander le devis « 100 % Santé » que le professionnel est obligé de proposer. Beaucoup paient des centaines d'euros faute de le demander.",
+    action: {
+      label: "Comprendre le 100 % Santé (ameli)",
+      link: "https://www.ameli.fr/assure/remboursements/rembourse/soins-protheses-dentaires-optique-audition/soins-dentaires-comprendre-le-100-sante",
+    },
+    appliesWhen: always,
+    priority: 80,
+    sources: ["https://sante.gouv.fr/systeme-de-sante/100pourcent-sante/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-mt-dents",
+    category: "kids",
+    countries: ["FR"],
+    title: "M'T dents : le rendez-vous dentaire gratuit chaque année (3-24 ans)",
+    body:
+      "Le rendez-vous de prévention bucco-dentaire est désormais ANNUEL de 3 à 24 ans : pris en charge à 100 %, sans avance de frais, sans courrier d'invitation — la carte Vitale suffit, précise « M'T dents » en prenant rendez-vous. Les soins qui en découlent sont aussi couverts à 100 % pendant 6 mois. Pour toute la fratrie, c'est des centaines d'euros de prévention gratuite.",
+    action: {
+      label: "Voir le dispositif (ameli)",
+      link: "https://www.ameli.fr/assure/sante/themes/carie-dentaire/mt-dents-tous-les-ans",
+    },
+    appliesWhen: or(hasAnyKids, ageIn("18-25")),
+    priority: 76,
+    sources: ["https://www.ameli.fr/assure/sante/themes/carie-dentaire/mt-dents-tous-les-ans"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-resiliation-mutuelle",
+    category: "insurance",
+    countries: ["FR"],
+    title: "Ta mutuelle se résilie à tout moment après un an",
+    body:
+      "Toute complémentaire santé individuelle peut être résiliée à tout moment après la première année, sans frais ni pénalité — et c'est le NOUVEL assureur qui s'occupe des démarches. Compare chaque année : à garanties égales, les écarts de cotisation sont importants, surtout après 50 ans. Même règle pour l'assurance auto et habitation (loi Hamon).",
+    action: {
+      label: "Voir les règles de résiliation",
+      link: "https://www.economie.gouv.fr/particuliers/gerer-mon-argent/emprunter-et-sassurer/assurance-habitation-auto-complementaire-sante-comment-resilier-son-contrat",
+    },
+    appliesWhen: always,
+    priority: 78,
+    sources: ["https://www.economie.gouv.fr/particuliers/gerer-mon-argent/emprunter-et-sassurer/assurance-habitation-auto-complementaire-sante-comment-resilier-son-contrat"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-telecom-resiliation",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Forfait mobile : après 12 mois, partir ne coûte (presque) rien",
+    body:
+      "Depuis 2023, résilier un engagement 24 mois après le 12e mois ne coûte RIEN — sauf téléphone subventionné dans le contrat (alors 20 % max des sommes restantes). La portabilité du numéro est gratuite : appelle le 3179 pour ton RIO, et c'est le NOUVEL opérateur qui gère tout — ne résilie jamais toi-même avant le portage.",
+    action: {
+      label: "Voir la règle ARCEP",
+      link: "https://www.arcep.fr/mes-demarches-et-services/consommateurs/fiches-pratiques/quelles-sont-les-conditions-et-consequences-de-la-resiliation-du-contrat-par-le-consommateur.html",
+    },
+    appliesWhen: always,
+    priority: 76,
+    figures: [{ label: "Après 12 mois", value: "0 € (ou 20 % si mobile subventionné)" }],
+    sources: ["https://www.arcep.fr/mes-demarches-et-services/consommateurs/fiches-pratiques/quelles-sont-les-conditions-et-consequences-de-la-resiliation-du-contrat-par-le-consommateur.html"],
     lastVerified: "2026-08-06",
   },
 ];
