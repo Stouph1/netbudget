@@ -1,13 +1,22 @@
 // Store Premium : lit/écrit les payloads dans `encrypted_payloads` côté Supabase
 // avec un cache local AsyncStorage pour l'offline.
 //
-// Architecture cible :
-//    payload = JSON → encrypt (libsodium) → base64 → bytea Supabase
-// Actuellement (Phase 3, avant Phase 5 E2E) :
-//    payload = JSON → JSON.stringify → base64 → bytea Supabase (PAS de vraie crypto)
+// ⚠️ AVERTISSEMENT — LE CONTENU N'EST PAS CHIFFRÉ AUJOURD'HUI.
 //
-// Le stub `encryptStub` / `decryptStub` sera remplacé par libsodium en Phase 5
-// SANS toucher au reste du code (interface stable).
+// Le nom de la table (`encrypted_payloads`) et les colonnes ciphertext/nonce
+// décrivent l'architecture CIBLE, pas l'état actuel :
+//    cible      : payload = JSON → libsodium XChaCha20-Poly1305 → bytea
+//    actuel     : payload = JSON → UTF-8 → bytea  (EN CLAIR côté serveur)
+//
+// Conséquence : quiconque a accès à la base (dashboard, backup, fuite de la
+// clé service_role) lit les budgets en clair. La protection repose donc
+// entièrement sur les policies RLS — ne jamais les affaiblir.
+//
+// À FAIRE avant le lancement Premium (Phase 5) : brancher libsodium
+// (dépendance déjà présente) avec une clé en expo-secure-store et un nonce
+// aléatoire de 24 octets par écriture, puis migrer les blobs existants via la
+// colonne `version`. Tant que ce n'est pas fait, l'UI ne doit PAS promettre
+// un chiffrement (textes corrigés le 2026-08-07).
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { UserProfile } from "../types/advice";
@@ -17,7 +26,8 @@ import { supabase } from "./supabase";
 const CACHE_KEY_PREFIX = "netbudget:premium:cache:";
 
 // ============================================================================
-// Encryption stub — REMPLACER en Phase 5 par libsodium XChaCha20-Poly1305
+// PAS DE CHIFFREMENT — encodage UTF-8 seulement (voir l'avertissement en tête).
+// REMPLACER en Phase 5 par libsodium XChaCha20-Poly1305.
 // ============================================================================
 
 // Nonce fictif tant qu'on n'a pas libsodium — vrai nonce = 24 bytes random.

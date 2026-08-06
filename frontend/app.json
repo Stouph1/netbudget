@@ -13,7 +13,7 @@
     },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "netbudget",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -29,7 +29,19 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0F1E3D"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "allowBackup": false,
+      "permissions": [
+        "READ_MEDIA_IMAGES",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",

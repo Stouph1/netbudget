@@ -26,7 +26,9 @@ export function parseNumber(value: string): number {
   if (!value) return 0;
   const cleaned = value.replace(/\s/g, "").replace(",", ".");
   const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
+  // Number.isFinite et pas isNaN : "1e999" donne Infinity, que JSON.stringify
+  // sérialise en null → totaux corrompus au rechargement.
+  return Number.isFinite(n) ? n : 0;
 }
 
 // Distance de Levenshtein — utile pour suggérer la ville la plus proche en cas

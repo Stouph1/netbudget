@@ -102,8 +102,10 @@ export async function listMembersWithProfiles(
   if (members.length === 0) return [];
 
   const ids = members.map((m) => m.user_id);
+  // Vue à colonnes réduites : `profiles` exposait aussi nom, date de
+  // naissance, ville, statut pro et dîme aux co-membres (migration 011).
   const { data } = await supabase
-    .from("profiles")
+    .from("member_profiles")
     .select("id, username, avatar_url, first_name")
     .in("id", ids);
 
@@ -191,48 +193,22 @@ export async function cancelInvite(
 export async function acceptInvite(
   token: string,
 ): Promise<{ ok: boolean; workspaceId?: string; error?: string }> {
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user?.id) return { ok: false, error: "Non authentifié" };
-
-  // 1. Fetch invite via token
-  const { data: invite, error: fetchErr } = await supabase
-    .from("workspace_invites")
-    .select("*")
-    .eq("token", token)
-    .maybeSingle();
-  if (fetchErr || !invite) return { ok: false, error: "Invitation invalide" };
-  if (invite.status !== "pending") {
-    return { ok: false, error: `Invitation ${invite.status}` };
-  }
-  if (new Date(invite.expires_at).getTime() < Date.now()) {
-    return { ok: false, error: "Invitation expirée" };
-  }
-
-  // 2. Vérifier email match (via l'email JWT)
-  const userEmail = userData.user.email?.toLowerCase() ?? "";
-  if (invite.email.toLowerCase() !== userEmail) {
-    return { ok: false, error: "Cette invitation est pour un autre email" };
-  }
-
-  // 3. Insert member
-  const { error: memberErr } = await supabase.from("workspace_members").insert({
-    workspace_id: invite.workspace_id,
-    user_id: userData.user.id,
-    role: "member",
+  // La validation (token, statut, expiration, correspondance d'email) est
+  // faite EN BASE par la fonction SECURITY DEFINER accept_invite : les
+  // contrôles côté client sont contournables en appelant PostgREST direct,
+  // et workspace_members n'a volontairement aucune policy INSERT.
+  const { data, error } = await supabase.rpc("accept_invite", {
+    invite_token: token,
   });
-  if (memberErr) return { ok: false, error: memberErr.message };
-
-  // 4. Mark invite as accepted
-  await supabase
-    .from("workspace_invites")
-    .update({
-      status: "accepted",
-      accepted_at: new Date().toISOString(),
-      accepted_by: userData.user.id,
-    })
-    .eq("id", invite.id);
-
-  return { ok: true, workspaceId: invite.workspace_id };
+  if (error) {
+    const msg = error.message.includes("invalid_invite")
+      ? "Invitation invalide, expirée, ou destinée à un autre e-mail."
+      : error.message.includes("unauthenticated")
+        ? "Connecte-toi pour accepter l'invitation."
+        : error.message;
+    return { ok: false, error: msg };
+  }
+  return { ok: true, workspaceId: (data as string) ?? undefined };
 }
 
 export async function listMyPendingInvites(): Promise<WorkspaceInvite[]> {

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { openExternal } from "../src/utils/openExternal";
 import {
   ActivityIndicator,
   View,
@@ -16,7 +17,6 @@ import {
   Pressable,
   Alert,
   Keyboard,
-  Linking,
   Switch,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -2665,7 +2665,7 @@ export default function Index() {
             {INDEX_SOURCES.map((src) => (
               <TouchableOpacity
                 key={src.url}
-                onPress={() => Linking.openURL(src.url)}
+                onPress={() => openExternal(src.url)}
                 style={styles.sourceLinkRow}
                 activeOpacity={0.7}
                 testID={`source-link-${src.url}`}
@@ -3248,7 +3248,7 @@ export default function Index() {
               <TouchableOpacity
                 style={[styles.infoCloseBtn, { flex: 1, backgroundColor: "#10B981" }]}
                 onPress={() => {
-                  if (updateInfo?.appStoreUrl) Linking.openURL(updateInfo.appStoreUrl);
+                  if (updateInfo?.appStoreUrl) openExternal(updateInfo.appStoreUrl);
                   setUpdateInfo(null);
                 }}
                 testID="update-now"

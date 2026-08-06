@@ -17,7 +17,6 @@ import {
   Alert,
   Image,
   Platform,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,6 +30,7 @@ import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
 import { recordConsent } from "../lib/profile";
 import { notify } from "../utils/notify";
+import { openExternal } from "../utils/openExternal";
 import { pickAndUploadAvatar } from "../lib/photos";
 import {
   loadBudgetHistory,
@@ -208,7 +208,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           </Text>
           <Text style={[styles.signinBody, { marginTop: 10 }]}>
             Un compte débloque les fonctions Premium : synchronisation
-            chiffrée, budgets partagés en couple ou en famille, et conseils
+            sécurisée, budgets partagés en couple ou en famille, et conseils
             personnalisés.
           </Text>
 
@@ -225,14 +225,14 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
               J'ai lu et j'accepte la{" "}
               <Text
                 style={styles.consentLink}
-                onPress={() => Linking.openURL("https://www.netbudget.app/privacy")}
+                onPress={() => openExternal("https://www.netbudget.app/privacy")}
               >
                 politique de confidentialité
               </Text>{" "}
               et les{" "}
               <Text
                 style={styles.consentLink}
-                onPress={() => Linking.openURL("https://www.netbudget.app/terms")}
+                onPress={() => openExternal("https://www.netbudget.app/terms")}
               >
                 conditions d'utilisation
               </Text>

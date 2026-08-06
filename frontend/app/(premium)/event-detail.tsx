@@ -46,6 +46,13 @@ const TEXT_3 = "#64748B";
 const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
+// Montant saisi : borné à >= 0 et fini ("1e999" donnerait Infinity, que
+// JSON.stringify écrit null → total corrompu au rechargement).
+function safeAmount(input: string): number {
+  const n = parseFloat(input.replace(",", "."));
+  return Number.isFinite(n) ? Math.max(0, n) : 0;
+}
+
 function fmt(n: number): string {
   return `${Math.round(n).toLocaleString("fr-FR")} €`;
 }
@@ -116,8 +123,8 @@ export default function EventDetail() {
         it.id === editingItem
           ? {
               ...it,
-              estimated: Math.max(0, parseFloat(draftEstimated.replace(",", ".")) || 0),
-              actual: draftActual.trim() === "" ? null : Math.max(0, parseFloat(draftActual.replace(",", ".")) || 0),
+              estimated: safeAmount(draftEstimated),
+              actual: draftActual.trim() === "" ? null : safeAmount(draftActual),
               paidBy: draftPaidBy.trim() || undefined,
             }
           : it,
@@ -167,7 +174,7 @@ export default function EventDetail() {
 
   function addQuote() {
     if (!ev) return;
-    const price = Math.max(0, parseFloat(quotePrice.replace(",", ".")) || 0);
+    const price = safeAmount(quotePrice);
     if (!quoteLabel.trim() || !price) {
       notify("Relevé de prix", "Indique au moins un intitulé et un prix (ex. Vol Paris-Dakar, 480).");
       return;
@@ -291,7 +298,7 @@ export default function EventDetail() {
             onChangeText={(v) => setSavedDraft(v)}
             onEndEditing={() => {
               if (savedDraft === null) return;
-              persist({ ...ev, saved: Math.max(0, parseFloat(savedDraft.replace(",", ".")) || 0) });
+              persist({ ...ev, saved: safeAmount(savedDraft) });
               setSavedDraft(null);
             }}
           />

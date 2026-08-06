@@ -1,4 +1,5 @@
 // Écran Conseils personnalisés Premium.
+import { openExternal } from "../../src/utils/openExternal";
 //
 // Flow :
 //  - Load profile (encrypted_payloads.advice_profile)
@@ -11,7 +12,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -1117,7 +1117,7 @@ function AdviceCardView({
 
       {action.link ? (
         <TouchableOpacity
-          onPress={() => Linking.openURL(action.link!)}
+          onPress={() => openExternal(action.link)}
           style={styles.actionBtn}
           activeOpacity={0.85}
         >
@@ -1152,7 +1152,7 @@ function AdviceCardView({
           {card.sources.map((src, i) => (
             <TouchableOpacity
               key={i}
-              onPress={() => src.startsWith("http") && Linking.openURL(src)}
+              onPress={() => openExternal(src)}
             >
               <Text style={styles.sourceText}>{src}</Text>
             </TouchableOpacity>

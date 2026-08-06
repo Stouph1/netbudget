@@ -511,9 +511,9 @@ export default function CompleteProfile() {
           <View style={styles.secureNote}>
             <Feather name="lock" size={13} color={TEXT_3} />
             <Text style={styles.secureNoteText}>
-              Tes données sont chiffrées et stockées en Europe. Elles ne sont
-              jamais vendues ni partagées — elles servent uniquement à
-              personnaliser tes conseils.
+              Tes données transitent en HTTPS et sont stockées en Europe.
+              Elles ne sont jamais vendues ni partagées — elles servent
+              uniquement à personnaliser tes conseils.
             </Text>
           </View>
         </ScrollView>

@@ -10,7 +10,9 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
 import { Platform } from "react-native";
+import * as Linking from "expo-linking";
 import { supabase } from "./supabase";
 
 export type AuthResult =
@@ -31,11 +33,20 @@ export async function signInWithApple(): Promise<AuthResult> {
       return { ok: false, reason: "unavailable" };
     }
 
+    // Nonce anti-rejeu : Apple signe le HASH, Supabase vérifie contre le brut.
+    // Sans lui, un identityToken intercepté est rejouable pendant sa validité.
+    const rawNonce = Crypto.randomUUID();
+    const hashedNonce = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      rawNonce,
+    );
+
     const credential = await AppleAuthentication.signInAsync({
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
+      nonce: hashedNonce,
     });
 
     if (!credential.identityToken) {
@@ -45,6 +56,7 @@ export async function signInWithApple(): Promise<AuthResult> {
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: "apple",
       token: credential.identityToken,
+      nonce: rawNonce,
     });
 
     if (error || !data.user) {
@@ -194,9 +206,13 @@ export async function signInWithEmailMagicLink(
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Deep link de retour vers l'app. Le scheme "frontend" est défini
-        // dans app.json (à confirmer / harmoniser plus tard).
-        emailRedirectTo: "frontend://auth-callback",
+        // Deep link construit par Expo depuis le scheme d'app.json — jamais
+        // codé en dur. ⚠️ Un custom scheme n'est PAS vérifiable sur Android :
+        // avant de câbler ce flux dans un écran, passer aux App Links vérifiés
+        // (https://www.netbudget.app/auth-callback + assetlinks.json).
+        // Le flux PKCE (voir supabase.ts) limite déjà l'impact d'une
+        // interception : le code seul est inexploitable.
+        emailRedirectTo: Linking.createURL("/auth-callback"),
       },
     });
     if (error) {
@@ -229,7 +245,12 @@ export async function deleteAccount(): Promise<{ ok: boolean; error?: string }> 
     try {
       const keys = await AsyncStorage.getAllKeys();
       await AsyncStorage.multiRemove(
-        keys.filter((k) => k.startsWith("netbudget:premium") || k.startsWith("netbudget:bday")),
+        keys.filter(
+          (k) =>
+            k.startsWith("netbudget:premium") ||
+            k.startsWith("netbudget:bday") ||
+            k.startsWith("netbudget:events"),
+        ),
       );
     } catch {}
     await supabase.auth.signOut();

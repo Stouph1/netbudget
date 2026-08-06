@@ -1,4 +1,5 @@
 // Dépôt de conseils — les cartes gardées (swipe droite à l'anniversaire).
+import { openExternal } from "../../src/utils/openExternal";
 // Accessible depuis le Profil. Suppression à l'unité.
 
 import { Feather } from "@expo/vector-icons";
@@ -6,7 +7,6 @@ import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -135,7 +135,7 @@ export default function SavedAdvice() {
                       {it.sources.map((src, i) => (
                         <TouchableOpacity
                           key={i}
-                          onPress={() => src.startsWith("http") && Linking.openURL(src)}
+                          onPress={() => openExternal(src)}
                           style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
                         >
                           <Feather name="external-link" size={11} color={GOLD} />

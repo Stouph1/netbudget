@@ -73,6 +73,9 @@ android-sdk/
 .env
 .env.*
 *.env
+# le template (placeholders uniquement) reste versionné
+!.env.example
+!*/.env.example
 credentials.json
 *.key
 .credentials

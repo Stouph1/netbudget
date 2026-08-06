@@ -1,3 +1,4 @@
+import * as Crypto from "expo-crypto";
 // Modal d'édition/création d'un objectif d'épargne S1.
 // Design : sheet bas d'écran avec inputs simples. Validation minimale.
 
@@ -41,13 +42,15 @@ type Props = {
 };
 
 function genId(): string {
-  return `g_${Math.floor(1000 + (globalThis.performance?.now?.() ?? 0) * 1000)}`;
+  // UUID : deux membres d'un même workspace créant un objectif en même temps
+  // généraient le même id dérivé de performance.now() → écrasement silencieux.
+  return `g_${Crypto.randomUUID()}`;
 }
 
 function parseAmount(s: string): number {
   const cleaned = s.replace(/\s/g, "").replace(",", ".");
   const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
+  return Number.isFinite(n) ? n : 0;
 }
 
 export default function GoalEditor({
