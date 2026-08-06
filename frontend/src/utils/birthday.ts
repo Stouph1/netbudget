@@ -3,8 +3,15 @@
 
 import type { AgeBracket } from "../types/advice";
 
-// "JJ/MM/AAAA" → Date (ou null si invalide / incohérente)
-export function parseBirthdate(input: string): Date | null {
+// "JJ/MM/AAAA" → Date (ou null si invalide / incohérente).
+// minAge par défaut 10 : garde-fou pour la date de naissance de l'UTILISATEUR
+// (inscription). Pour un enfant ou un animal, passer { minAge: 0 } —
+// un chaton de 3 mois ou un bébé sont des dates parfaitement valides.
+export function parseBirthdate(
+  input: string,
+  opts: { minAge?: number; maxAge?: number } = {},
+): Date | null {
+  const { minAge = 10, maxAge = 110 } = opts;
   const m = input.trim().match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
   if (!m) return null;
   const day = parseInt(m[1], 10);
@@ -18,8 +25,9 @@ export function parseBirthdate(input: string): Date | null {
   ) {
     return null;
   }
+  if (d.getTime() > Date.now()) return null; // jamais dans le futur
   const age = computeAge(d);
-  if (age < 10 || age > 110) return null; // garde-fou saisie
+  if (age < minAge || age > maxAge) return null;
   return d;
 }
 

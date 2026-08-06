@@ -58,9 +58,13 @@ export default function Celebrations() {
       notify("Prénom", "Indique un prénom (ou un nom pour l'animal).");
       return;
     }
-    const bd = parseBirthdate(birth);
+    // minAge 0 : un bébé né hier ou un chaton de 3 mois sont valides
+    const bd = parseBirthdate(birth, { minAge: 0, maxAge: kind === "pet" ? 40 : 110 });
     if (!bd) {
-      notify("Date", "Format attendu : JJ/MM/AAAA.");
+      notify(
+        "Date invalide",
+        "Format attendu : JJ/MM/AAAA (ex. 15/03/2021), dans le passé.",
+      );
       return;
     }
     const item: CelebrationPerson = {
