@@ -4014,6 +4014,108 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: ["https://www.i-cad.fr", "https://agriculture.gouv.fr/animaux-de-compagnie-equides-tout-savoir-sur-le-certificat-dengagement-et-de-connaissance"],
     lastVerified: "2026-08-06",
   },
+
+  // ==========================================================================
+  // ABONNEMENTS — l'hémorragie silencieuse de tous les budgets.
+  // ==========================================================================
+  {
+    id: "abo-audit-annuel",
+    category: "emergency",
+    countries: "all",
+    title: "L'audit d'abonnements : 30 minutes, des centaines d'euros",
+    body:
+      "Streaming, salles de sport, applis, box, assurances doublonnées : les abonnements sont le poste qui gonfle sans bruit. Une fois par an, liste-les TOUS depuis tes relevés bancaires (pas de mémoire !), classe-les en « j'utilise / j'ai oublié / doublon », et résilie sans pitié la 2e colonne. C'est souvent l'économie la plus rapide de l'année.",
+    action: { label: "Lister tous les abonnements depuis les relevés" },
+    appliesWhen: always,
+    priority: 86,
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "abo-resiliation-3-clics",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Résilier est devenu facile : le bouton « 3 clics » est un droit",
+    body:
+      "Depuis 2023, tout contrat souscrit en ligne (streaming, salle de sport, assurance, presse…) doit pouvoir être résilié en ligne, via une fonctionnalité directe — fini les recommandés et les plateformes injoignables. Et la loi Chatel oblige les professionnels à te prévenir avant chaque reconduction tacite : cet avis est ta fenêtre de sortie.",
+    action: {
+      label: "Connaître tes droits de résiliation",
+      link: "https://www.economie.gouv.fr/particuliers/resiliation-contrats-trois-clics",
+    },
+    appliesWhen: always,
+    priority: 80,
+    sources: ["https://www.economie.gouv.fr/particuliers/resiliation-contrats-trois-clics"],
+    lastVerified: "2026-08-06",
+  },
+
+  // ==========================================================================
+  // IMMOBILIER JEUNES / PRIMO-ACCÉDANTS — dispositifs vérifiés, montants
+  // volatils exclus (plafonds PTZ/PEL changent).
+  // ==========================================================================
+  {
+    id: "immo-ptz-primo",
+    category: "real_estate",
+    countries: ["FR"],
+    title: "PTZ : l'État te prête une partie de ton premier logement à 0 %",
+    body:
+      "Le Prêt à Taux Zéro finance une partie de l'achat de ta première résidence principale (pas propriétaire depuis 2 ans), sous plafonds de ressources — et depuis 2025 il couvre le NEUF sur tout le territoire. Aucune condition d'âge : c'est le statut de primo-accédant qui compte. Avant tout projet, fais la simulation : ça change la capacité d'emprunt.",
+    action: {
+      label: "Vérifier l'éligibilité PTZ",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10871",
+    },
+    appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35", "36-50")),
+    priority: 84,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F10871"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "immo-pel-jeune",
+    category: "real_estate",
+    countries: ["FR"],
+    title: "PEL : verrouille un taux de prêt des années à l'avance",
+    body:
+      "Le Plan Épargne Logement fige, dès l'ouverture, le taux du futur prêt immobilier auquel il donne droit — utile quand tu épargnes pour un achat à 4-10 ans. Versement minimum annuel, plafond de dépôt, prime selon la génération du plan : les paramètres changent par génération, mais le principe demeure : ouvrir tôt fige les conditions. Compare avec un simple livret selon les taux du moment.",
+    action: {
+      label: "Comparer PEL et alternatives",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F16140",
+    },
+    appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
+    priority: 74,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F16140"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "immo-bail-mobilite",
+    category: "housing",
+    countries: ["FR"],
+    title: "Bail mobilité : le contrat souple des étudiants et alternants",
+    body:
+      "Meublé, de 1 à 10 mois, SANS dépôt de garantie : le bail mobilité est réservé aux étudiants, alternants, stagiaires, personnes en formation ou mutation professionnelle. Couplé à la garantie Visale (gratuite), il supprime les deux gros obstacles d'entrée : la caution et le garant. Pense à le demander explicitement — les bailleurs n'y pensent pas toujours.",
+    action: {
+      label: "Voir les règles du bail mobilité",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34759",
+    },
+    appliesWhen: and(housingIn("renter"), or(ageIn("18-25"), occupationIs("student"))),
+    priority: 80,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F34759"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "immo-action-logement-jeunes",
+    category: "housing",
+    countries: ["FR"],
+    title: "Action Logement : les aides jeunes que ton employeur finance déjà",
+    body:
+      "Si tu es salarié (ou alternant) du privé, Action Logement propose : l'avance LOCA-PASS (dépôt de garantie prêté à 0 %), l'aide MOBILI-JEUNE® qui prend en charge une partie du loyer des alternants de moins de 30 ans, et la garantie Visale. Financées par la cotisation logement des entreprises — tu y as droit, réclame-les.",
+    action: {
+      label: "Tester ton éligibilité Action Logement",
+      link: "https://www.actionlogement.fr",
+    },
+    appliesWhen: and(housingIn("renter"), ageIn("18-25", "26-35")),
+    priority: 82,
+    sources: ["https://www.actionlogement.fr"],
+    lastVerified: "2026-08-06",
+  },
 ];
 
 // ============================================================================

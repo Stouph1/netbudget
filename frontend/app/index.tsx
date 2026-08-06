@@ -604,8 +604,11 @@ export default function Index() {
         if (!seen) {
           await AsyncStorage.setItem(yearKey, "1").catch(() => {});
           const a = computeAge(new Date(details.birthdate));
+          // Toujours le profil PERSO frais : le pays/la région choisis dans
+          // le Coach doivent piloter les cartes, jamais le scope actif.
+          const perso = await loadAdviceProfile(premiumUser!.id, null);
           setBdaySource("birthday");
-          setBdayCards(buildBirthdayCards(a, details.first_name, p));
+          setBdayCards(buildBirthdayCards(a, details.first_name, perso));
           setBdayOpen(true);
           opened = true;
         }
@@ -621,8 +624,9 @@ export default function Index() {
         await AsyncStorage.setItem(key, "1").catch(() => {});
         if (c.kind === "child") {
           const a = computeAge(new Date(c.birthdate));
+          const perso = await loadAdviceProfile(premiumUser.id, null);
           setBdaySource(`child:${c.name}`);
-          setBdayCards(buildChildBirthdayCards(a, c.name, p));
+          setBdayCards(buildChildBirthdayCards(a, c.name, perso));
         } else {
           setBdaySource(`pet:${c.name}`);
           setBdayCards(buildPetBirthdayCards(c.name, c.species ?? "other"));
@@ -1334,10 +1338,9 @@ export default function Index() {
         const a = details.birthdate
           ? computeAge(new Date(details.birthdate))
           : 25;
+        const perso = await loadAdviceProfile(premiumUser.id, null);
         setBdaySource("birthday");
-        setBdayCards(
-          buildBirthdayCards(a, details.first_name, premiumProfile ?? {}),
-        );
+        setBdayCards(buildBirthdayCards(a, details.first_name, perso));
         setBdayOpen(true);
       }
     : undefined;
