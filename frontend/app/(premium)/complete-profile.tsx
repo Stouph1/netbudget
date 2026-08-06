@@ -29,8 +29,15 @@ import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadAvatar } from "../../src/lib/photos";
 import { loadProfileDetails, updateProfileDetails } from "../../src/lib/profile";
 import { loadAdviceProfile, saveAdviceProfile } from "../../src/lib/premiumStore";
+import {
+  ageToBracket,
+  computeAge,
+  dateToIso,
+  isoToInput,
+  parseBirthdate,
+} from "../../src/utils/birthday";
 import { notify } from "../../src/utils/notify";
-import type { AgeBracket, Country } from "../../src/types/advice";
+import type { AgeBracket, Country, Occupation } from "../../src/types/advice";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -66,6 +73,9 @@ export default function CompleteProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [age, setAge] = useState<AgeBracket | undefined>(undefined);
+  const [birthInput, setBirthInput] = useState(""); // "JJ/MM/AAAA"
+  const [occupation, setOccupation] = useState<Occupation | undefined>(undefined);
+  const [occupationField, setOccupationField] = useState("");
   const [country, setCountry] = useState<Country | undefined>(undefined);
   const [region, setRegion] = useState<string | undefined>(undefined);
   const [city, setCity] = useState("");
@@ -90,6 +100,9 @@ export default function CompleteProfile() {
       setGivingEnabled(details.tithe_enabled);
       setTithePercent(String(details.tithe_percent));
       if (advicePerso.age) setAge(advicePerso.age);
+      setBirthInput(isoToInput(details.birthdate));
+      if (details.occupation_status) setOccupation(details.occupation_status as Occupation);
+      setOccupationField(details.occupation_field ?? "");
       if (advicePerso.country) setCountry(advicePerso.country);
       if (advicePerso.region) setRegion(advicePerso.region);
       setLoading(false);
@@ -119,6 +132,19 @@ export default function CompleteProfile() {
       return;
     }
 
+    // Date de naissance → âge automatique (facultatif mais recommandé)
+    let birthIso: string | null | undefined = undefined;
+    let derivedAge: AgeBracket | undefined = age;
+    if (birthInput.trim()) {
+      const bd = parseBirthdate(birthInput);
+      if (!bd) {
+        notify("Date de naissance", "Format attendu : JJ/MM/AAAA (ex. 23/04/2001).");
+        return;
+      }
+      birthIso = dateToIso(bd);
+      derivedAge = ageToBracket(computeAge(bd));
+    }
+
     setBusy(true);
     const result = await updateProfileDetails(user.id, {
       username,
@@ -129,19 +155,23 @@ export default function CompleteProfile() {
       country: country ?? "",
       region: country === "FR" ? (region ?? "") : "",
       city,
+      birthdate: birthIso ?? null,
+      occupation_status: occupation ?? "",
+      occupation_field: occupationField,
     });
 
     // Pré-remplit le profil conseils PERSO (âge, pays, région) pour que
     // l'onboarding Coach démarre déjà personnalisé.
-    if (result.ok && (age || country)) {
+    if (result.ok && (derivedAge || country || occupation)) {
       const adviceProfile = await loadAdviceProfile(user.id, null);
       await saveAdviceProfile(
         user.id,
         {
           ...adviceProfile,
-          ...(age ? { age } : {}),
+          ...(derivedAge ? { age: derivedAge } : {}),
           ...(country ? { country } : {}),
           ...(country === "FR" && region ? { region } : {}),
+          ...(occupation ? { occupation } : {}),
         },
         null,
       );
@@ -158,11 +188,11 @@ export default function CompleteProfile() {
       return;
     }
 
-    // Enchaînement DIRECT vers le Coach (en scope PERSO) : l'utilisateur
-    // remplit naturellement son profil conseils dans la foulée.
+    // Enchaînement DIRECT vers le QUESTIONNAIRE du Coach (en scope PERSO) :
+    // ?onboard=1 force l'écran d'édition du profil conseils, jamais la liste.
     // (Pas d'Alert ici : les popups à boutons sont muettes sur le web.)
     await setScope(null);
-    router.replace("/(premium)/advice" as never);
+    router.replace("/(premium)/advice?onboard=1" as never);
   }
 
   if (sessionLoading || loading) {
@@ -267,24 +297,100 @@ export default function CompleteProfile() {
             </View>
           </View>
 
-          <Text style={styles.label}>Ton âge</Text>
+          <Text style={styles.label}>Ta date de naissance</Text>
+          <Text style={styles.hint}>
+            Ton âge se met à jour tout seul — et on te réserve une petite
+            surprise le jour J 🎂
+          </Text>
+          <TextInput
+            style={styles.input}
+            value={birthInput}
+            onChangeText={setBirthInput}
+            placeholder="JJ/MM/AAAA"
+            placeholderTextColor={TEXT_3}
+            keyboardType="numbers-and-punctuation"
+            maxLength={10}
+          />
+          {(() => {
+            const bd = parseBirthdate(birthInput);
+            return bd ? (
+              <Text style={styles.ageEcho}>→ {computeAge(bd)} ans</Text>
+            ) : null;
+          })()}
+
+          {!birthInput.trim() ? (
+            <>
+              <Text style={styles.label}>… ou ta tranche d'âge</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {AGE_OPTIONS.map((opt) => {
+                  const active = age === opt.value;
+                  return (
+                    <TouchableOpacity
+                      key={opt.value}
+                      onPress={() => setAge(active ? undefined : opt.value)}
+                      style={[styles.chip, active && styles.chipActive]}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          ) : null}
+
+          {/* Situation professionnelle (CRM + conseils ciblés) */}
+          <Text style={styles.label}>Ta situation</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {AGE_OPTIONS.map((opt) => {
-              const active = age === opt.value;
+            {(
+              [
+                ["student", "Étudiant·e"],
+                ["employee", "Salarié·e"],
+                ["self_employed", "Indépendant·e"],
+                ["civil_servant", "Fonctionnaire"],
+                ["unemployed", "Sans emploi"],
+                ["retired", "Retraité·e"],
+              ] as const
+            ).map(([value, lbl]) => {
+              const active = occupation === value;
               return (
                 <TouchableOpacity
-                  key={opt.value}
-                  onPress={() => setAge(active ? undefined : opt.value)}
+                  key={value}
+                  onPress={() => setOccupation(active ? undefined : value)}
                   style={[styles.chip, active && styles.chipActive]}
                   activeOpacity={0.85}
                 >
                   <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {opt.label}
+                    {lbl}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
+
+          {occupation && occupation !== "unemployed" && occupation !== "retired" ? (
+            <>
+              <Text style={styles.label}>
+                {occupation === "student"
+                  ? "Ton domaine d'études"
+                  : "Ton domaine de travail"}
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={occupationField}
+                onChangeText={setOccupationField}
+                placeholder={
+                  occupation === "student"
+                    ? "Droit, informatique, médecine…"
+                    : "Informatique, santé, BTP, commerce…"
+                }
+                placeholderTextColor={TEXT_3}
+                autoCapitalize="sentences"
+              />
+            </>
+          ) : null}
 
           {/* Lieu : personnalise les conseils (fiscalité pays, aides région) */}
           <Text style={styles.label}>Où vis-tu ?</Text>
@@ -454,6 +560,7 @@ const styles = StyleSheet.create({
   },
   avatarHint: { color: TEXT_3, fontSize: 12, marginTop: 10 },
   hint: { color: TEXT_3, fontSize: 12, lineHeight: 17, marginBottom: 8 },
+  ageEcho: { color: GOLD, fontSize: 13, fontWeight: "700", marginTop: 6 },
   secureNote: {
     flexDirection: "row",
     alignItems: "center",

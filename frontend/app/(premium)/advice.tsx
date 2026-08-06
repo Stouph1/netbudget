@@ -6,7 +6,7 @@
 //  - Sinon → conseils groupés par catégorie (Budget/Invest/Fiscalité/…)
 
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -369,6 +369,9 @@ function currentWeekSeed(): number {
 
 export default function AdviceScreen() {
   const { user, loading: sessionLoading } = useSession();
+  // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
+  // jamais la liste — l'utilisateur continue de remplir naturellement.
+  const { onboard } = useLocalSearchParams<{ onboard?: string }>();
   const {
     workspaceId,
     workspaceKind,
@@ -412,7 +415,9 @@ export default function AdviceScreen() {
       setProfile(loaded);
       // Onboarding forcé seulement si le minimum du mode n'est pas rempli
       // (asso : rien d'obligatoire → direct sur les conseils).
-      setEditing(!hasMinimumProfileFor(loaded, modeFor(workspaceKind)));
+      setEditing(
+        onboard === "1" || !hasMinimumProfileFor(loaded, modeFor(workspaceKind)),
+      );
       setLoading(false);
     })();
   }, [user?.id, workspaceId, workspaceKind, scopeLoading]);
@@ -615,6 +620,51 @@ export default function AdviceScreen() {
               value={profile.housing}
               onSelect={(v) => updateField("housing", v)}
               allowDeselect
+            />
+          ) : null}
+          {cfg.askHousing &&
+          (profile.housing === "owner" || profile.housing === "accessor") ? (
+            <>
+              <ChipsBlock
+                label="Appartement ou maison ?"
+                hint="Copropriété et entretien intégral ne se budgètent pas pareil."
+                options={[
+                  { value: "apartment", label: "Appartement" },
+                  { value: "house", label: "Maison" },
+                ]}
+                value={profile.housingType}
+                onSelect={(v) => updateField("housingType", v)}
+              />
+              <ChipsBlock
+                label="Nombre de biens immobiliers"
+                hint="Résidence principale incluse. À partir de 2, les conseils bailleur (rendement net-net, fiscalité locative) s'activent."
+                options={[
+                  { value: "1", label: "1" },
+                  { value: "2", label: "2" },
+                  { value: "3", label: "3 et +" },
+                ]}
+                value={
+                  profile.propertyCount ? String(profile.propertyCount) : undefined
+                }
+                onSelect={(v) =>
+                  updateField("propertyCount", v ? parseInt(v, 10) : undefined)
+                }
+              />
+            </>
+          ) : null}
+          {cfg.askHousing ? (
+            <ChipsBlock
+              label={mode === "perso" ? "Ton cadre de vie" : "Votre cadre de vie"}
+              hint="Le train de vie littoral ≠ montagne ≠ grande ville — certains conseils s'y adaptent (et aux saisons)."
+              options={[
+                { value: "big_city", label: "Grande ville" },
+                { value: "province", label: "Ville moyenne" },
+                { value: "rural", label: "Campagne" },
+                { value: "coastal", label: "Littoral" },
+                { value: "mountain", label: "Montagne" },
+              ]}
+              value={profile.zone}
+              onSelect={(v) => updateField("zone", v)}
             />
           ) : null}
           {cfg.askTmi ? (

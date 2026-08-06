@@ -62,6 +62,27 @@ const or =
   (p) =>
     preds.some((f) => f(p));
 
+// Cadre de vie / logement / situation pro
+const zoneIs =
+  (...zones: NonNullable<UserProfile["zone"]>[]): AdvicePredicate =>
+  (p) =>
+    !!p.zone && zones.includes(p.zone);
+
+const housingTypeIs =
+  (t: NonNullable<UserProfile["housingType"]>): AdvicePredicate =>
+  (p) =>
+    p.housingType === t;
+
+const propertyCountAtLeast =
+  (n: number): AdvicePredicate =>
+  (p) =>
+    (p.propertyCount ?? 0) >= n;
+
+const occupationIs =
+  (...occ: NonNullable<UserProfile["occupation"]>[]): AdvicePredicate =>
+  (p) =>
+    !!p.occupation && occ.includes(p.occupation);
+
 // Région française déclarée (les aides locales varient fortement).
 const regionIs =
   (...regions: string[]): AdvicePredicate =>
@@ -3326,6 +3347,461 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: ["Art. 39 §2 code IRPP/IS · loi de finances 2021"],
     lastVerified: "2026-07-28",
   },
+
+  // ==========================================================================
+  // SAISONNIER FRANCE — cartes actives seulement certains mois (months).
+  // Dispositifs cités sans montants (ils changent chaque année).
+  // ==========================================================================
+  {
+    id: "season-rentree",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Rentrée : le budget se prépare en août, pas en septembre",
+    body:
+      "Fournitures, assurance scolaire, cantine, activités : la rentrée est un pic de dépenses prévisible. Liste les postes dès août, compare les assurances scolaires (souvent déjà couvertes par ton assurance habitation !), et vérifie ton éligibilité à l'allocation de rentrée scolaire (ARS, versée sous conditions de ressources fin août).",
+    action: {
+      label: "Vérifier l'ARS sur caf.fr",
+      link: "https://www.caf.fr/allocataires/aides-et-demarches/droits-et-prestations/enfance-et-jeunesse/l-allocation-de-rentree-scolaire-ars",
+    },
+    appliesWhen: hasAnyKids,
+    months: [7, 8, 9],
+    priority: 88,
+    sources: ["https://www.caf.fr"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "season-chauffage",
+    category: "emergency",
+    countries: ["FR"],
+    title: "L'hiver se gagne en octobre : chauffage sous contrôle",
+    body:
+      "Le chauffage est le premier poste d'énergie du foyer. Avant les premiers froids : purge des radiateurs, entretien chaudière (obligatoire et souvent exigé par l'assurance), 19 °C en pièce à vivre, et compare ton contrat d'énergie — les écarts entre offres se paient tout l'hiver. Vérifie aussi ton éligibilité au chèque énergie.",
+    action: {
+      label: "Vérifier le chèque énergie",
+      link: "https://chequeenergie.gouv.fr",
+    },
+    appliesWhen: always,
+    months: [10, 11, 12, 1, 2],
+    priority: 84,
+    sources: ["https://chequeenergie.gouv.fr"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "season-impots",
+    category: "tax",
+    countries: ["FR"],
+    title: "Période de déclaration : les cases qui rendent de l'argent",
+    body:
+      "Avril-juin, c'est la déclaration de revenus. Trois vérifications qui paient : les dons (66 % de réduction, case 7UF), les frais réels vs l'abattement de 10 % si tu fais beaucoup de kilomètres, et les services à la personne (crédit d'impôt 50 %). Dix minutes de vérification valent souvent plusieurs centaines d'euros.",
+    action: {
+      label: "Ouvrir mon espace impots.gouv.fr",
+      link: "https://www.impots.gouv.fr",
+    },
+    appliesWhen: always,
+    months: [4, 5, 6],
+    priority: 86,
+    sources: ["https://www.impots.gouv.fr"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "season-fetes",
+    category: "emergency",
+    countries: "all",
+    title: "Fêtes de fin d'année : provisionne dès novembre",
+    body:
+      "Cadeaux, repas, déplacements : décembre coûte souvent l'équivalent d'une demi-mensualité de dépenses en plus. Le réflexe qui change tout : une ligne « fêtes » provisionnée dès novembre (ou lissée sur l'année), et jamais de crédit conso pour des cadeaux — janvier te dira merci.",
+    action: { label: "Créer une ligne « fêtes » dans le budget" },
+    appliesWhen: always,
+    months: [11, 12],
+    priority: 82,
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "season-soldes",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Soldes : une liste avant, sinon ce n'est pas une économie",
+    body:
+      "Les soldes ne font économiser que sur ce que tu avais déjà PRÉVU d'acheter. Avant les périodes de soldes (janvier et juin-juillet), fais la liste de ce dont le foyer a réellement besoin, fixe une enveloppe, et ignore le reste : un article à −50 % dont tu n'avais pas besoin, c'est 100 % de dépense en plus.",
+    action: { label: "Préparer la liste et l'enveloppe soldes" },
+    appliesWhen: always,
+    months: [1, 6, 7],
+    priority: 76,
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-08-06",
+  },
+
+  // ==========================================================================
+  // PROPRIÉTAIRE BAILLEUR — recherche vérifiée 2026-08-06 (impots.gouv.fr,
+  // service-public F32744/F2329/F947, ANIL, décret 87-713).
+  // ==========================================================================
+  {
+    id: "immo-net-net-net",
+    category: "real_estate",
+    countries: ["FR"],
+    title: "Ton loyer n'est pas ton rendement : pense « net-net-net »",
+    body:
+      "Le loyer encaissé (brut) fond en trois étages. Net de charges : retire taxe foncière (hors TEOM), charges de copro non récupérables, assurance PNO, gestion, entretien et vacance locative. Net-net : retire ensuite l'impôt ET les prélèvements sociaux — 17,2 % en location nue, 18,6 % en meublé depuis 2026. C'est ce dernier chiffre qui doit entrer dans ton budget, pas le loyer affiché.",
+    action: { label: "Calculer le net-net de chaque bien dans le budget" },
+    appliesWhen: propertyCountAtLeast(2),
+    priority: 90,
+    figures: [
+      { label: "Prélèv. sociaux (nue)", value: "17,2 %" },
+      { label: "Prélèv. sociaux (meublé 2026)", value: "18,6 %" },
+    ],
+    sources: [
+      "https://www.impots.gouv.fr/particulier/questions/je-donne-un-bien-en-location-dois-je-payer-des-prelevements-sociaux",
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F2329",
+    ],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "immo-micro-foncier-reel",
+    category: "tax",
+    countries: ["FR"],
+    title: "Location nue : micro-foncier ou réel, le mauvais choix coûte cher",
+    body:
+      "Jusqu'à 15 000 € de loyers annuels, le micro-foncier applique 30 % d'abattement automatique — simple, mais AUCUNE charge déductible en plus. Au réel : travaux, intérêts d'emprunt, taxe foncière, assurances se déduisent, et un déficit foncier s'impute sur ton revenu global jusqu'à 10 700 €/an. Si tes charges dépassent 30 % des loyers, le réel gagne (option irrévocable 3 ans).",
+    action: {
+      label: "Comparer micro-foncier et réel",
+      link: "https://www.impots.gouv.fr/particulier/location-vide-de-meubles",
+    },
+    appliesWhen: propertyCountAtLeast(2),
+    priority: 84,
+    figures: [
+      { label: "Micro-foncier", value: "≤ 15 000 € · abatt. 30 %" },
+      { label: "Déficit foncier", value: "10 700 €/an" },
+    ],
+    sources: ["https://www.impots.gouv.fr/particulier/location-vide-de-meubles"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "immo-lmnp-2026",
+    category: "tax",
+    countries: ["FR"],
+    title: "Meublé (LMNP) : les règles ont changé, vérifie ton régime",
+    body:
+      "Pour les revenus 2026 : micro-BIC jusqu'à 83 600 € avec 50 % d'abattement (longue durée et tourisme classé) — mais le meublé de tourisme NON classé est tombé à 15 000 € et 30 % (loi Le Meur). Au réel, l'amortissement du bien et des meubles réduit fortement l'imposition. Beaucoup de contenus en ligne datent d'avant la réforme : vérifie sur la source officielle.",
+    action: {
+      label: "Voir les seuils meublé à jour",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F32744",
+    },
+    appliesWhen: propertyCountAtLeast(2),
+    priority: 82,
+    figures: [
+      { label: "Micro-BIC 2026", value: "83 600 € · 50 %" },
+      { label: "Tourisme non classé", value: "15 000 € · 30 %" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F32744"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "immo-charges-recuperables",
+    category: "real_estate",
+    countries: ["FR"],
+    title: "Charges récupérables : la liste est limitative, récupère tout",
+    body:
+      "Le décret 87-713 fixe la liste exacte de ce que tu peux refacturer au locataire : eau, chauffage collectif, entretien des communs, et la TEOM (taxe ordures ménagères — elle est sur ton avis de taxe foncière, beaucoup de bailleurs oublient de la récupérer). La taxe foncière elle-même, le syndic et les gros travaux restent à ta charge : c'est eux qui creusent l'écart brut/net.",
+    action: {
+      label: "Vérifier la liste officielle",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F947",
+    },
+    appliesWhen: propertyCountAtLeast(2),
+    priority: 78,
+    sources: [
+      "https://www.service-public.gouv.fr/particuliers/vosdroits/F947",
+      "Décret n° 87-713 du 26 août 1987",
+    ],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "immo-gli-visale",
+    category: "insurance",
+    countries: ["FR"],
+    title: "Impayés : GLI ou Visale, mais pas caution + GLI",
+    body:
+      "La garantie loyers impayés (généralement 2 à 4 % du loyer annuel, déductible au régime réel) n'est PAS cumulable avec une caution personne physique — sauf locataire étudiant ou apprenti. Alternative gratuite : la garantie Visale d'Action Logement, selon le profil du locataire. Dans ton budget bailleur, la GLI est une charge qui s'ajoute à l'étage « net ».",
+    action: {
+      label: "Comparer GLI et Visale",
+      link: "https://www.anil.org/votre-besoin/gerer-un-bien/bailleur/impayes-de-loyer/",
+    },
+    appliesWhen: propertyCountAtLeast(2),
+    priority: 74,
+    sources: ["https://www.anil.org/votre-besoin/gerer-un-bien/bailleur/impayes-de-loyer/"],
+    lastVerified: "2026-08-06",
+  },
+
+  // ==========================================================================
+  // TYPE DE LOGEMENT & CADRE DE VIE — principes généraux, sans chiffres.
+  // ==========================================================================
+  {
+    id: "housing-maison-entretien",
+    category: "housing",
+    countries: "all",
+    title: "Maison : l'entretien ne prévient pas, provisionne-le",
+    body:
+      "En maison, il n'y a pas de copropriété pour lisser les coups durs : toiture, chaudière, façade, clôtures arrivent d'un coup et coûtent cher. Le réflexe : une ligne « entretien maison » alimentée chaque mois, toute l'année, même quand tout va bien — c'est elle qui transforme une toiture à refaire en dépense planifiée au lieu d'un crédit.",
+    action: { label: "Créer une provision mensuelle « entretien maison »" },
+    appliesWhen: and(housingTypeIs("house"), housingIn("owner", "accessor")),
+    priority: 80,
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "housing-appart-copro",
+    category: "housing",
+    countries: ["FR"],
+    title: "Copropriété : ton budget se vote en AG, sois-y",
+    body:
+      "En appartement, tes charges se décident à l'assemblée générale : budget prévisionnel, fonds de travaux obligatoire (loi ALUR), et surtout les gros appels de fonds votés parfois des années à l'avance. Lis les PV d'AG, anticipe les travaux votés dans ton budget, et compare le contrat de syndic — c'est un poste négociable que presque personne ne challenge.",
+    action: { label: "Relire le dernier PV d'AG et noter les travaux votés" },
+    appliesWhen: and(housingTypeIs("apartment"), housingIn("owner", "accessor")),
+    priority: 80,
+    sources: ["Loi n° 65-557 du 10 juillet 1965 · loi ALUR (fonds de travaux)"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "zone-montagne-hiver",
+    category: "emergency",
+    countries: "all",
+    title: "En montagne, l'hiver est un poste budgétaire à part entière",
+    body:
+      "Chauffage prolongé, pneus hiver ou chaînes (obligatoires dans de nombreuses zones), surconsommation de carburant, équipements : l'hiver en montagne coûte structurellement plus cher. Provisionne dès septembre une enveloppe « hiver » distincte — la lisser sur l'année évite le trou de novembre-décembre.",
+    action: { label: "Créer une enveloppe « hiver » alimentée dès la rentrée" },
+    appliesWhen: zoneIs("mountain"),
+    months: [8, 9, 10, 11, 12, 1, 2],
+    priority: 78,
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "zone-littoral-saison",
+    category: "emergency",
+    countries: "all",
+    title: "Sur le littoral, ton budget vit au rythme des saisons",
+    body:
+      "L'été touristique fait grimper les prix locaux (courses, sorties, stationnement) et l'air marin accélère l'usure (humidité, sel : peinture, vélo, voiture). Deux réflexes : anticiper le surcoût estival dans les enveloppes concernées, et provisionner un petit budget entretien anti-corrosion annuel.",
+    action: { label: "Ajuster les enveloppes été et prévoir l'entretien" },
+    appliesWhen: zoneIs("coastal"),
+    priority: 72,
+    sources: ["Principe universel de finances personnelles"],
+    lastVerified: "2026-08-06",
+  },
+
+  // ==========================================================================
+  // RÉGIONS FRANCE (vague 2) + DROM — recherche vérifiée 2026-08-06.
+  // Dispositifs sourcés ; montants volatils exclus. e-PASS Jeunes PACA
+  // SUPPRIMÉ (remplacé par ZOU!/Pass Santé) — ne jamais le citer.
+  // ==========================================================================
+  {
+    id: "fr-aura-pass-region",
+    category: "emergency",
+    countries: ["FR"],
+    title: "PASS'Région jeunes : le réflexe AURA",
+    body:
+      "En Auvergne-Rhône-Alpes, le PASS'Région jeunes (lycéens et jeunes 16-25 ans selon statut) donne manuels scolaires gratuits et avantages sport, culture, cinéma et santé. Gratuit à activer — chaque avantage non activé est de l'argent laissé sur la table.",
+    action: { label: "Activer le PASS'Région jeunes", link: "https://www.auvergnerhonealpes.fr/passregionjeunes" },
+    appliesWhen: and(regionIs("Auvergne-Rhône-Alpes"), or(ageIn("under_18", "18-25"), kids("12-15", "16-18", "19+"))),
+    priority: 80,
+    sources: ["https://www.auvergnerhonealpes.fr/passregionjeunes"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-hdf-transport",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Hauts-de-France : l'aide transport que peu réclament",
+    body:
+      "La Région verse une aide forfaitaire de 20 €/mois (15 €/mois pour les apprentis) aux salariés qui font plus de 20 km domicile-travail en véhicule personnel, sous plafonds de revenus. Versée par trimestre sur 11 mois — un dossier en ligne, et c'est plus de 200 € par an.",
+    action: { label: "Vérifier l'éligibilité ATPS", link: "https://guide-aides.hautsdefrance.fr/dispositif458" },
+    appliesWhen: regionIs("Hauts-de-France"),
+    priority: 80,
+    figures: [{ label: "Salariés", value: "20 €/mois" }, { label: "Apprentis", value: "15 €/mois" }],
+    sources: ["https://guide-aides.hautsdefrance.fr/dispositif458"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-sud-zou",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Région Sud : ZOU! Études, les transports illimités étudiants",
+    body:
+      "L'e-PASS Jeunes n'existe plus en PACA — les dispositifs actuels : le Pass ZOU! Études (trains et cars régionaux illimités pour les scolaires et étudiants, tarif annuel réduit) et le Pass Santé Jeunes (prestations santé gratuites). Si tu croises encore « e-PASS Jeunes » sur le web, c'est périmé.",
+    action: { label: "Voir les aides Région Sud", link: "https://www.maregionsud.fr/ma-region/cest-quoi-la-region/education-orientation-et-apprentissage/toutes-vos-aides-en-1-clic" },
+    appliesWhen: and(regionIs("Provence-Alpes-Côte d'Azur"), or(ageIn("under_18", "18-25"), kids("12-15", "16-18", "19+"))),
+    priority: 80,
+    sources: ["https://www.maregionsud.fr/vos-aides/detail/e-pass-jeunes"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-grand-est-jeunest",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Jeun'Est : gratuit pour tous les 15-29 ans du Grand Est",
+    body:
+      "Contrairement à la plupart des cartes jeunes limitées aux lycéens, Jeun'Est couvre TOUS les 15-29 ans du Grand Est (étudiants, apprentis, en emploi, en recherche) : réductions cinéma, livres, spectacles, licence sport, et une aide à la formation premiers secours. Inscription gratuite en ligne.",
+    action: { label: "S'inscrire sur Jeun'Est", link: "https://www.jeunest.fr/" },
+    appliesWhen: and(regionIs("Grand Est"), or(ageIn("under_18", "18-25", "26-35"), kids("12-15", "16-18", "19+"))),
+    priority: 80,
+    sources: ["https://www.jeunest.fr/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-pdl-epass",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Pays de la Loire : 8 € qui en valent plus de 130",
+    body:
+      "L'e.pass culture sport coûte 8 € par an et débloque plus de 130 € d'avantages pour les 15-19 ans : coupons licence sportive, événements, patrimoine, aide BAFA/premiers secours, entrée festival. L'un des meilleurs ratios coût/avantage des dispositifs régionaux.",
+    action: { label: "Activer l'e.pass jeunes", link: "https://www.epassjeunes-paysdelaloire.fr/" },
+    appliesWhen: and(regionIs("Pays de la Loire"), or(ageIn("under_18", "18-25"), kids("12-15", "16-18"))),
+    priority: 80,
+    figures: [{ label: "Coût", value: "8 €/an" }, { label: "Avantages", value: "> 130 €" }],
+    sources: ["https://www.epassjeunes-paysdelaloire.fr/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-na-bretagne-portails",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Ta région aide sans « carte » : passe par le portail",
+    body:
+      "La Nouvelle-Aquitaine et la Bretagne n'ont pas de carte jeune unique, mais un bouquet d'aides sur leur portail : manuels scolaires, premier équipement professionnel, aide au permis, soutien scolaire, mobilité internationale, logement chez l'habitant. Le réflexe : chercher sur le portail régional AVANT de payer.",
+    action: (p) => ({
+      label: "Explorer le portail jeunes de ta région",
+      link: p.region === "Bretagne" ? "https://jeunes.bretagne.bzh" : "https://jeunes.nouvelle-aquitaine.fr/les-aides",
+    }),
+    appliesWhen: and(regionIs("Nouvelle-Aquitaine", "Bretagne"), or(ageIn("under_18", "18-25"), hasAnyKids)),
+    priority: 78,
+    sources: ["https://jeunes.nouvelle-aquitaine.fr/les-aides", "https://jeunes.bretagne.bzh"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "fr-permis-1-euro",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Permis à 1 € par jour : le prêt à taux zéro des 15-25 ans",
+    body:
+      "L'État garantit un prêt à taux zéro de 600 à 1 200 € pour financer le permis (A1/A2/B) des 15-25 ans, remboursé environ 30 €/mois, sans condition de ressources, via une auto-école partenaire. Attention : l'ancienne aide de 500 € pour les apprentis a été SUPPRIMÉE en février 2026 — ne compte plus dessus.",
+    action: { label: "Vérifier les conditions", link: "https://www.securite-routiere.gouv.fr/passer-son-permis-de-conduire/financement-du-permis-de-conduire/permis-1-eu-par-jour/conditions-deligibilite" },
+    appliesWhen: or(ageIn("under_18", "18-25"), kids("16-18", "19+")),
+    priority: 76,
+    figures: [{ label: "Prêt taux zéro", value: "600 à 1 200 €" }],
+    sources: ["https://www.securite-routiere.gouv.fr/passer-son-permis-de-conduire/financement-du-permis-de-conduire/permis-1-eu-par-jour/conditions-deligibilite"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "drom-abattement-ir",
+    category: "tax",
+    countries: ["FR"],
+    title: "DOM : ta réduction d'impôt automatique",
+    body: (p) => {
+      const forte = p.region === "Guyane" || p.region === "Mayotte";
+      return forte
+        ? "En Guyane et à Mayotte, l'impôt sur le revenu issu du barème est automatiquement réduit de 40 % (plafonné à 4 050 €). Aucune démarche — mais vérifie sur ton avis que la réduction apparaît bien, et intègre-la dans ton budget annuel."
+        : "En Guadeloupe, Martinique et à La Réunion, l'impôt sur le revenu issu du barème est automatiquement réduit de 30 % (plafonné à 2 450 €). Aucune démarche — mais vérifie sur ton avis que la réduction apparaît bien, et intègre-la dans ton budget annuel.";
+    },
+    action: { label: "Vérifier sur ton avis d'imposition", link: "https://www.impots.gouv.fr" },
+    appliesWhen: regionIs("Guadeloupe", "Martinique", "Guyane", "La Réunion", "Mayotte"),
+    priority: 84,
+    sources: ["BOFiP BOI-IR-LIQ-20-30-10"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "drom-ladom",
+    category: "emergency",
+    countries: ["FR"],
+    title: "LADOM : tes billets vers l'Hexagone sont aidés",
+    body:
+      "La continuité territoriale finance une partie de tes déplacements : l'Aide à la Continuité Territoriale (billet aidé sous conditions de ressources, une fois tous les 3 ans) et surtout le Passeport Mobilité Études pour les étudiants de moins de 28 ans qui partent étudier dans l'Hexagone. Des centaines d'euros par billet — dossier AVANT d'acheter.",
+    action: { label: "Voir les aides LADOM", link: "https://ladom.fr" },
+    appliesWhen: regionIs("Guadeloupe", "Martinique", "Guyane", "La Réunion", "Mayotte"),
+    priority: 82,
+    sources: ["https://ladom.fr/vie-etudiante/pme/"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "drom-bqp",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Bouclier Qualité Prix : le panier plafonné de ton territoire",
+    body:
+      "Dans chaque DROM, un panier de produits de consommation courante est négocié à prix plafonné entre la préfecture et les distributeurs (loi de régulation économique outre-mer). La liste et le prix changent chaque année et par territoire — repère les produits BQP en magasin, c'est un vrai levier face à la vie chère.",
+    action: { label: "Voir le BQP de ton territoire (préfecture)" },
+    appliesWhen: regionIs("Guadeloupe", "Martinique", "Guyane", "La Réunion", "Mayotte"),
+    priority: 80,
+    sources: ["https://www.reunion.gouv.fr/Actions-de-l-Etat/Economie-commerce-exterieur-et-fiscalite-locale/Bouclier-qualite-prix-BQP"],
+    lastVerified: "2026-08-06",
+  },
+
+  // ==========================================================================
+  // MICRO-ENTREPRENEUR — recherche vérifiée 2026-08-06 (service-public
+  // F36232/F23267/F21746/A18795/F23369). ACRE réduite à 25 % au 01/07/2026.
+  // ==========================================================================
+  {
+    id: "ae-provision",
+    category: "emergency",
+    countries: ["FR"],
+    title: "Micro-entrepreneur : provisionne AVANT de te payer",
+    body:
+      "Ton CA n'est pas ton revenu. Cotisations 2026 : 12,3 % (vente), 21,2 % (services BIC), 25,6 % (libéral BNC) — plus l'impôt, la CFP et la CFE. Le réflexe qui sauve : à chaque encaissement, vire immédiatement ~15 % (vente), ~25 % (services) ou ~30 % (BNC) sur un compte dédié « charges ». Le reste seulement est à toi.",
+    action: { label: "Ouvrir un sous-compte « charges » et automatiser le virement" },
+    appliesWhen: occupationIs("self_employed"),
+    priority: 92,
+    figures: [
+      { label: "Vente", value: "12,3 %" },
+      { label: "Services BIC", value: "21,2 %" },
+      { label: "Libéral BNC", value: "25,6 %" },
+    ],
+    sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F36232"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "ae-plafonds-tva",
+    category: "tax",
+    countries: ["FR"],
+    title: "Plafonds micro et TVA 2026 : surveille deux compteurs",
+    body:
+      "Nouveaux plafonds micro 2026 : 203 100 € (vente) / 83 600 € (services). Mais la TVA a SES propres seuils, bien plus bas : franchise jusqu'à 85 000 € (vente) / 37 500 € (services) — la réforme du seuil unique à 25 000 € a été abandonnée. Dépasser le seuil majoré (93 500/41 250) rend la TVA applicable IMMÉDIATEMENT : suis ton CA cumulé dans l'app.",
+    action: { label: "Voir les seuils officiels", link: "https://entreprendre.service-public.gouv.fr/vosdroits/F21746" },
+    appliesWhen: occupationIs("self_employed"),
+    priority: 86,
+    figures: [
+      { label: "TVA services", value: "37 500 €" },
+      { label: "TVA vente", value: "85 000 €" },
+    ],
+    sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F23267", "https://entreprendre.service-public.gouv.fr/vosdroits/F21746"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "ae-acre-2026",
+    category: "tax",
+    countries: ["FR"],
+    title: "ACRE : l'exonération a fondu au 1er juillet 2026",
+    body:
+      "Si tu crées ton activité : l'ACRE réduit tes cotisations la première année, mais l'exonération est passée de 50 % à 25 % pour les créations à partir du 1er juillet 2026. Conditions (demandeur d'emploi, RSA, 18-25 ans…), pas d'ACRE dans les 3 dernières années, et la demande se fait dans les 60 JOURS suivant le début d'activité — après, c'est perdu.",
+    action: { label: "Vérifier l'éligibilité ACRE", link: "https://entreprendre.service-public.gouv.fr/actualites/A18795" },
+    appliesWhen: occupationIs("self_employed"),
+    priority: 80,
+    figures: [{ label: "Créations dès 07/2026", value: "exonération 25 %" }],
+    sources: ["https://entreprendre.service-public.gouv.fr/actualites/A18795"],
+    lastVerified: "2026-08-06",
+  },
+  {
+    id: "ae-chomage-retraite",
+    category: "insurance",
+    countries: ["FR"],
+    title: "Indépendant : ni chômage automatique, ni retraite sans CA",
+    body:
+      "Deux angles morts du statut : pas d'assurance chômage (l'ATI existe mais elle est restrictive : ~6 mois, conditions strictes, une fois dans la vie) — vise donc un fonds d'urgence de 6 à 12 mois, pas 3. Et ta retraite ne valide des trimestres que si ton CA dépasse des seuils minimaux chaque année : une année blanche = zéro trimestre.",
+    action: { label: "Vérifier les seuils retraite", link: "https://entreprendre.service-public.gouv.fr/vosdroits/F23369" },
+    appliesWhen: occupationIs("self_employed"),
+    priority: 84,
+    figures: [{ label: "Fonds d'urgence visé", value: "6-12 mois" }],
+    sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F23369", "https://www.francetravail.fr"],
+    lastVerified: "2026-08-06",
+  },
 ];
 
 // ============================================================================
@@ -3340,12 +3816,24 @@ function countryMatches(card: AdviceCard, profile: UserProfile): boolean {
   return scope.includes(profile.country ?? "FR");
 }
 
+// Conseils saisonniers : une carte peut déclarer les mois où elle est
+// pertinente (1-12). Sans `months`, elle est valable toute l'année.
+function monthMatches(card: AdviceCard, now: Date = new Date()): boolean {
+  if (!card.months || card.months.length === 0) return true;
+  return card.months.includes(now.getMonth() + 1);
+}
+
 export function matchAdvice(
   profile: UserProfile,
   catalog: AdviceCard[] = ADVICE_CATALOG_FR,
 ): AdviceCard[] {
   return catalog
-    .filter((card) => countryMatches(card, profile) && card.appliesWhen(profile))
+    .filter(
+      (card) =>
+        countryMatches(card, profile) &&
+        monthMatches(card) &&
+        card.appliesWhen(profile),
+    )
     .sort((a, b) => b.priority - a.priority);
 }
 

@@ -43,6 +43,13 @@ import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import { useSession } from "../src/contexts/SessionContext";
 import { deleteAccount } from "../src/lib/auth";
 import { notify } from "../src/utils/notify";
+import BirthdayCelebration from "../src/components/BirthdayCelebration";
+import { buildBirthdayCards, type BirthdayCard } from "../src/constants/ageFacts";
+import {
+  computeAge,
+  isBirthdayToday,
+  scheduleBirthdayNotification,
+} from "../src/utils/birthday";
 import { useActiveScope } from "../src/hooks/useActiveScope";
 import {
   computeBudgetSplit,
@@ -555,6 +562,9 @@ export default function Index() {
     scopeLabel,
   } = useActiveScope();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
+  // Anniversaire : cartes de célébration (une fois par an, le jour J)
+  const [bdayCards, setBdayCards] = useState<BirthdayCard[] | null>(null);
+  const [bdayOpen, setBdayOpen] = useState(false);
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
   const [tithePercent, setTithePercent] = useState(0);
   const reloadPremiumProfile = useCallback(async () => {
@@ -572,6 +582,22 @@ export default function Index() {
     // perso est neutralisé (mix 50/30/20 par défaut).
     setPremiumProfile(deriveMatchingProfile(p, activeWorkspaceKind));
     setTithePercent(details.tithe_enabled ? details.tithe_percent : 0);
+
+    // Anniversaire : notification du prochain + célébration le jour J
+    // (ballons + cartes), une seule fois par an.
+    if (details.birthdate) {
+      scheduleBirthdayNotification(details.birthdate, details.first_name);
+      if (isBirthdayToday(details.birthdate)) {
+        const yearKey = `netbudget:bday:${new Date().getFullYear()}`;
+        const seen = await AsyncStorage.getItem(yearKey).catch(() => null);
+        if (!seen) {
+          await AsyncStorage.setItem(yearKey, "1").catch(() => {});
+          const a = computeAge(new Date(details.birthdate));
+          setBdayCards(buildBirthdayCards(a, details.first_name, p));
+          setBdayOpen(true);
+        }
+      }
+    }
   }, [premiumUser?.id, activeWorkspaceId, activeWorkspaceKind]);
   useEffect(() => {
     reloadPremiumProfile();
@@ -2249,6 +2275,13 @@ export default function Index() {
           </View>
         </View>
       </Modal>
+
+      {/* Fête d'anniversaire (jour J, une fois par an) */}
+      <BirthdayCelebration
+        visible={bdayOpen}
+        cards={bdayCards ?? []}
+        onClose={() => setBdayOpen(false)}
+      />
 
       {/* Bottom Tab Bar — bulle "liquid glass" façon Apple :
           - flotte AU-DESSUS du contenu (absolute) → le contenu défile derrière

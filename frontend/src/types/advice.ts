@@ -21,9 +21,20 @@ export type FamilyStatus =
   | "single_parent";
 
 export type HousingStatus = "renter" | "owner" | "accessor" | "free_housing";
+
+export type HousingType = "apartment" | "house"; // copropriété vs entretien intégral
+
+export type Occupation =
+  | "student"
+  | "employee"
+  | "self_employed"
+  | "civil_servant"
+  | "unemployed"
+  | "retired";
 // accessor = accédant (crédit en cours) · free_housing = hébergé gratuitement
 
-export type Zone = "big_city" | "province"; // grande ville vs province (loyers différenciés)
+// Cadre de vie — le train de vie littoral ≠ montagne ≠ grande ville.
+export type Zone = "big_city" | "province" | "rural" | "coastal" | "mountain";
 
 export type IncomeBracket = "low" | "medium" | "high" | "very_high"; // dérivable si non demandé
 
@@ -69,6 +80,9 @@ export type UserProfile = {
   age?: AgeBracket;
   family?: FamilyStatus;
   housing?: HousingStatus;
+  housingType?: HousingType;   // si propriétaire/accédant : appartement ou maison
+  propertyCount?: number;      // nombre de biens possédés (1, 2, 3 = 3+)
+  occupation?: Occupation;     // renseigné à l'inscription (CRM + conseils AE…)
   zone?: Zone;
   income?: IncomeBracket;
   tmi?: TaxBracket;
@@ -208,6 +222,9 @@ export type AdviceCard = {
   body: string | ((p: UserProfile) => string);
   action: AdviceAction | ((p: UserProfile) => AdviceAction);
   appliesWhen: AdvicePredicate;
+  // Mois de pertinence (1-12) — conseils saisonniers (rentrée, chauffage,
+  // déclaration…). Absent = toute l'année.
+  months?: number[];
   priority: number;
   figures?: AdviceFigure[] | ((p: UserProfile) => AdviceFigure[]);
   sources: string[];

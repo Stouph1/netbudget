@@ -40,5 +40,21 @@ export const FR_REGIONS: string[] = [
   "Occitanie",
   "Pays de la Loire",
   "Provence-Alpes-Côte d'Azur",
-  "Outre-mer",
+  // Outre-mer DÉTAILLÉ : le coût de la vie et les aides diffèrent fortement
+  // d'un territoire à l'autre (Guyane ≠ Réunion) — jamais un "Outre-mer" global.
+  "Guadeloupe",
+  "Martinique",
+  "Guyane",
+  "La Réunion",
+  "Mayotte",
+];
+
+// Les 5 DROM — utile au moteur de conseils (dispositifs communs type LADOM,
+// abattement IR DOM) tout en gardant la région précise de l'utilisateur.
+export const FR_DROM: string[] = [
+  "Guadeloupe",
+  "Martinique",
+  "Guyane",
+  "La Réunion",
+  "Mayotte",
 ];

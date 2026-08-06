@@ -63,6 +63,9 @@ export type ProfileDetails = {
   avatar_url: string | null;
   tithe_enabled: boolean;
   tithe_percent: number;
+  birthdate: string | null; // ISO "AAAA-MM-JJ"
+  occupation_status: string | null; // student | employee | self_employed | …
+  occupation_field: string | null; // domaine de travail / d'études
 };
 
 export async function loadProfileDetails(
@@ -70,7 +73,7 @@ export async function loadProfileDetails(
 ): Promise<ProfileDetails> {
   const { data } = await supabase
     .from("profiles")
-    .select("username, first_name, last_name, avatar_url, tithe_enabled, tithe_percent")
+    .select("username, first_name, last_name, avatar_url, tithe_enabled, tithe_percent, birthdate, occupation_status, occupation_field")
     .eq("id", userId)
     .maybeSingle();
   return {
@@ -80,6 +83,9 @@ export async function loadProfileDetails(
     avatar_url: (data?.avatar_url as string | null) ?? null,
     tithe_enabled: (data?.tithe_enabled as boolean | null) ?? false,
     tithe_percent: Number(data?.tithe_percent ?? 10),
+    birthdate: (data?.birthdate as string | null) ?? null,
+    occupation_status: (data?.occupation_status as string | null) ?? null,
+    occupation_field: (data?.occupation_field as string | null) ?? null,
   };
 }
 
@@ -104,6 +110,9 @@ export async function updateProfileDetails(
     country?: string;
     region?: string;
     city?: string;
+    birthdate?: string | null;
+    occupation_status?: string;
+    occupation_field?: string;
   },
 ): Promise<{ ok: boolean; error?: string }> {
   const cleanUsername = details.username.trim();
@@ -131,6 +140,13 @@ export async function updateProfileDetails(
       ...(details.country !== undefined ? { country: details.country || null } : {}),
       ...(details.region !== undefined ? { region: details.region || null } : {}),
       ...(details.city !== undefined ? { city: details.city?.trim() || null } : {}),
+      ...(details.birthdate !== undefined ? { birthdate: details.birthdate } : {}),
+      ...(details.occupation_status !== undefined
+        ? { occupation_status: details.occupation_status || null }
+        : {}),
+      ...(details.occupation_field !== undefined
+        ? { occupation_field: details.occupation_field?.trim() || null }
+        : {}),
     })
     .eq("id", userId);
   if (error) {
