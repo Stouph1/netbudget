@@ -235,8 +235,25 @@ export async function signOut(): Promise<void> {
 // Purge ensuite les caches Premium locaux et la session.
 export async function deleteAccount(): Promise<{ ok: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.functions.invoke("delete-account");
-    if (error) return { ok: false, error: error.message };
+    const { data, error } = await supabase.functions.invoke("delete-account", {
+      method: "POST",
+    });
+    if (error) {
+      // Cause n°1 en pratique : la fonction n'a jamais été déployée sur le
+      // projet Supabase → l'appel renvoie un 404 enveloppé dans un message
+      // générique « non-2xx status code », illisible pour l'utilisateur.
+      const raw = error.message ?? "";
+      const notDeployed =
+        raw.includes("404") ||
+        raw.includes("not found") ||
+        raw.includes("Failed to send a request");
+      return {
+        ok: false,
+        error: notDeployed
+          ? "Le service de suppression n'est pas encore disponible. Écris-nous à contact@netbudget.app et ton compte sera supprimé sous 30 jours (RGPD)."
+          : `La suppression a échoué (${raw}). Réessaie, ou écris-nous à contact@netbudget.app.`,
+      };
+    }
     const res = data as { ok?: boolean; error?: string } | null;
     if (!res?.ok) {
       return { ok: false, error: res?.error ?? "La suppression a échoué." };

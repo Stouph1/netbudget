@@ -28,6 +28,7 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,6 +40,7 @@ import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
+import { humanRemaining, loanProgress } from "../src/utils/loanSchedule";
 import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import EventsPanel, { eventNeedsAttention } from "../src/components/EventsPanel";
 import { useSession } from "../src/contexts/SessionContext";
@@ -152,7 +154,24 @@ type Loan = {
   ratePercent: string;
   years: string;
   directMonthly?: string;
+  startDate?: string; // "AAAA-MM-JJ" — 1re échéance, pour le suivi dans le temps
 };
+
+// La date de 1re échéance se saisit en MM/AAAA (le jour n'a pas d'importance
+// pour un échéancier mensuel) et se stocke en ISO.
+function monthInputToIso(input: string): string | undefined {
+  const m = input.trim().match(/^(\d{1,2})[/.-](\d{4})$/);
+  if (!m) return undefined;
+  const month = parseInt(m[1], 10);
+  if (month < 1 || month > 12) return undefined;
+  return `${m[2]}-${String(month).padStart(2, "0")}-01`;
+}
+
+function isoToMonthInput(iso: string | undefined): string {
+  if (!iso) return "";
+  const m = iso.match(/^(\d{4})-(\d{2})/);
+  return m ? `${m[2]}/${m[1]}` : "";
+}
 
 function loanMonthlyPayment(l: Loan): number {
   if (l.mode === "direct") return parseNumber(l.directMonthly || "0");
@@ -372,34 +391,63 @@ export default function Index() {
     transform: [{ translateX: swipeX.value }],
   }));
 
-  // ----- Tab bar "liquid glass" : bulle de sélection -----
-  // La bulle suit swipeX (donc glisse aussi pendant les swipes d'écran,
-  // proportionnellement, comme la tab bar d'Apple/Instagram).
+  // ----- Tab bar "liquid glass" : bulle de sélection façon Apple -----
+  //
+  // Deux régimes distincts, c'est ce qui fait la sensation :
+  //  - au repos, la bulle suit swipeX → elle glisse avec les swipes d'écran ;
+  //  - pendant un maintien, elle suit le DOIGT en direct (dragProgress), sans
+  //    passer par l'animation d'écran de 220 ms qui donnait un rendu mou.
+  // Au maintien, la bulle « prend le focus » : elle grossit et s'éclaircit.
   const [tabBarWidth, setTabBarWidth] = useState(0);
+  const dragProgress = useSharedValue(-1); // -1 = pas de drag en cours
+  const tabFocus = useSharedValue(0); // 0 → 1 pendant le maintien
+
   const tabIndicatorStyle = useAnimatedStyle(() => {
     const tabW = tabBarWidth > 0 ? (tabBarWidth - 20) / TAB_ORDER.length : 0;
-    const progress = -swipeX.value / screenW; // 0..3 continu pendant le swipe
+    // Position continue : le doigt prime sur l'animation d'écran.
+    const progress =
+      dragProgress.value >= 0 ? dragProgress.value : -swipeX.value / screenW;
     return {
-      transform: [{ translateX: 10 + progress * tabW }],
+      transform: [
+        { translateX: 10 + progress * tabW },
+        { scale: 1 + tabFocus.value * 0.1 },
+      ],
       opacity: tabBarWidth > 0 ? 1 : 0,
+      backgroundColor: `rgba(74,222,128,${0.14 + tabFocus.value * 0.16})`,
+      shadowOpacity: tabFocus.value * 0.5,
     };
   }, [tabBarWidth, screenW]);
 
-  // Maintenir le doigt sur la barre puis glisser = la sélection suit le doigt
-  // (Pan activé après un appui long court, pour ne pas gêner les taps).
+  // Maintenir le doigt sur la barre puis glisser = la sélection suit le doigt.
   const lastSlideIdx = useSharedValue(-1);
   const tabSlideGesture = useMemo(
     () =>
       Gesture.Pan()
-        .activateAfterLongPress(180)
-        .onBegin(() => {
+        .activateAfterLongPress(160)
+        .onStart((e) => {
           "worklet";
+          // Le maintien est reconnu : la bulle s'anime pour le signaler et
+          // saute sous le doigt.
+          tabFocus.value = withTiming(1, { duration: 140 });
           lastSlideIdx.value = -1;
+          if (tabBarWidth > 0) {
+            const tabW = (tabBarWidth - 20) / TAB_ORDER.length;
+            dragProgress.value = Math.min(
+              TAB_ORDER.length - 1,
+              Math.max(0, (e.x - 10) / tabW - 0.5),
+            );
+          }
         })
         .onUpdate((e) => {
           "worklet";
           if (tabBarWidth <= 0) return;
           const tabW = (tabBarWidth - 20) / TAB_ORDER.length;
+          // Position continue → la bulle colle au doigt, sans à-coups.
+          dragProgress.value = Math.min(
+            TAB_ORDER.length - 1,
+            Math.max(0, (e.x - 10) / tabW - 0.5),
+          );
+          // Sélection réelle : dès que le doigt entre dans une nouvelle case.
           const idx = Math.min(
             TAB_ORDER.length - 1,
             Math.max(0, Math.floor((e.x - 10) / tabW)),
@@ -407,6 +455,22 @@ export default function Index() {
           if (idx !== lastSlideIdx.value) {
             lastSlideIdx.value = idx;
             runOnJS(setTabFromIndex)(idx);
+          }
+        })
+        .onFinalize(() => {
+          "worklet";
+          // Relâchement : la bulle se recale en douceur sur l'onglet actif et
+          // rend la main à swipeX.
+          tabFocus.value = withTiming(0, { duration: 180 });
+          if (dragProgress.value >= 0) {
+            dragProgress.value = withSpring(
+              Math.round(dragProgress.value),
+              { damping: 18, stiffness: 220 },
+              (finished?: boolean) => {
+                "worklet";
+                if (finished) dragProgress.value = -1;
+              },
+            );
           }
         }),
     [tabBarWidth, setTabFromIndex, lastSlideIdx],
@@ -672,7 +736,21 @@ export default function Index() {
   }, [tab, reloadPremiumProfile]);
 
   const budgetRatio = useMemo(() => {
-    if (premiumProfile && premiumProfile.age && premiumProfile.family) {
+    // Dès qu'UN signal du profil est connu (âge, famille, logement, pays,
+    // handicap…), on personnalise. Exiger age ET family faisait retomber la
+    // majorité des utilisateurs sur un ratio générique alors qu'ils avaient
+    // rempli leur profil — d'où l'impression de conseils qui ne les
+    // connaissent pas.
+    const hasSignal =
+      premiumProfile &&
+      (premiumProfile.age ||
+        premiumProfile.family ||
+        premiumProfile.housing ||
+        premiumProfile.children?.length ||
+        premiumProfile.monthlySavingsCapacity ||
+        premiumProfile.disabilitySelf ||
+        premiumProfile.disabilityChild);
+    if (hasSignal) {
       const s = computeBudgetSplit(premiumProfile);
       return { ...s, personalized: true };
     }
@@ -1672,6 +1750,17 @@ export default function Index() {
               loans.map((l) => {
                 const m = loanMonthlyPayment(l);
                 const isDirect = l.mode === "direct";
+                // Suivi dans le temps : disponible dès qu'une date de 1re
+                // échéance est renseignée sur un prêt calculé.
+                const prog = isDirect
+                  ? null
+                  : loanProgress(
+                      parseNumber(l.principal),
+                      parseNumber(l.ratePercent),
+                      parseNumber(l.years),
+                      l.startDate,
+                      m,
+                    );
                 return (
                   <TouchableOpacity
                     key={l.id}
@@ -1690,6 +1779,34 @@ export default function Index() {
                           ? t("label.loanDirect")
                           : `${fmt(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ${t("label.years")}`}
                       </Text>
+
+                      {prog ? (
+                        <View style={styles.loanProgressWrap}>
+                          <View style={styles.loanProgressBar}>
+                            <View
+                              style={[
+                                styles.loanProgressFill,
+                                { width: `${Math.min(100, prog.percentElapsed)}%` },
+                              ]}
+                            />
+                          </View>
+                          <Text style={styles.loanProgressText}>
+                            {prog.finished
+                              ? "Remboursé 🎉"
+                              : `Reste ${humanRemaining(prog)} · ${fmt(prog.remainingPrincipal)} de capital`}
+                          </Text>
+                          {!prog.finished ? (
+                            <Text style={styles.loanSplitText}>
+                              Cette mensualité : {fmt(prog.nextPrincipal)} de capital ·{" "}
+                              {fmt(prog.nextInterest)} d'intérêts
+                            </Text>
+                          ) : null}
+                        </View>
+                      ) : !isDirect ? (
+                        <Text style={styles.loanHintText}>
+                          Ajoute la date de ta 1re échéance pour suivre ce qu'il te reste
+                        </Text>
+                      ) : null}
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
                       <Text style={styles.loanAmount}>{fmt(m)}</Text>
@@ -1848,6 +1965,76 @@ export default function Index() {
                   centerValue={fmt(remaining)}
                   centerValueColor={remainingColor}
                 />
+                {/* Les 3 familles en un coup d'œil : réel vs cible du profil.
+                    Le donut global dit OÙ va l'argent ; ceux-ci disent SI la
+                    répartition tient la route. */}
+                {netMensuel > 0 ? (
+                  <View style={styles.miniDonutsRow}>
+                    {(
+                      [
+                        {
+                          key: "besoins",
+                          label: t("family.besoins.label"),
+                          value: rentNum + loansMonthly + familyTotals.besoins,
+                          target: budgetRatio.besoins,
+                          color: FAMILY_META.besoins.color,
+                        },
+                        {
+                          key: "loisirs",
+                          label: t("family.loisirs.label"),
+                          value: familyTotals.loisirs,
+                          target: budgetRatio.envies,
+                          color: FAMILY_META.loisirs.color,
+                        },
+                        {
+                          key: "epargne",
+                          label: t("family.epargne.label"),
+                          value: familyTotals.epargne,
+                          target: budgetRatio.epargne,
+                          color: FAMILY_META.epargne.color,
+                        },
+                      ] as const
+                    ).map((f) => {
+                      const pctReal = Math.round((f.value / netMensuel) * 100);
+                      // Épargne : dépasser la cible est une bonne nouvelle.
+                      // Besoins et envies : c'est l'inverse.
+                      const over =
+                        f.key === "epargne" ? pctReal < f.target - 5 : pctReal > f.target + 5;
+                      return (
+                        <View
+                          key={f.key}
+                          style={styles.miniDonutCell}
+                          accessibilityRole="progressbar"
+                          accessibilityLabel={`${f.label} : ${pctReal} pour cent, cible ${f.target} pour cent`}
+                          accessibilityValue={{ min: 0, max: 100, now: pctReal }}
+                        >
+                          <DonutChart
+                            segments={[
+                              { label: f.label, value: Math.max(0, pctReal), color: f.color },
+                              {
+                                label: "reste",
+                                value: Math.max(0, 100 - pctReal),
+                                color: "rgba(255,255,255,0.07)",
+                              },
+                            ]}
+                            size={82}
+                            strokeWidth={9}
+                            centerValue={`${pctReal}%`}
+                            centerValueColor={over ? DANGER : f.color}
+                          />
+                          <Text style={styles.miniDonutLabel} numberOfLines={1}>
+                            {f.label}
+                          </Text>
+                          <Text style={[styles.miniDonutTarget, over && { color: DANGER }]}>
+                            cible {f.target}%
+                          </Text>
+                          <Text style={styles.miniDonutAmount}>{fmt(f.value)}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : null}
+
                 <View style={styles.legendWrap}>
                   {segments.map((s) => (
                     <View key={s.label} style={styles.legendItem}>
@@ -3161,11 +3348,40 @@ export default function Index() {
                       placeholder="0"
                       testID="loan-years-input"
                     />
+                    <Field
+                      label="Première échéance (optionnel)"
+                      icon={<Feather name="clock" size={18} color={GOLD} />}
+                      value={isoToMonthInput(form.startDate)}
+                      onChangeText={(v) =>
+                        setForm({ ...form, startDate: monthInputToIso(v) })
+                      }
+                      keyboardType="numeric"
+                      placeholder="MM/AAAA — ex. 09/2023"
+                      hintText="Pour voir ce qu'il te reste à rembourser et comment ta mensualité se répartit"
+                      testID="loan-start-input"
+                    />
                     <View style={styles.previewBox}>
                       <Text style={styles.previewLabel}>{t("label.loanPreview")}</Text>
                       <Text style={styles.previewValue} testID="loan-preview-monthly">
                         {fmt(loanMonthlyPayment(form))}
                       </Text>
+                      {(() => {
+                        const pr = loanProgress(
+                          parseNumber(form.principal),
+                          parseNumber(form.ratePercent),
+                          parseNumber(form.years),
+                          form.startDate,
+                          loanMonthlyPayment(form),
+                        );
+                        if (!pr) return null;
+                        return (
+                          <Text style={styles.previewHint}>
+                            {pr.finished
+                              ? "Ce prêt est arrivé à terme"
+                              : `Reste ${humanRemaining(pr)} · coût total du crédit ${fmt(pr.totalInterest)}`}
+                          </Text>
+                        );
+                      })()}
                     </View>
                   </>
                 )}
@@ -3706,6 +3922,29 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 12,
   },
+  miniDonutsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 6,
+    marginTop: 18,
+    marginBottom: 4,
+  },
+  miniDonutCell: { flex: 1, alignItems: "center", gap: 2 },
+  miniDonutLabel: { color: TEXT, fontSize: 12, fontWeight: "700", marginTop: 6 },
+  miniDonutTarget: { color: TEXT_2, fontSize: 10.5 },
+  miniDonutAmount: { color: TEXT_2, fontSize: 11, fontWeight: "600" },
+  previewHint: { color: TEXT_2, fontSize: 12, marginTop: 6, textAlign: "center" },
+  loanProgressWrap: { marginTop: 8, gap: 4 },
+  loanProgressBar: {
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  loanProgressFill: { height: 5, borderRadius: 3, backgroundColor: COLOR_PRETS },
+  loanProgressText: { color: TEXT_2, fontSize: 11.5, fontWeight: "600" },
+  loanSplitText: { color: TEXT_3, fontSize: 11 },
+  loanHintText: { color: TEXT_3, fontSize: 11, marginTop: 6, fontStyle: "italic" },
   tabBadge: {
     position: "absolute",
     top: -3,
@@ -3721,9 +3960,16 @@ const styles = StyleSheet.create({
     bottom: 8,
     left: 0,
     borderRadius: 19,
+    // backgroundColor piloté par l'animation (s'éclaircit au maintien)
     backgroundColor: "rgba(74,222,128,0.14)",
     borderWidth: 1,
     borderColor: "rgba(74,222,128,0.22)",
+    // Halo qui apparaît quand la bulle prend le focus
+    shadowColor: "#4ADE80",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 12,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   tabBtn: {
     flex: 1,

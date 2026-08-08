@@ -157,7 +157,9 @@ const hasPetSpecies =
     p.hasPets === true && !!p.pets?.some((pet) => species.includes(pet.species));
 
 // ============================================================================
-// Répartition budgétaire personnalisée (adaptée du 50/30/20 selon profil).
+// Répartition budgétaire personnalisée : calculée depuis le profil (âge,
+// logement, enfants, capacité d'épargne…). Ne JAMAIS citer un ratio générique
+// dans les textes — le titre affiche le mix réel, le corps doit s'y accorder.
 // Heuristique v1 — à raffiner via deep-research en v1.1.
 // ============================================================================
 
@@ -338,9 +340,9 @@ export function getBudgetMixProfile(p: UserProfile): BudgetMixProfile {
 
   return {
     name: "L'Équilibré",
-    tagline: "La règle classique",
+    tagline: "Un mix taillé pour toi",
     description:
-      "Ta situation suit le repère 50/30/20 largement utilisé en finance perso. Un bon point de départ pour la plupart des profils — solide, adaptable.",
+      "Aucun signal fort ne ressort de ton profil : ce mix est un point de départ solide et adaptable. Il s'inspire des repères classiques de finance perso, ajustés à ta situation — pas une règle toute faite appliquée à l'aveugle.",
   };
 }
 
@@ -462,7 +464,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       if (s.epargne >= 25) parts.push("marge d'épargne significative");
       if (s.epargne <= 15) parts.push("épargne à protéger malgré tout");
       const context = parts.length ? ` (${parts.join(", ")})` : "";
-      return `Adaptée à ton profil${context}. La règle 50/30/20 classique ne convient pas à tout le monde — voici les ratios recommandés pour toi. Ajuste sur 1-3 mois puis vérifie.`;
+      return `Adaptée à ton profil${context}. Les règles toutes faites ne conviennent pas à tout le monde — voici les ratios calculés pour TA situation. Ajuste sur 1-3 mois puis vérifie.`;
     },
     action: { label: "Comparer avec ta réalité dans le tab Budget" },
     appliesWhen: always,

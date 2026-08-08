@@ -18,6 +18,7 @@ const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 function json(body: unknown, status = 200): Response {
@@ -30,6 +31,10 @@ function json(body: unknown, status = 200): Response {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
+  }
+  // Action irréversible : jamais sur un GET (préchargement de lien, crawler).
+  if (req.method !== "POST") {
+    return json({ ok: false, error: "method_not_allowed" }, 405);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -52,16 +57,30 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  // 3. Purge les fichiers Storage de l'utilisateur (avatars/<uid>/…)
+  // 3. Purge les fichiers Storage : avatar perso ET photos des workspaces
+  //    possédés. Ces derniers doivent être listés AVANT la suppression du
+  //    compte : après la cascade, plus aucune ligne ne permet de les retrouver
+  //    et les fichiers resteraient publics indéfiniment.
+  let storagePurged = true;
   try {
-    const { data: files } = await admin.storage.from("avatars").list(user.id);
-    if (files && files.length > 0) {
-      await admin.storage
-        .from("avatars")
-        .remove(files.map((f) => `${user.id}/${f.name}`));
+    const { data: owned } = await admin
+      .from("workspaces")
+      .select("id")
+      .eq("owner_id", user.id);
+
+    const prefixes = [user.id, ...(owned ?? []).map((w) => `workspaces/${w.id}`)];
+    for (const prefix of prefixes) {
+      const { data: files } = await admin.storage.from("avatars").list(prefix);
+      if (files && files.length > 0) {
+        await admin.storage
+          .from("avatars")
+          .remove(files.map((f) => `${prefix}/${f.name}`));
+      }
     }
   } catch (_) {
-    // Storage best-effort : ne bloque pas la suppression du compte
+    // Best-effort : ne bloque pas la suppression du compte (droit à
+    // l'effacement), mais on le signale dans la réponse.
+    storagePurged = false;
   }
 
   // 4. Suppression du compte auth → cascade sur toutes les tables
@@ -70,5 +89,5 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: delError.message }, 500);
   }
 
-  return json({ ok: true });
+  return json({ ok: true, storagePurged });
 });

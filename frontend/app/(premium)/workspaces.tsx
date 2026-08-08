@@ -8,10 +8,14 @@
 //  - Bouton "Rejoindre via un code" pour accepter une invitation
 
 import { Feather } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import * as Linking from "expo-linking";
+import { notify } from "../../src/utils/notify";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Share,
   Alert,
   Dimensions,
   Keyboard,
@@ -618,6 +622,26 @@ function WorkspaceDetailModal({
     })();
   }, [workspace.id]);
 
+  // Partage du lien d'invitation via la feuille système (WhatsApp, Mail, SMS).
+  // Le lien profond ouvre l'app directement sur l'écran « rejoindre » ; le code
+  // reste écrit en clair pour ceux qui n'ont pas encore installé l'app.
+  async function shareInvite(token: string) {
+    const link = Linking.createURL("/(premium)/workspaces", { queryParams: { join: token } });
+    const name = workspace.name ?? "notre espace";
+    try {
+      await Share.share({
+        message:
+          `Rejoins « ${name} » sur NetBudget pour qu'on gère notre budget ensemble.\n\n` +
+          `Code d'invitation : ${token}\n\n` +
+          `Ouvre le lien depuis ton téléphone : ${link}\n` +
+          `(ou colle le code dans « Rejoindre via un code » dans l'app)`,
+        title: `Invitation — ${name}`,
+      });
+    } catch {
+      // partage annulé
+    }
+  }
+
   async function sendInvite() {
     if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
       Alert.alert("Email invalide", "Renseigne un email valide.");
@@ -795,10 +819,33 @@ function WorkspaceDetailModal({
                     <Text selectable style={styles.tokenValue}>
                       {pendingToken}
                     </Text>
+                    <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+                      <TouchableOpacity
+                        style={styles.tokenActionBtn}
+                        activeOpacity={0.85}
+                        onPress={async () => {
+                          await Clipboard.setStringAsync(pendingToken);
+                          notify("Copié", "Le code est dans ton presse-papiers.");
+                        }}
+                      >
+                        <Feather name="copy" size={15} color={GOLD} />
+                        <Text style={styles.tokenActionText}>Copier le code</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.tokenActionBtn, styles.tokenActionPrimary]}
+                        activeOpacity={0.85}
+                        onPress={() => shareInvite(pendingToken)}
+                      >
+                        <Feather name="share-2" size={15} color="#000" />
+                        <Text style={[styles.tokenActionText, { color: "#000" }]}>
+                          Partager l'invitation
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                     <Text style={styles.tokenHint}>
-                      Copie ce code et partage-le à ton invité par WhatsApp,
-                      SMS ou email. Il devra le coller dans "Rejoindre via un
-                      code" avec le même email que celui invité.
+                      « Partager » ouvre WhatsApp, Mail, SMS… avec le message
+                      et le lien déjà écrits. Ton invité doit rejoindre avec le
+                      même e-mail que celui saisi ci-dessus.
                     </Text>
                   </View>
                 ) : null}
@@ -1095,6 +1142,19 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 8,
   },
+  tokenActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderRadius: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.4)",
+  },
+  tokenActionPrimary: { backgroundColor: GOLD, borderColor: GOLD },
+  tokenActionText: { color: GOLD, fontSize: 13, fontWeight: "700" },
   tokenHint: { color: TEXT_3, fontSize: 12, lineHeight: 17 },
 
   dangerBtn: {
