@@ -78,7 +78,7 @@ export function eventNeedsAttention(ev: EventProject, now: Date = new Date()): b
 export default function EventsPanel({ standalone = false }: { standalone?: boolean }) {
   const { lang, t, tp } = useLang();
   // Devise active : « € » était codé en dur, changer de devise n'avait aucun effet ici.
-  const { fmt } = useCurrency();
+  const { fmt, currency } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, scopeLabelIsKey } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
@@ -101,7 +101,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     useCallback(() => {
       if (!user?.id) return;
       let cancelled = false;
-      loadEvents(user.id, workspaceId).then((l) => {
+      loadEvents(user.id, workspaceId, currency).then((l) => {
         if (!cancelled) setList(l);
       });
       return () => {
@@ -121,13 +121,16 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     }
     const g = tpl.asksGuests ? Math.max(1, parseInt(guests, 10) || 0) : null;
     if (tpl.asksGuests && !g) {
-      notify(tpl.guestsLabel ?? t("events.guests.fallback"), t("events.err.guests.body"));
+      notify(
+        tpl.guestsLabelKey ? t(tpl.guestsLabelKey) : t("events.guests.fallback"),
+        t("events.err.guests.body"),
+      );
       return;
     }
     const ev: EventProject = {
       id: `ev-${Date.now()}`,
       type: tpl.type,
-      name: name.trim() || tpl.label,
+      name: name.trim() || t(tpl.labelKey),
       emoji: tpl.emoji,
       dateIso: iso,
       guests: g,
@@ -142,8 +145,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     };
     const next = [ev, ...(list ?? [])];
     setList(next);
-    await saveEvents(user.id, next, workspaceId);
-    scheduleEventNotifications(ev); // best-effort, jamais bloquant
+    await saveEvents(user.id, next, workspaceId, currency);
+    scheduleEventNotifications(ev, t); // best-effort, jamais bloquant
     setCreating(false);
     setType(null);
     setName("");
@@ -270,20 +273,20 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       {creating ? (
         <View style={styles.form}>
           <Text style={styles.formTitle}>
-            {tpl ? `${tpl.emoji} ${tpl.label}` : t("events.form.pickType")}
+            {tpl ? `${tpl.emoji} ${t(tpl.labelKey)}` : t("events.form.pickType")}
           </Text>
           {!tpl ? (
             <View style={styles.typeGrid}>
-              {EVENT_TEMPLATES.map((tp) => (
+              {EVENT_TEMPLATES.map((tpl0) => (
                 <TouchableOpacity
-                  key={tp.type}
+                  key={tpl0.type}
                   style={styles.typeCard}
                   activeOpacity={0.85}
-                  onPress={() => setType(tp.type)}
+                  onPress={() => setType(tpl0.type)}
                 >
-                  <Text style={{ fontSize: 26 }}>{tp.emoji}</Text>
-                  <Text style={styles.typeLabel}>{tp.label}</Text>
-                  <Text style={styles.typeTagline}>{tp.tagline}</Text>
+                  <Text style={{ fontSize: 26 }}>{tpl0.emoji}</Text>
+                  <Text style={styles.typeLabel}>{t(tpl0.labelKey)}</Text>
+                  <Text style={styles.typeTagline}>{t(tpl0.taglineKey)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -294,7 +297,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 value={name}
                 onChangeText={setName}
                 placeholder={tp("events.form.namePlaceholder", {
-                  label: tpl.label,
+                  label: t(tpl.labelKey),
                   year: new Date().getFullYear() + 1,
                 })}
                 placeholderTextColor={TEXT_3}
@@ -359,7 +362,9 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                   style={styles.input}
                   value={guests}
                   onChangeText={setGuests}
-                  placeholder={tpl.guestsLabel ?? t("events.form.guestsPlaceholder")}
+                  placeholder={
+                    tpl.guestsLabelKey ? t(tpl.guestsLabelKey) : t("events.form.guestsPlaceholder")
+                  }
                   placeholderTextColor={TEXT_3}
                   keyboardType="number-pad"
                   maxLength={4}
@@ -374,7 +379,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                     activeOpacity={0.85}
                   >
                     <Text style={[styles.chipText, tier === key && styles.chipTextActive]}>
-                      {tpl.tierLabels[key]}
+                      {t(tpl.tierLabelKeys[key])}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -393,7 +398,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                         <Text
                           style={[styles.chipText, styleKey === st.key && styles.chipTextActive]}
                         >
-                          {st.label}
+                          {t(st.labelKey)}
                         </Text>
                       </TouchableOpacity>
                     ))}

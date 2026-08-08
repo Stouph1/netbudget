@@ -147,7 +147,7 @@ export default function S1Epargne() {
   const { lang, t, tp } = useLang();
   // Devise active (le « € » était codé en dur : changer de devise n'avait
   // aucun effet sur cet écran).
-  const { fmt: formatEuro } = useCurrency();
+  const { fmt: formatEuro, currency } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, scopeLabelIsKey, loading: scopeLoading } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
@@ -165,7 +165,7 @@ export default function S1Epargne() {
     }
     (async () => {
       setLoading(true);
-      const loaded = await loadS1(user.id, workspaceId);
+      const loaded = await loadS1(user.id, workspaceId, currency);
       setPayload(loaded);
       setLoading(false);
     })();
@@ -197,7 +197,7 @@ export default function S1Epargne() {
     async (next: S1Payload) => {
       setPayload(next);
       if (!user?.id) return;
-      const result = await saveS1(user.id, next, workspaceId);
+      const result = await saveS1(user.id, next, workspaceId, currency);
       if (!result.ok) {
         Alert.alert(
           t("goals.sync.title"),

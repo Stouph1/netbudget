@@ -9,15 +9,43 @@
 // MAIF/Cofidis équipement bébé (2 500-4 500 €), Europ Assistance/Ipsos 2025
 // (vacances 1 774 €/foyer), Cofidis/CSA Noël 2025 (491 €). Ce sont des POINTS
 // DE DÉPART affichés comme tels — l'utilisateur remplace par ses vrais devis.
+//
+// ============================================================================
+// INTERNATIONALISATION
+// ----------------------------------------------------------------------------
+// Ce module est un module de DONNÉES : pas de contexte React, donc pas de `t`.
+// Il ne contient donc AUCUN texte affichable, uniquement des CLÉS i18n
+// (préfixe `evt.`) que les écrans traduisent au rendu via `useLang().t`.
+//
+// Les postes (EventLineItem) et jalons (EventMilestone) créés ici sont
+// PERSISTÉS (premiumStore) : on y stocke la CLÉ, pas le texte traduit, pour
+// qu'un événement créé en français bascule bien en anglais au changement de
+// langue. Les événements enregistrés AVANT cette migration contiennent du
+// texte français en dur : `resolveEventLabel()` les affiche tels quels.
+// ============================================================================
 
 import type { EventLineItem, EventMilestone, EventProject } from "../lib/premiumStore";
 
 export type EventTier = "low" | "mid" | "high";
 
+/** Préfixe des clés i18n de ce module — sert à distinguer clé et texte legacy. */
+export const EVENT_KEY_PREFIX = "evt.";
+
+/**
+ * Affiche un libellé persisté : traduit s'il s'agit d'une clé du catalogue,
+ * rendu tel quel s'il s'agit d'un texte (événements d'avant la migration, ou
+ * clé absente du catalogue — `t()` renvoie alors la clé elle-même).
+ */
+export function resolveEventLabel(labelOrKey: string, t: (key: string) => string): string {
+  if (!labelOrKey || !labelOrKey.startsWith(EVENT_KEY_PREFIX)) return labelOrKey;
+  const translated = t(labelOrKey);
+  return translated === labelOrKey ? labelOrKey : translated;
+}
+
 // Un poste du template : soit un montant fixe par gamme, soit un montant
 // PAR INVITÉ par gamme (traiteur…), soit purement à remplir (0 par défaut).
 type TemplateItem = {
-  label: string;
+  labelKey: string;
   emoji: string;
   kind: "fixed" | "perGuest" | "blank";
   tiers?: Record<EventTier, number>; // € (par invité si kind = perGuest)
@@ -26,9 +54,9 @@ type TemplateItem = {
 
 export type EventStyle = {
   key: string;
-  label: string;
+  labelKey: string;
   // Conseils concrets affichés dans le détail — adaptés au style choisi.
-  tip: string;
+  tipKey: string;
   // Multiplicateur doux appliqué aux montants proposés (0.8 = style économe).
   factor?: number;
 };
@@ -36,17 +64,17 @@ export type EventStyle = {
 export type EventTemplate = {
   type: string;
   emoji: string;
-  label: string;
-  tagline: string; // une phrase d'accroche dans le sélecteur
+  labelKey: string;
+  taglineKey: string; // une phrase d'accroche dans le sélecteur
   asksDestinations?: boolean; // voyage : une ou plusieurs étapes
   asksGuests: boolean;
-  guestsLabel?: string;
-  tierLabels: Record<EventTier, string>;
+  guestsLabelKey?: string;
+  tierLabelKeys: Record<EventTier, string>;
   styles?: EventStyle[]; // mini-questionnaire « quel esprit ? »
   items: TemplateItem[];
-  milestones: { label: string; monthsBefore: number }[];
-  // Messages personnalisés selon l'avancement (voir eventMessages()).
-  cheer: {
+  milestones: { labelKey: string; monthsBefore: number }[];
+  // Messages personnalisés selon l'avancement (voir eventMessage()).
+  cheerKeys: {
     early: string; // longtemps avant, financement en avance
     onTrack: string;
     behind: string;
@@ -54,248 +82,276 @@ export type EventTemplate = {
   };
 };
 
-export const EVENT_TIERS: { key: EventTier; label: string }[] = [
-  { key: "low", label: "Simple" },
-  { key: "mid", label: "Confort" },
-  { key: "high", label: "Grand jeu" },
+export const EVENT_TIERS: { key: EventTier; labelKey: string }[] = [
+  { key: "low", labelKey: "evt.tier.low" },
+  { key: "mid", labelKey: "evt.tier.mid" },
+  { key: "high", labelKey: "evt.tier.high" },
 ];
 
 export const EVENT_TEMPLATES: EventTemplate[] = [
   {
     type: "wedding",
     emoji: "💍",
-    label: "Mariage",
-    tagline: "Cérémonie, réception, tenues — sans Excel et sans stress.",
+    labelKey: "evt.wedding.label",
+    taglineKey: "evt.wedding.tagline",
     asksGuests: true,
-    guestsLabel: "Nombre d'invités",
-    tierLabels: { low: "Intime", mid: "Classique", high: "Grand mariage" },
+    guestsLabelKey: "evt.wedding.guests",
+    tierLabelKeys: {
+      low: "evt.wedding.tier.low",
+      mid: "evt.wedding.tier.mid",
+      high: "evt.wedding.tier.high",
+    },
     styles: [
-      { key: "champetre", label: "🌾 Champêtre", tip: "Les domaines hors samedi et hors juin-septembre coûtent 20 à 30 % de moins — et un lieu qui autorise ton propre traiteur change tout le budget. Les fleurs de saison locales divisent le poste déco.", factor: 0.95 },
-      { key: "urbain", label: "🏙️ Urbain chic", tip: "En ville, le lieu et le photographe concentrent le budget (à Paris compte +30-40 % sur ces postes). Piste : une belle salle de restaurant privatisée remplace salle + traiteur en un seul devis.", factor: 1.1 },
-      { key: "traditionnel", label: "🎊 Traditionnel / multi-cérémonies", tip: "Religieux + civil + traditionnel = trois budgets distincts. Pose les trois enveloppes dès le départ (la dot et les tenues de cérémonie ont leur propre poste) et répartis les contributions familiales noir sur blanc.", factor: 1.0 },
-      { key: "eco", label: "💚 Petit budget malin", tip: "Les trois postes qui pardonnent : papeterie (numérique), déco (seconde main + fleurs de saison), musique (playlist + enceintes louées). Le traiteur en buffet plutôt qu'assis économise ~30 %/invité.", factor: 0.8 },
+      { key: "champetre", labelKey: "evt.wedding.style.champetre.label", tipKey: "evt.wedding.style.champetre.tip", factor: 0.95 },
+      { key: "urbain", labelKey: "evt.wedding.style.urbain.label", tipKey: "evt.wedding.style.urbain.tip", factor: 1.1 },
+      { key: "traditionnel", labelKey: "evt.wedding.style.traditionnel.label", tipKey: "evt.wedding.style.traditionnel.tip", factor: 1.0 },
+      { key: "eco", labelKey: "evt.wedding.style.eco.label", tipKey: "evt.wedding.style.eco.tip", factor: 0.8 },
     ],
     items: [
-      { label: "Réception & traiteur (par invité)", emoji: "🍽️", kind: "perGuest", tiers: { low: 55, mid: 95, high: 140 } },
-      { label: "Lieu de réception", emoji: "🏛️", kind: "fixed", tiers: { low: 1500, mid: 4500, high: 8000 } },
-      { label: "Tenues des mariés", emoji: "🤵👰", kind: "fixed", tiers: { low: 700, mid: 2600, high: 5000 } },
-      { label: "Photo / vidéo", emoji: "📸", kind: "fixed", tiers: { low: 600, mid: 1500, high: 3500 } },
-      { label: "Musique / DJ / animation", emoji: "🎶", kind: "fixed", tiers: { low: 400, mid: 900, high: 1800 } },
-      { label: "Fleurs & décoration", emoji: "💐", kind: "fixed", tiers: { low: 400, mid: 1200, high: 2500 } },
-      { label: "Alliances", emoji: "💫", kind: "fixed", tiers: { low: 300, mid: 800, high: 1500 } },
-      { label: "Faire-part & papeterie", emoji: "✉️", kind: "fixed", tiers: { low: 100, mid: 400, high: 900 } },
-      { label: "Coiffure / maquillage / beauté", emoji: "💄", kind: "fixed", tiers: { low: 100, mid: 400, high: 1000 } },
-      { label: "Cérémonie (civile / religieuse / laïque)", emoji: "⛪", kind: "fixed", tiers: { low: 0, mid: 300, high: 900 } },
-      { label: "Voiture / transport", emoji: "🚗", kind: "fixed", tiers: { low: 0, mid: 400, high: 1200 }, optional: true },
-      { label: "Voyage de noces", emoji: "🏝️", kind: "fixed", tiers: { low: 0, mid: 3000, high: 6000 }, optional: true },
-      { label: "Contrat de mariage (notaire, si souhaité)", emoji: "📜", kind: "fixed", tiers: { low: 350, mid: 450, high: 800 }, optional: true },
-      { label: "Cérémonie traditionnelle / dot", emoji: "🎁", kind: "blank", optional: true },
-      { label: "Imprévus (5-10 %)", emoji: "🛟", kind: "blank" },
+      { labelKey: "evt.wedding.item.catering", emoji: "🍽️", kind: "perGuest", tiers: { low: 55, mid: 95, high: 140 } },
+      { labelKey: "evt.wedding.item.venue", emoji: "🏛️", kind: "fixed", tiers: { low: 1500, mid: 4500, high: 8000 } },
+      { labelKey: "evt.wedding.item.attire", emoji: "🤵👰", kind: "fixed", tiers: { low: 700, mid: 2600, high: 5000 } },
+      { labelKey: "evt.wedding.item.photo", emoji: "📸", kind: "fixed", tiers: { low: 600, mid: 1500, high: 3500 } },
+      { labelKey: "evt.wedding.item.music", emoji: "🎶", kind: "fixed", tiers: { low: 400, mid: 900, high: 1800 } },
+      { labelKey: "evt.wedding.item.flowers", emoji: "💐", kind: "fixed", tiers: { low: 400, mid: 1200, high: 2500 } },
+      { labelKey: "evt.wedding.item.rings", emoji: "💫", kind: "fixed", tiers: { low: 300, mid: 800, high: 1500 } },
+      { labelKey: "evt.wedding.item.stationery", emoji: "✉️", kind: "fixed", tiers: { low: 100, mid: 400, high: 900 } },
+      { labelKey: "evt.wedding.item.beauty", emoji: "💄", kind: "fixed", tiers: { low: 100, mid: 400, high: 1000 } },
+      { labelKey: "evt.wedding.item.ceremony", emoji: "⛪", kind: "fixed", tiers: { low: 0, mid: 300, high: 900 } },
+      { labelKey: "evt.wedding.item.transport", emoji: "🚗", kind: "fixed", tiers: { low: 0, mid: 400, high: 1200 }, optional: true },
+      { labelKey: "evt.wedding.item.honeymoon", emoji: "🏝️", kind: "fixed", tiers: { low: 0, mid: 3000, high: 6000 }, optional: true },
+      { labelKey: "evt.wedding.item.contract", emoji: "📜", kind: "fixed", tiers: { low: 350, mid: 450, high: 800 }, optional: true },
+      { labelKey: "evt.wedding.item.dowry", emoji: "🎁", kind: "blank", optional: true },
+      { labelKey: "evt.wedding.item.buffer", emoji: "🛟", kind: "blank" },
     ],
     milestones: [
-      { label: "Fixer la date, le budget et la liste d'invités", monthsBefore: 12 },
-      { label: "Réserver le lieu de réception", monthsBefore: 12 },
-      { label: "Réserver traiteur, photographe et DJ", monthsBefore: 9 },
-      { label: "Choisir et commander les tenues", monthsBefore: 8 },
-      { label: "Envoyer les faire-part", monthsBefore: 5 },
-      { label: "Dossier de mariage à la mairie", monthsBefore: 4 },
-      { label: "Essayages finaux, alliances, plan de table", monthsBefore: 2 },
-      { label: "Confirmer les prestataires et les effectifs", monthsBefore: 1 },
-      { label: "Jour J 🎉", monthsBefore: 0 },
+      { labelKey: "evt.wedding.ms.date", monthsBefore: 12 },
+      { labelKey: "evt.wedding.ms.venue", monthsBefore: 12 },
+      { labelKey: "evt.wedding.ms.vendors", monthsBefore: 9 },
+      { labelKey: "evt.wedding.ms.attire", monthsBefore: 8 },
+      { labelKey: "evt.wedding.ms.invites", monthsBefore: 5 },
+      { labelKey: "evt.wedding.ms.paperwork", monthsBefore: 4 },
+      { labelKey: "evt.wedding.ms.fittings", monthsBefore: 2 },
+      { labelKey: "evt.wedding.ms.confirm", monthsBefore: 1 },
+      { labelKey: "evt.wedding.ms.dday", monthsBefore: 0 },
     ],
-    cheer: {
-      early: "Vous avez pris de l'avance — le secret des mariages sereins. Chaque euro mis de côté maintenant, c'est un choix en plus le jour J.",
-      onTrack: "Le cap est bon : le financement suit le calendrier. Continuez comme ça, la version « sans stress » du mariage, c'est exactement ça.",
-      behind: "Le financement est un peu en retard sur le calendrier — pas de panique : augmentez la mise mensuelle ou ajustez un poste (la déco et la papeterie pardonnent plus que le traiteur).",
-      lastStretch: "Dernière ligne droite ! Confirmez les effectifs aux prestataires (chaque invité fantôme coûte un repas) et gardez la marge imprévus intacte.",
+    cheerKeys: {
+      early: "evt.wedding.cheer.early",
+      onTrack: "evt.wedding.cheer.onTrack",
+      behind: "evt.wedding.cheer.behind",
+      lastStretch: "evt.wedding.cheer.lastStretch",
     },
   },
   {
     type: "travel",
     emoji: "✈️",
-    label: "Voyage",
-    tagline: "Transport, logement, sur place — le budget qui évite les mauvaises surprises.",
+    labelKey: "evt.travel.label",
+    taglineKey: "evt.travel.tagline",
     asksDestinations: true,
     asksGuests: true,
-    guestsLabel: "Nombre de voyageurs",
-    tierLabels: { low: "Sac à dos", mid: "Confort", high: "Coup de folie" },
+    guestsLabelKey: "evt.travel.guests",
+    tierLabelKeys: {
+      low: "evt.travel.tier.low",
+      mid: "evt.travel.tier.mid",
+      high: "evt.travel.tier.high",
+    },
     styles: [
-      { key: "aventure", label: "🥾 Aventure pas chère", tip: "Auberges, trains locaux, street food : vise 30-40 €/jour hors transport. Réserve le vol 3-4 mois avant (mardi/mercredi, aéroports secondaires) et voyage hors vacances scolaires — l'écart haute/basse saison atteint 40 % sur l'hébergement.", factor: 0.75 },
-      { key: "detente", label: "🏖️ Détente", tip: "Resorts et clubs : le « tout compris » réservé tôt bat presque toujours le à-la-carte. Compare le même hôtel sur 2-3 plateformes ET son site direct — et note les prix ici pour voir la tendance.", factor: 1.0 },
-      { key: "culture", label: "🏛️ City-trip culture", tip: "Les city-pass (musées + transports) s'amortissent dès 2 visites/jour. Loge près d'une ligne de métro plutôt qu'au centre : -30 % sur l'hébergement pour 15 minutes de trajet.", factor: 0.9 },
-      { key: "famille", label: "👨‍👩‍👧 En famille", tip: "Appartement avec cuisine > hôtel dès 4 personnes (les repas sur place sont le poste qui explose). Vérifie les gratuités enfants (transports, musées) du pays — souvent jusqu'à 12 ans.", factor: 0.95 },
+      { key: "aventure", labelKey: "evt.travel.style.aventure.label", tipKey: "evt.travel.style.aventure.tip", factor: 0.75 },
+      { key: "detente", labelKey: "evt.travel.style.detente.label", tipKey: "evt.travel.style.detente.tip", factor: 1.0 },
+      { key: "culture", labelKey: "evt.travel.style.culture.label", tipKey: "evt.travel.style.culture.tip", factor: 0.9 },
+      { key: "famille", labelKey: "evt.travel.style.famille.label", tipKey: "evt.travel.style.famille.tip", factor: 0.95 },
     ],
     items: [
-      { label: "Transport aller-retour (par personne)", emoji: "✈️", kind: "perGuest", tiers: { low: 100, mid: 400, high: 1000 } },
-      { label: "Hébergement (total séjour, par personne)", emoji: "🏨", kind: "perGuest", tiers: { low: 150, mid: 500, high: 1200 } },
-      { label: "Repas & sorties (par personne)", emoji: "🍜", kind: "perGuest", tiers: { low: 100, mid: 350, high: 800 } },
-      { label: "Activités & visites (par personne)", emoji: "🎟️", kind: "perGuest", tiers: { low: 50, mid: 150, high: 500 } },
-      { label: "Assurance voyage", emoji: "🛡️", kind: "fixed", tiers: { low: 30, mid: 80, high: 200 } },
-      { label: "Visas / formalités", emoji: "🛂", kind: "blank", optional: true },
-      { label: "Transports sur place", emoji: "🚌", kind: "fixed", tiers: { low: 50, mid: 150, high: 400 }, optional: true },
-      { label: "Imprévus (10 %)", emoji: "🛟", kind: "blank" },
+      { labelKey: "evt.travel.item.transport", emoji: "✈️", kind: "perGuest", tiers: { low: 100, mid: 400, high: 1000 } },
+      { labelKey: "evt.travel.item.lodging", emoji: "🏨", kind: "perGuest", tiers: { low: 150, mid: 500, high: 1200 } },
+      { labelKey: "evt.travel.item.food", emoji: "🍜", kind: "perGuest", tiers: { low: 100, mid: 350, high: 800 } },
+      { labelKey: "evt.travel.item.activities", emoji: "🎟️", kind: "perGuest", tiers: { low: 50, mid: 150, high: 500 } },
+      { labelKey: "evt.travel.item.insurance", emoji: "🛡️", kind: "fixed", tiers: { low: 30, mid: 80, high: 200 } },
+      { labelKey: "evt.travel.item.visa", emoji: "🛂", kind: "blank", optional: true },
+      { labelKey: "evt.travel.item.localTransport", emoji: "🚌", kind: "fixed", tiers: { low: 50, mid: 150, high: 400 }, optional: true },
+      { labelKey: "evt.travel.item.buffer", emoji: "🛟", kind: "blank" },
     ],
     milestones: [
-      { label: "Choisir la destination et poser les dates", monthsBefore: 6 },
-      { label: "Réserver le transport (les prix montent ensuite)", monthsBefore: 4 },
-      { label: "Réserver les hébergements", monthsBefore: 3 },
-      { label: "Vérifier passeports, visas, vaccins", monthsBefore: 2 },
-      { label: "Souscrire l'assurance, prévenir la banque", monthsBefore: 1 },
-      { label: "Départ 🧳", monthsBefore: 0 },
+      { labelKey: "evt.travel.ms.destination", monthsBefore: 6 },
+      { labelKey: "evt.travel.ms.transport", monthsBefore: 4 },
+      { labelKey: "evt.travel.ms.lodging", monthsBefore: 3 },
+      { labelKey: "evt.travel.ms.documents", monthsBefore: 2 },
+      { labelKey: "evt.travel.ms.insurance", monthsBefore: 1 },
+      { labelKey: "evt.travel.ms.departure", monthsBefore: 0 },
     ],
-    cheer: {
-      early: "Réserver tôt, c'est le meilleur « bon plan » du voyage : les billets n'attendront pas que ton épargne soit prête.",
-      onTrack: "Le budget voyage se remplit au bon rythme — les vacances se dégustent mieux quand elles sont déjà payées.",
-      behind: "Le financement traîne un peu : vise d'abord le transport et l'hébergement (les postes qui flambent), le reste peut s'ajuster sur place.",
-      lastStretch: "C'est presque le départ ! Vérifie les documents, télécharge les réservations hors ligne, et garde la ligne imprévus pour les vraies surprises.",
+    cheerKeys: {
+      early: "evt.travel.cheer.early",
+      onTrack: "evt.travel.cheer.onTrack",
+      behind: "evt.travel.cheer.behind",
+      lastStretch: "evt.travel.cheer.lastStretch",
     },
   },
   {
     type: "baby",
     emoji: "👶",
-    label: "Nouveau bébé",
-    tagline: "Équipement, démarches, premiers mois — préparés en douceur.",
+    labelKey: "evt.baby.label",
+    taglineKey: "evt.baby.tagline",
     asksGuests: false,
-    tierLabels: { low: "Essentiel & seconde main", mid: "Équilibré", high: "Tout neuf" },
+    tierLabelKeys: {
+      low: "evt.baby.tier.low",
+      mid: "evt.baby.tier.mid",
+      high: "evt.baby.tier.high",
+    },
     items: [
-      { label: "Poussette / porte-bébé", emoji: "🍼", kind: "fixed", tiers: { low: 150, mid: 500, high: 1200 } },
-      { label: "Siège auto (obligatoire)", emoji: "🚗", kind: "fixed", tiers: { low: 80, mid: 250, high: 500 } },
-      { label: "Lit, matelas, chambre", emoji: "🛏️", kind: "fixed", tiers: { low: 150, mid: 500, high: 1500 } },
-      { label: "Vêtements naissance → 6 mois", emoji: "👕", kind: "fixed", tiers: { low: 100, mid: 300, high: 700 } },
-      { label: "Couches & soins (6 premiers mois)", emoji: "🧴", kind: "fixed", tiers: { low: 300, mid: 450, high: 700 } },
-      { label: "Lait & alimentation (si biberon, 6 mois)", emoji: "🍼", kind: "fixed", tiers: { low: 0, mid: 300, high: 500 }, optional: true },
-      { label: "Matériel de puériculture (transat, baignoire…)", emoji: "🛁", kind: "fixed", tiers: { low: 80, mid: 250, high: 600 } },
-      { label: "Frais de garde (provision premiers mois)", emoji: "🏫", kind: "blank", optional: true },
-      { label: "Imprévus", emoji: "🛟", kind: "blank" },
+      { labelKey: "evt.baby.item.stroller", emoji: "🍼", kind: "fixed", tiers: { low: 150, mid: 500, high: 1200 } },
+      { labelKey: "evt.baby.item.carSeat", emoji: "🚗", kind: "fixed", tiers: { low: 80, mid: 250, high: 500 } },
+      { labelKey: "evt.baby.item.bed", emoji: "🛏️", kind: "fixed", tiers: { low: 150, mid: 500, high: 1500 } },
+      { labelKey: "evt.baby.item.clothes", emoji: "👕", kind: "fixed", tiers: { low: 100, mid: 300, high: 700 } },
+      { labelKey: "evt.baby.item.diapers", emoji: "🧴", kind: "fixed", tiers: { low: 300, mid: 450, high: 700 } },
+      { labelKey: "evt.baby.item.formula", emoji: "🍼", kind: "fixed", tiers: { low: 0, mid: 300, high: 500 }, optional: true },
+      { labelKey: "evt.baby.item.gear", emoji: "🛁", kind: "fixed", tiers: { low: 80, mid: 250, high: 600 } },
+      { labelKey: "evt.baby.item.childcare", emoji: "🏫", kind: "blank", optional: true },
+      { labelKey: "evt.baby.item.buffer", emoji: "🛟", kind: "blank" },
     ],
     milestones: [
-      { label: "Déclarer la grossesse (CAF + Assurance maladie)", monthsBefore: 7 },
-      { label: "S'inscrire en crèche / trouver la garde (tôt !)", monthsBefore: 6 },
-      { label: "Gros équipement : poussette, siège auto, lit", monthsBefore: 3 },
-      { label: "Valise maternité, démarches congés parents", monthsBefore: 1 },
-      { label: "Naissance 💛 (déclaration sous 5 jours)", monthsBefore: 0 },
+      { labelKey: "evt.baby.ms.declare", monthsBefore: 7 },
+      { labelKey: "evt.baby.ms.daycare", monthsBefore: 6 },
+      { labelKey: "evt.baby.ms.gear", monthsBefore: 3 },
+      { labelKey: "evt.baby.ms.hospitalBag", monthsBefore: 1 },
+      { labelKey: "evt.baby.ms.birth", monthsBefore: 0 },
     ],
-    cheer: {
-      early: "Préparer tôt, c'est acheter malin : la seconde main en puériculture divise souvent les prix par trois (sauf le siège auto — toujours neuf ou historique connu).",
-      onTrack: "Le nid se prépare au bon rythme. Pense aux aides : la prime à la naissance arrive AVANT bébé si le dossier CAF est fait.",
-      behind: "Le budget prend du retard — commence par l'obligatoire (siège auto) et l'indispensable (lit, poussette), le reste peut attendre ou venir de la liste de naissance.",
-      lastStretch: "Dernières semaines ! Valise prête, démarches de congés posées, et garde la provision imprévus : bébé a son propre calendrier.",
+    cheerKeys: {
+      early: "evt.baby.cheer.early",
+      onTrack: "evt.baby.cheer.onTrack",
+      behind: "evt.baby.cheer.behind",
+      lastStretch: "evt.baby.cheer.lastStretch",
     },
   },
   {
     type: "funeral",
     emoji: "🕊️",
-    label: "Funérailles",
-    tagline: "Prévoir dignement, connaître ses droits, éviter les abus.",
+    labelKey: "evt.funeral.label",
+    taglineKey: "evt.funeral.tagline",
     asksGuests: false,
-    tierLabels: { low: "Sobre", mid: "Classique", high: "Cérémonie complète" },
+    tierLabelKeys: {
+      low: "evt.funeral.tier.low",
+      mid: "evt.funeral.tier.mid",
+      high: "evt.funeral.tier.high",
+    },
     items: [
-      { label: "Pompes funèbres (prestations obligatoires)", emoji: "⚱️", kind: "fixed", tiers: { low: 1500, mid: 2500, high: 4000 } },
-      { label: "Cercueil / urne", emoji: "🪦", kind: "fixed", tiers: { low: 500, mid: 1200, high: 3000 } },
-      { label: "Concession / crémation (selon commune)", emoji: "📜", kind: "fixed", tiers: { low: 300, mid: 800, high: 2500 } },
-      { label: "Cérémonie & recueillement", emoji: "🕯️", kind: "fixed", tiers: { low: 0, mid: 300, high: 800 } },
-      { label: "Fleurs, avis de décès", emoji: "🤍", kind: "fixed", tiers: { low: 100, mid: 350, high: 800 } },
-      { label: "Réception / repas de famille", emoji: "🍽️", kind: "blank", optional: true },
-      { label: "Pierre tombale / plaque (souvent plus tard)", emoji: "🪨", kind: "blank", optional: true },
+      { labelKey: "evt.funeral.item.services", emoji: "⚱️", kind: "fixed", tiers: { low: 1500, mid: 2500, high: 4000 } },
+      { labelKey: "evt.funeral.item.coffin", emoji: "🪦", kind: "fixed", tiers: { low: 500, mid: 1200, high: 3000 } },
+      { labelKey: "evt.funeral.item.plot", emoji: "📜", kind: "fixed", tiers: { low: 300, mid: 800, high: 2500 } },
+      { labelKey: "evt.funeral.item.ceremony", emoji: "🕯️", kind: "fixed", tiers: { low: 0, mid: 300, high: 800 } },
+      { labelKey: "evt.funeral.item.flowers", emoji: "🤍", kind: "fixed", tiers: { low: 100, mid: 350, high: 800 } },
+      { labelKey: "evt.funeral.item.reception", emoji: "🍽️", kind: "blank", optional: true },
+      { labelKey: "evt.funeral.item.headstone", emoji: "🪨", kind: "blank", optional: true },
     ],
     milestones: [
-      { label: "Comparer 2-3 devis-types (obligatoires et gratuits)", monthsBefore: 0 },
-      { label: "Vérifier les aides : capital décès, compte du défunt, caisses", monthsBefore: 0 },
-      { label: "Cérémonie", monthsBefore: 0 },
+      { labelKey: "evt.funeral.ms.quotes", monthsBefore: 0 },
+      { labelKey: "evt.funeral.ms.aid", monthsBefore: 0 },
+      { labelKey: "evt.funeral.ms.ceremony", monthsBefore: 0 },
     ],
-    cheer: {
-      early: "Prévoir, c'est protéger les siens : un budget posé à froid évite les décisions coûteuses prises dans l'urgence et le chagrin.",
-      onTrack: "Le devis-type réglementé est ton meilleur allié : les pompes funèbres DOIVENT te le fournir gratuitement — compare-en plusieurs, les écarts sont énormes.",
-      behind: "Ne te laisse pas presser : seules quelques prestations sont légalement obligatoires, tout le reste se discute. Les aides (capital décès, prélèvement sur le compte du défunt) existent.",
-      lastStretch: "Courage. Concentre-toi sur l'essentiel, fais-toi accompagner pour les démarches, et vérifie chaque ligne du devis final avant signature.",
+    cheerKeys: {
+      early: "evt.funeral.cheer.early",
+      onTrack: "evt.funeral.cheer.onTrack",
+      behind: "evt.funeral.cheer.behind",
+      lastStretch: "evt.funeral.cheer.lastStretch",
     },
   },
   {
     type: "party",
     emoji: "🎉",
-    label: "Fête / anniversaire",
-    tagline: "Un bel événement, un budget qui ne déborde pas.",
+    labelKey: "evt.party.label",
+    taglineKey: "evt.party.tagline",
     asksGuests: true,
-    guestsLabel: "Nombre d'invités",
-    tierLabels: { low: "À la maison", mid: "Avec salle", high: "Grande fête" },
+    guestsLabelKey: "evt.party.guests",
+    tierLabelKeys: {
+      low: "evt.party.tier.low",
+      mid: "evt.party.tier.mid",
+      high: "evt.party.tier.high",
+    },
     styles: [
-      { key: "enfant", label: "🎈 Enfant", tip: "Moyenne constatée ~200 € tout compris à domicile. L'animateur pro (200-300 €) est le poste décisif : des jeux organisés par deux parents font le même effet à 5 ans.", factor: 0.9 },
-      { key: "adulte", label: "🥂 Adulte", tip: "Le format apéritif dînatoire coûte moitié moins qu'un repas assis et fait circuler les gens. Demande à chacun d'amener une bouteille — classique et efficace.", factor: 1.0 },
-      { key: "surprise", label: "🎁 Surprise", tip: "Budget secret = paiements étalés discrets. Crée l'événement dans ton espace Perso (pas le partagé !) pour que la surprise reste une surprise.", factor: 1.0 },
+      { key: "enfant", labelKey: "evt.party.style.enfant.label", tipKey: "evt.party.style.enfant.tip", factor: 0.9 },
+      { key: "adulte", labelKey: "evt.party.style.adulte.label", tipKey: "evt.party.style.adulte.tip", factor: 1.0 },
+      { key: "surprise", labelKey: "evt.party.style.surprise.label", tipKey: "evt.party.style.surprise.tip", factor: 1.0 },
     ],
     items: [
-      { label: "Nourriture & boissons (par invité)", emoji: "🥂", kind: "perGuest", tiers: { low: 10, mid: 25, high: 60 } },
-      { label: "Salle / lieu", emoji: "🏠", kind: "fixed", tiers: { low: 0, mid: 300, high: 1200 }, optional: true },
-      { label: "Gâteau / pièce montée", emoji: "🎂", kind: "fixed", tiers: { low: 30, mid: 100, high: 350 } },
-      { label: "Décoration", emoji: "🎈", kind: "fixed", tiers: { low: 30, mid: 100, high: 400 } },
-      { label: "Animation / musique", emoji: "🎵", kind: "fixed", tiers: { low: 0, mid: 200, high: 800 }, optional: true },
-      { label: "Invitations & petits cadeaux", emoji: "🎁", kind: "fixed", tiers: { low: 20, mid: 80, high: 250 }, optional: true },
+      { labelKey: "evt.party.item.food", emoji: "🥂", kind: "perGuest", tiers: { low: 10, mid: 25, high: 60 } },
+      { labelKey: "evt.party.item.venue", emoji: "🏠", kind: "fixed", tiers: { low: 0, mid: 300, high: 1200 }, optional: true },
+      { labelKey: "evt.party.item.cake", emoji: "🎂", kind: "fixed", tiers: { low: 30, mid: 100, high: 350 } },
+      { labelKey: "evt.party.item.decor", emoji: "🎈", kind: "fixed", tiers: { low: 30, mid: 100, high: 400 } },
+      { labelKey: "evt.party.item.entertainment", emoji: "🎵", kind: "fixed", tiers: { low: 0, mid: 200, high: 800 }, optional: true },
+      { labelKey: "evt.party.item.invites", emoji: "🎁", kind: "fixed", tiers: { low: 20, mid: 80, high: 250 }, optional: true },
     ],
     milestones: [
-      { label: "Fixer la date et la liste d'invités", monthsBefore: 2 },
-      { label: "Réserver la salle et l'animation", monthsBefore: 2 },
-      { label: "Envoyer les invitations", monthsBefore: 1 },
-      { label: "Courses et préparation", monthsBefore: 0 },
-      { label: "Jour J 🎉", monthsBefore: 0 },
+      { labelKey: "evt.party.ms.date", monthsBefore: 2 },
+      { labelKey: "evt.party.ms.booking", monthsBefore: 2 },
+      { labelKey: "evt.party.ms.invites", monthsBefore: 1 },
+      { labelKey: "evt.party.ms.shopping", monthsBefore: 0 },
+      { labelKey: "evt.party.ms.dday", monthsBefore: 0 },
     ],
-    cheer: {
-      early: "Une fête réussie se joue sur la liste d'invités : c'est elle qui pilote tout le budget. Fixe-la d'abord, le reste suit.",
-      onTrack: "Tout roule — la fête est financée au bon rythme. Le fait-maison sur la déco et le gâteau, c'est souvent la moitié du prix.",
-      behind: "Petit retard de financement : réduis un poste plaisir (déco, animation) plutôt que le nombre d'amis — c'est eux, la fête.",
-      lastStretch: "Dernière ligne droite : confirme les présences avant les courses, ça évite de nourrir 20 fantômes.",
+    cheerKeys: {
+      early: "evt.party.cheer.early",
+      onTrack: "evt.party.cheer.onTrack",
+      behind: "evt.party.cheer.behind",
+      lastStretch: "evt.party.cheer.lastStretch",
     },
   },
   {
     type: "religious",
     emoji: "🕌",
-    label: "Fête religieuse / traditionnelle",
-    tagline: "Tabaski, Aïd, baptême, communion… budgétés sereinement, à l'avance.",
+    labelKey: "evt.religious.label",
+    taglineKey: "evt.religious.tagline",
     asksGuests: true,
-    guestsLabel: "Nombre de convives",
-    tierLabels: { low: "Sobre", mid: "Familial", high: "Grande tablée" },
+    guestsLabelKey: "evt.religious.guests",
+    tierLabelKeys: {
+      low: "evt.religious.tier.low",
+      mid: "evt.religious.tier.mid",
+      high: "evt.religious.tier.high",
+    },
     items: [
-      { label: "Achat principal (mouton, repas de fête…)", emoji: "🐑", kind: "fixed", tiers: { low: 150, mid: 400, high: 900 } },
-      { label: "Repas & réception (par convive)", emoji: "🍽️", kind: "perGuest", tiers: { low: 8, mid: 20, high: 45 } },
-      { label: "Tenues de fête", emoji: "👗", kind: "fixed", tiers: { low: 50, mid: 200, high: 600 } },
-      { label: "Dons / zakat / offrandes", emoji: "🤲", kind: "blank", optional: true },
-      { label: "Cadeaux (enfants, famille)", emoji: "🎁", kind: "fixed", tiers: { low: 30, mid: 100, high: 300 }, optional: true },
-      { label: "Transport / voyage famille", emoji: "🚌", kind: "blank", optional: true },
+      { labelKey: "evt.religious.item.main", emoji: "🐑", kind: "fixed", tiers: { low: 150, mid: 400, high: 900 } },
+      { labelKey: "evt.religious.item.meal", emoji: "🍽️", kind: "perGuest", tiers: { low: 8, mid: 20, high: 45 } },
+      { labelKey: "evt.religious.item.outfits", emoji: "👗", kind: "fixed", tiers: { low: 50, mid: 200, high: 600 } },
+      { labelKey: "evt.religious.item.donations", emoji: "🤲", kind: "blank", optional: true },
+      { labelKey: "evt.religious.item.gifts", emoji: "🎁", kind: "fixed", tiers: { low: 30, mid: 100, high: 300 }, optional: true },
+      { labelKey: "evt.religious.item.travel", emoji: "🚌", kind: "blank", optional: true },
     ],
     milestones: [
-      { label: "Poser le budget et commencer l'épargne dédiée", monthsBefore: 3 },
-      { label: "Acheter tôt (les prix montent à l'approche)", monthsBefore: 1 },
-      { label: "Jour de fête ✨", monthsBefore: 0 },
+      { labelKey: "evt.religious.ms.budget", monthsBefore: 3 },
+      { labelKey: "evt.religious.ms.buyEarly", monthsBefore: 1 },
+      { labelKey: "evt.religious.ms.dday", monthsBefore: 0 },
     ],
-    cheer: {
-      early: "Épargner plusieurs mois avant, c'est LA parade contre la flambée des prix à l'approche de la fête — tu achètes quand c'est calme.",
-      onTrack: "L'épargne dédiée avance bien : la fête sera belle ET sans dette. C'est exactement l'esprit.",
-      behind: "Le financement est en retard : mieux vaut une fête un cran plus sobre qu'un crédit à rembourser après — personne ne se souvient du prix, tout le monde se souvient du moment.",
-      lastStretch: "C'est bientôt le grand jour : les derniers achats au marché se négocient mieux le matin, et la liste écrite évite les extras.",
+    cheerKeys: {
+      early: "evt.religious.cheer.early",
+      onTrack: "evt.religious.cheer.onTrack",
+      behind: "evt.religious.cheer.behind",
+      lastStretch: "evt.religious.cheer.lastStretch",
     },
   },
   {
     type: "housewarming",
     emoji: "🏡",
-    label: "Autre événement",
-    tagline: "Crémaillère, départ en retraite, remise de diplôme… budget libre.",
+    labelKey: "evt.housewarming.label",
+    taglineKey: "evt.housewarming.tagline",
     asksGuests: true,
-    guestsLabel: "Nombre d'invités",
-    tierLabels: { low: "Simple", mid: "Confort", high: "Grand format" },
+    guestsLabelKey: "evt.housewarming.guests",
+    tierLabelKeys: {
+      low: "evt.housewarming.tier.low",
+      mid: "evt.housewarming.tier.mid",
+      high: "evt.housewarming.tier.high",
+    },
     items: [
-      { label: "Nourriture & boissons (par invité)", emoji: "🥂", kind: "perGuest", tiers: { low: 8, mid: 20, high: 45 } },
-      { label: "Lieu / matériel", emoji: "🏠", kind: "blank", optional: true },
-      { label: "Décoration & ambiance", emoji: "🎈", kind: "fixed", tiers: { low: 20, mid: 80, high: 250 }, optional: true },
-      { label: "Cadeaux / souvenirs", emoji: "🎁", kind: "blank", optional: true },
+      { labelKey: "evt.housewarming.item.food", emoji: "🥂", kind: "perGuest", tiers: { low: 8, mid: 20, high: 45 } },
+      { labelKey: "evt.housewarming.item.venue", emoji: "🏠", kind: "blank", optional: true },
+      { labelKey: "evt.housewarming.item.decor", emoji: "🎈", kind: "fixed", tiers: { low: 20, mid: 80, high: 250 }, optional: true },
+      { labelKey: "evt.housewarming.item.gifts", emoji: "🎁", kind: "blank", optional: true },
     ],
     milestones: [
-      { label: "Fixer la date et le budget", monthsBefore: 1 },
-      { label: "Jour J 🎉", monthsBefore: 0 },
+      { labelKey: "evt.housewarming.ms.date", monthsBefore: 1 },
+      { labelKey: "evt.housewarming.ms.dday", monthsBefore: 0 },
     ],
-    cheer: {
-      early: "Un événement posé tôt est un événement sans stress — le budget se remplit tout seul.",
-      onTrack: "Le financement suit — parfait.",
-      behind: "Petit retard : ajuste un poste ou remonte l'épargne du mois, tu es encore large.",
-      lastStretch: "Dernière ligne droite — confirme les présences avant les dernières dépenses.",
+    cheerKeys: {
+      early: "evt.housewarming.cheer.early",
+      onTrack: "evt.housewarming.cheer.onTrack",
+      behind: "evt.housewarming.cheer.behind",
+      lastStretch: "evt.housewarming.cheer.lastStretch",
     },
   },
 ];
@@ -328,7 +384,8 @@ export function buildEventItems(
       if (it.optional) estimated = 0;
       return {
         id: `it-${idx}`,
-        label: it.label,
+        // On persiste la CLÉ i18n : l'événement suit la langue de l'app.
+        label: it.labelKey,
         emoji: it.emoji,
         estimated,
         actual: null,
@@ -340,7 +397,7 @@ export function buildEventItems(
 export function buildEventMilestones(tpl: EventTemplate): EventMilestone[] {
   return tpl.milestones.map((m, idx) => ({
     id: `ms-${idx}`,
-    label: m.label,
+    label: m.labelKey, // clé i18n, cf. buildEventItems()
     monthsBefore: m.monthsBefore,
     done: false,
   }));
@@ -371,12 +428,13 @@ export function monthlyNeeded(ev: EventProject, now: Date = new Date()): number 
   return remaining / months;
 }
 
-export function eventMessage(ev: EventProject, now: Date = new Date()): string {
+/** Renvoie la CLÉ i18n du message de coach (chaîne vide si aucun message). */
+export function eventMessageKey(ev: EventProject, now: Date = new Date()): string {
   const tpl = templateFor(ev.type);
   const { planned } = eventTotals(ev);
   const months = monthsUntil(ev.dateIso, now);
   const fundedRatio = planned > 0 ? ev.saved / planned : 1;
-  const cheer = tpl?.cheer;
+  const cheer = tpl?.cheerKeys;
   if (!cheer) return "";
   if (months <= 1) return cheer.lastStretch;
   // Ratio temps écoulé : on compare au temps TOTAL depuis la création.
@@ -386,4 +444,14 @@ export function eventMessage(ev: EventProject, now: Date = new Date()): string {
   if (fundedRatio >= 1) return cheer.early;
   if (fundedRatio >= elapsedRatio - 0.1) return elapsedRatio < 0.34 ? cheer.early : cheer.onTrack;
   return cheer.behind;
+}
+
+/** Message de coach déjà traduit dans la langue courante. */
+export function eventMessage(
+  ev: EventProject,
+  t: (key: string) => string,
+  now: Date = new Date(),
+): string {
+  const key = eventMessageKey(ev, now);
+  return key ? t(key) : "";
 }

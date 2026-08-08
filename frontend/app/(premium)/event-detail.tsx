@@ -20,6 +20,7 @@ import {
   eventTotals,
   monthlyNeeded,
   monthsUntil,
+  resolveEventLabel,
   styleFor,
   templateFor,
 } from "../../src/constants/eventTemplates";
@@ -62,7 +63,7 @@ export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang, t, tp } = useLang();
   // Devise active : « € » était codé en dur, changer de devise n'avait aucun effet ici.
-  const { fmt } = useCurrency();
+  const { fmt, currency } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId } = useActiveScope();
   const [all, setAll] = useState<EventProject[] | null>(null);
@@ -81,7 +82,7 @@ export default function EventDetail() {
     useCallback(() => {
       if (!user?.id) return;
       let cancelled = false;
-      loadEvents(user.id, workspaceId).then((l) => {
+      loadEvents(user.id, workspaceId, currency).then((l) => {
         if (!cancelled) setAll(l);
       });
       loadAdviceProfile(user.id, null).then((prof) => {
@@ -104,8 +105,8 @@ export default function EventDetail() {
     setAll(nextAll);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      void saveEvents(user.id, nextAll, workspaceId);
-      if (reschedule) void scheduleEventNotifications(next);
+      void saveEvents(user.id, nextAll, workspaceId, currency);
+      if (reschedule) void scheduleEventNotifications(next, t);
     }, 600);
   }
 
@@ -147,7 +148,7 @@ export default function EventDetail() {
       () => {
         const nextAll = all.filter((e) => e.id !== ev.id);
         setAll(nextAll);
-        void saveEvents(user.id, nextAll, workspaceId);
+        void saveEvents(user.id, nextAll, workspaceId, currency);
         void cancelEventNotifications(ev.id);
         router.back();
       },
@@ -223,7 +224,7 @@ export default function EventDetail() {
         .filter((it) => (it.actual ?? it.estimated) > 0)
         .map(
           (it) =>
-            `• ${it.label} : ${fmt(it.actual ?? it.estimated)}` +
+            `• ${resolveEventLabel(it.label, t)} : ${fmt(it.actual ?? it.estimated)}` +
             (it.paidBy ? ` (${it.paidBy})` : "") +
             (it.done ? " ✓" : ""),
         ),
@@ -258,7 +259,7 @@ export default function EventDetail() {
   const pct = planned > 0 ? Math.min(100, (ev.saved / planned) * 100) : 0;
   const monthly = monthlyNeeded(ev);
   const months = monthsUntil(ev.dateIso);
-  const message = eventMessage(ev);
+  const message = eventMessage(ev, t);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
@@ -352,8 +353,8 @@ export default function EventDetail() {
           if (!st) return null;
           return (
             <View style={styles.styleBox}>
-              <Text style={styles.styleTitle}>{st.label}</Text>
-              <Text style={styles.styleTip}>{st.tip}</Text>
+              <Text style={styles.styleTitle}>{t(st.labelKey)}</Text>
+              <Text style={styles.styleTip}>{t(st.tipKey)}</Text>
               {placeLabel ? (
                 <Text style={styles.stylePlace}>
                   {tp("event.stylePlace", { place: placeLabel })}
@@ -398,7 +399,7 @@ export default function EventDetail() {
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: !!it.done }}
                 accessibilityLabel={tp("event.a11y.item", {
-                  label: it.label,
+                  label: resolveEventLabel(it.label, t),
                   state: it.done ? t("event.a11y.settled") : t("event.a11y.toSettle"),
                 })}
                 onPress={() =>
@@ -416,7 +417,7 @@ export default function EventDetail() {
               </TouchableOpacity>
               <Text style={{ fontSize: 16 }}>{it.emoji}</Text>
               <Text style={[styles.itemLabel, it.done && styles.itemDone]} numberOfLines={2}>
-                {it.label}
+                {resolveEventLabel(it.label, t)}
               </Text>
               <View style={{ alignItems: "flex-end" }}>
                 <Text style={styles.itemAmount}>{fmt(it.actual ?? it.estimated)}</Text>
@@ -478,7 +479,7 @@ export default function EventDetail() {
               accessibilityRole="checkbox"
               accessibilityState={{ checked: !!ms.done }}
               accessibilityLabel={tp("event.a11y.milestone", {
-                label: ms.label,
+                label: resolveEventLabel(ms.label, t),
                 state: ms.done
                   ? t("event.a11y.done")
                   : overdue
@@ -503,7 +504,9 @@ export default function EventDetail() {
                 color={ms.done ? GOLD : overdue ? "#F87171" : TEXT_3}
               />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.msLabel, ms.done && styles.itemDone]}>{ms.label}</Text>
+                <Text style={[styles.msLabel, ms.done && styles.itemDone]}>
+                  {resolveEventLabel(ms.label, t)}
+                </Text>
                 <Text style={[styles.msDate, overdue && { color: "#F87171" }]}>
                   {ms.monthsBefore === 0
                     ? t("event.dDay")
@@ -582,7 +585,7 @@ export default function EventDetail() {
           style={styles.notifBtn}
           activeOpacity={0.85}
           onPress={async () => {
-            const n = await scheduleEventNotifications(ev);
+            const n = await scheduleEventNotifications(ev, t);
             notify(
               t("event.reminders.title"),
               n > 1

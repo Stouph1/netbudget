@@ -41,11 +41,6 @@ import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import { loanProgress, remainingParts } from "../src/utils/loanSchedule";
-import {
-  convertEvents,
-  convertGoals,
-  convertHistory,
-} from "../src/utils/convertData";
 import LoanScheduleModal from "../src/components/LoanScheduleModal";
 import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import EventsPanel, { eventNeedsAttention } from "../src/components/EventsPanel";
@@ -75,17 +70,12 @@ import {
 } from "../src/lib/adviceEngine";
 import {
   addSavedAdvice,
-  loadBudgetHistory,
   loadCelebrations,
   loadAdviceProfile,
   loadBudget,
   loadEvents,
-  loadS1,
   recordBudgetHistoryPoint,
   saveBudget,
-  saveBudgetHistory,
-  saveEvents,
-  saveS1,
 } from "../src/lib/premiumStore";
 import { loadProfileDetails } from "../src/lib/profile";
 import ScopeSwitcher from "../src/components/ScopeSwitcher";
@@ -1322,34 +1312,6 @@ export default function Index() {
     return decimals === 0 ? String(Math.round(c)) : c.toFixed(2);
   }
 
-  // Objectifs, événements et historique vivent côté serveur, par scope :
-  // on les convertit en tâche de fond après le budget local.
-  async function convertPremiumData(
-    from: CurrencyCode,
-    to: CurrencyCode,
-    rates: NonNullable<Awaited<ReturnType<typeof getRates>>>,
-  ) {
-    if (!premiumUser?.id) return;
-    const uid = premiumUser.id;
-    const scopes: (string | null)[] = [null, activeWorkspaceId];
-    for (const scope of new Set(scopes)) {
-      try {
-        const [s1, events, history] = await Promise.all([
-          loadS1(uid, scope),
-          loadEvents(uid, scope),
-          loadBudgetHistory(uid, scope),
-        ]);
-        await Promise.all([
-          saveS1(uid, convertGoals(s1, from, to, rates), scope),
-          saveEvents(uid, convertEvents(events, from, to, rates), scope),
-          saveBudgetHistory(uid, convertHistory(history, from, to, rates), scope),
-        ]);
-      } catch {
-        // Conversion best-effort : ne jamais bloquer le changement de devise.
-      }
-    }
-  }
-
   // Changement de devise : on propose de CONVERTIR les montants existants.
   // Sans ça, 12 000 € devenaient « 12 000 ¥ » — soit 70 € réels. Le symbole
   // seul ne suffit pas, il faut convertir les valeurs.
@@ -1415,9 +1377,10 @@ export default function Index() {
             })),
           );
           setCurrency(next);
-          // Les données Premium (objectifs, événements, historique) vivent
-          // côté serveur : elles sont converties en tâche de fond.
-          void convertPremiumData(prev, next, rates);
+          // Les données Premium (objectifs, événements) ne sont PAS réécrites :
+          // elles portent leur propre devise et sont converties à l'affichage,
+          // pour chaque membre. Convertir en base écraserait les montants vus
+          // par les autres membres d'un espace partagé.
         },
         onCancel: () => setCurrency(next),
       });

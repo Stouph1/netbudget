@@ -22,6 +22,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { UserProfile } from "../types/advice";
 import { EMPTY_S1_PAYLOAD, type S1Payload } from "../types/premium";
 import { supabase } from "./supabase";
+import type { CurrencyCode } from "../utils/currency";
+import { getRates } from "../utils/exchangeRates";
+import { convertEvents, convertGoals } from "../utils/convertData";
 
 const CACHE_KEY_PREFIX = "netbudget:premium:cache:";
 
@@ -212,19 +215,80 @@ async function writePayload<T>(
 // API S1 — surface consommée par les écrans
 // ============================================================================
 
+
+// ============================================================================
+// Devise des payloads PARTAGÉS
+//
+// Problème : dans un espace commun, si Ramy (euros) convertissait les montants,
+// il réécrivait les données de Stivie (yens). Les réglages d'un membre ne
+// doivent JAMAIS modifier ce que voient les autres.
+//
+// Solution : chaque payload porte la devise de ses nombres — fixée par son
+// créateur, immuable ensuite. À la lecture on convertit vers la devise
+// d'affichage du lecteur ; à l'écriture on reconvertit vers celle du payload.
+// Les nombres stockés restent donc identiques pour tout le monde.
+// ============================================================================
+
+/** Devise dans laquelle les nombres d'un payload sont exprimés. */
+export type CurrencyStamped = { currency?: CurrencyCode };
+
+/**
+ * Convertit un payload de sa devise vers `display` (lecture), ou l'inverse
+ * (écriture). Sans devise enregistrée — données d'avant cette version — on ne
+ * touche à rien : on ignore dans quelle devise elles sont, mieux vaut ne rien
+ * faire que fausser des montants.
+ */
+async function convertPayload<T>(
+  payload: T,
+  stamped: CurrencyCode | undefined,
+  display: CurrencyCode | undefined,
+  apply: (data: T, from: CurrencyCode, to: CurrencyCode, rates: NonNullable<Awaited<ReturnType<typeof getRates>>>) => T,
+  direction: "toDisplay" | "toStored",
+): Promise<T> {
+  if (!stamped || !display || stamped === display) return payload;
+  const rates = await getRates();
+  if (!rates) return payload; // hors ligne : afficher tel quel plutôt que faux
+  return direction === "toDisplay"
+    ? apply(payload, stamped, display, rates)
+    : apply(payload, display, stamped, rates);
+}
+
 export async function loadS1(
   userId: string,
   workspaceId: string | null = null,
+  displayCurrency?: CurrencyCode,
 ): Promise<S1Payload> {
-  return readPayload<S1Payload>("s1", userId, EMPTY_S1_PAYLOAD, workspaceId);
+  const payload = await readPayload<S1Payload>("s1", userId, EMPTY_S1_PAYLOAD, workspaceId);
+  return convertPayload(
+    payload,
+    (payload as S1Payload & CurrencyStamped).currency,
+    displayCurrency,
+    (d, from, to, rates) => convertGoals(d as Record<string, unknown>, from, to, rates) as S1Payload,
+    "toDisplay",
+  );
 }
 
 export async function saveS1(
   userId: string,
   payload: S1Payload,
   workspaceId: string | null = null,
+  displayCurrency?: CurrencyCode,
 ): Promise<{ ok: boolean; error?: string }> {
-  return writePayload<S1Payload>("s1", userId, payload, workspaceId);
+  // Devise du payload : celle déjà enregistrée, sinon celle du créateur.
+  const existing = await readPayload<S1Payload & CurrencyStamped>(
+    "s1", userId, EMPTY_S1_PAYLOAD as S1Payload & CurrencyStamped, workspaceId,
+  );
+  const stamped = existing.currency ?? displayCurrency;
+  const back = await convertPayload(
+    payload,
+    stamped,
+    displayCurrency,
+    (d, from, to, rates) => convertGoals(d as Record<string, unknown>, from, to, rates) as S1Payload,
+    "toStored",
+  );
+  return writePayload<S1Payload & CurrencyStamped>(
+    "s1", userId, { ...back, currency: stamped }, workspaceId,
+  );
 }
 
 // ============================================================================
@@ -482,19 +546,54 @@ export type EventProject = {
 
 const EVENTS_KEY = "events";
 
+// Les événements sont stockés sous forme d'enveloppe { currency, events } pour
+// porter leur devise. L'ancien format (tableau nu) reste lisible.
+type EventsEnvelope = { currency?: CurrencyCode; events: EventProject[] };
+
+function unwrapEvents(raw: EventProject[] | EventsEnvelope): EventsEnvelope {
+  return Array.isArray(raw) ? { events: raw } : raw;
+}
+
 export async function loadEvents(
   userId: string,
   workspaceId: string | null,
+  displayCurrency?: CurrencyCode,
 ): Promise<EventProject[]> {
-  return readPayload<EventProject[]>(EVENTS_KEY, userId, [], workspaceId);
+  const raw = await readPayload<EventProject[] | EventsEnvelope>(
+    EVENTS_KEY, userId, [], workspaceId,
+  );
+  const env = unwrapEvents(raw);
+  return convertPayload(
+    env.events,
+    env.currency,
+    displayCurrency,
+    (d, from, to, rates) =>
+      convertEvents(d as unknown as Record<string, unknown>[], from, to, rates) as unknown as EventProject[],
+    "toDisplay",
+  );
 }
 
 export async function saveEvents(
   userId: string,
   list: EventProject[],
   workspaceId: string | null,
+  displayCurrency?: CurrencyCode,
 ): Promise<void> {
-  await writePayload(EVENTS_KEY, userId, list, workspaceId);
+  const raw = await readPayload<EventProject[] | EventsEnvelope>(
+    EVENTS_KEY, userId, [], workspaceId,
+  );
+  const stamped = unwrapEvents(raw).currency ?? displayCurrency;
+  const back = await convertPayload(
+    list,
+    stamped,
+    displayCurrency,
+    (d, from, to, rates) =>
+      convertEvents(d as unknown as Record<string, unknown>[], from, to, rates) as unknown as EventProject[],
+    "toStored",
+  );
+  await writePayload<EventsEnvelope>(
+    EVENTS_KEY, userId, { currency: stamped, events: back }, workspaceId,
+  );
 }
 
 const SAVED_ADVICE_KEY = "saved_advice";

@@ -1,7 +1,16 @@
 // Notifications des budgets d'événements : rappels de jalons + jour J.
 // Import dynamique d'expo-notifications (inopérant sur le web, jamais bloquant).
 
+import { resolveEventLabel } from "../constants/eventTemplates";
+import { t as translateDefault } from "../i18n/translations";
 import type { EventProject } from "../lib/premiumStore";
+
+/** Remplace les {jetons} d'un modèle traduit. */
+function interp(tpl: string, params: Record<string, string | number>): string {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) =>
+    params[k] !== undefined ? String(params[k]) : `{${k}}`,
+  );
+}
 
 // Date d'un jalon : la date de l'événement moins N mois, à 09:00.
 export function milestoneDate(eventDateIso: string, monthsBefore: number): Date {
@@ -13,7 +22,13 @@ export function milestoneDate(eventDateIso: string, monthsBefore: number): Date 
 // (Re)planifie toutes les notifications d'un événement : un rappel par jalon
 // non fait et à venir, un rappel J-7 et le jour J. Identifiants stables
 // "event-<id>-…" pour pouvoir annuler à la mise à jour/suppression.
-export async function scheduleEventNotifications(ev: EventProject): Promise<number> {
+// `translate` : le `t` de la langue courante (LangContext). Les jalons sont
+// persistés sous forme de CLÉ i18n — sans traducteur on retomberait sur la
+// langue par défaut. Les événements d'avant l'i18n gardent leur texte brut.
+export async function scheduleEventNotifications(
+  ev: EventProject,
+  translate: (key: string) => string = (key) => translateDefault(key),
+): Promise<number> {
   try {
     const Notifications = await import("expo-notifications");
     const perms = await Notifications.getPermissionsAsync();
@@ -41,7 +56,9 @@ export async function scheduleEventNotifications(ev: EventProject): Promise<numb
       await push(
         `event-${ev.id}-${ms.id}`,
         `${ev.emoji} ${ev.name}`,
-        `C'est le moment : ${ms.label}`,
+        interp(translate("evtNotif.milestone"), {
+          label: resolveEventLabel(ms.label, translate),
+        }),
         milestoneDate(ev.dateIso, ms.monthsBefore),
       );
     }
@@ -49,14 +66,14 @@ export async function scheduleEventNotifications(ev: EventProject): Promise<numb
     j7.setDate(j7.getDate() - 7);
     await push(
       `event-${ev.id}-j7`,
-      `${ev.emoji} ${ev.name} — J-7 !`,
-      "Dernière ligne droite : confirme les effectifs et vérifie le budget dans NetBudget.",
+      interp(translate("evtNotif.j7.title"), { emoji: ev.emoji, name: ev.name }),
+      translate("evtNotif.j7.body"),
       j7,
     );
     await push(
       `event-${ev.id}-jday`,
-      `${ev.emoji} C'est le grand jour !`,
-      `${ev.name} — profite, tout est prêt. NetBudget te souhaite un merveilleux moment.`,
+      interp(translate("evtNotif.jday.title"), { emoji: ev.emoji }),
+      interp(translate("evtNotif.jday.body"), { name: ev.name }),
       new Date(ev.dateIso + "T08:30:00"),
     );
     return scheduled;

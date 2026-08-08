@@ -101,7 +101,12 @@ export function convertGoals<T extends Record<string, unknown>>(
       ...g,
       targetAmount: convertNumber(g.targetAmount as number, from, to, rates),
       currentAmount: convertNumber(g.currentAmount as number, from, to, rates),
-      monthlyPlan: convertNumber(g.monthlyPlan as number, from, to, rates),
+      // Le champ s'appelle monthlyContribution — « monthlyPlan » n'existait pas,
+      // d'où des objectifs partiellement convertis.
+      monthlyContribution:
+        g.monthlyContribution === undefined
+          ? undefined
+          : convertNumber(g.monthlyContribution as number, from, to, rates),
     }));
   }
   return next as T;

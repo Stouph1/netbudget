@@ -74,7 +74,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
   const { t, tp } = useLang();
   // Devise active (le « € » était codé en dur : changer de devise n'avait
   // aucun effet sur cet écran).
-  const { fmt: formatEuro } = useCurrency();
+  const { fmt: formatEuro, currency } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, scopeLabelIsKey, loading: scopeLoading } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
@@ -95,7 +95,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
       let cancelled = false;
       (async () => {
         const [payload, basics, hist] = await Promise.all([
-          loadS1(user.id, workspaceId),
+          loadS1(user.id, workspaceId, currency),
           loadProfileBasics(user.id),
           loadBudgetHistory(user.id, workspaceId),
         ]);
@@ -540,7 +540,7 @@ function buildRows(
 }
 
 function DeltaText({ row }: { row: CompareRow }) {
-  const { fmt: formatEuro } = useCurrency();
+  const { fmt: formatEuro, currency } = useCurrency();
   if (row.a === undefined || row.b === undefined) {
     return <Text style={styles.rowDeltaNeutral}>—</Text>;
   }
@@ -564,7 +564,7 @@ function BudgetHistoryCard({
   onSeedDemo?: () => void; // __DEV__ uniquement — absent en prod
 }) {
   const { t, tp } = useLang();
-  const { fmt: formatEuro } = useCurrency();
+  const { fmt: formatEuro, currency } = useCurrency();
   const [selected, setSelected] = useState<string | null>(null);
   const [compare, setCompare] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
