@@ -825,61 +825,54 @@ export default function Index() {
   const [citySearch, setCitySearch] = useState("");
   const [cityInfoOpen, setCityInfoOpen] = useState(false);
 
-  // Alignement de la ville sur le profil Premium (source de vérité de « où je
-  // vis »). On ne le fait PAS si l'utilisateur a explicitement choisi sa ville
-  // dans les Réglages — son choix précis l'emporte sur la région du profil.
-  const CITY_PINNED_KEY = "netbudget:cityPinned";
-  const [cityPinned, setCityPinned] = useState<boolean | null>(null);
-  useEffect(() => {
-    AsyncStorage.getItem(CITY_PINNED_KEY)
-      .then((v) => setCityPinned(v === "1"))
-      .catch(() => setCityPinned(false));
-  }, []);
+  // Localisation : le PROFIL est la source de vérité dès qu'un compte existe.
+  //
+  // Avant, le réglage local « localisation par défaut » gagnait dès qu'on y
+  // avait touché : on pouvait déclarer Rouen dans son profil et continuer de
+  // voir Boston dans le dashboard. Deux endroits pour la même information,
+  // l'un écrasant l'autre en silence — mauvaise conception. Désormais :
+  //   - connecté    → la ville vient du profil (ville, sinon région, sinon pays)
+  //   - sans compte → le réglage local des Réglages, comme avant
+  const profileCityResolved = useMemo(() => {
+    if (!premiumUser?.id) return null;
+    const norm = (v: string) =>
+      v
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z]/g, "");
 
-  useEffect(() => {
-    if (cityPinned !== false) return; // pas encore chargé, ou ville épinglée
-    const profRegion = premiumProfile?.region;
-    const profCountry = premiumProfile?.country;
-    if (!profileCity && !profRegion && !profCountry) return;
-
-    // 1. La VILLE saisie dans le profil d'abord — c'est la donnée la plus
-    //    précise. Comparaison insensible à la casse et aux accents (« rouen »,
-    //    « ROUEN », « Rouën » doivent tous matcher « Rouen »).
-    if (profileCity?.trim()) {
-      const norm = (v: string) =>
-        v
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .replace(/[^a-z]/g, "");
-      const target = norm(profileCity);
-      if (target) {
-        const exact = CITIES.find((c) => norm(c.name) === target);
-        // Repli : « saint etienne » doit trouver « Saint-Étienne » même si
-        // l'utilisateur a tapé une variante proche.
-        const partial =
-          exact ??
-          CITIES.find((c) => norm(c.name).startsWith(target) && target.length >= 4);
-        if (partial) {
-          if (partial.id !== city.id) setCity(partial);
-          return;
-        }
-      }
+    // 1. La ville saisie dans le profil — donnée la plus précise.
+    const wanted = profileCity?.trim() ? norm(profileCity) : "";
+    if (wanted) {
+      const exact = CITIES.find((c) => norm(c.name) === wanted);
+      const partial =
+        exact ??
+        (wanted.length >= 4
+          ? CITIES.find((c) => norm(c.name).startsWith(wanted))
+          : undefined);
+      if (partial) return partial;
     }
 
-    // 2. Sinon la région, 3. sinon le pays.
-    if (profRegion && city.region === profRegion) return;
-    if (!profRegion && profCountry && city.countryCode === profCountry) return;
+    // 2. Sinon la région, 3. sinon le pays : ville d'indice MÉDIAN de la zone,
+    //    pour ne surestimer (capitale) ni sous-estimer (village) le coût de la vie.
+    const region = premiumProfile?.region;
+    const country = premiumProfile?.country;
+    const pool = region
+      ? CITIES.filter((c) => c.region === region)
+      : country
+        ? CITIES.filter((c) => c.countryCode === country)
+        : [];
+    if (!pool.length) return null;
+    const sorted = [...pool].sort((a, b) => a.index - b.index);
+    return sorted[Math.floor(sorted.length / 2)];
+  }, [premiumUser?.id, profileCity, premiumProfile?.region, premiumProfile?.country]);
 
-    const candidates = CITIES.filter((c) =>
-      profRegion ? c.region === profRegion : c.countryCode === profCountry,
-    );
-    if (!candidates.length) return;
-    // Ville de référence de la zone : indice médian, pour ne pas surestimer
-    // (la capitale) ni sous-estimer (le village) le coût de la vie.
-    const sorted = [...candidates].sort((a, b) => a.index - b.index);
-    setCity(sorted[Math.floor(sorted.length / 2)]);
-  }, [profileCity, premiumProfile?.region, premiumProfile?.country, cityPinned, city]);
+  useEffect(() => {
+    if (profileCityResolved && profileCityResolved.id !== city.id) {
+      setCity(profileCityResolved);
+    }
+  }, [profileCityResolved, city.id]);
 
   // Picker à 2 étapes : "country" puis "city"
   const [pickerStep, setPickerStep] = useState<"country" | "city">("country");
@@ -2347,8 +2340,26 @@ export default function Index() {
           </Section>
 
           <Section title={t("settings.location.title")} subtitle={t("settings.location.hint")}>
+            {premiumUser?.id ? (
+              <TouchableOpacity
+                style={styles.profileLocNote}
+                activeOpacity={0.85}
+                onPress={() => router.push("/(premium)/complete-profile?edit=1" as never)}
+                accessibilityRole="button"
+                accessibilityLabel="Modifier ma localisation dans mon profil"
+              >
+                <Feather name="user" size={15} color={GOLD} />
+                <Text style={styles.profileLocNoteText}>
+                  Ta localisation vient de ton profil ({city.name}
+                  {city.region ? `, ${city.region}` : ""}). Modifie-la là pour
+                  que budget et conseils restent cohérents.
+                </Text>
+                <Feather name="chevron-right" size={16} color={TEXT_3} />
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
-              style={styles.inputWrap}
+              style={[styles.inputWrap, premiumUser?.id ? { opacity: 0.5 } : null]}
+              disabled={!!premiumUser?.id}
               onPress={() => {
                 setPickerCountry(city.countryCode);
                 setPickerStep("country");
@@ -2835,9 +2846,6 @@ export default function Index() {
                             style={styles.cityRow}
                             onPress={() => {
                               setCity(sug);
-                              // Choix explicite : il l'emporte désormais sur la région du profil.
-                              setCityPinned(true);
-                              void AsyncStorage.setItem(CITY_PINNED_KEY, "1");
                               setCityPickerOpen(false);
                               setCitySearch("");
                             }}
@@ -2931,9 +2939,6 @@ export default function Index() {
                       style={[styles.cityRow, active && styles.cityRowActive]}
                       onPress={() => {
                         setCity(item);
-                        // Choix explicite : il l'emporte désormais sur la région du profil.
-                        setCityPinned(true);
-                        void AsyncStorage.setItem(CITY_PINNED_KEY, "1");
                         setCityPickerOpen(false);
                         setCitySearch("");
                       }}
@@ -4071,6 +4076,19 @@ const styles = StyleSheet.create({
   loanProgressFill: { height: 5, borderRadius: 3, backgroundColor: COLOR_PRETS },
   loanProgressText: { color: TEXT_2, fontSize: 11.5, fontWeight: "600" },
   loanSplitText: { color: TEXT_3, fontSize: 11 },
+  profileLocNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "rgba(74,222,128,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.28)",
+    borderRadius: 12,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
+    marginBottom: 10,
+  },
+  profileLocNoteText: { color: TEXT_2, fontSize: 12.5, lineHeight: 18, flex: 1 },
   scheduleLinkRow: {
     flexDirection: "row",
     alignItems: "center",

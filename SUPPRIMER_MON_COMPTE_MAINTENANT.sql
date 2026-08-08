@@ -1,41 +1,62 @@
 -- ============================================================================
--- SUPPRIMER TON COMPTE TOUT DE SUITE — sans rien déployer
+-- SUPPRIMER TON COMPTE — version sans placeholder à remplacer
 --
--- Supabase → SQL Editor → New query → colle ceci → remplace l'e-mail → Run.
--- Toutes tes données partent en cascade (profil, espaces, budgets, payloads).
--- Ensuite tu peux refaire l'inscription complète dans l'app.
+-- Supabase → SQL Editor → colle ce bloc → Run. Rien à modifier.
 -- ============================================================================
 
--- 1. Vérifie d'abord QUI tu vas supprimer (lance cette ligne seule)
-select id, email, created_at, last_sign_in_at
-  from auth.users
- where email = 'REMPLACE_PAR_TON_EMAIL';
+-- ÉTAPE 1 — Vois tes comptes, du plus récemment connecté au plus ancien.
+--           Repère le tien et COPIE SON ID (la longue chaîne de la 1re colonne).
+select
+  u.id,
+  u.email,
+  u.raw_user_meta_data->>'full_name'      as nom_fournisseur,
+  p.username,
+  u.created_at::date                      as cree_le,
+  u.last_sign_in_at                       as derniere_connexion
+from auth.users u
+left join public.profiles p on p.id = u.id
+order by u.last_sign_in_at desc nulls last;
 
--- 2. Si la ligne ci-dessus est bien la tienne, lance la suppression :
-delete from auth.users
- where email = 'REMPLACE_PAR_TON_EMAIL';
-
--- 3. Contrôle : doit renvoyer 0 ligne
-select count(*) as reste
-  from auth.users
- where email = 'REMPLACE_PAR_TON_EMAIL';
-
--- ----------------------------------------------------------------------------
--- Si tu t'es connecté avec Apple ou Google, tu ne connais peut-être pas
--- l'e-mail exact. Liste alors tes comptes récents et repère le tien :
+-- ============================================================================
+-- ÉTAPE 2 — Colle l'ID à la place de <ID> ci-dessous, puis lance CE bloc SEUL
+--           (sélectionne-le à la souris et fais Run).
 --
---   select id, email, raw_user_meta_data->>'full_name' as nom,
---          created_at, last_sign_in_at
---     from auth.users
---    order by last_sign_in_at desc nulls last
---    limit 20;
+--   delete from auth.users where id = '<ID>';
 --
--- Puis supprime par identifiant :
---
---   delete from auth.users where id = 'COLLE_L_ID_ICI';
--- ----------------------------------------------------------------------------
+-- Le garde-fou ci-dessous REFUSE de s'exécuter si tu oublies de remplacer :
+-- il lèvera une erreur explicite au lieu de renvoyer « 0 ligne » en silence.
+-- ============================================================================
 
--- APRÈS la suppression, dans l'app : Réglages → Réinitialiser toutes les
--- données (pour vider le cache local), puis relance l'app et refais
--- l'inscription. Tu passeras par tout le parcours : photo, pseudo, date de
--- naissance, situation, pays/région, puis le questionnaire du Coach.
+-- ÉTAPE 2 bis (ALTERNATIVE) — suppression par e-mail, avec vérification.
+-- Remplace UNIQUEMENT la valeur entre guillemets, puis lance ce bloc entier.
+do $$
+declare
+  cible text := 'mets-ton-email-ici@exemple.com';  -- ← SEULE LIGNE À MODIFIER
+  trouve uuid;
+begin
+  if cible like '%exemple.com' or cible like '%REMPLACE%' then
+    raise exception
+      'Tu n''as pas remplacé l''e-mail. Modifie la variable "cible" ligne 3 de ce bloc.';
+  end if;
+
+  select id into trouve from auth.users where lower(email) = lower(cible);
+
+  if trouve is null then
+    raise exception
+      'Aucun compte avec l''e-mail % . Relance l''ÉTAPE 1 pour voir la liste exacte.', cible;
+  end if;
+
+  delete from auth.users where id = trouve;
+  raise notice 'Compte % supprimé (id %).', cible, trouve;
+end $$;
+
+-- ÉTAPE 3 — Contrôle : la liste ne doit plus contenir ton compte.
+select id, email, last_sign_in_at
+from auth.users
+order by last_sign_in_at desc nulls last;
+
+-- ============================================================================
+-- ENSUITE, DANS L'APP :
+--   Réglages → Réinitialiser toutes les données (vide le cache local)
+--   puis relance l'app → tu repars sur le parcours d'inscription complet.
+-- ============================================================================

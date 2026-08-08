@@ -8,7 +8,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -24,6 +24,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
+import { CITIES, getCountry } from "../../src/constants/cities";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadAvatar } from "../../src/lib/photos";
@@ -79,6 +80,9 @@ export default function CompleteProfile() {
   const [country, setCountry] = useState<Country | undefined>(undefined);
   const [region, setRegion] = useState<string | undefined>(undefined);
   const [city, setCity] = useState("");
+  // On n'affiche les suggestions qu'après une frappe (pas au chargement du
+  // profil, sinon la liste s'ouvre alors que la ville est déjà bonne).
+  const [cityTouched, setCityTouched] = useState(false);
   const [givingEnabled, setGivingEnabled] = useState(false); // dons/dîme/zakat
   const [tithePercent, setTithePercent] = useState("10");
 
@@ -109,6 +113,25 @@ export default function CompleteProfile() {
       setLoading(false);
     })();
   }, [user?.id]);
+
+  const citySuggestions = useMemo(() => {
+    if (!cityTouched) return [];
+    const norm = (v: string) =>
+      v
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z]/g, "");
+    const q = norm(city);
+    if (q.length < 2) return [];
+    // Exactitude d'abord (préfixe), puis contenu — et on limite à 6 pour ne
+    // pas noyer le formulaire.
+    const starts = CITIES.filter((c) => norm(c.name).startsWith(q));
+    const contains = CITIES.filter(
+      (c) => !norm(c.name).startsWith(q) && norm(c.name).includes(q),
+    );
+    return [...starts, ...contains].slice(0, 6);
+  }, [city, cityTouched]);
 
   async function changeAvatar() {
     if (!user?.id) return;
@@ -444,14 +467,58 @@ export default function CompleteProfile() {
           ) : null}
 
           <Text style={styles.label}>Ta ville (optionnel)</Text>
+          <Text style={styles.hint}>
+            Choisis dans les suggestions : ces villes ont un indice de coût de
+            la vie dans l'app, ton budget s'y ajuste automatiquement.
+          </Text>
           <TextInput
             style={styles.input}
             value={city}
-            onChangeText={setCity}
-            placeholder="Paris, Douala, Montréal…"
+            onChangeText={(v) => {
+              setCity(v);
+              setCityTouched(true);
+            }}
+            placeholder="Rouen, Douala, Montréal…"
             placeholderTextColor={TEXT_3}
             autoCapitalize="words"
+            autoCorrect={false}
           />
+          {/* Suggestions issues du référentiel de l'app : une ville reconnue
+              donne un indice de coût de la vie précis, une ville libre non. */}
+          {citySuggestions.length > 0 ? (
+            <View style={styles.suggestBox}>
+              {citySuggestions.map((c) => (
+                <TouchableOpacity
+                  key={c.id}
+                  style={styles.suggestRow}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setCity(c.name);
+                    setCityTouched(false);
+                    // La ville dicte le pays et la région : on les aligne.
+                    setCountry(c.countryCode as Country);
+                    if (c.countryCode === "FR") setRegion(c.region);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Choisir ${c.name}, ${c.region}`}
+                >
+                  <Text style={styles.suggestFlag}>
+                    {getCountry(c.countryCode)?.flag ?? "🌍"}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.suggestName}>{c.name}</Text>
+                    <Text style={styles.suggestRegion}>{c.region}</Text>
+                  </View>
+                  <Text style={styles.suggestIndex}>×{c.index.toFixed(2)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : cityTouched && city.trim().length >= 3 ? (
+            <Text style={styles.suggestNone}>
+              « {city.trim()} » n'est pas dans notre référentiel — on utilisera
+              alors la moyenne de ta région pour ajuster les estimations.
+            </Text>
+          ) : null}
 
           {/* Dons & cadeaux — formulation inclusive : couvre dîme, zakat,
               dons associatifs, soutien familial, cadeaux réguliers. */}
@@ -585,6 +652,34 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 8,
     marginTop: 14,
+  },
+  suggestBox: {
+    marginTop: 8,
+    backgroundColor: SURFACE_2,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.28)",
+    overflow: "hidden",
+  },
+  suggestRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 11,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(255,255,255,0.06)",
+  },
+  suggestFlag: { fontSize: 18 },
+  suggestName: { color: TEXT_1, fontSize: 14.5, fontWeight: "600" },
+  suggestRegion: { color: TEXT_3, fontSize: 11.5, marginTop: 1 },
+  suggestIndex: { color: GOLD, fontSize: 12.5, fontWeight: "700" },
+  suggestNone: {
+    color: TEXT_3,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 8,
+    fontStyle: "italic",
   },
   input: {
     backgroundColor: SURFACE,
