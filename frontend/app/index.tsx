@@ -342,6 +342,16 @@ export default function Index() {
   const { lang, setLang } = useLang();
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const t = (k: string) => tr(k, lang);
+  // Traducteurs passés aux modules de DONNÉES (moteur de conseils, cartes
+  // d'anniversaire) : ils ne portent que des clés i18n, jamais de texte.
+  const adviceI18n = useMemo(
+    () => ({
+      t: (k: string) => tr(k, lang),
+      tp: (k: string, params: Record<string, string | number>) =>
+        interpolate(tr(k, lang), params),
+    }),
+    [lang],
+  );
 
   // Durée restante d'un prêt, composée dans la langue de l'app (l'utilitaire
   // ne renvoie que les nombres — la phrase dépend de la langue).
@@ -746,7 +756,7 @@ export default function Index() {
           // le Coach doivent piloter les cartes, jamais le scope actif.
           const perso = await loadAdviceProfile(premiumUser!.id, null);
           setBdaySource("birthday");
-          setBdayCards(buildBirthdayCards(a, details.first_name, perso));
+          setBdayCards(buildBirthdayCards(a, details.first_name, perso, adviceI18n));
           setBdayOpen(true);
           opened = true;
         }
@@ -764,16 +774,16 @@ export default function Index() {
           const a = computeAge(new Date(c.birthdate));
           const perso = await loadAdviceProfile(premiumUser.id, null);
           setBdaySource(`child:${c.name}`);
-          setBdayCards(buildChildBirthdayCards(a, c.name, perso));
+          setBdayCards(buildChildBirthdayCards(a, c.name, perso, adviceI18n));
         } else {
           setBdaySource(`pet:${c.name}`);
-          setBdayCards(buildPetBirthdayCards(c.name, c.species ?? "other"));
+          setBdayCards(buildPetBirthdayCards(c.name, c.species ?? "other", adviceI18n));
         }
         setBdayOpen(true);
         break; // une fête à la fois
       }
     }
-  }, [premiumUser?.id, activeWorkspaceId, activeWorkspaceKind]);
+  }, [premiumUser?.id, activeWorkspaceId, activeWorkspaceKind, adviceI18n]);
   useEffect(() => {
     reloadPremiumProfile();
   }, [reloadPremiumProfile]);
@@ -1636,7 +1646,7 @@ export default function Index() {
           : 25;
         const perso = await loadAdviceProfile(premiumUser.id, null);
         setBdaySource("birthday");
-        setBdayCards(buildBirthdayCards(a, details.first_name, perso));
+        setBdayCards(buildBirthdayCards(a, details.first_name, perso, adviceI18n));
         setBdayOpen(true);
       }
     : undefined;
@@ -1716,10 +1726,10 @@ export default function Index() {
             >
               {budgetRatio.personalized && premiumProfile ? (
                 <Text style={styles.ratioMixName} numberOfLines={1}>
-                  {getBudgetMixProfile(premiumProfile).name}
+                  {getBudgetMixProfile(premiumProfile, adviceI18n).name}
                 </Text>
               ) : (
-                <Text style={styles.ratioLabel}>Repère</Text>
+                <Text style={styles.ratioLabel}>{t("adv.mix.benchmark")}</Text>
               )}
               <Text style={styles.ratioValue}>
                 {budgetRatio.besoins}/{budgetRatio.envies}/{budgetRatio.epargne}
@@ -3150,13 +3160,13 @@ export default function Index() {
           />
           <View style={styles.confirmBox}>
             {(() => {
-              const info = explainBudgetSplit(premiumProfile ?? {});
+              const info = explainBudgetSplit(premiumProfile ?? {}, adviceI18n);
               return (
                 <>
                   <Text style={styles.confirmTitle}>
                     {info.isPersonalized
                       ? `${info.mix.name} · ${info.split.besoins}/${info.split.envies}/${info.split.epargne}`
-                      : "L'Équilibré · 50/30/20"}
+                      : `${t("adv.mix.equilibre.name")} · 50/30/20`}
                   </Text>
                   {info.isPersonalized ? (
                     <>
@@ -3167,29 +3177,29 @@ export default function Index() {
                         {info.mix.description}
                       </Text>
                       <Text style={[styles.confirmMessage, { marginTop: 12, color: TEXT_3, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }]}>
-                        Détail de ton mix
+                        {t("adv.mix.detail")}
                       </Text>
                     </>
                   ) : (
                     <Text style={styles.confirmMessage}>
-                      Ta situation suit le repère 50/30/20 classique. Voici comment le lire :
+                      {t("adv.mix.generic.intro")}
                     </Text>
                   )}
                   <Text style={[styles.confirmMessage, { marginTop: 12 }]}>
                     <Text style={{ color: "#10B981", fontWeight: "800" }}>
-                      BESOINS {info.split.besoins}% ·{" "}
+                      {t("adv.mix.label.besoins")} {info.split.besoins}% ·{" "}
                     </Text>
                     {info.besoinsReason}
                   </Text>
                   <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
                     <Text style={{ color: "#A855F7", fontWeight: "800" }}>
-                      ENVIES {info.split.envies}% ·{" "}
+                      {t("adv.mix.label.envies")} {info.split.envies}% ·{" "}
                     </Text>
                     {info.enviesReason}
                   </Text>
                   <Text style={[styles.confirmMessage, { marginTop: 8 }]}>
                     <Text style={{ color: "#F59E0B", fontWeight: "800" }}>
-                      ÉPARGNE {info.split.epargne}% ·{" "}
+                      {t("adv.mix.label.epargne")} {info.split.epargne}% ·{" "}
                     </Text>
                     {info.epargneReason}
                   </Text>

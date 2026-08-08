@@ -13,6 +13,7 @@ import type {
   AdviceCard,
   AdviceCategory,
   AdviceGroup,
+  AdviceI18n,
   AdvicePredicate,
   ChildAgeBracket,
   PetSpecies,
@@ -245,13 +246,33 @@ export function computeBudgetSplit(p: UserProfile): {
 // Archétypes de mix budgétaires — noms sympa pour rendre le repère mémorable.
 // ============================================================================
 
+// Les trois champs portent des CLÉS i18n (`adv.mix.<slug>.…`) tant que
+// `i18n` n'est pas fourni ; avec `i18n`, ils sont déjà traduits.
 export type BudgetMixProfile = {
-  name: string;        // ex: "Le Bâtisseur"
+  name: string;        // ex: "adv.mix.batisseur.name"
   tagline: string;     // 1 ligne courte
   description: string; // 2-3 phrases pour expliquer simplement
 };
 
-export function getBudgetMixProfile(p: UserProfile): BudgetMixProfile {
+/** Fabrique les 3 clés d'un archétype, traduites si `i18n` est fourni. */
+function mixProfile(slug: string, i18n?: AdviceI18n): BudgetMixProfile {
+  const keys = {
+    name: `adv.mix.${slug}.name`,
+    tagline: `adv.mix.${slug}.tagline`,
+    description: `adv.mix.${slug}.description`,
+  };
+  if (!i18n) return keys;
+  return {
+    name: i18n.t(keys.name),
+    tagline: i18n.t(keys.tagline),
+    description: i18n.t(keys.description),
+  };
+}
+
+export function getBudgetMixProfile(
+  p: UserProfile,
+  i18n?: AdviceI18n,
+): BudgetMixProfile {
   const isSingleParent = p.family === "single_parent";
   const hasChildren = p.family === "couple_with_kids" || isSingleParent;
   const isAccessor = p.housing === "accessor";
@@ -265,90 +286,28 @@ export function getBudgetMixProfile(p: UserProfile): BudgetMixProfile {
   const isUnder18 = p.age === "under_18";
 
   // Cas spécial ado (avant tout)
-  if (isUnder18) {
-    return {
-      name: "L'Apprenti",
-      tagline: "Apprendre les bases",
-      description:
-        "À ton âge, l'objectif n'est pas d'optimiser — c'est de comprendre comment ton argent fonctionne. Épargne systématique + petit budget hebdo suffisent largement pour poser les bases.",
-    };
-  }
+  if (isUnder18) return mixProfile("apprenti", i18n);
 
   // Ordre de priorité : du plus spécifique au plus générique
-  if (isSingleParent) {
-    return {
-      name: "Le Capitaine Solo",
-      tagline: "Tenir la barre à un seul",
-      description:
-        "Tu jongles avec un revenu unique + les charges enfants. Budget serré mais épargne à protéger absolument pour la sécurité et l'avenir des enfants.",
-    };
-  }
+  if (isSingleParent) return mixProfile("capitaine-solo", i18n);
+  if (hasChildren) return mixProfile("batisseur", i18n);
+  if (isOwnerSenior) return mixProfile("serenite", i18n);
+  if (isAccessor) return mixProfile("grimpeur", i18n);
+  if (isHighTMI) return mixProfile("stratege", i18n);
+  if (isYoungRenter && savingsLow) return mixProfile("debutant", i18n);
+  if (isYoungRenter) return mixProfile("sprinteur", i18n);
 
-  if (hasChildren) {
-    return {
-      name: "Le Bâtisseur",
-      tagline: "Construire pour la famille",
-      description:
-        "Charges familiales élevées + horizon long. Tu réduis les envies pour prioriser l'épargne (études, imprévus). Approche pragmatique : chaque euro compte.",
-    };
-  }
-
-  if (isOwnerSenior) {
-    return {
-      name: "Le Sérénité",
-      tagline: "Récolter ce qui a été construit",
-      description:
-        "Crédit remboursé, charges légères. Plus de marge sur les plaisirs (voyages, projets) tout en gardant une bonne épargne pour la retraite et la transmission.",
-    };
-  }
-
-  if (isAccessor) {
-    return {
-      name: "Le Grimpeur",
-      tagline: "Monter vers ton toit",
-      description:
-        "La mensualité de crédit prend une part importante — c'est un effort temporaire pour construire ton patrimoine. Compresse les envies, garde l'épargne stable.",
-    };
-  }
-
-  if (isHighTMI) {
-    return {
-      name: "Le Stratège",
-      tagline: "Optimiser fiscalement",
-      description:
-        "Ta TMI te permet de défiscaliser : PER (économie d'impôt immédiate), PEA + AV (croissance long terme). Chaque euro épargné vaut plus qu'un euro brut.",
-    };
-  }
-
-  if (isYoungRenter && savingsLow) {
-    return {
-      name: "Le Débutant",
-      tagline: "Poser les fondations",
-      description:
-        "Ton loyer prend une part importante et tu débutes ta vie active. Priorité 1 : constituer 1 mois de dépenses sur Livret A. Priorité 2 : ouvrir PEA vide (l'ancienneté commence à courir).",
-    };
-  }
-
-  if (isYoungRenter) {
-    return {
-      name: "Le Sprinteur",
-      tagline: "Capitaliser sur ta jeunesse",
-      description:
-        "Tu as l'horizon long en atout majeur. Ouvre PEA + AV même vides pour prendre date, puis épargne agressivement dès que ta capacité le permet. Les intérêts composés font le reste.",
-    };
-  }
-
-  return {
-    name: "L'Équilibré",
-    tagline: "Un mix taillé pour toi",
-    description:
-      "Aucun signal fort ne ressort de ton profil : ce mix est un point de départ solide et adaptable. Il s'inspire des repères classiques de finance perso, ajustés à ta situation — pas une règle toute faite appliquée à l'aveugle.",
-  };
+  return mixProfile("equilibre", i18n);
 }
 
 // Explique POURQUOI le mix est ce qu'il est, pour la modal d'info.
 // Renvoie 3 lignes explicatives (une par catégorie) + un reminder.
-export function explainBudgetSplit(p: UserProfile): {
+// Les trois raisons et le rappel portent des CLÉS i18n (`adv.mix.…`) tant que
+// `i18n` n'est pas fourni ; avec `i18n`, ils sont déjà traduits.
+export function explainBudgetSplit(
+  p: UserProfile,
+  i18n?: AdviceI18n,
+): {
   split: { besoins: number; envies: number; epargne: number };
   isPersonalized: boolean;
   mix: BudgetMixProfile;
@@ -368,56 +327,40 @@ export function explainBudgetSplit(p: UserProfile): {
   const isSingleParent = p.family === "single_parent";
 
   // Besoins
-  let besoinsReason = "logement, factures, courses — le socle incompressible.";
-  if (isAccessor)
-    besoinsReason = "mensualité de crédit + charges — la part fixe pèse plus.";
-  else if (isSingleParent)
-    besoinsReason = "revenu unique et charges enfants — le socle est serré.";
-  else if (hasChildren)
-    besoinsReason =
-      "charges familiales (école, alimentation, vêtements) tirent le poste vers le haut.";
-  else if (isRenter)
-    besoinsReason = "loyer + charges — souvent le plus gros poste en location.";
-  else if (isOwnerSenior)
-    besoinsReason =
-      "crédit remboursé + charges légères — plus de marge que la moyenne.";
+  let besoinsReason = "adv.mix.besoins.default";
+  if (isAccessor) besoinsReason = "adv.mix.besoins.accessor";
+  else if (isSingleParent) besoinsReason = "adv.mix.besoins.single-parent";
+  else if (hasChildren) besoinsReason = "adv.mix.besoins.kids";
+  else if (isRenter) besoinsReason = "adv.mix.besoins.renter";
+  else if (isOwnerSenior) besoinsReason = "adv.mix.besoins.owner-senior";
 
   // Envies
-  let enviesReason = "loisirs, sorties, resto, achats plaisir — le carburant du quotidien.";
-  if (isSingleParent)
-    enviesReason =
-      "à limiter pour maintenir l'épargne sans se priver totalement.";
-  else if (hasChildren)
-    enviesReason =
-      "à modérer — priorité aux imprévus enfants (école, activités, santé).";
-  else if (isOwnerSenior)
-    enviesReason =
-      "marge élargie maintenant que le crédit est remboursé — profite-en (voyages, projets).";
+  let enviesReason = "adv.mix.envies.default";
+  if (isSingleParent) enviesReason = "adv.mix.envies.single-parent";
+  else if (hasChildren) enviesReason = "adv.mix.envies.kids";
+  else if (isOwnerSenior) enviesReason = "adv.mix.envies.owner-senior";
 
   // Épargne
-  let epargneReason = "épargne de précaution + investissements long terme.";
-  if (split.epargne >= 25)
-    epargneReason =
-      "priorité forte — anticipe études enfants, retraite ou projet immo.";
-  else if (split.epargne <= 15)
-    epargneReason =
-      "à protéger malgré le budget serré — même 5% construit un matelas sur 12 mois.";
+  let epargneReason = "adv.mix.epargne.default";
+  if (split.epargne >= 25) epargneReason = "adv.mix.epargne.high";
+  else if (split.epargne <= 15) epargneReason = "adv.mix.epargne.low";
   else if (p.tmi === "41" || p.tmi === "45")
-    epargneReason =
-      "capacité et défiscalisation à exploiter (PEA + PER + AV combinés).";
+    epargneReason = "adv.mix.epargne.tmi";
 
   const reminder = isPersonalized
-    ? "C'est un repère basé sur ton profil, pas une règle absolue. Adapte selon ta réalité mensuelle."
-    : "Complète ton profil dans Réglages → Conseils personnalisés pour recevoir une répartition adaptée à ta situation.";
+    ? "adv.mix.reminder.personalized"
+    : "adv.mix.reminder.generic";
+
+  const tr = (key: string) => (i18n ? i18n.t(key) : key);
 
   return {
     split,
     isPersonalized,
-    mix: getBudgetMixProfile(p),
-    besoinsReason,
-    enviesReason,
-    epargneReason,
-    reminder,
+    mix: getBudgetMixProfile(p, i18n),
+    besoinsReason: tr(besoinsReason),
+    enviesReason: tr(enviesReason),
+    epargneReason: tr(epargneReason),
+    reminder: tr(reminder),
   };
 }
 
@@ -665,16 +608,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "hcsf-taux-endettement",
     category: "real_estate",
-    title: "Ne dépasse pas 35% d'endettement",
-    body:
-      "Le HCSF plafonne le taux d'effort à 35% des revenus nets, assurance emprunteur incluse. Au-delà, la banque refuse (sauf dérogation 20% des dossiers). Vise 30% pour ta marge.",
-    action: { label: "Calculer ton taux d'effort" },
+    titleKey: "adv.hcsf-taux-endettement.title",
+    bodyKey: "adv.hcsf-taux-endettement.body",
+    actionLabelKey: "adv.hcsf-taux-endettement.action",
+    action: {},
     appliesWhen: housingIn("renter"),
     priority: 85,
     figures: [
-      { label: "Plafond HCSF", value: "35%" },
-      { label: "Marge conseillée", value: "30% max" },
-      { label: "Durée max", value: "25 ans (27 VEFA)" },
+      { label: "adv.hcsf-taux-endettement.fig.0.label", value: "35%" },
+      { label: "adv.hcsf-taux-endettement.fig.1.label", value: "adv.hcsf-taux-endettement.fig.1.value" },
+      { label: "adv.hcsf-taux-endettement.fig.2.label", value: "adv.hcsf-taux-endettement.fig.2.value" },
     ],
     sources: [
       "https://www.economie.gouv.fr/hcsf/mesures/mesure-relative-loctroi-de-credits-immobiliers",
@@ -684,16 +627,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "apport-optimal-30pct",
     category: "real_estate",
-    title: "Vise 30% d'apport pour un meilleur taux",
-    body:
-      "En 2026, les banques accordent les meilleurs taux immo aux dossiers avec 30%+ d'apport (résidence principale). En dessous de 10%, taux plus élevé et parfois refus. L'apport inclut ton épargne + frais de notaire (~7% ancien / 3% neuf).",
-    action: { label: "Comparer 3 courtiers immobiliers" },
+    titleKey: "adv.apport-optimal-30pct.title",
+    bodyKey: "adv.apport-optimal-30pct.body",
+    actionLabelKey: "adv.apport-optimal-30pct.action",
+    action: {},
     appliesWhen: and(housingIn("renter"), ageIn("26-35", "36-50")),
     priority: 72,
     figures: [
-      { label: "Apport idéal", value: "≥ 30%" },
-      { label: "Frais notaire ancien", value: "~7%" },
-      { label: "Frais notaire neuf", value: "~3%" },
+      { label: "adv.apport-optimal-30pct.fig.0.label", value: "≥ 30%" },
+      { label: "adv.apport-optimal-30pct.fig.1.label", value: "~7%" },
+      { label: "adv.apport-optimal-30pct.fig.2.label", value: "~3%" },
     ],
     sources: ["https://www.service-public.gouv.fr"],
     lastVerified: VERIFIED,
@@ -701,10 +644,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "acheter-jeune-grande-ville",
     category: "housing",
-    title: "Grande ville, jeune : réévalue louer vs acheter",
-    body:
-      "Dans les métropoles chères (Paris, Lyon, Bordeaux), le point d'équilibre acheter vs louer se déplace à 7-10 ans de détention. Si tu bouges dans les 5 ans, louer reste souvent plus rentable (frais de notaire absorbés).",
-    action: { label: "Simuler avec l'INSEE" },
+    titleKey: "adv.acheter-jeune-grande-ville.title",
+    bodyKey: "adv.acheter-jeune-grande-ville.body",
+    actionLabelKey: "adv.acheter-jeune-grande-ville.action",
+    action: {},
     appliesWhen: and(ageIn("18-25", "26-35"), (p) => p.zone === "big_city"),
     priority: 68,
     sources: ["https://www.insee.fr"],
@@ -713,18 +656,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "relance-logement-jeanbrun",
     category: "tax",
-    title: "Investir dans le neuf : dispositif Jeanbrun 2026",
-    body:
-      "Le Pinel est mort fin 2024. Depuis février 2026, le dispositif Relance Logement (Jeanbrun) amortit 3,5% à 5,5% par an du prix du bien neuf loué (base 80% du prix), sur 9 ans minimum. Plus intéressant pour TMI ≥ 30%.",
+    titleKey: "adv.relance-logement-jeanbrun.title",
+    bodyKey: "adv.relance-logement-jeanbrun.body",
+    actionLabelKey: "adv.relance-logement-jeanbrun.action",
     action: {
-      label: "Se renseigner sur Jeanbrun",
       link: "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000053508155",
     },
     appliesWhen: and(tmiAtLeast("30"), ageIn("36-50", "51-65")),
     priority: 65,
     figures: [
-      { label: "Amortissement", value: "3,5% → 5,5%" },
-      { label: "Engagement", value: "9 ans min." },
+      { label: "adv.relance-logement-jeanbrun.fig.0.label", value: "3,5% → 5,5%" },
+      { label: "adv.relance-logement-jeanbrun.fig.1.label", value: "adv.relance-logement-jeanbrun.fig.1.value" },
     ],
     sources: [
       "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000053508155",
@@ -738,19 +680,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "garde-enfants-credit-impot",
     category: "kids",
-    title: "Enfant < 6 ans : réclame le crédit d'impôt garde",
-    body:
-      "Les frais de crèche, halte-garderie ou assistante maternelle ouvrent droit à un crédit d'impôt de 50%, plafonné à 3 500 € de dépenses par enfant/an — soit 1 750 € de crédit par enfant.",
+    titleKey: "adv.garde-enfants-credit-impot.title",
+    bodyKey: "adv.garde-enfants-credit-impot.body",
+    actionLabelKey: "adv.garde-enfants-credit-impot.action",
     action: {
-      label: "Déclarer à la ligne 7GA",
       link: "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
     },
     appliesWhen: kids("0-6"),
     priority: 92,
     figures: [
-      { label: "Taux crédit", value: "50%" },
-      { label: "Plafond/enfant/an", value: "3 500 €" },
-      { label: "Crédit max/enfant", value: "1 750 €" },
+      { label: "adv.garde-enfants-credit-impot.fig.0.label", value: "50%" },
+      { label: "adv.garde-enfants-credit-impot.fig.1.label", value: "3 500 €" },
+      { label: "adv.garde-enfants-credit-impot.fig.2.label", value: "1 750 €" },
     ],
     sources: [
       "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
@@ -760,20 +701,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "livret-jeune-ado",
     category: "kids",
-    title: "Livret Jeune : ouvre-le pour ton ado",
-    body:
-      "Réservé aux 12-25 ans résidant en France, plafond 1 600 €. Taux minimum aligné sur le Livret A (1,50% au 1er février 2026), souvent bonifié à 2-3% par les banques. Intérêts totalement exonérés d'IR et de prélèvements sociaux. Un seul par personne.",
+    titleKey: "adv.livret-jeune-ado.title",
+    bodyKey: "adv.livret-jeune-ado.body",
+    actionLabelKey: "adv.livret-jeune-ado.action",
     action: {
-      label: "Ouvrir un Livret Jeune",
       link: "https://www.service-public.fr/particuliers/vosdroits/F2904",
     },
     appliesWhen: kids("12-15", "16-18"),
     priority: 78,
     figures: [
-      { label: "Âge", value: "12 - 25 ans" },
-      { label: "Plafond", value: "1 600 €" },
-      { label: "Taux minimum", value: "1,50%" },
-      { label: "Fiscalité", value: "Exonération totale" },
+      { label: "adv.livret-jeune-ado.fig.0.label", value: "adv.livret-jeune-ado.fig.0.value" },
+      { label: "adv.livret-jeune-ado.fig.1.label", value: "1 600 €" },
+      { label: "adv.livret-jeune-ado.fig.2.label", value: "1,50%" },
+      { label: "adv.livret-jeune-ado.fig.3.label", value: "adv.livret-jeune-ado.fig.3.value" },
     ],
     sources: ["https://www.service-public.fr/particuliers/vosdroits/F2904"],
     lastVerified: VERIFIED,
@@ -781,20 +721,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "pel-enfant-etudes",
     category: "kids",
-    title: "PEL enfant : 2,00% garanti pour son futur logement",
-    body:
-      "Un PEL ouvert au nom de l'enfant (via représentant légal — mineur ne peut pas seul) rapporte 2,00% en 2026, et permet à 18+ un prêt épargne logement à taux fixe 3,20% garanti. Verse au minimum 45 €/mois pendant 4 ans. Un seul PEL par personne.",
+    titleKey: "adv.pel-enfant-etudes.title",
+    bodyKey: "adv.pel-enfant-etudes.body",
+    actionLabelKey: "adv.pel-enfant-etudes.action",
     action: {
-      label: "Ouvrir un PEL au nom de l'enfant",
       link: "https://www.service-public.fr/particuliers/vosdroits/F16140",
     },
     appliesWhen: kids("7-11", "12-15"),
     priority: 62,
     figures: [
-      { label: "Taux rémunération 2026", value: "2,00%" },
-      { label: "Taux prêt garanti", value: "3,20%" },
-      { label: "Dépôt initial min", value: "225 €" },
-      { label: "Versement min/an", value: "540 €" },
+      { label: "adv.pel-enfant-etudes.fig.0.label", value: "2,00%" },
+      { label: "adv.pel-enfant-etudes.fig.1.label", value: "3,20%" },
+      { label: "adv.pel-enfant-etudes.fig.2.label", value: "225 €" },
+      { label: "adv.pel-enfant-etudes.fig.3.label", value: "540 €" },
     ],
     sources: [
       "https://www.service-public.fr/particuliers/vosdroits/F16140",
@@ -804,16 +743,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "budget-etudes-sup",
     category: "kids",
-    title: "Anticipe 15 000 € à 60 000 € pour les études sup",
-    body:
-      "Coût moyen 2026 : 3 000 €/an en public province, 8 000 €/an en école publique grande ville (avec loyer), jusqu'à 15 000 €/an en école privée. Sur 4-5 ans, prévois 15 à 60 k€ pour un enfant.",
-    action: { label: "Créer un objectif dans S1" },
+    titleKey: "adv.budget-etudes-sup.title",
+    bodyKey: "adv.budget-etudes-sup.body",
+    actionLabelKey: "adv.budget-etudes-sup.action",
+    action: {},
     appliesWhen: kids("12-15", "16-18"),
     priority: 74,
     figures: [
-      { label: "Public province", value: "~3 k€/an" },
-      { label: "École privée", value: "~15 k€/an" },
-      { label: "Total 4-5 ans", value: "15-60 k€" },
+      { label: "adv.budget-etudes-sup.fig.0.label", value: "adv.budget-etudes-sup.fig.0.value" },
+      { label: "adv.budget-etudes-sup.fig.1.label", value: "adv.budget-etudes-sup.fig.1.value" },
+      { label: "adv.budget-etudes-sup.fig.2.label", value: "15-60 k€" },
     ],
     sources: ["https://www.enseignementsup-recherche.gouv.fr"],
     lastVerified: VERIFIED,
@@ -821,10 +760,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "autonomie-ado-carte",
     category: "kids",
-    title: "Premier compte + carte à 16 ans",
-    body:
-      "Un ado peut avoir un compte bancaire dès 12 ans (autorisation parentale) et une carte de retrait à 16 ans. Bon moment pour apprendre à gérer un budget mensuel avant les études sup.",
-    action: { label: "Ouvrir un compte jeune" },
+    titleKey: "adv.autonomie-ado-carte.title",
+    bodyKey: "adv.autonomie-ado-carte.body",
+    actionLabelKey: "adv.autonomie-ado-carte.action",
+    action: {},
     appliesWhen: kids("16-18"),
     priority: 58,
     sources: ["https://www.service-public.fr"],
@@ -833,20 +772,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "cto-enfant-early",
     category: "kids",
-    title: "CTO enfant : commence dès la naissance",
-    body:
-      "Un Compte Titres Ordinaire au nom du mineur permet d'investir en ETF, actions ou obligations sans plafond. Avec un horizon de 18+ ans, même 50 €/mois deviennent ~22 000 € à 7% moyen. Le mineur peut être à 0% IR sur les gains s'il est non-imposable (souvent le cas).",
+    titleKey: "adv.cto-enfant-early.title",
+    bodyKey: "adv.cto-enfant-early.body",
+    actionLabelKey: "adv.cto-enfant-early.action",
     action: {
-      label: "Ouvrir un CTO au nom de l'enfant",
       link: "https://www.service-public.fr/particuliers/vosdroits/F32164",
     },
     appliesWhen: kids("0-6", "7-11"),
     priority: 82,
     figures: [
-      { label: "Horizon", value: "18+ ans" },
-      { label: "Plafond", value: "Aucun" },
-      { label: "Gains 50€/mois × 18 ans @ 7%", value: "~22 000 €" },
-      { label: "Fiscalité gains", value: "PFU 30% (0% IR si non-imposable)" },
+      { label: "adv.cto-enfant-early.fig.0.label", value: "adv.cto-enfant-early.fig.0.value" },
+      { label: "adv.cto-enfant-early.fig.1.label", value: "adv.cto-enfant-early.fig.1.value" },
+      { label: "adv.cto-enfant-early.fig.2.label", value: "~22 000 €" },
+      { label: "adv.cto-enfant-early.fig.3.label", value: "adv.cto-enfant-early.fig.3.value" },
     ],
     sources: [
       "https://www.service-public.fr/particuliers/vosdroits/F32164",
@@ -857,16 +795,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "av-enfant-transmission",
     category: "kids",
-    title: "AV enfant : alternative pour la transmission",
-    body:
-      "Ouvrir une assurance-vie au nom du mineur (ou avec l'enfant bénéficiaire) permet de combiner croissance long terme + fiscalité transmission avantageuse. Attention : moins souple qu'un CTO tant que l'enfant est mineur (accord parents obligatoire pour rachats). Complémentaire au CTO plutôt que remplacement.",
-    action: { label: "Comparer AV enfant vs CTO enfant" },
+    titleKey: "adv.av-enfant-transmission.title",
+    bodyKey: "adv.av-enfant-transmission.body",
+    actionLabelKey: "adv.av-enfant-transmission.action",
+    action: {},
     appliesWhen: kids("0-6", "7-11", "12-15"),
     priority: 70,
     figures: [
-      { label: "Horizon fiscal optimal", value: "8 ans" },
-      { label: "Abattement 8 ans", value: "4 600 €/an" },
-      { label: "Fiscalité gains post-8 ans", value: "7,5% IR + 17,2% PS" },
+      { label: "adv.av-enfant-transmission.fig.0.label", value: "adv.av-enfant-transmission.fig.0.value" },
+      { label: "adv.av-enfant-transmission.fig.1.label", value: "adv.av-enfant-transmission.fig.1.value" },
+      { label: "adv.av-enfant-transmission.fig.2.label", value: "adv.av-enfant-transmission.fig.2.value" },
     ],
     sources: [
       "https://www.service-public.fr/particuliers/vosdroits/F15274",
@@ -915,19 +853,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "donation-100k-par-enfant",
     category: "inheritance",
-    title: "Donation : 100 000 € par enfant tous les 15 ans",
-    body:
-      "Chaque parent peut donner jusqu'à 100 000 € à chaque enfant sans droits de succession, renouvelable tous les 15 ans. Couplé avec le don familial (31 865 € tous les 15 ans si donateur < 80 ans), c'est un outil puissant.",
+    titleKey: "adv.donation-100k-par-enfant.title",
+    bodyKey: "adv.donation-100k-par-enfant.body",
+    actionLabelKey: "adv.donation-100k-par-enfant.action",
     action: {
-      label: "Consulter le simulateur donation",
       link: "https://www.impots.gouv.fr/particulier/donation",
     },
     appliesWhen: and(hasAnyKids, ageIn("36-50", "51-65", "66+")),
     priority: 82,
     figures: [
-      { label: "Abattement/enfant/parent", value: "100 000 €" },
-      { label: "Don familial (< 80 ans)", value: "31 865 €" },
-      { label: "Renouvelable", value: "15 ans" },
+      { label: "adv.donation-100k-par-enfant.fig.0.label", value: "100 000 €" },
+      { label: "adv.donation-100k-par-enfant.fig.1.label", value: "31 865 €" },
+      { label: "adv.donation-100k-par-enfant.fig.2.label", value: "adv.donation-100k-par-enfant.fig.2.value" },
     ],
     sources: [
       "https://www.impots.gouv.fr/particulier/donation",
@@ -938,16 +875,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "av-transmission-abattement",
     category: "inheritance",
-    title: "AV avant 70 ans : 152 500 € par bénéficiaire",
-    body:
-      "Les versements sur assurance-vie avant tes 70 ans ouvrent droit à 152 500 € d'abattement par bénéficiaire lors de la transmission. Au-delà, taxation 20% jusqu'à 700 k€ puis 31,25%. Outil clé pour transmettre.",
-    action: { label: "Vérifier les bénéficiaires de ton AV" },
+    titleKey: "adv.av-transmission-abattement.title",
+    bodyKey: "adv.av-transmission-abattement.body",
+    actionLabelKey: "adv.av-transmission-abattement.action",
+    action: {},
     appliesWhen: and(ageIn("36-50", "51-65"), hasAnyKids),
     priority: 80,
     figures: [
-      { label: "Abattement/bénéficiaire", value: "152 500 €" },
-      { label: "Taxation 152k → 700k", value: "20%" },
-      { label: "Au-delà 700k", value: "31,25%" },
+      { label: "adv.av-transmission-abattement.fig.0.label", value: "152 500 €" },
+      { label: "adv.av-transmission-abattement.fig.1.label", value: "20%" },
+      { label: "adv.av-transmission-abattement.fig.2.label", value: "31,25%" },
     ],
     sources: ["https://www.legifrance.gouv.fr (art. 990 I CGI)"],
     lastVerified: VERIFIED,
@@ -955,15 +892,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "av-souscrire-avant-70-ans",
     category: "inheritance",
-    title: "Souscris ton AV avant 70 ans",
-    body:
-      "Les versements après 70 ans passent sous un régime moins favorable (abattement global de 30 500 € pour tous les bénéficiaires confondus). Si tu approches 70 ans, envisage un versement significatif avant la date anniversaire.",
-    action: { label: "Planifier un versement AV avant 70 ans" },
+    titleKey: "adv.av-souscrire-avant-70-ans.title",
+    bodyKey: "adv.av-souscrire-avant-70-ans.body",
+    actionLabelKey: "adv.av-souscrire-avant-70-ans.action",
+    action: {},
     appliesWhen: ageIn("51-65"),
     priority: 76,
     figures: [
-      { label: "Avant 70 ans/bénéf.", value: "152 500 €" },
-      { label: "Après 70 ans (total)", value: "30 500 €" },
+      { label: "adv.av-souscrire-avant-70-ans.fig.0.label", value: "152 500 €" },
+      { label: "adv.av-souscrire-avant-70-ans.fig.1.label", value: "30 500 €" },
     ],
     sources: ["https://www.legifrance.gouv.fr (art. 990 I & 757 B CGI)"],
     lastVerified: VERIFIED,
@@ -976,18 +913,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-compte-joint-solidarite",
     category: "shared",
-    title: "Compte joint : chacun doit 100% du découvert",
-    body:
-      "Sur un compte joint, les cotitulaires sont solidairement responsables du solde débiteur : la banque peut réclamer la totalité de la dette à n'importe lequel, même s'il n'est pas à l'origine du paiement. Limite le compte joint aux dépenses communes.",
+    titleKey: "adv.shared-compte-joint-solidarite.title",
+    bodyKey: "adv.shared-compte-joint-solidarite.body",
+    actionLabelKey: "adv.shared-compte-joint-solidarite.action",
     action: {
-      label: "Fixer un plafond d'alimentation mensuel du compte joint",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
     },
     appliesWhen: inWorkspace("couple", "family", "coloc"),
     priority: 88,
     figures: [
-      { label: "Dette exigible par cotitulaire", value: "100%" },
-      { label: "Qui a causé l'incident", value: "Sans effet" },
+      { label: "adv.shared-compte-joint-solidarite.fig.0.label", value: "100%" },
+      { label: "adv.shared-compte-joint-solidarite.fig.1.label", value: "adv.shared-compte-joint-solidarite.fig.1.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
@@ -998,15 +934,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-dettes-menage-art220",
     category: "shared",
-    title: "Dettes du ménage : solidarité automatique si mariés/pacsés",
-    body:
-      "L'article 220 du Code civil (515-4 pour le PACS) rend chaque époux/partenaire solidaire des dettes du ménage contractées par l'autre seul. Exceptions : dépenses manifestement excessives, achats à tempérament et emprunts non signés à deux. Les concubins n'ont aucun devoir légal l'un envers l'autre.",
-    action: { label: "Signer à deux tout crédit ou achat à tempérament significatif" },
+    titleKey: "adv.shared-dettes-menage-art220.title",
+    bodyKey: "adv.shared-dettes-menage-art220.body",
+    actionLabelKey: "adv.shared-dettes-menage-art220.action",
+    action: {},
     appliesWhen: inWorkspace("couple", "family"),
     priority: 82,
     figures: [
-      { label: "Base légale", value: "art. 220 & 515-4 C. civ." },
-      { label: "Concubins", value: "0 solidarité légale" },
+      { label: "adv.shared-dettes-menage-art220.fig.0.label", value: "adv.shared-dettes-menage-art220.fig.0.value" },
+      { label: "adv.shared-dettes-menage-art220.fig.1.label", value: "adv.shared-dettes-menage-art220.fig.1.value" },
     ],
     sources: [
       "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000028748098",
@@ -1017,15 +953,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-prorata-modele-legal",
     category: "shared",
-    title: "Répartition au prorata : le modèle prévu par la loi",
-    body:
-      "Époux et partenaires de PACS contribuent aux charges du ménage proportionnellement à leurs facultés respectives (art. 214 et 515-4 C. civ.). Le prorata des revenus est l'ancrage légal — le 50/50 n'est qu'une convention. Exemple : revenus 3 000 € et 2 000 € → clé 60/40.",
-    action: { label: "Calculer ta clé : ton revenu ÷ revenus cumulés du couple" },
+    titleKey: "adv.shared-prorata-modele-legal.title",
+    bodyKey: "adv.shared-prorata-modele-legal.body",
+    actionLabelKey: "adv.shared-prorata-modele-legal.action",
+    action: {},
     appliesWhen: inWorkspace("couple", "family"),
     priority: 80,
     figures: [
-      { label: "Base légale", value: "art. 214 C. civ." },
-      { label: "Exemple 3000/2000 €", value: "clé 60/40" },
+      { label: "adv.shared-prorata-modele-legal.fig.0.label", value: "adv.shared-prorata-modele-legal.fig.0.value" },
+      { label: "adv.shared-prorata-modele-legal.fig.1.label", value: "adv.shared-prorata-modele-legal.fig.1.value" },
     ],
     sources: [
       "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006439780",
@@ -1036,18 +972,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-cheque-responsable-unique",
     category: "shared",
-    title: "Chèque sans provision : désignez un responsable unique",
-    body:
-      "Un chèque rejeté sur un compte joint entraîne l'interdiction bancaire de CHAQUE cotitulaire sur TOUS ses comptes — sauf si un responsable unique a été désigné par écrit (art. L131-80 CMF) : l'interdiction ne frappe alors que lui. Modèle de lettre officiel R20791 sur service-public.",
+    titleKey: "adv.shared-cheque-responsable-unique.title",
+    bodyKey: "adv.shared-cheque-responsable-unique.body",
+    actionLabelKey: "adv.shared-cheque-responsable-unique.action",
     action: {
-      label: "Désigner un responsable unique dès l'ouverture du compte",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
     },
     appliesWhen: inWorkspace("couple", "family", "coloc"),
     priority: 70,
     figures: [
-      { label: "Interdiction max", value: "5 ans" },
-      { label: "Sans désignation", value: "tous les comptes de chacun" },
+      { label: "adv.shared-cheque-responsable-unique.fig.0.label", value: "adv.shared-cheque-responsable-unique.fig.0.value" },
+      { label: "adv.shared-cheque-responsable-unique.fig.1.label", value: "adv.shared-cheque-responsable-unique.fig.1.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
@@ -1058,15 +993,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-livret-a-individuel",
     category: "shared",
-    title: "Pas de Livret A commun — mais 2 Livrets A = 45 900 €",
-    body:
-      "L'épargne réglementée (Livret A, LDDS, LEP, PEL, CEL, PEA) est strictement individuelle : jamais de compte joint possible. En couple, ouvrez chacun le vôtre pour doubler le plafond. Seuls les comptes courants, livrets bancaires, comptes-titres et comptes à terme peuvent être joints.",
-    action: { label: "Ouvrir un Livret A par partenaire" },
+    titleKey: "adv.shared-livret-a-individuel.title",
+    bodyKey: "adv.shared-livret-a-individuel.body",
+    actionLabelKey: "adv.shared-livret-a-individuel.action",
+    action: {},
     appliesWhen: inWorkspace("couple", "family"),
     priority: 74,
     figures: [
-      { label: "Plafond couple (2 Livrets A)", value: "45 900 €" },
-      { label: "Livret A par personne", value: "1 max" },
+      { label: "adv.shared-livret-a-individuel.fig.0.label", value: "45 900 €" },
+      { label: "adv.shared-livret-a-individuel.fig.1.label", value: "adv.shared-livret-a-individuel.fig.1.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F2365",
@@ -1077,18 +1012,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-separation-compte-joint",
     category: "shared",
-    title: "Séparation : le compte joint ne se ferme pas tout seul",
-    body:
-      "Divorce ou séparation ne clôturent PAS le compte joint — sans démarche, la solidarité sur le découvert continue. Un seul cotitulaire peut se désolidariser par lettre recommandée avec AR à la banque et aux autres cotitulaires (le compte devient indivis, à double signature).",
+    titleKey: "adv.shared-separation-compte-joint.title",
+    bodyKey: "adv.shared-separation-compte-joint.body",
+    actionLabelKey: "adv.shared-separation-compte-joint.action",
     action: {
-      label: "Envoyer une dénonciation en recommandé dès la séparation",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10412",
     },
     appliesWhen: inWorkspace("couple", "family"),
     priority: 60,
     figures: [
-      { label: "Clôture automatique", value: "Aucune" },
-      { label: "Désolidarisation", value: "1 lettre AR suffit" },
+      { label: "adv.shared-separation-compte-joint.fig.0.label", value: "adv.shared-separation-compte-joint.fig.0.value" },
+      { label: "adv.shared-separation-compte-joint.fig.1.label", value: "adv.shared-separation-compte-joint.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F10412"],
     lastVerified: "2026-07-16",
@@ -1096,18 +1030,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-declaration-commune",
     category: "shared",
-    title: "Mariage ou PACS = 1 déclaration, 2 parts",
-    body:
-      "Couples mariés/pacsés : déclaration commune unique et 2 parts de quotient conjugal. L'année de l'union uniquement, option irrévocable pour 2 déclarations séparées (indisponible si vous étiez déjà pacsés). Concubins : déclarations séparées, non solidaires de l'impôt sur le revenu.",
+    titleKey: "adv.shared-declaration-commune.title",
+    bodyKey: "adv.shared-declaration-commune.body",
+    actionLabelKey: "adv.shared-declaration-commune.action",
     action: {
-      label: "Simuler les deux options l'année du mariage/PACS",
       link: "https://www.impots.gouv.fr/particulier/mariage-et-impots-en-commun",
     },
     appliesWhen: inWorkspace("couple", "family"),
     priority: 72,
     figures: [
-      { label: "Parts fiscales", value: "2" },
-      { label: "Option année union", value: "1 seule fois" },
+      { label: "adv.shared-declaration-commune.fig.0.label", value: "2" },
+      { label: "adv.shared-declaration-commune.fig.1.label", value: "adv.shared-declaration-commune.fig.1.value" },
     ],
     sources: [
       "https://www.impots.gouv.fr/particulier/mariage-et-impots-en-commun",
@@ -1118,15 +1051,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-donation-concubin-60pct",
     category: "shared",
-    title: "Donation au concubin : 60% de taxes",
-    body:
-      "Entre époux ou partenaires de PACS : abattement de 80 724 € puis barème progressif 5-45%. Entre concubins : taxation à 60% sans aucun abattement. Attention : l'abattement PACS est repris rétroactivement si le PACS est dissous l'année de la donation ou la suivante (sauf mariage ou décès).",
-    action: { label: "Envisager le PACS avant toute donation significative" },
+    titleKey: "adv.shared-donation-concubin-60pct.title",
+    bodyKey: "adv.shared-donation-concubin-60pct.body",
+    actionLabelKey: "adv.shared-donation-concubin-60pct.action",
+    action: {},
     appliesWhen: inWorkspace("couple"),
     priority: 64,
     figures: [
-      { label: "Abattement mariés/pacsés", value: "80 724 €" },
-      { label: "Concubins", value: "60% sans abattement" },
+      { label: "adv.shared-donation-concubin-60pct.fig.0.label", value: "80 724 €" },
+      { label: "adv.shared-donation-concubin-60pct.fig.1.label", value: "adv.shared-donation-concubin-60pct.fig.1.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F14203",
@@ -1137,15 +1070,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-succession-concubin",
     category: "shared",
-    title: "Succession : le concubin paie 60%, le conjoint 0%",
-    body:
-      "Le conjoint marié et le partenaire de PACS désigné par testament sont totalement exonérés de droits de succession. Le concubin est taxé à 60% après seulement 1 594 € d'abattement. PACS et concubin n'héritent QUE par testament — seul le mariage donne un droit successoral automatique.",
-    action: { label: "Rédiger un testament si pacsé ou concubin + vérifier la clause bénéficiaire AV" },
+    titleKey: "adv.shared-succession-concubin.title",
+    bodyKey: "adv.shared-succession-concubin.body",
+    actionLabelKey: "adv.shared-succession-concubin.action",
+    action: {},
     appliesWhen: inWorkspace("couple", "family"),
     priority: 68,
     figures: [
-      { label: "Conjoint / PACS testamentaire", value: "0%" },
-      { label: "Concubin", value: "60% après 1 594 €" },
+      { label: "adv.shared-succession-concubin.fig.0.label", value: "0%" },
+      { label: "adv.shared-succession-concubin.fig.1.label", value: "adv.shared-succession-concubin.fig.1.value" },
     ],
     sources: [
       "https://www.notaires.fr/fr/article/mariage-pacs-et-concubinage-elements-de-comparaison",
@@ -1155,20 +1088,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-quotient-familial-1807",
     category: "shared",
-    title: "Quotient familial : 1 807 € d'avantage max par demi-part",
-    body:
-      "Chaque enfant à charge apporte 0,5 part (1 part entière dès le 3e). L'avantage fiscal est plafonné à 1 807 € par demi-part pour l'imposition 2026 des revenus 2025 (904 € par quart de part en résidence alternée). Vérifie si le plafonnement s'applique avant de compter sur l'économie.",
+    titleKey: "adv.shared-quotient-familial-1807.title",
+    bodyKey: "adv.shared-quotient-familial-1807.body",
+    actionLabelKey: "adv.shared-quotient-familial-1807.action",
     action: {
-      label: "Vérifier ton plafonnement sur service-public.gouv.fr",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705",
     },
     appliesWhen: (p) =>
       p.workspaceKind === "family" || hasAnyKids(p),
     priority: 66,
     figures: [
-      { label: "Plafond/demi-part 2026", value: "1 807 €" },
-      { label: "Enfants 1-2", value: "0,5 part" },
-      { label: "Dès le 3e enfant", value: "1 part" },
+      { label: "adv.shared-quotient-familial-1807.fig.0.label", value: "1 807 €" },
+      { label: "adv.shared-quotient-familial-1807.fig.1.label", value: "adv.shared-quotient-familial-1807.fig.1.value" },
+      { label: "adv.shared-quotient-familial-1807.fig.2.label", value: "adv.shared-quotient-familial-1807.fig.2.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2705"],
     lastVerified: "2026-07-16",
@@ -1176,18 +1108,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "shared-coloc-compte-indivis",
     category: "shared",
-    title: "Coloc : lisez la clause de solidarité du compte indivis",
-    body:
-      "La loi ne prévoit PAS de solidarité entre cotitulaires d'un compte indivis (art. 1310 C. civ. : la solidarité ne se présume pas) — mais la majorité des banques l'insèrent par contrat dans la convention d'ouverture. La protection légale disparaît alors.",
+    titleKey: "adv.shared-coloc-compte-indivis.title",
+    bodyKey: "adv.shared-coloc-compte-indivis.body",
+    actionLabelKey: "adv.shared-coloc-compte-indivis.action",
     action: {
-      label: "Lire la convention et négocier/refuser la clause avant signature",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2812",
     },
     appliesWhen: inWorkspace("coloc"),
     priority: 84,
     figures: [
-      { label: "Solidarité légale", value: "0 (art. 1310)" },
-      { label: "Conventions bancaires", value: "majorité la stipulent" },
+      { label: "adv.shared-coloc-compte-indivis.fig.0.label", value: "adv.shared-coloc-compte-indivis.fig.0.value" },
+      { label: "adv.shared-coloc-compte-indivis.fig.1.label", value: "adv.shared-coloc-compte-indivis.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2812"],
     lastVerified: "2026-07-16",
@@ -1202,11 +1133,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "asso-compte-bancaire-dedie",
     category: "association",
-    title: "Un compte bancaire au nom de l'association, rien d'autre",
-    body:
-      "Une association loi 1901 déclarée peut ouvrir un compte à son nom. Ne faites JAMAIS transiter l'argent de l'asso par le compte perso d'un membre : c'est la source n°1 de conflits et de soupçons de gestion de fait. Prévoyez une double signature au-delà d'un certain montant, votée en AG.",
+    titleKey: "adv.asso-compte-bancaire-dedie.title",
+    bodyKey: "adv.asso-compte-bancaire-dedie.body",
+    actionLabelKey: "adv.asso-compte-bancaire-dedie.action",
     action: {
-      label: "Vérifier les démarches d'ouverture de compte",
       link: "https://www.service-public.fr/associations",
     },
     appliesWhen: inWorkspace("association"),
@@ -1217,10 +1147,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "asso-budget-previsionnel",
     category: "association",
-    title: "Votez un budget prévisionnel chaque année",
-    body:
-      "Un budget prévisionnel voté en assemblée générale, ventilé par projet ou action, est la base d'une gestion saine — et il est exigé dans quasiment tous les dossiers de subvention. Suivez les écarts réel/prévu chaque mois plutôt que de découvrir le trou en fin d'exercice.",
-    action: { label: "Préparer le budget prévisionnel du prochain exercice" },
+    titleKey: "adv.asso-budget-previsionnel.title",
+    bodyKey: "adv.asso-budget-previsionnel.body",
+    actionLabelKey: "adv.asso-budget-previsionnel.action",
+    action: {},
     appliesWhen: inWorkspace("association"),
     priority: 90,
     sources: ["https://www.associations.gouv.fr"],
@@ -1229,11 +1159,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "asso-comptabilite-registre",
     category: "association",
-    title: "Tenez une comptabilité simple mais irréprochable",
-    body:
-      "Au minimum : un registre chronologique des recettes et dépenses, chaque ligne justifiée (facture, reçu), présenté en AG. Les obligations comptables se renforcent selon la taille de l'association et ses financements publics — renseignez-vous dès que l'asso reçoit des subventions significatives.",
+    titleKey: "adv.asso-comptabilite-registre.title",
+    bodyKey: "adv.asso-comptabilite-registre.body",
+    actionLabelKey: "adv.asso-comptabilite-registre.action",
     action: {
-      label: "Mettre en place le registre recettes/dépenses",
       link: "https://www.associations.gouv.fr",
     },
     appliesWhen: inWorkspace("association"),
@@ -1244,31 +1173,30 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "asso-reserve-tresorerie",
     category: "association",
-    title: "Constituez une réserve de trésorerie",
-    body:
-      "Une subvention qui arrive en retard, un événement annulé, et l'asso ne peut plus payer sa salle. Règle de bonne pratique : viser une réserve couvrant environ 3 mois de charges courantes, placée sur un livret associatif (les associations peuvent détenir un Livret A).",
-    action: { label: "Calculer 3 mois de charges et ouvrir un livret dédié" },
+    titleKey: "adv.asso-reserve-tresorerie.title",
+    bodyKey: "adv.asso-reserve-tresorerie.body",
+    actionLabelKey: "adv.asso-reserve-tresorerie.action",
+    action: {},
     appliesWhen: inWorkspace("association"),
     priority: 86,
-    figures: [{ label: "Réserve conseillée", value: "~3 mois de charges" }],
+    figures: [{ label: "adv.asso-reserve-tresorerie.fig.0.label", value: "adv.asso-reserve-tresorerie.fig.0.value" }],
     sources: ["https://www.associations.gouv.fr"],
     lastVerified: "2026-07-24",
   },
   {
     id: "asso-dons-recu-fiscal",
     category: "association",
-    title: "Dons : le reçu fiscal est votre meilleur levier de collecte",
-    body:
-      "Si l'association est d'intérêt général, un don ouvre droit pour le donateur à une réduction d'impôt de 66 % du montant (dans la limite de 20 % de son revenu imposable) — 75 % pour les organismes d'aide aux personnes en difficulté, dans un plafond spécifique. Émettre des reçus fiscaux conformes multiplie la générosité : dites-le sur vos supports de collecte.",
+    titleKey: "adv.asso-dons-recu-fiscal.title",
+    bodyKey: "adv.asso-dons-recu-fiscal.body",
+    actionLabelKey: "adv.asso-dons-recu-fiscal.action",
     action: {
-      label: "Vérifier l'éligibilité et le modèle de reçu fiscal",
       link: "https://www.impots.gouv.fr/particulier/les-dons-aux-associations",
     },
     appliesWhen: inWorkspace("association"),
     priority: 84,
     figures: [
-      { label: "Réduction donateur", value: "66 % du don" },
-      { label: "Plafond", value: "20 % du revenu imposable" },
+      { label: "adv.asso-dons-recu-fiscal.fig.0.label", value: "adv.asso-dons-recu-fiscal.fig.0.value" },
+      { label: "adv.asso-dons-recu-fiscal.fig.1.label", value: "adv.asso-dons-recu-fiscal.fig.1.value" },
     ],
     sources: [
       "https://www.impots.gouv.fr/particulier/les-dons-aux-associations",
@@ -1279,11 +1207,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "asso-subventions",
     category: "association",
-    title: "Subventions : un dossier solide ouvre beaucoup de portes",
-    body:
-      "Commune, département, région, FDVA : la plupart des demandes passent aujourd'hui par la plateforme Le Compte Asso. Un dossier type demande : budget prévisionnel, rapport d'activité, RIB au nom de l'asso et numéro RNA. Anticipez — les campagnes ont des dates limites strictes, souvent en début d'année.",
+    titleKey: "adv.asso-subventions.title",
+    bodyKey: "adv.asso-subventions.body",
+    actionLabelKey: "adv.asso-subventions.action",
     action: {
-      label: "Créer le compte de l'asso sur Le Compte Asso",
       link: "https://lecompteasso.associations.gouv.fr",
     },
     appliesWhen: inWorkspace("association"),
@@ -1294,11 +1221,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "asso-assurance-rc",
     category: "association",
-    title: "Assurance responsabilité civile : quasi indispensable",
-    body:
-      "L'assurance RC est légalement obligatoire pour certaines activités (accueil de mineurs, activités sportives, voyages…) et fortement recommandée pour toutes les autres : l'association est responsable des dommages causés par ses bénévoles et lors de ses événements. Comparez les contrats « multirisque association ».",
+    titleKey: "adv.asso-assurance-rc.title",
+    bodyKey: "adv.asso-assurance-rc.body",
+    actionLabelKey: "adv.asso-assurance-rc.action",
     action: {
-      label: "Vérifier les obligations d'assurance de votre activité",
       link: "https://www.service-public.fr/associations",
     },
     appliesWhen: inWorkspace("association"),
@@ -1309,10 +1235,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "asso-cotisations-suivi",
     category: "association",
-    title: "Cotisations : cadrez le montant et le suivi des adhésions",
-    body:
-      "Le montant de la cotisation est fixé par les statuts ou voté en AG — formalisez-le. Tenez un registre des adhérents à jour (c'est aussi votre base légale pour voter en AG) et automatisez les relances de renouvellement : les cotisations non relancées sont la première recette perdue des petites assos.",
-    action: { label: "Mettre à jour le registre des adhérents et les relances" },
+    titleKey: "adv.asso-cotisations-suivi.title",
+    bodyKey: "adv.asso-cotisations-suivi.body",
+    actionLabelKey: "adv.asso-cotisations-suivi.action",
+    action: {},
     appliesWhen: inWorkspace("association"),
     priority: 78,
     sources: ["https://www.service-public.fr/associations"],
@@ -1325,11 +1251,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "donation-enfant-100k-couple",
     category: "inheritance",
-    title: "En couple : 200 000 € par enfant en franchise",
-    body:
-      "Chaque parent peut donner jusqu'à 100 000 € par enfant sans droits de succession, renouvelable tous les 15 ans. Un couple peut donc transmettre 200 000 € par enfant en une ou plusieurs fois. Idéal pour aider à l'achat d'un logement ou financer les études sup.",
+    titleKey: "adv.donation-enfant-100k-couple.title",
+    bodyKey: "adv.donation-enfant-100k-couple.body",
+    actionLabelKey: "adv.donation-enfant-100k-couple.action",
     action: {
-      label: "Simulateur donation impots.gouv.fr",
       link: "https://www.impots.gouv.fr/particulier/questions/que-puis-je-donner-mes-enfants-petits-enfants-sans-avoir-payer-de-droits",
     },
     appliesWhen: and(
@@ -1339,9 +1264,9 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ),
     priority: 78,
     figures: [
-      { label: "Par parent / enfant", value: "100 000 €" },
-      { label: "Couple / enfant", value: "200 000 €" },
-      { label: "Renouvelable", value: "tous les 15 ans" },
+      { label: "adv.donation-enfant-100k-couple.fig.0.label", value: "100 000 €" },
+      { label: "adv.donation-enfant-100k-couple.fig.1.label", value: "200 000 €" },
+      { label: "adv.donation-enfant-100k-couple.fig.2.label", value: "adv.donation-enfant-100k-couple.fig.2.value" },
     ],
     sources: [
       "https://www.impots.gouv.fr/particulier/questions/que-puis-je-donner-mes-enfants-petits-enfants-sans-avoir-payer-de-droits",
@@ -1351,20 +1276,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "donation-grand-parent-63k",
     category: "inheritance",
-    title: "Grand-parent : 63 730 € par petit-enfant",
-    body:
-      "Un grand-parent peut cumuler deux dispositifs : 31 865 € (art. 790 B CGI) + 31 865 € de don familial de somme d'argent (art. 790 G) si le donateur a moins de 80 ans et le bénéficiaire est majeur ou émancipé. Renouvelable tous les 15 ans, par grand-parent et par petit-enfant.",
+    titleKey: "adv.donation-grand-parent-63k.title",
+    bodyKey: "adv.donation-grand-parent-63k.body",
+    actionLabelKey: "adv.donation-grand-parent-63k.action",
     action: {
-      label: "Vérifier les conditions du don familial",
       link: "https://www.impots.gouv.fr/particulier/questions/jai-perdu-mon-fils-comment-aider-mes-petits-enfants",
     },
     appliesWhen: ageIn("51-65", "66+"),
     priority: 65,
     figures: [
-      { label: "Abattement (790 B)", value: "31 865 €" },
-      { label: "Don familial (790 G)", value: "31 865 €" },
-      { label: "Cumul max", value: "63 730 €" },
-      { label: "Conditions 790 G", value: "< 80 ans, majeur" },
+      { label: "adv.donation-grand-parent-63k.fig.0.label", value: "31 865 €" },
+      { label: "adv.donation-grand-parent-63k.fig.1.label", value: "31 865 €" },
+      { label: "adv.donation-grand-parent-63k.fig.2.label", value: "63 730 €" },
+      { label: "adv.donation-grand-parent-63k.fig.3.label", value: "adv.donation-grand-parent-63k.fig.3.value" },
     ],
     sources: [
       "https://www.impots.gouv.fr/particulier/questions/que-puis-je-donner-mes-enfants-petits-enfants-sans-avoir-payer-de-droits",
@@ -1492,19 +1416,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "prevoyance-deces-parents",
     category: "insurance",
-    title: "Assurance décès : indispensable avec enfants",
-    body:
-      "Le décès d'un parent d'enfants mineurs est le sinistre le plus dévastateur financièrement. Une assurance décès temporaire souscrite entre 30 et 40 ans coûte 15 à 30 €/mois pour un capital de 100 à 300 k€.",
-    action: { label: "Comparer 3 devis prévoyance" },
+    titleKey: "adv.prevoyance-deces-parents.title",
+    bodyKey: "adv.prevoyance-deces-parents.body",
+    actionLabelKey: "adv.prevoyance-deces-parents.action",
+    action: {},
     appliesWhen: and(
       familyIn("couple_with_kids", "single_parent"),
       ageIn("26-35", "36-50"),
     ),
     priority: 78,
     figures: [
-      { label: "Coût mensuel", value: "15-30 €" },
-      { label: "Capital typique", value: "100-300 k€" },
-      { label: "Durée typique", value: "20-25 ans" },
+      { label: "adv.prevoyance-deces-parents.fig.0.label", value: "15-30 €" },
+      { label: "adv.prevoyance-deces-parents.fig.1.label", value: "100-300 k€" },
+      { label: "adv.prevoyance-deces-parents.fig.2.label", value: "adv.prevoyance-deces-parents.fig.2.value" },
     ],
     sources: ["https://www.acpr.banque-france.fr"],
     lastVerified: VERIFIED,
@@ -1512,10 +1436,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "prevoyance-invalidite",
     category: "insurance",
-    title: "Prévoyance invalidité : socle vital",
-    body:
-      "Les salariés du privé sont couverts par la Sécu + prévoyance employeur (souvent 60-80% du salaire). Les indépendants/freelances sont beaucoup moins couverts — une prévoyance individuelle protège 60-100% du revenu en cas d'invalidité.",
-    action: { label: "Vérifier ta couverture actuelle" },
+    titleKey: "adv.prevoyance-invalidite.title",
+    bodyKey: "adv.prevoyance-invalidite.body",
+    actionLabelKey: "adv.prevoyance-invalidite.action",
+    action: {},
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 62,
     sources: ["https://www.ameli.fr", "https://www.acpr.banque-france.fr"],
@@ -1524,16 +1448,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "prevoyance-dependance-senior",
     category: "insurance",
-    title: "Dépendance : penser à 55-60 ans, pas plus tard",
-    body:
-      "Le risque de dépendance concerne 1 personne sur 3 après 75 ans. Une assurance dépendance souscrite à 55-60 ans coûte 30-60 €/mois pour une rente à vie de 500-1 500 €/mois. Après 65 ans, les tarifs explosent.",
-    action: { label: "Comparer 3 offres dépendance" },
+    titleKey: "adv.prevoyance-dependance-senior.title",
+    bodyKey: "adv.prevoyance-dependance-senior.body",
+    actionLabelKey: "adv.prevoyance-dependance-senior.action",
+    action: {},
     appliesWhen: ageIn("51-65"),
     priority: 55,
     figures: [
-      { label: "Souscription", value: "55-60 ans" },
-      { label: "Cotisation", value: "30-60 €/mois" },
-      { label: "Rente typique", value: "500-1 500 €/mois" },
+      { label: "adv.prevoyance-dependance-senior.fig.0.label", value: "adv.prevoyance-dependance-senior.fig.0.value" },
+      { label: "adv.prevoyance-dependance-senior.fig.1.label", value: "adv.prevoyance-dependance-senior.fig.1.value" },
+      { label: "adv.prevoyance-dependance-senior.fig.2.label", value: "adv.prevoyance-dependance-senior.fig.2.value" },
     ],
     sources: ["https://www.pour-les-personnes-agees.gouv.fr"],
     lastVerified: VERIFIED,
@@ -1548,16 +1472,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "pets-assurance-chien",
     category: "pets",
-    title: "Assurance santé chien : 12 à 44 €/mois",
-    body:
-      "Pour un chien de moins de 2 ans en 2026, compte 12,46 €/mois en formule économique, 27,33 € en médium et 44,15 € en premium (baromètre janvier 2026). Souscrire jeune coûte moins cher et évite les exclusions pour maladies préexistantes.",
-    action: { label: "Comparer 3 formules d'assurance avant les 2 ans du chien" },
+    titleKey: "adv.pets-assurance-chien.title",
+    bodyKey: "adv.pets-assurance-chien.body",
+    actionLabelKey: "adv.pets-assurance-chien.action",
+    action: {},
     appliesWhen: hasPetSpecies("dog"),
     priority: 70,
     figures: [
-      { label: "Formule éco", value: "12,46 €/mois" },
-      { label: "Médium", value: "27,33 €/mois" },
-      { label: "Premium", value: "44,15 €/mois" },
+      { label: "adv.pets-assurance-chien.fig.0.label", value: "adv.pets-assurance-chien.fig.0.value" },
+      { label: "adv.pets-assurance-chien.fig.1.label", value: "adv.pets-assurance-chien.fig.1.value" },
+      { label: "adv.pets-assurance-chien.fig.2.label", value: "adv.pets-assurance-chien.fig.2.value" },
     ],
     sources: [
       "https://www.lecomparateurassurance.com/assurance-animaux/actualites/barometre-assurance-animaux-janvier-2026",
@@ -1568,15 +1492,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "pets-assurance-chat",
     category: "pets",
-    title: "Assurance santé chat : 9 à 35 €/mois",
-    body:
-      "Pour un chat de moins de 2 ans en 2026, l'assurance santé va de 9 €/mois (entrée de gamme) à 35 €/mois (premium). Les tarifs grimpent avec l'âge de l'animal — souscrire tôt fige un meilleur prix.",
-    action: { label: "Comparer les formules d'assurance chat" },
+    titleKey: "adv.pets-assurance-chat.title",
+    bodyKey: "adv.pets-assurance-chat.body",
+    actionLabelKey: "adv.pets-assurance-chat.action",
+    action: {},
     appliesWhen: hasPetSpecies("cat"),
     priority: 68,
     figures: [
-      { label: "Fourchette 2026", value: "9 - 35 €/mois" },
-      { label: "Âge optimal", value: "avant 2 ans" },
+      { label: "adv.pets-assurance-chat.fig.0.label", value: "adv.pets-assurance-chat.fig.0.value" },
+      { label: "adv.pets-assurance-chat.fig.1.label", value: "adv.pets-assurance-chat.fig.1.value" },
     ],
     sources: [
       "https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026",
@@ -1586,24 +1510,36 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "pets-budget-chat",
     category: "pets",
-    title: "Budget chat : 600 à 1 000 € par an",
-    body: (p) => {
+    titleKey: "adv.pets-budget-chat.title",
+    // Corps DYNAMIQUE (dépend du nombre de chats) : composé depuis des clés
+    // i18n paramétrées, jamais depuis du texte en dur.
+    body: (p, { t, tp }) => {
       const count = p.pets?.find((pet) => pet.species === "cat")?.count ?? 1;
       if (count > 1) {
-        return `Nourriture, litière et soins courants (hors assurance) coûtent 600 à 1 000 € par an et par chat — soit ${600 * count} à ${1000 * count} € pour tes ${count} chats. Provisionne 50-85 €/mois/chat dans une catégorie dédiée pour absorber les visites vétérinaires.`;
+        return tp("adv.pets-budget-chat.body.multi", {
+          count,
+          low: 600 * count,
+          high: 1000 * count,
+        });
       }
-      return "Nourriture, litière et soins courants (hors assurance) : 600 à 1 000 € par an, soit 50 à 85 €/mois. Provisionne cette somme dans une catégorie dédiée pour éviter que les visites vétérinaires percutent ton reste à vivre.";
+      return t("adv.pets-budget-chat.body");
     },
-    action: { label: "Créer une catégorie de dépense dédiée au chat" },
+    actionLabelKey: "adv.pets-budget-chat.action",
+    action: {},
     appliesWhen: hasPetSpecies("cat"),
     priority: 72,
-    figures: (p) => {
+    figures: (p, { tp }) => {
       const count = p.pets?.find((pet) => pet.species === "cat")?.count ?? 1;
       return [
-        { label: "Budget annuel/chat", value: "600 - 1 000 €" },
-        { label: "Par mois/chat", value: "50 - 85 €" },
+        { label: "adv.pets-budget-chat.fig.0.label", value: "600 - 1 000 €" },
+        { label: "adv.pets-budget-chat.fig.1.label", value: "50 - 85 €" },
         ...(count > 1
-          ? [{ label: `Total ${count} chats`, value: `${600 * count} - ${1000 * count} €/an` }]
+          ? [
+              {
+                label: tp("adv.pets-budget-chat.fig.total.label", { count }),
+                value: `${600 * count} - ${1000 * count} €/an`,
+              },
+            ]
           : []),
       ];
     },
@@ -1616,10 +1552,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pets-ligne-budget-dediee",
     countries: "all",
     category: "pets",
-    title: "Un animal = une ligne budgétaire dédiée",
-    body:
-      "Nourriture, soins courants, vétérinaire et imprévus : un animal est une dépense récurrente ET irrégulière. Une urgence vétérinaire peut coûter plusieurs centaines d'euros d'un coup. Crée une catégorie de dépense dédiée et une petite provision mensuelle — même modeste, elle absorbe les à-coups.",
-    action: { label: "Créer une catégorie animaux + provision mensuelle" },
+    titleKey: "adv.pets-ligne-budget-dediee.title",
+    bodyKey: "adv.pets-ligne-budget-dediee.body",
+    actionLabelKey: "adv.pets-ligne-budget-dediee.action",
+    action: {},
     appliesWhen: hasAnyPet,
     priority: 60,
     sources: [
@@ -1636,16 +1572,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "be-fonds-urgence",
     category: "emergency",
     countries: ["BE"],
-    title: "Ta réserve d'épargne : 3 à 6 mois de salaire net",
-    body:
-      "Wikifin (l'éducation financière officielle de la FSMA) considère qu'une réserve de 3 à 6 mois de salaire net est idéale. Garde-la sur un compte d'épargne accessible, séparée de l'épargne pour tes projets planifiés.",
+    titleKey: "adv.be-fonds-urgence.title",
+    bodyKey: "adv.be-fonds-urgence.body",
+    actionLabelKey: "adv.be-fonds-urgence.action",
     action: {
-      label: "Comparer les comptes d'épargne sur Wikifin",
       link: "https://www.wikifin.be/fr/epargner-et-investir/comparateur-de-comptes-depargne",
     },
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de salaire net" }],
+    figures: [{ label: "adv.be-fonds-urgence.fig.0.label", value: "adv.be-fonds-urgence.fig.0.value" }],
     sources: [
       "https://www.wikifin.be/fr/budget-payer-emprunter-et-assurer/budget-et-gestion-de-budget/quest-ce-quune-reserve-depargne",
     ],
@@ -1655,18 +1590,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "be-epargne-reglementee",
     category: "tax",
     countries: ["BE"],
-    title: "Compte d'épargne réglementé : 1 020 € d'intérêts exonérés",
-    body:
-      "Les premiers 1 020 € d'intérêts par personne et par an sur les comptes d'épargne réglementés sont exonérés de précompte mobilier (15 % au-delà, au lieu de 30 %). Attention : l'exonération vaut par PERSONNE, pas par banque — si tu cumules plusieurs banques et dépasses le plafond, c'est à toi de régulariser via ta déclaration.",
+    titleKey: "adv.be-epargne-reglementee.title",
+    bodyKey: "adv.be-epargne-reglementee.body",
+    actionLabelKey: "adv.be-epargne-reglementee.action",
     action: {
-      label: "Vérifier le régime de tes comptes d'épargne",
       link: "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/epargne-placements",
     },
     appliesWhen: always,
     priority: 84,
     figures: [
-      { label: "Exonérés / pers. / an", value: "1 020 €" },
-      { label: "Au-delà", value: "précompte 15 %" },
+      { label: "adv.be-epargne-reglementee.fig.0.label", value: "1 020 €" },
+      { label: "adv.be-epargne-reglementee.fig.1.label", value: "adv.be-epargne-reglementee.fig.1.value" },
     ],
     sources: [
       "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/epargne-placements",
@@ -1677,19 +1611,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "be-epargne-pension",
     category: "retirement",
     countries: ["BE"],
-    title: "Épargne-pension : vise 1 050 € — pas 1 200 €",
-    body:
-      "Deux régimes en 2026 : jusqu'à 1 050 €/an avec 30 % de réduction d'impôt, ou jusqu'à 1 350 €/an avec 25 % (sur demande explicite à ta banque). Zone piège : entre 1 050 et 1 260 € versés, ton avantage fiscal est INFÉRIEUR à celui d'un versement de 1 050 € pile. Soit tu restes à 1 050 €, soit tu vas franchement vers 1 350 €.",
+    titleKey: "adv.be-epargne-pension.title",
+    bodyKey: "adv.be-epargne-pension.body",
+    actionLabelKey: "adv.be-epargne-pension.action",
     action: {
-      label: "Vérifier ton plafond auprès de ta banque",
       link: "https://fin.belgium.be/fr/particuliers/avantages-fiscaux/epargne-pension",
     },
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 86,
     figures: [
-      { label: "Plafond de base", value: "1 050 € → 30 %" },
-      { label: "Plafond majoré", value: "1 350 € → 25 %" },
-      { label: "Zone à éviter", value: "1 050 - 1 260 €" },
+      { label: "adv.be-epargne-pension.fig.0.label", value: "1 050 € → 30 %" },
+      { label: "adv.be-epargne-pension.fig.1.label", value: "1 350 € → 25 %" },
+      { label: "adv.be-epargne-pension.fig.2.label", value: "1 050 - 1 260 €" },
     ],
     sources: [
       "https://fin.belgium.be/fr/particuliers/avantages-fiscaux/epargne-pension",
@@ -1701,18 +1634,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "be-taxe-plus-values",
     category: "long_term",
     countries: ["BE"],
-    title: "Plus-values : 10 % depuis 2026, mais 10 000 € de franchise",
-    body:
-      "Depuis le 1er janvier 2026, les plus-values sur actifs financiers des particuliers sont taxées à 10 % — avec une exonération annuelle de 10 000 € par contribuable. Pour les actifs achetés avant 2026, la valeur de référence est celle du 31 décembre 2025 (pas ton prix d'achat). Étaler tes ventes sur plusieurs années peut faire rester sous la franchise.",
+    titleKey: "adv.be-taxe-plus-values.title",
+    bodyKey: "adv.be-taxe-plus-values.body",
+    actionLabelKey: "adv.be-taxe-plus-values.action",
     action: {
-      label: "Lire le régime officiel de la taxe",
       link: "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/taxe-plus-values",
     },
     appliesWhen: always,
     priority: 78,
     figures: [
-      { label: "Taux", value: "10 %" },
-      { label: "Franchise annuelle", value: "10 000 €" },
+      { label: "adv.be-taxe-plus-values.fig.0.label", value: "10 %" },
+      { label: "adv.be-taxe-plus-values.fig.1.label", value: "10 000 €" },
     ],
     sources: [
       "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/taxe-plus-values",
@@ -1723,11 +1655,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "be-bons-etat",
     category: "long_term",
     countries: ["BE"],
-    title: "Bons d'État : une émission chaque trimestre",
-    body:
-      "L'Agence fédérale de la Dette émet des bons d'État début mars, juin, septembre et décembre. Les coupons subissent le précompte mobilier de 30 % : compare toujours le rendement NET avec les comptes à terme bancaires avant de souscrire — le gagnant change selon les émissions.",
+    titleKey: "adv.be-bons-etat.title",
+    bodyKey: "adv.be-bons-etat.body",
+    actionLabelKey: "adv.be-bons-etat.action",
     action: {
-      label: "Voir les émissions en cours",
       link: "https://www.debtagency.be/fr/productsbeinfo",
     },
     appliesWhen: always,
@@ -1739,11 +1670,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "be-succession-regions",
     category: "inheritance",
     countries: ["BE"],
-    title: "Succession et donation : tout dépend de ta région",
-    body:
-      "Les droits de succession et de donation sont une compétence RÉGIONALE : les taux et abattements diffèrent entre la Flandre, la Wallonie et Bruxelles — et c'est le domicile fiscal du défunt ou du donateur qui compte, pas celui de l'héritier. Avant toute planification (donation mobilière, immobilière), vérifie les règles de TA région.",
+    titleKey: "adv.be-succession-regions.title",
+    bodyKey: "adv.be-succession-regions.body",
+    actionLabelKey: "adv.be-succession-regions.action",
     action: {
-      label: "Vérifier les règles de ta région",
       link: "https://www.wikifin.be/fr/famille/heriter",
     },
     appliesWhen: ageIn("36-50", "51-65", "66+"),
@@ -1762,13 +1692,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ch-fonds-urgence",
     category: "emergency",
     countries: ["CH"],
-    title: "Réserve de sécurité : 3 à 6 mois de dépenses",
-    body:
-      "Recommandation courante en Suisse : garder l'équivalent de 3 à 6 mois de dépenses courantes sur un compte épargne liquide (davantage si tu es indépendant). Exemple : 4 500 CHF de charges mensuelles → vise 13 500 à 27 000 CHF avant tout investissement.",
-    action: { label: "Calculer 3-6 mois de tes charges dans le tab Budget" },
+    titleKey: "adv.ch-fonds-urgence.title",
+    bodyKey: "adv.ch-fonds-urgence.body",
+    actionLabelKey: "adv.ch-fonds-urgence.action",
+    action: {},
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    figures: [{ label: "adv.ch-fonds-urgence.fig.0.label", value: "adv.ch-fonds-urgence.fig.0.value" }],
     sources: ["https://www.cler.ch/fr/blog/blog/clever-auf-gratis-konten-sparen"],
     lastVerified: "2026-07-27",
   },
@@ -1776,17 +1706,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ch-pilier-3a",
     category: "retirement",
     countries: ["CH"],
-    title: "Pilier 3a : 7 258 CHF déductibles en 2026",
-    body:
-      "Verser dans le pilier 3a réduit directement ton revenu imposable (fédéral, cantonal et communal). Plafond 2026 : 7 258 CHF si tu as une caisse de pension ; 20 % du revenu net (max 36 288 CHF) sans caisse de pension. Dans un couple à deux revenus, CHACUN a son propre plafond. À créditer avant le 31 décembre.",
-    action: {
-      label: "Programmer un versement mensuel automatique vers le 3a",
-    },
+    titleKey: "adv.ch-pilier-3a.title",
+    bodyKey: "adv.ch-pilier-3a.body",
+    actionLabelKey: "adv.ch-pilier-3a.action",
+    action: {},
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 88,
     figures: [
-      { label: "Avec caisse de pension", value: "7 258 CHF" },
-      { label: "Sans caisse de pension", value: "20 % · max 36 288 CHF" },
+      { label: "adv.ch-pilier-3a.fig.0.label", value: "7 258 CHF" },
+      { label: "adv.ch-pilier-3a.fig.1.label", value: "adv.ch-pilier-3a.fig.1.value" },
     ],
     sources: [
       "https://www.ubs.com/ch/fr/services/pension/pillar-3/maximal-contribution.html",
@@ -1797,10 +1725,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ch-3a-rachat-retroactif",
     category: "retirement",
     countries: ["CH"],
-    title: "Nouveau : rattrape tes lacunes 3a (dès 2026)",
-    body:
-      "2026 est la première année où tu peux racheter rétroactivement une lacune de versement 3a — uniquement pour les lacunes apparues à partir de 2025, jusqu'à 10 ans en arrière. Conditions : avoir eu un revenu AVS l'année de la lacune et verser d'abord le maximum de l'année en cours. Chaque lacune se comble en un versement unique, déductible.",
-    action: { label: "Vérifier tes années incomplètes auprès de ta fondation 3a" },
+    titleKey: "adv.ch-3a-rachat-retroactif.title",
+    bodyKey: "adv.ch-3a-rachat-retroactif.body",
+    actionLabelKey: "adv.ch-3a-rachat-retroactif.action",
+    action: {},
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 80,
     sources: [
@@ -1812,16 +1740,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ch-rachat-lpp",
     category: "retirement",
     countries: ["CH"],
-    title: "Rachat dans ta caisse de pension : puissant mais encadré",
-    body:
-      "Les rachats volontaires dans le 2e pilier sont intégralement déductibles du revenu imposable. Ton potentiel de rachat figure sur ton certificat de prévoyance. Deux règles d'or : étale un gros rachat sur 2-3 ans pour casser la progression fiscale, et AUCUN retrait en capital dans les 3 ans qui suivent (art. 79b LPP), sinon la déduction est annulée avec rappel d'impôt.",
+    titleKey: "adv.ch-rachat-lpp.title",
+    bodyKey: "adv.ch-rachat-lpp.body",
+    actionLabelKey: "adv.ch-rachat-lpp.action",
     action: {
-      label: "Lire ton certificat de prévoyance (potentiel de rachat)",
       link: "https://www.ge.ch/impot-prevoyance-retraite-du-2e-3e-pilier/comment-deduire-rachats-au-2e-3e-pilier",
     },
     appliesWhen: ageIn("36-50", "51-65"),
     priority: 76,
-    figures: [{ label: "Blocage après rachat", value: "3 ans (art. 79b)" }],
+    figures: [{ label: "adv.ch-rachat-lpp.fig.0.label", value: "adv.ch-rachat-lpp.fig.0.value" }],
     sources: [
       "https://www.ge.ch/impot-prevoyance-retraite-du-2e-3e-pilier/comment-deduire-rachats-au-2e-3e-pilier",
     ],
@@ -1831,18 +1758,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ch-impot-anticipe",
     category: "tax",
     countries: ["CH"],
-    title: "Impôt anticipé 35 % : récupère-le, c'est le tien",
-    body:
-      "35 % de tes intérêts et dividendes suisses sont retenus à la source — mais ce n'est PAS un impôt définitif. Déclare correctement ces rendements dans l'état des titres de ta déclaration et tu récupères l'intégralité (imputée sur tes impôts cantonaux). Délai : 3 ans après la fin de l'année concernée. Ne laisse pas dormir cet argent.",
+    titleKey: "adv.ch-impot-anticipe.title",
+    bodyKey: "adv.ch-impot-anticipe.body",
+    actionLabelKey: "adv.ch-impot-anticipe.action",
     action: {
-      label: "Vérifier ton état des titres",
       link: "https://www.estv.admin.ch/estv/fr/accueil/impot-anticipe.html",
     },
     appliesWhen: always,
     priority: 74,
     figures: [
-      { label: "Retenue", value: "35 %" },
-      { label: "Récupérable", value: "100 % (délai 3 ans)" },
+      { label: "adv.ch-impot-anticipe.fig.0.label", value: "35 %" },
+      { label: "adv.ch-impot-anticipe.fig.1.label", value: "adv.ch-impot-anticipe.fig.1.value" },
     ],
     sources: ["https://www.estv.admin.ch/estv/fr/accueil/impot-anticipe.html"],
     lastVerified: "2026-07-27",
@@ -1851,18 +1777,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ch-lamal-franchise",
     category: "insurance",
     countries: ["CH"],
-    title: "LAMal : ta franchise est un levier budgétaire",
-    body:
-      "Adultes : franchise de 300 CHF (ordinaire) à 2 500 CHF (maximale), plus une quote-part de 10 % plafonnée à 700 CHF/an. Peu de frais médicaux → franchise haute et prime réduite ; frais réguliers → franchise basse. Le changement ne se fait qu'au 1er janvier. Et vérifie tes droits aux subsides : chaque canton réduit les primes des revenus modestes selon ses propres règles.",
+    titleKey: "adv.ch-lamal-franchise.title",
+    bodyKey: "adv.ch-lamal-franchise.body",
+    actionLabelKey: "adv.ch-lamal-franchise.action",
     action: {
-      label: "Comparer primes et franchises sur Priminfo",
       link: "https://www.priminfo.admin.ch/fr/sparen/grundversicherung",
     },
     appliesWhen: always,
     priority: 82,
     figures: [
-      { label: "Franchises adultes", value: "300 → 2 500 CHF" },
-      { label: "Quote-part max", value: "700 CHF/an" },
+      { label: "adv.ch-lamal-franchise.fig.0.label", value: "300 → 2 500 CHF" },
+      { label: "adv.ch-lamal-franchise.fig.1.label", value: "adv.ch-lamal-franchise.fig.1.value" },
     ],
     sources: [
       "https://www.priminfo.admin.ch/fr/sparen/grundversicherung",
@@ -1874,13 +1799,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ch-loyer-tiers",
     category: "housing",
     countries: ["CH"],
-    title: "La règle du tiers : ton loyer face aux régies",
-    body:
-      "Pratique standard des régies suisses : un dossier de location n'est accepté que si le revenu net fait au moins 3× le loyer charges comprises. Ce n'est pas une loi, mais c'est un double repère : critère d'acceptation ET garde-fou budgétaire. Dans les villes tendues où le tiers est dépassé, compense sur les autres postes.",
-    action: { label: "Vérifier ton ratio loyer/revenu dans le tab Budget" },
+    titleKey: "adv.ch-loyer-tiers.title",
+    bodyKey: "adv.ch-loyer-tiers.body",
+    actionLabelKey: "adv.ch-loyer-tiers.action",
+    action: {},
     appliesWhen: housingIn("renter"),
     priority: 72,
-    figures: [{ label: "Repère", value: "loyer ≤ 1/3 du revenu net" }],
+    figures: [{ label: "adv.ch-loyer-tiers.fig.0.label", value: "adv.ch-loyer-tiers.fig.0.value" }],
     sources: [
       "https://www.bcbe.ch/la-bcbe/blog/logement/couts-de-location-maximum",
     ],
@@ -1895,16 +1820,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "lu-fonds-urgence",
     category: "emergency",
     countries: ["LU"],
-    title: "Épargne de sécurité : 3 à 6 mois de salaire",
-    body:
-      "Lëtzfin (l'éducation financière de la CSSF) recommande de constituer une épargne de sécurité représentant 3 à 6 mois de salaire, sur un compte accessible. Une fois ce matelas en place, l'excédent peut aller vers des placements de plus long terme.",
+    titleKey: "adv.lu-fonds-urgence.title",
+    bodyKey: "adv.lu-fonds-urgence.body",
+    actionLabelKey: "adv.lu-fonds-urgence.action",
     action: {
-      label: "Lire la recommandation Lëtzfin",
       link: "https://www.letzfin.lu/pourquoi-est-il-important-de-mettre-de-largent-de-cote-pour-des-situations-durgence/",
     },
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de salaire" }],
+    figures: [{ label: "adv.lu-fonds-urgence.fig.0.label", value: "adv.lu-fonds-urgence.fig.0.value" }],
     sources: [
       "https://www.letzfin.lu/pourquoi-est-il-important-de-mettre-de-largent-de-cote-pour-des-situations-durgence/",
     ],
@@ -1914,18 +1838,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "lu-prevoyance-111bis",
     category: "retirement",
     countries: ["LU"],
-    title: "Prévoyance-vieillesse : 4 500 € déductibles par an (nouveau)",
-    body:
-      "Depuis l'année d'imposition 2026, le plafond déductible d'un contrat de prévoyance-vieillesse (art. 111bis LIR) passe de 3 200 € à 4 500 € par contribuable et par an. Conditions : contrat d'au moins 10 ans, sortie entre 60 et 75 ans. Un remboursement anticipé est imposé au taux plein — c'est de l'épargne longue, pas un livret.",
+    titleKey: "adv.lu-prevoyance-111bis.title",
+    bodyKey: "adv.lu-prevoyance-111bis.body",
+    actionLabelKey: "adv.lu-prevoyance-111bis.action",
     action: {
-      label: "Vérifier le régime sur le site de l'ACD",
       link: "https://impotsdirects.public.lu/fr/az/p/prevoyance_vieillesse.html",
     },
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 88,
     figures: [
-      { label: "Plafond 2026", value: "4 500 € / an" },
-      { label: "Durée minimale", value: "10 ans" },
+      { label: "adv.lu-prevoyance-111bis.fig.0.label", value: "adv.lu-prevoyance-111bis.fig.0.value" },
+      { label: "adv.lu-prevoyance-111bis.fig.1.label", value: "adv.lu-prevoyance-111bis.fig.1.value" },
     ],
     sources: ["https://impotsdirects.public.lu/fr/az/p/prevoyance_vieillesse.html"],
     lastVerified: "2026-07-27",
@@ -1934,11 +1857,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "lu-epargne-logement",
     category: "real_estate",
     countries: ["LU"],
-    title: "Épargne-logement : déduction doublée pour les jeunes",
-    body:
-      "Les cotisations d'épargne-logement sont déductibles jusqu'à 672 €/an — et le plafond est DOUBLÉ (1 344 €) pour les jeunes souscripteurs (jusqu'à 40 ans environ), puis majoré pour le conjoint imposé collectivement et chaque enfant. Contrat d'au moins 10 ans, affecté au financement de la résidence principale. Si tu comptes acheter un jour, plus tu commences jeune, plus la déduction est intéressante.",
+    titleKey: "adv.lu-epargne-logement.title",
+    bodyKey: "adv.lu-epargne-logement.body",
+    actionLabelKey: "adv.lu-epargne-logement.action",
     action: {
-      label: "Voir les conditions officielles",
       link: "https://impotsdirects.public.lu/fr/az/c/cotis-epargne-logement.html",
     },
     appliesWhen: and(
@@ -1947,8 +1869,8 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ),
     priority: 78,
     figures: [
-      { label: "Plafond jeune", value: "1 344 € / an" },
-      { label: "Plafond standard", value: "672 € / an" },
+      { label: "adv.lu-epargne-logement.fig.0.label", value: "adv.lu-epargne-logement.fig.0.value" },
+      { label: "adv.lu-epargne-logement.fig.1.label", value: "adv.lu-epargne-logement.fig.1.value" },
     ],
     sources: ["https://impotsdirects.public.lu/fr/az/c/cotis-epargne-logement.html"],
     lastVerified: "2026-07-27",
@@ -1957,18 +1879,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "lu-frontaliers-assimilation",
     category: "tax",
     countries: ["LU"],
-    title: "Frontalier au Luxembourg ? L'assimilation change tout",
-    body:
-      "Sans assimilation fiscale, un frontalier n'a accès à AUCUNE déduction luxembourgeoise (prévoyance 111bis, épargne-logement, assurances). Tu peux demander le traitement équivalent résident si ≥ 90 % de tes revenus mondiaux sont imposables au Luxembourg (ou si tes revenus hors Luxembourg restent sous 13 000 € ; règle spéciale à 50 % pour les résidents belges). Ça se coche dans la déclaration.",
+    titleKey: "adv.lu-frontaliers-assimilation.title",
+    bodyKey: "adv.lu-frontaliers-assimilation.body",
+    actionLabelKey: "adv.lu-frontaliers-assimilation.action",
     action: {
-      label: "Vérifier tes conditions d'assimilation",
       link: "https://guichet.public.lu/fr/citoyens/fiscalite/declaration-impot-decompte/activite-professionnelle/declaration-revenus/assimilation-resident.html",
     },
     appliesWhen: always,
     priority: 66,
     figures: [
-      { label: "Seuil général", value: "≥ 90 % des revenus" },
-      { label: "Résidents belges", value: "50 % des revenus pro" },
+      { label: "adv.lu-frontaliers-assimilation.fig.0.label", value: "adv.lu-frontaliers-assimilation.fig.0.value" },
+      { label: "adv.lu-frontaliers-assimilation.fig.1.label", value: "adv.lu-frontaliers-assimilation.fig.1.value" },
     ],
     sources: [
       "https://guichet.public.lu/fr/citoyens/fiscalite/declaration-impot-decompte/activite-professionnelle/declaration-revenus/assimilation-resident.html",
@@ -1979,18 +1900,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "lu-allocations-familiales",
     category: "kids",
     countries: ["LU"],
-    title: "Allocation pour l'avenir des enfants : à intégrer au budget",
-    body:
-      "La CAE verse 315,04 €/mois par enfant (valeur au 1er juin 2026, indexée), majorée à 338,85 € de 6 à 11 ans et 374,48 € à partir de 12 ans. Versée du mois de naissance aux 18 ans. Une ligne de revenu stable à intégrer dans ton budget — et idéalement à flécher en partie vers l'épargne de l'enfant.",
+    titleKey: "adv.lu-allocations-familiales.title",
+    bodyKey: "adv.lu-allocations-familiales.body",
+    actionLabelKey: "adv.lu-allocations-familiales.action",
     action: {
-      label: "Voir les montants à jour (CAE)",
       link: "https://cae.public.lu/fr/allocations/allocation-pour-lavenir-des-enfants/montants.html",
     },
     appliesWhen: hasAnyKids,
     priority: 84,
     figures: [
-      { label: "Base / enfant", value: "315,04 € / mois" },
-      { label: "12 ans et +", value: "374,48 € / mois" },
+      { label: "adv.lu-allocations-familiales.fig.0.label", value: "adv.lu-allocations-familiales.fig.0.value" },
+      { label: "adv.lu-allocations-familiales.fig.1.label", value: "adv.lu-allocations-familiales.fig.1.value" },
     ],
     sources: [
       "https://cae.public.lu/fr/allocations/allocation-pour-lavenir-des-enfants/montants.html",
@@ -2006,16 +1926,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ca-fonds-urgence",
     category: "emergency",
     countries: ["CA"],
-    title: "Fonds d'urgence : 3 à 6 mois de dépenses",
-    body:
-      "L'Agence de la consommation en matière financière du Canada recommande un fonds d'urgence couvrant 3 à 6 mois de dépenses courantes, sur un compte accessible (un CELI liquide fait très bien l'affaire : les retraits n'y sont pas imposés).",
+    titleKey: "adv.ca-fonds-urgence.title",
+    bodyKey: "adv.ca-fonds-urgence.body",
+    actionLabelKey: "adv.ca-fonds-urgence.action",
     action: {
-      label: "Lire la recommandation de l'ACFC",
       link: "https://www.canada.ca/en/financial-consumer-agency/services/savings-investments/setting-up-emergency-funds.html",
     },
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    figures: [{ label: "adv.ca-fonds-urgence.fig.0.label", value: "adv.ca-fonds-urgence.fig.0.value" }],
     sources: [
       "https://www.canada.ca/en/financial-consumer-agency/services/savings-investments/setting-up-emergency-funds.html",
     ],
@@ -2025,18 +1944,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ca-celi",
     category: "long_term",
     countries: ["CA"],
-    title: "CELI : 7 000 $ de plus en 2026, gains jamais imposés",
-    body:
-      "Le plafond CELI 2026 est de 7 000 $, et tes droits inutilisés depuis tes 18 ans (2009 au plus tôt) s'accumulent — jusqu'à 109 000 $ si tu n'as jamais cotisé. Gains et retraits : zéro impôt. Piège classique : un retrait ne recrée tes droits que le 1er JANVIER SUIVANT — re-cotiser la même année peut te coûter 1 %/mois de pénalité.",
+    titleKey: "adv.ca-celi.title",
+    bodyKey: "adv.ca-celi.body",
+    actionLabelKey: "adv.ca-celi.action",
     action: {
-      label: "Vérifier tes droits CELI (Mon dossier ARC)",
       link: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html",
     },
     appliesWhen: always,
     priority: 88,
     figures: [
-      { label: "Plafond 2026", value: "7 000 $" },
-      { label: "Cumul max depuis 2009", value: "109 000 $" },
+      { label: "adv.ca-celi.fig.0.label", value: "7 000 $" },
+      { label: "adv.ca-celi.fig.1.label", value: "109 000 $" },
     ],
     sources: [
       "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html",
@@ -2047,18 +1965,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ca-reer",
     category: "retirement",
     countries: ["CA"],
-    title: "REER : déduis jusqu'à 18 % de ton revenu",
-    body:
-      "Tes cotisations REER se déduisent de ton revenu imposable (fédéral ET provincial) : 18 % du revenu gagné de l'année précédente, max 33 810 $ en 2026, plus tes droits reportés. Date limite pour l'année d'imposition 2025 : 2 mars 2026. Plus ton taux marginal est élevé, plus le REER bat le CELI — et l'inverse en début de carrière.",
+    titleKey: "adv.ca-reer.title",
+    bodyKey: "adv.ca-reer.body",
+    actionLabelKey: "adv.ca-reer.action",
     action: {
-      label: "Vérifier ton maximum déductible (avis de cotisation)",
       link: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans.html",
     },
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 84,
     figures: [
-      { label: "Taux", value: "18 % du revenu" },
-      { label: "Max 2026", value: "33 810 $" },
+      { label: "adv.ca-reer.fig.0.label", value: "adv.ca-reer.fig.0.value" },
+      { label: "adv.ca-reer.fig.1.label", value: "33 810 $" },
     ],
     sources: [
       "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html",
@@ -2069,11 +1986,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ca-celiapp",
     category: "real_estate",
     countries: ["CA"],
-    title: "CELIAPP : ouvre-le même avec 1 $, le compteur ne démarre qu'après",
-    body:
-      "Pour une première propriété : 8 000 $/an, 40 000 $ à vie — cotisations déductibles comme un REER ET retrait non imposé comme un CELI. Le meilleur des deux mondes. Contrairement au CELI, tes droits ne commencent à s'accumuler qu'à l'OUVERTURE du compte (report max 8 000 $) : ouvre-le dès que l'achat devient un projet, même de loin.",
+    titleKey: "adv.ca-celiapp.title",
+    bodyKey: "adv.ca-celiapp.body",
+    actionLabelKey: "adv.ca-celiapp.action",
     action: {
-      label: "Voir les règles du CELIAPP",
       link: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/first-home-savings-account.html",
     },
     appliesWhen: and(
@@ -2082,8 +1998,8 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ),
     priority: 86,
     figures: [
-      { label: "Par an", value: "8 000 $" },
-      { label: "À vie", value: "40 000 $" },
+      { label: "adv.ca-celiapp.fig.0.label", value: "8 000 $" },
+      { label: "adv.ca-celiapp.fig.1.label", value: "40 000 $" },
     ],
     sources: [
       "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/first-home-savings-account/contributing-your-fhsa.html",
@@ -2094,19 +2010,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ca-reee",
     category: "kids",
     countries: ["CA"],
-    title: "REEE : 20 % de subvention immédiate pour les études",
-    body:
-      "Chaque dollar versé au REEE de ton enfant rapporte 20 % de subvention fédérale (SCEE) sur les premiers 2 500 $/an — soit 500 $ offerts chaque année, max 7 200 $ à vie. Au Québec, l'IQEE ajoute 10 % (max 3 600 $ à vie) : jusqu'à 30 % de rendement garanti avant même d'investir. Aucun placement ne bat ça.",
+    titleKey: "adv.ca-reee.title",
+    bodyKey: "adv.ca-reee.body",
+    actionLabelKey: "adv.ca-reee.action",
     action: {
-      label: "Estimer les subventions REEE",
       link: "https://www.canada.ca/en/services/benefits/education/education-savings/estimating-amounts.html",
     },
     appliesWhen: hasAnyKids,
     priority: 90,
     figures: [
-      { label: "SCEE fédérale", value: "20 % · max 500 $/an" },
-      { label: "IQEE (Québec)", value: "+10 %" },
-      { label: "SCEE à vie", value: "7 200 $" },
+      { label: "adv.ca-reee.fig.0.label", value: "adv.ca-reee.fig.0.value" },
+      { label: "adv.ca-reee.fig.1.label", value: "+10 %" },
+      { label: "adv.ca-reee.fig.2.label", value: "7 200 $" },
     ],
     sources: [
       "https://www.canada.ca/en/services/benefits/education/education-savings/estimating-amounts.html",
@@ -2118,18 +2033,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ca-ace",
     category: "kids",
     countries: ["CA"],
-    title: "Allocation canadienne pour enfants : jusqu'à 679 $/mois",
-    body:
-      "L'ACE (non imposable) atteint 8 157 $/an (679,75 $/mois) par enfant de moins de 6 ans et 6 883 $/an de 6 à 17 ans pour la période juillet 2026 - juin 2027, dégressive au-delà de 38 237 $ de revenu familial net. Elle est recalculée chaque juillet sur le revenu de l'année précédente — déclare tes impôts à temps même sans revenu, sinon elle s'arrête.",
+    titleKey: "adv.ca-ace.title",
+    bodyKey: "adv.ca-ace.body",
+    actionLabelKey: "adv.ca-ace.action",
     action: {
-      label: "Voir le calcul de l'ACE",
       link: "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit-overview.html",
     },
     appliesWhen: hasAnyKids,
     priority: 88,
     figures: [
-      { label: "< 6 ans", value: "max 679,75 $/mois" },
-      { label: "6-17 ans", value: "max 573,58 $/mois" },
+      { label: "adv.ca-ace.fig.0.label", value: "adv.ca-ace.fig.0.value" },
+      { label: "adv.ca-ace.fig.1.label", value: "adv.ca-ace.fig.1.value" },
     ],
     sources: [
       "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit-overview/canada-child-benefit-we-calculate-your-ccb.html",
@@ -2145,13 +2059,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     category: "emergency",
     // "OTHER" + pays sans recommandation officielle locale de fonds d'urgence
     countries: ["OTHER", "MA", "DZ", "TN", "SN", "CI", "CM"],
-    title: "Le socle universel : 3 à 6 mois de dépenses de côté",
-    body:
-      "Quel que soit le pays, la règle ne change pas : garde l'équivalent de 3 à 6 mois de dépenses courantes sur un compte accessible, séparé du compte courant. C'est ce matelas qui transforme un imprévu (panne, perte d'emploi, santé) en simple contrariété au lieu d'une dette.",
-    action: { label: "Calculer 3-6 mois de tes charges dans le tab Budget" },
+    titleKey: "adv.other-fonds-urgence.title",
+    bodyKey: "adv.other-fonds-urgence.body",
+    actionLabelKey: "adv.other-fonds-urgence.action",
+    action: {},
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    figures: [{ label: "adv.other-fonds-urgence.fig.0.label", value: "adv.other-fonds-urgence.fig.0.value" }],
     sources: ["Principe universel de finances personnelles"],
     lastVerified: "2026-07-27",
   },
@@ -2159,10 +2073,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "other-epargne-automatique",
     category: "emergency",
     countries: ["OTHER", "MA", "DZ", "TN", "SN", "CI", "CM"],
-    title: "Automatise ton épargne le jour de paie",
-    body:
-      "Programme un virement automatique vers ton épargne le jour où ton revenu arrive — pas en fin de mois avec « ce qui reste ». Se payer en premier est le levier d'épargne le plus robuste, dans tous les systèmes fiscaux. Renseigne-toi ensuite sur les enveloppes fiscalement avantagées de ton pays (retraite, logement, études).",
-    action: { label: "Programmer un virement automatique jour de paie" },
+    titleKey: "adv.other-epargne-automatique.title",
+    bodyKey: "adv.other-epargne-automatique.body",
+    actionLabelKey: "adv.other-epargne-automatique.action",
+    action: {},
     appliesWhen: always,
     priority: 84,
     sources: ["Principe universel de finances personnelles"],
@@ -2233,16 +2147,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "gb-fonds-urgence",
     category: "emergency",
     countries: ["GB"],
-    title: "Emergency fund : 3 mois de dépenses essentielles",
-    body:
-      "MoneyHelper (le service public d'éducation financière) recommande au minimum 3 mois de dépenses essentielles sur un compte à accès immédiat — 3 à 6 mois pour être confortable. Exemple : 1 000 £ de dépenses mensuelles → vise 3 000 £ avant tout investissement.",
+    titleKey: "adv.gb-fonds-urgence.title",
+    bodyKey: "adv.gb-fonds-urgence.body",
+    actionLabelKey: "adv.gb-fonds-urgence.action",
     action: {
-      label: "Lire la recommandation MoneyHelper",
       link: "https://www.moneyhelper.org.uk/en/savings/types-of-savings/emergency-savings-how-much-is-enough",
     },
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    figures: [{ label: "adv.gb-fonds-urgence.fig.0.label", value: "adv.gb-fonds-urgence.fig.0.value" }],
     sources: [
       "https://www.moneyhelper.org.uk/en/savings/types-of-savings/emergency-savings-how-much-is-enough",
     ],
@@ -2252,18 +2165,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "gb-isa",
     category: "long_term",
     countries: ["GB"],
-    title: "ISA : 20 000 £ par an, gains jamais imposés",
-    body:
-      "Chaque année fiscale (6 avril - 5 avril), tu peux verser jusqu'à 20 000 £ en ISA — intérêts et plus-values totalement exonérés, à vie. À répartir librement entre Cash ISA et Stocks & Shares ISA. Attention : à partir d'avril 2027, la part versable en Cash ISA sera limitée à 12 000 £/an pour les moins de 65 ans — le reste devra aller vers l'investissement.",
+    titleKey: "adv.gb-isa.title",
+    bodyKey: "adv.gb-isa.body",
+    actionLabelKey: "adv.gb-isa.action",
     action: {
-      label: "Voir les règles ISA officielles",
       link: "https://www.gov.uk/individual-savings-accounts",
     },
     appliesWhen: always,
     priority: 88,
     figures: [
-      { label: "Plafond annuel", value: "20 000 £" },
-      { label: "Cash ISA dès 04/2027", value: "12 000 £ (< 65 ans)" },
+      { label: "adv.gb-isa.fig.0.label", value: "20 000 £" },
+      { label: "adv.gb-isa.fig.1.label", value: "adv.gb-isa.fig.1.value" },
     ],
     sources: ["https://www.gov.uk/individual-savings-accounts"],
     lastVerified: "2026-07-27",
@@ -2272,11 +2184,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "gb-lisa",
     category: "real_estate",
     countries: ["GB"],
-    title: "Lifetime ISA : 25 % offerts pour ta première maison",
-    body:
-      "Entre 18 et 39 ans, ouvre un LISA : l'État ajoute 25 % à tes versements (max 4 000 £/an → 1 000 £ de bonus). Utilisable pour une première résidence ≤ 450 000 £ (compte ouvert depuis 12 mois min) ou à partir de 60 ans. Piège : tout autre retrait subit une pénalité de 25 % qui entame ton capital, pas seulement le bonus.",
+    titleKey: "adv.gb-lisa.title",
+    bodyKey: "adv.gb-lisa.body",
+    actionLabelKey: "adv.gb-lisa.action",
     action: {
-      label: "Voir les conditions du LISA",
       link: "https://www.gov.uk/lifetime-isa",
     },
     appliesWhen: and(
@@ -2285,8 +2196,8 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     ),
     priority: 86,
     figures: [
-      { label: "Bonus d'État", value: "25 % · max 1 000 £/an" },
-      { label: "Plafond achat", value: "450 000 £" },
+      { label: "adv.gb-lisa.fig.0.label", value: "adv.gb-lisa.fig.0.value" },
+      { label: "adv.gb-lisa.fig.1.label", value: "450 000 £" },
     ],
     sources: ["https://www.gov.uk/lifetime-isa"],
     lastVerified: "2026-07-27",
@@ -2295,18 +2206,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "gb-auto-enrolment",
     category: "retirement",
     countries: ["GB"],
-    title: "Pension : ne quitte jamais l'auto-enrolment",
-    body:
-      "Ta pension d'entreprise reçoit au minimum 8 % des « qualifying earnings » (la tranche 6 240 - 50 270 £), dont 3 % payés par l'employeur — de l'argent gratuit que tu perds si tu opt-out. Beaucoup d'employeurs matchent au-delà du minimum : demande aux RH jusqu'où ils montent et cotise assez pour capter tout le match.",
+    titleKey: "adv.gb-auto-enrolment.title",
+    bodyKey: "adv.gb-auto-enrolment.body",
+    actionLabelKey: "adv.gb-auto-enrolment.action",
     action: {
-      label: "Vérifier les taux de ta workplace pension",
       link: "https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay",
     },
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 90,
     figures: [
-      { label: "Minimum total", value: "8 %" },
-      { label: "Dont employeur", value: "3 %" },
+      { label: "adv.gb-auto-enrolment.fig.0.label", value: "8 %" },
+      { label: "adv.gb-auto-enrolment.fig.1.label", value: "3 %" },
     ],
     sources: [
       "https://www.gov.uk/workplace-pensions/what-you-your-employer-and-the-government-pay",
@@ -2317,18 +2227,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "gb-psa",
     category: "tax",
     countries: ["GB"],
-    title: "Tes intérêts hors ISA ont un plafond non imposé",
-    body:
-      "La Personal Savings Allowance exonère 1 000 £ d'intérêts par an si tu es imposé à 20 %, 500 £ à 40 %, rien à 45 %. Au-delà, les intérêts sont imposés — alors que dans un ISA ils ne le sont jamais. Si ton épargne hors ISA génère plus que ta PSA, bascule le surplus en ISA en priorité.",
+    titleKey: "adv.gb-psa.title",
+    bodyKey: "adv.gb-psa.body",
+    actionLabelKey: "adv.gb-psa.action",
     action: {
-      label: "Vérifier ta PSA",
       link: "https://www.gov.uk/apply-tax-free-interest-on-savings",
     },
     appliesWhen: always,
     priority: 74,
     figures: [
-      { label: "Basic rate", value: "1 000 £" },
-      { label: "Higher rate", value: "500 £" },
+      { label: "adv.gb-psa.fig.0.label", value: "1 000 £" },
+      { label: "adv.gb-psa.fig.1.label", value: "500 £" },
     ],
     sources: ["https://www.gov.uk/apply-tax-free-interest-on-savings"],
     lastVerified: "2026-07-27",
@@ -2337,18 +2246,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "gb-child-benefit",
     category: "kids",
     countries: ["GB"],
-    title: "Child Benefit : réclame-le même si tu gagnes bien",
-    body:
-      "27,05 £/semaine pour l'aîné, 17,90 £ par enfant supplémentaire (2026/27). La reprise fiscale (HICBC) démarre à 60 000 £ de revenu INDIVIDUEL — pas du foyer : deux parents à 59 000 £ chacun ne rendent rien. Même au-delà de 80 000 £, réclamer sans paiement protège tes droits de retraite (crédits National Insurance).",
+    titleKey: "adv.gb-child-benefit.title",
+    bodyKey: "adv.gb-child-benefit.body",
+    actionLabelKey: "adv.gb-child-benefit.action",
     action: {
-      label: "Vérifier tes droits Child Benefit",
       link: "https://www.gov.uk/child-benefit/what-youll-get",
     },
     appliesWhen: hasAnyKids,
     priority: 86,
     figures: [
-      { label: "Aîné", value: "27,05 £/sem" },
-      { label: "Seuil de reprise", value: "60 000 £ individuel" },
+      { label: "adv.gb-child-benefit.fig.0.label", value: "adv.gb-child-benefit.fig.0.value" },
+      { label: "adv.gb-child-benefit.fig.1.label", value: "adv.gb-child-benefit.fig.1.value" },
     ],
     sources: [
       "https://www.gov.uk/child-benefit/what-youll-get",
@@ -2365,18 +2273,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "us-fonds-urgence",
     category: "emergency",
     countries: ["US"],
-    title: "Emergency fund : commence par 1 mois, vise 3 à 6",
-    body:
-      "La recherche du CFPB montre qu'avoir au moins 1 mois de revenu d'avance réduit fortement le risque d'impayés — c'est le premier palier. La règle couramment citée par les planificateurs est 3 à 6 mois de dépenses. Méthode CFPB : virement automatique le jour de paie et affecter les rentrées exceptionnelles (remboursement d'impôt) à l'épargne.",
+    titleKey: "adv.us-fonds-urgence.title",
+    bodyKey: "adv.us-fonds-urgence.body",
+    actionLabelKey: "adv.us-fonds-urgence.action",
     action: {
-      label: "Lire le guide du CFPB",
       link: "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/",
     },
     appliesWhen: always,
     priority: 98,
     figures: [
-      { label: "Premier palier", value: "1 mois de revenu" },
-      { label: "Cible courante", value: "3-6 mois" },
+      { label: "adv.us-fonds-urgence.fig.0.label", value: "adv.us-fonds-urgence.fig.0.value" },
+      { label: "adv.us-fonds-urgence.fig.1.label", value: "adv.us-fonds-urgence.fig.1.value" },
     ],
     sources: [
       "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/",
@@ -2387,18 +2294,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "us-401k-match",
     category: "retirement",
     countries: ["US"],
-    title: "401(k) : capte tout le match de ton employeur",
-    body:
-      "Le plafond de cotisation salarié 2026 est de 24 500 $ (+8 000 $ de catch-up à partir de 50 ans). Mais la priorité absolue : cotiser au moins jusqu'au match complet de ton employeur — c'est un rendement immédiat qu'aucun placement ne bat. Le match s'ajoute à ton plafond personnel, il ne le consomme pas.",
+    titleKey: "adv.us-401k-match.title",
+    bodyKey: "adv.us-401k-match.body",
+    actionLabelKey: "adv.us-401k-match.action",
     action: {
-      label: "Vérifier la formule de match de ton employeur (HR)",
       link: "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
     },
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 92,
     figures: [
-      { label: "Plafond salarié 2026", value: "24 500 $" },
-      { label: "Catch-up 50+", value: "+8 000 $" },
+      { label: "adv.us-401k-match.fig.0.label", value: "24 500 $" },
+      { label: "adv.us-401k-match.fig.1.label", value: "+8 000 $" },
     ],
     sources: [
       "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
@@ -2409,18 +2315,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "us-ira-roth",
     category: "retirement",
     countries: ["US"],
-    title: "IRA : 7 500 $ de plus, et le choix Roth ou traditionnel",
-    body:
-      "Après le match 401(k), l'IRA : 7 500 $ en 2026 (traditionnel + Roth combinés, +1 100 $ à 50 ans et plus). Traditionnel = déduction aujourd'hui, imposé à la retraite ; Roth = pas de déduction, mais croissance et retraits exonérés à vie — souvent gagnant en début de carrière quand ton taux d'imposition est bas. Le Roth a des limites de revenu (phase-out dès 153 000 $ célibataire en 2026).",
+    titleKey: "adv.us-ira-roth.title",
+    bodyKey: "adv.us-ira-roth.body",
+    actionLabelKey: "adv.us-ira-roth.action",
     action: {
-      label: "Comparer IRA traditionnel et Roth (IRS)",
       link: "https://www.irs.gov/retirement-plans/individual-retirement-arrangements-iras",
     },
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 84,
     figures: [
-      { label: "Plafond 2026 (combiné)", value: "7 500 $" },
-      { label: "Catch-up 50+", value: "+1 100 $" },
+      { label: "adv.us-ira-roth.fig.0.label", value: "7 500 $" },
+      { label: "adv.us-ira-roth.fig.1.label", value: "+1 100 $" },
     ],
     sources: [
       "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
@@ -2431,18 +2336,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "us-hsa",
     category: "insurance",
     countries: ["US"],
-    title: "HSA : le seul compte à triple avantage fiscal",
-    body:
-      "Si ta couverture santé est un HDHP (franchise élevée), le HSA cumule trois avantages : cotisations déductibles, croissance non imposée, retraits exonérés pour les dépenses médicales. Plafonds 2026 : 4 400 $ (individuel) / 8 750 $ (famille), +1 000 $ à partir de 55 ans. Le compte te suit d'employeur en employeur — et après 65 ans il fonctionne comme une retraite complémentaire.",
+    titleKey: "adv.us-hsa.title",
+    bodyKey: "adv.us-hsa.body",
+    actionLabelKey: "adv.us-hsa.action",
     action: {
-      label: "Voir les règles HSA (IRS Pub. 969)",
       link: "https://www.irs.gov/publications/p969",
     },
     appliesWhen: always,
     priority: 80,
     figures: [
-      { label: "Individuel 2026", value: "4 400 $" },
-      { label: "Famille 2026", value: "8 750 $" },
+      { label: "adv.us-hsa.fig.0.label", value: "4 400 $" },
+      { label: "adv.us-hsa.fig.1.label", value: "8 750 $" },
     ],
     sources: ["https://www.irs.gov/pub/irs-drop/rp-25-19.pdf"],
     lastVerified: "2026-07-27",
@@ -2451,16 +2355,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "us-529",
     category: "kids",
     countries: ["US"],
-    title: "529 plan : les études grandissent en franchise d'impôt",
-    body:
-      "Les cotisations ne sont pas déductibles au fédéral, mais la croissance est exonérée et les retraits pour études qualifiées aussi. Nouveau en 2026 : le plafond K-12 (école privée) passe à 20 000 $/an. Beaucoup d'États ajoutent une déduction sur l'impôt d'État — vérifie le plan de TON État avant d'en choisir un autre.",
+    titleKey: "adv.us-529.title",
+    bodyKey: "adv.us-529.body",
+    actionLabelKey: "adv.us-529.action",
     action: {
-      label: "Voir les règles 529 (IRS)",
       link: "https://www.irs.gov/taxtopics/tc313",
     },
     appliesWhen: hasAnyKids,
     priority: 86,
-    figures: [{ label: "K-12 dès 2026", value: "20 000 $/an" }],
+    figures: [{ label: "adv.us-529.fig.0.label", value: "adv.us-529.fig.0.value" }],
     sources: ["https://www.irs.gov/taxtopics/tc313"],
     lastVerified: "2026-07-27",
   },
@@ -2468,16 +2371,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "us-credit-score",
     category: "emergency",
     countries: ["US"],
-    title: "Ton credit score est une ligne de budget invisible",
-    body:
-      "Un bon score réduit le coût de TOUT ce que tu empruntes (hypothèque, auto, cartes). Les experts cités par le CFPB conseillent de garder l'utilisation de ton crédit sous 30 % de tes limites — et payer le solde en entier chaque mois est optimal : inutile de « porter un solde » pour bâtir son score, c'est un mythe qui coûte des intérêts.",
+    titleKey: "adv.us-credit-score.title",
+    bodyKey: "adv.us-credit-score.body",
+    actionLabelKey: "adv.us-credit-score.action",
     action: {
-      label: "Lire les conseils score du CFPB",
       link: "https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318/",
     },
     appliesWhen: always,
     priority: 76,
-    figures: [{ label: "Utilisation conseillée", value: "< 30 %" }],
+    figures: [{ label: "adv.us-credit-score.fig.0.label", value: "< 30 %" }],
     sources: [
       "https://www.consumerfinance.gov/ask-cfpb/how-do-i-get-and-keep-a-good-credit-score-en-318/",
     ],
@@ -2493,13 +2395,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "de-notgroschen",
     category: "emergency",
     countries: ["DE"],
-    title: "Notgroschen : 3 à 6 salaires nets sur un Tagesgeld",
-    body:
-      "Recommandation Finanztip : garde 3 à 6 salaires mensuels nets (jamais moins de 3) sur un Tagesgeldkonto — disponible à tout moment et couvert par la garantie légale des dépôts. Exemple : 2 000 € nets/mois → 6 000 à 12 000 €. Ajuste vers le haut si famille, propriété ou emploi moins stable.",
-    action: { label: "Calculer 3-6 mois de tes charges dans le tab Budget" },
+    titleKey: "adv.de-notgroschen.title",
+    bodyKey: "adv.de-notgroschen.body",
+    actionLabelKey: "adv.de-notgroschen.action",
+    action: {},
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 salaires nets" }],
+    figures: [{ label: "adv.de-notgroschen.fig.0.label", value: "adv.de-notgroschen.fig.0.value" }],
     sources: ["https://www.finanztip.de/tagesgeld/"],
     lastVerified: "2026-07-27",
   },
@@ -2507,18 +2409,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "de-sparerpauschbetrag",
     category: "tax",
     countries: ["DE"],
-    title: "1 000 € de revenus du capital non imposés — si tu le demandes",
-    body:
-      "Le Sparerpauschbetrag exonère 1 000 € par personne et par an (2 000 € pour un couple marié) d'intérêts, dividendes et plus-values. Mais la banque prélève l'impôt à la source SAUF si tu as déposé un Freistellungsauftrag. Si tu as plusieurs banques, répartis-le — la somme de tous tes ordres ne doit pas dépasser ton plafond.",
+    titleKey: "adv.de-sparerpauschbetrag.title",
+    bodyKey: "adv.de-sparerpauschbetrag.body",
+    actionLabelKey: "adv.de-sparerpauschbetrag.action",
     action: {
-      label: "Vérifier tes Freistellungsaufträge dans chaque banque",
       link: "https://www.finanzamt.nrw.de/steuerinfos/privatpersonen/einkuenfte-aus-kapitalvermoegen/sparerpauschbetrag-freistellungsauftrag",
     },
     appliesWhen: always,
     priority: 84,
     figures: [
-      { label: "Par personne", value: "1 000 €/an" },
-      { label: "Couple marié", value: "2 000 €/an" },
+      { label: "adv.de-sparerpauschbetrag.fig.0.label", value: "adv.de-sparerpauschbetrag.fig.0.value" },
+      { label: "adv.de-sparerpauschbetrag.fig.1.label", value: "adv.de-sparerpauschbetrag.fig.1.value" },
     ],
     sources: [
       "https://www.finanzamt.nrw.de/steuerinfos/privatpersonen/einkuenfte-aus-kapitalvermoegen/sparerpauschbetrag-freistellungsauftrag",
@@ -2529,15 +2430,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "de-bav",
     category: "retirement",
     countries: ["DE"],
-    title: "bAV : ton employeur doit ajouter 15 %",
-    body:
-      "En convertissant du salaire brut vers une retraite d'entreprise (Entgeltumwandlung), tu économises impôt et cotisations — et depuis 2022 ton employeur est OBLIGÉ d'ajouter 15 % sur la part convertie. En 2026 : jusqu'à 8 112 €/an exonérés d'impôt, dont 4 056 € aussi exonérés de cotisations sociales. Vérifie les frais du contrat proposé avant de signer.",
-    action: { label: "Demander l'offre bAV et le Zuschuss aux RH" },
+    titleKey: "adv.de-bav.title",
+    bodyKey: "adv.de-bav.body",
+    actionLabelKey: "adv.de-bav.action",
+    action: {},
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 86,
     figures: [
-      { label: "Zuschuss employeur", value: "15 % obligatoire" },
-      { label: "Exonéré d'impôt 2026", value: "8 112 €/an" },
+      { label: "adv.de-bav.fig.0.label", value: "adv.de-bav.fig.0.value" },
+      { label: "adv.de-bav.fig.1.label", value: "adv.de-bav.fig.1.value" },
     ],
     sources: [
       "https://www.bundesregierung.de/breg-de/aktuelles/beitragsgemessungsgrenzen-2386514",
@@ -2548,18 +2449,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "de-etf-sparplan",
     category: "long_term",
     countries: ["DE"],
-    title: "ETF-Sparplan : la machine à épargner allemande",
-    body:
-      "Un plan d'épargne programmé sur un ETF actions monde largement diversifié, souvent dès 25 €/mois. Les règles de Finanztip et Stiftung Warentest : horizon d'au moins 15 ans, ETF monde (type MSCI World/FTSE All-World), frais courants sous 0,3 %. Ce n'est pas une garantie de rendement — c'est une discipline d'investissement long terme.",
+    titleKey: "adv.de-etf-sparplan.title",
+    bodyKey: "adv.de-etf-sparplan.body",
+    actionLabelKey: "adv.de-etf-sparplan.action",
     action: {
-      label: "Comparer les ETF-Sparpläne (Finanztip)",
       link: "https://www.finanztip.de/indexfonds-etf/fondssparplan/",
     },
     appliesWhen: ageIn("18-25", "26-35", "36-50"),
     priority: 80,
     figures: [
-      { label: "Horizon minimum", value: "15 ans" },
-      { label: "Frais (TER)", value: "< 0,3 %" },
+      { label: "adv.de-etf-sparplan.fig.0.label", value: "adv.de-etf-sparplan.fig.0.value" },
+      { label: "adv.de-etf-sparplan.fig.1.label", value: "< 0,3 %" },
     ],
     sources: [
       "https://www.finanztip.de/indexfonds-etf/fondssparplan/",
@@ -2571,18 +2471,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "de-kindergeld",
     category: "kids",
     countries: ["DE"],
-    title: "Kindergeld 2026 : 259 € par mois et par enfant",
-    body:
-      "Le Kindergeld passe à 259 €/mois par enfant au 1er janvier 2026 (versement automatique, sans nouvelle demande). Familles à revenus modestes : le Kinderzuschlag peut ajouter jusqu'à 297 €/mois par enfant — il faut le demander, beaucoup d'ayants droit passent à côté. Intègre ces montants dans ton budget et flèche une partie vers l'épargne de l'enfant.",
+    titleKey: "adv.de-kindergeld.title",
+    bodyKey: "adv.de-kindergeld.body",
+    actionLabelKey: "adv.de-kindergeld.action",
     action: {
-      label: "Vérifier tes droits (Arbeitsagentur)",
       link: "https://www.arbeitsagentur.de/news/kindergeld-steigt-2026",
     },
     appliesWhen: hasAnyKids,
     priority: 86,
     figures: [
-      { label: "Kindergeld 2026", value: "259 €/mois/enfant" },
-      { label: "Kinderzuschlag max", value: "297 €/mois" },
+      { label: "adv.de-kindergeld.fig.0.label", value: "adv.de-kindergeld.fig.0.value" },
+      { label: "adv.de-kindergeld.fig.1.label", value: "adv.de-kindergeld.fig.1.value" },
     ],
     sources: ["https://www.arbeitsagentur.de/news/kindergeld-steigt-2026"],
     lastVerified: "2026-07-27",
@@ -2591,13 +2490,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "de-vl",
     category: "emergency",
     countries: ["DE"],
-    title: "VL : jusqu'à 40 €/mois offerts par ton employeur",
-    body:
-      "Les vermögenswirksame Leistungen sont un versement de l'employeur (jusqu'à 40 €/mois selon ta convention collective) dans un contrat d'épargne à ton nom — fonds actions, Bausparvertrag ou remboursement de crédit immobilier. Beaucoup de salariés ne les réclament jamais. Selon ton revenu, l'État ajoute en plus une prime (Arbeitnehmersparzulage).",
-    action: { label: "Demander aux RH si tu as droit aux VL" },
+    titleKey: "adv.de-vl.title",
+    bodyKey: "adv.de-vl.body",
+    actionLabelKey: "adv.de-vl.action",
+    action: {},
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 78,
-    figures: [{ label: "Max employeur", value: "40 €/mois (480 €/an)" }],
+    figures: [{ label: "adv.de-vl.fig.0.label", value: "adv.de-vl.fig.0.value" }],
     sources: [
       "https://www.buhl.de/steuer/tipps/vermoegenswirksame-leistungen/",
     ],
@@ -2613,16 +2512,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-fondo-emergencia",
     category: "emergency",
     countries: ["ES"],
-    title: "Fondo de emergencia : 3 à 6 mois de dépenses essentielles",
-    body:
-      "Finanzas para Todos (Banco de España + CNMV) recommande 3 à 6 mois de dépenses fixes essentielles sur un compte disponible : 3 mois suffisent avec des revenus stables, vise 6 mois si tu es autónomo ou avec des personnes à charge.",
+    titleKey: "adv.es-fondo-emergencia.title",
+    bodyKey: "adv.es-fondo-emergencia.body",
+    actionLabelKey: "adv.es-fondo-emergencia.action",
     action: {
-      label: "Lire la recommandation officielle",
       link: "https://www.finanzasparatodos.es/cuanto-debe-tener-tu-fondo-de-emergencia",
     },
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    figures: [{ label: "adv.es-fondo-emergencia.fig.0.label", value: "adv.es-fondo-emergencia.fig.0.value" }],
     sources: [
       "https://www.finanzasparatodos.es/cuanto-debe-tener-tu-fondo-de-emergencia",
     ],
@@ -2632,18 +2530,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-plan-pensiones",
     category: "retirement",
     countries: ["ES"],
-    title: "Plan de pensiones : 1 500 € seul, jusqu'à 10 000 € via l'entreprise",
-    body:
-      "Le plafond de réduction IRPF d'un plan individuel n'est que de 1 500 €/an — mais il monte jusqu'à 10 000 € au total quand ton entreprise contribue à un plan d'emploi (+8 500 €). Si ton employeur propose un plan de pensiones de empleo, c'est là que se joue l'avantage fiscal, pas sur le plan individuel.",
+    titleKey: "adv.es-plan-pensiones.title",
+    bodyKey: "adv.es-plan-pensiones.body",
+    actionLabelKey: "adv.es-plan-pensiones.action",
     action: {
-      label: "Vérifier si ton entreprise a un plan de empleo",
       link: "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025.html",
     },
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 84,
     figures: [
-      { label: "Plan individuel", value: "1 500 €/an" },
-      { label: "Avec l'entreprise", value: "jusqu'à 10 000 €" },
+      { label: "adv.es-plan-pensiones.fig.0.label", value: "adv.es-plan-pensiones.fig.0.value" },
+      { label: "adv.es-plan-pensiones.fig.1.label", value: "adv.es-plan-pensiones.fig.1.value" },
     ],
     sources: [
       "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025.html",
@@ -2654,15 +2551,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-ahorro-fiscalidad",
     category: "tax",
     countries: ["ES"],
-    title: "Ton épargne est imposée de 19 à 30 % — planifie tes ventes",
-    body:
-      "Intérêts, dividendes et plus-values suivent le barème de l'épargne : 19 % jusqu'à 6 000 €, 21 % jusqu'à 50 000 €, 23 % jusqu'à 200 000 €, 27 % puis 30 % au-delà de 300 000 € (durci en 2025). La banque retient 19 % à la source, régularisé en déclaration. Étaler une grosse vente sur deux exercices peut réduire la tranche applicable.",
-    action: { label: "Anticiper la fiscalité avant une vente importante" },
+    titleKey: "adv.es-ahorro-fiscalidad.title",
+    bodyKey: "adv.es-ahorro-fiscalidad.body",
+    actionLabelKey: "adv.es-ahorro-fiscalidad.action",
+    action: {},
     appliesWhen: always,
     priority: 76,
     figures: [
-      { label: "Jusqu'à 6 000 €", value: "19 %" },
-      { label: "> 300 000 €", value: "30 %" },
+      { label: "adv.es-ahorro-fiscalidad.fig.0.label", value: "19 %" },
+      { label: "adv.es-ahorro-fiscalidad.fig.1.label", value: "30 %" },
     ],
     sources: [
       "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025/c15-calculo-impuesto-determinacion-cuotas-integras/gravamen-base-liquidable-ahorro/gravamen-estatal.html",
@@ -2673,18 +2570,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-bono-alquiler-joven",
     category: "housing",
     countries: ["ES"],
-    title: "Bono Alquiler Joven : 250 €/mois si tu as 35 ans ou moins",
-    body:
-      "L'aide d'État au loyer des jeunes (35 ans ou moins, revenus réguliers, foyer < 3× IPREM) : 250 €/mois pendant 2 ans sur l'ancien régime, et le nouveau Plan Estatal de Vivienda 2026-2030 prévoit jusqu'à 300 €/mois, déployé par les communautés autonomes courant 2026. Tout passe par TA communauté autonome : surveille sa sede electrónica, les fonds s'épuisent vite.",
+    titleKey: "adv.es-bono-alquiler-joven.title",
+    bodyKey: "adv.es-bono-alquiler-joven.body",
+    actionLabelKey: "adv.es-bono-alquiler-joven.action",
     action: {
-      label: "Voir les conditions officielles",
       link: "https://www.mivau.gob.es/vivienda/bono-alquiler-joven",
     },
     appliesWhen: and(ageIn("18-25", "26-35"), housingIn("renter")),
     priority: 86,
     figures: [
-      { label: "Aide", value: "250 €/mois · 2 ans" },
-      { label: "Loyer max", value: "600 € (900 € selon CCAA)" },
+      { label: "adv.es-bono-alquiler-joven.fig.0.label", value: "adv.es-bono-alquiler-joven.fig.0.value" },
+      { label: "adv.es-bono-alquiler-joven.fig.1.label", value: "adv.es-bono-alquiler-joven.fig.1.value" },
     ],
     sources: [
       "https://www.boe.es/buscar/act.php?id=BOE-A-2022-802",
@@ -2696,18 +2592,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-ayudas-hijos",
     category: "kids",
     countries: ["ES"],
-    title: "Moins de 3 ans : 1 200 €/an de deducción por maternidad",
-    body:
-      "La deducción por maternidad vaut 1 200 €/an par enfant de moins de 3 ans — versement anticipé de 100 €/mois possible (modelo 140). Familles à revenus modestes : le CAPI verse en plus 115 €/mois (< 3 ans), 80,50 € (3-6 ans) ou 57,50 € (6-18 ans) par enfant — mais il est incompatible avec la deducción les mois où il est perçu : compare les deux.",
+    titleKey: "adv.es-ayudas-hijos.title",
+    bodyKey: "adv.es-ayudas-hijos.body",
+    actionLabelKey: "adv.es-ayudas-hijos.action",
     action: {
-      label: "Vérifier deducción et CAPI",
       link: "https://sede.agenciatributaria.gob.es/Sede/ciudadanos-familias-personas-discapacidad/deducciones-relacionadas-hijos-descendientes/deduccion-maternidad.html",
     },
     appliesWhen: kids("0-6"),
     priority: 86,
     figures: [
-      { label: "Maternidad < 3 ans", value: "1 200 €/an" },
-      { label: "CAPI < 3 ans", value: "115 €/mois" },
+      { label: "adv.es-ayudas-hijos.fig.0.label", value: "adv.es-ayudas-hijos.fig.0.value" },
+      { label: "adv.es-ayudas-hijos.fig.1.label", value: "adv.es-ayudas-hijos.fig.1.value" },
     ],
     sources: [
       "https://sede.agenciatributaria.gob.es/Sede/ciudadanos-familias-personas-discapacidad/deducciones-relacionadas-hijos-descendientes/deduccion-maternidad.html",
@@ -2720,16 +2615,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-avales-ico",
     category: "real_estate",
     countries: ["ES"],
-    title: "Aval ICO : acheter avec 100 % de financement avant 36 ans",
-    body:
-      "L'État garantit jusqu'à 20 % de ton prêt immobilier (25 % si le logement a un certificat énergétique D ou mieux), ce qui permet aux banques de financer jusqu'à 100 % de ta première résidence principale. Pour les 35 ans ou moins et les familles avec mineurs à charge, gratuit, demande directement auprès de ta banque. Prorogé jusqu'au 31/12/2027, critères assouplis en 2026.",
+    titleKey: "adv.es-avales-ico.title",
+    bodyKey: "adv.es-avales-ico.body",
+    actionLabelKey: "adv.es-avales-ico.action",
     action: {
-      label: "Voir les conditions (ICO)",
       link: "https://www.ico.es/en/linea-avales-hipoteca-primera-vivienda",
     },
     appliesWhen: and(housingIn("renter", "free_housing"), or(ageIn("18-25", "26-35"), hasAnyKids)),
     priority: 84,
-    figures: [{ label: "Garantie", value: "20-25 % du prêt" }],
+    figures: [{ label: "adv.es-avales-ico.fig.0.label", value: "adv.es-avales-ico.fig.0.value" }],
     sources: ["https://www.ico.es/en/linea-avales-hipoteca-primera-vivienda"],
     lastVerified: "2026-08-06",
   },
@@ -2737,16 +2631,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-imv",
     category: "emergency",
     countries: ["ES"],
-    title: "Ingreso Mínimo Vital : le filet de sécurité se demande en ligne",
-    body:
-      "L'IMV garantit un revenu minimum (733,60 €/mois pour une personne seule en 2026, majoré selon le foyer). Beaucoup d'ayants droit ne le demandent jamais. Le simulateur officiel prend 5 minutes — et le complemento de infancia (CAPI) peut se demander séparément si tu as des enfants et des revenus modestes, même sans toucher l'IMV complet.",
+    titleKey: "adv.es-imv.title",
+    bodyKey: "adv.es-imv.body",
+    actionLabelKey: "adv.es-imv.action",
     action: {
-      label: "Faire la simulation (Seguridad Social)",
       link: "https://imv.seg-social.es/",
     },
     appliesWhen: or(savingsCapacityLow, occupationIs("unemployed")),
     priority: 90,
-    figures: [{ label: "Personne seule 2026", value: "733,60 €/mois" }],
+    figures: [{ label: "adv.es-imv.fig.0.label", value: "adv.es-imv.fig.0.value" }],
     sources: ["https://revista.seg-social.es/-/gu%C3%ADa-sobre-el-nuevo-complemento-a-la-infancia-del-imv"],
     lastVerified: "2026-08-06",
   },
@@ -2754,16 +2647,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-sialp",
     category: "long_term",
     countries: ["ES"],
-    title: "Plan Ahorro 5 : des intérêts exonérés d'impôt après 5 ans",
-    body:
-      "Le SIALP/CIALP (« Plan de Ahorro 5 ») exonère totalement d'IRPF les rendements si tu ne retires rien pendant 5 ans : max 5 000 € de versements par an, un seul plan par personne, capital garanti à 85 % minimum, sortie en capital. Retrait anticipé = imposition normale. Une brique prudente entre le fonds d'urgence et l'investissement.",
+    titleKey: "adv.es-sialp.title",
+    bodyKey: "adv.es-sialp.body",
+    actionLabelKey: "adv.es-sialp.action",
     action: {
-      label: "Voir le régime fiscal (Agencia Tributaria)",
       link: "https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025/c05-rendimientos-capital-mobiliario/rendimientos-integrar-base-imponible-ahorro/rendimientos-operaciones-capitalizacion-seguros-vida-invalidez/planes-ahorro-largo-plazo/caracteristicas-requisitos.html",
     },
     appliesWhen: always,
     priority: 74,
-    figures: [{ label: "Versements max", value: "5 000 €/an" }],
+    figures: [{ label: "adv.es-sialp.fig.0.label", value: "adv.es-sialp.fig.0.value" }],
     sources: ["https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2025/c05-rendimientos-capital-mobiliario/rendimientos-integrar-base-imponible-ahorro/rendimientos-operaciones-capitalizacion-seguros-vida-invalidez/planes-ahorro-largo-plazo/caracteristicas-requisitos.html"],
     lastVerified: "2026-08-06",
   },
@@ -2771,16 +2663,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "es-bono-cultural",
     category: "emergency",
     countries: ["ES"],
-    title: "Bono Cultural Joven : 400 € l'année de tes 18 ans",
-    body:
-      "Si tu as 18 ans cette année, l'État t'offre 400 € pour la culture : livres, concerts, cinéma, musique, cours culturels, instruments. Édition 2026 confirmée (nés en 2008, demande du 22/06 au 31/10/2026, un an pour dépenser). La reconduction se joue chaque année — demande-le dès l'ouverture de la fenêtre.",
+    titleKey: "adv.es-bono-cultural.title",
+    bodyKey: "adv.es-bono-cultural.body",
+    actionLabelKey: "adv.es-bono-cultural.action",
     action: {
-      label: "Demander le bono",
       link: "https://bonoculturajoven.gob.es/",
     },
     appliesWhen: ageIn("18-25"),
     priority: 78,
-    figures: [{ label: "Aide", value: "400 €" }],
+    figures: [{ label: "adv.es-bono-cultural.fig.0.label", value: "400 €" }],
     sources: ["https://www.cultura.gob.es/actualidad/2026/06/260622-bono-cultural-joven-2026.html"],
     lastVerified: "2026-08-06",
   },
@@ -2793,18 +2684,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "cm-epargne-exoneree",
     category: "tax",
     countries: ["CM"],
-    title: "Ton livret d'épargne est net d'impôt jusqu'à 10 millions FCFA",
-    body:
-      "Le Code général des impôts exonère d'IRCM les intérêts des comptes d'épargne dont le placement ne dépasse pas 10 000 000 FCFA (ainsi que l'épargne-logement). Au-delà, les intérêts subissent 16,5 % retenus à la source. Un compte d'épargne bancaire sous ce seuil est donc doublement gagnant : intérêts nets et dépôt couvert par la garantie bancaire.",
+    titleKey: "adv.cm-epargne-exoneree.title",
+    bodyKey: "adv.cm-epargne-exoneree.body",
+    actionLabelKey: "adv.cm-epargne-exoneree.action",
     action: {
-      label: "Voir les exonérations du CGI (MINFI)",
       link: "https://minfi.gov.cm/les-exonerations-fiscales-a-caractere-social-dans-le-code-general-des-impots/",
     },
     appliesWhen: always,
     priority: 88,
     figures: [
-      { label: "Exonéré jusqu'à", value: "10 M FCFA" },
-      { label: "Au-delà", value: "IRCM 16,5 %" },
+      { label: "adv.cm-epargne-exoneree.fig.0.label", value: "10 M FCFA" },
+      { label: "adv.cm-epargne-exoneree.fig.1.label", value: "IRCM 16,5 %" },
     ],
     sources: [
       "https://minfi.gov.cm/les-exonerations-fiscales-a-caractere-social-dans-le-code-general-des-impots/",
@@ -2815,13 +2705,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "cm-allocations-cnps",
     category: "kids",
     countries: ["CM"],
-    title: "Allocations familiales CNPS : 4 500 FCFA par enfant",
-    body:
-      "Depuis le décret 2024/056, les allocations familiales CNPS sont de 4 500 FCFA par enfant et par mois (jusqu'à 18 ans, 21 ans si étudiant ou apprenti). C'est financé par la cotisation patronale — rien n'est prélevé sur ton salaire, mais il faut que ton employeur t'ait déclaré et que tu constitues le dossier. Beaucoup d'ayants droit ne les réclament jamais.",
-    action: { label: "Constituer le dossier allocations auprès de la CNPS" },
+    titleKey: "adv.cm-allocations-cnps.title",
+    bodyKey: "adv.cm-allocations-cnps.body",
+    actionLabelKey: "adv.cm-allocations-cnps.action",
+    action: {},
     appliesWhen: hasAnyKids,
     priority: 86,
-    figures: [{ label: "Par enfant", value: "4 500 FCFA/mois" }],
+    figures: [{ label: "adv.cm-allocations-cnps.fig.0.label", value: "adv.cm-allocations-cnps.fig.0.value" }],
     sources: [
       "Décret n° 2024/056 du 21 février 2024",
       "https://iskm.issa.int/node/7557",
@@ -2832,15 +2722,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "cm-mobile-money",
     category: "emergency",
     countries: ["CM"],
-    title: "Mobile money : la taxe frappe deux fois",
-    body:
-      "La taxe sur les transferts d'argent (0,2 %) s'applique à l'ENVOI et au RETRAIT : un cycle complet coûte 0,4 % de taxe, plus les frais de l'opérateur qui pèsent bien davantage — surtout sur les petits montants. Regroupe tes transferts, garde l'argent dans le wallet quand c'est possible (le dépôt n'est pas taxé), et compare les grilles Orange Money / MTN MoMo.",
-    action: { label: "Regrouper les transferts et comparer les grilles tarifaires" },
+    titleKey: "adv.cm-mobile-money.title",
+    bodyKey: "adv.cm-mobile-money.body",
+    actionLabelKey: "adv.cm-mobile-money.action",
+    action: {},
     appliesWhen: always,
     priority: 82,
     figures: [
-      { label: "Taxe envoi", value: "0,2 %" },
-      { label: "Cycle envoi + retrait", value: "0,4 % + frais" },
+      { label: "adv.cm-mobile-money.fig.0.label", value: "0,2 %" },
+      { label: "adv.cm-mobile-money.fig.1.label", value: "adv.cm-mobile-money.fig.1.value" },
     ],
     sources: [
       "https://blog.avocats.deloitte.fr/les-specificites-de-la-taxe-sur-les-transferts-dargent-au-cameroun/",
@@ -2851,10 +2741,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "cm-tontine",
     category: "emergency",
     countries: ["CM"],
-    title: "Tontine (njangi) : sécurise-la comme un vrai contrat",
-    body:
-      "La tontine est un formidable outil d'épargne collective — mais sans aucune protection légale des fonds, tout repose sur la confiance. Les bonnes pratiques : règlement intérieur écrit, registre signé à chaque séance, double signature sur la caisse, ordre de ramassage tiré au sort, et adosse la caisse à un compte bancaire ou mobile money pour la traçabilité. Ne place jamais TOUTE ton épargne en tontine.",
-    action: { label: "Formaliser le règlement et le registre de ta tontine" },
+    titleKey: "adv.cm-tontine.title",
+    bodyKey: "adv.cm-tontine.body",
+    actionLabelKey: "adv.cm-tontine.action",
+    action: {},
     appliesWhen: always,
     priority: 78,
     sources: [
@@ -2866,16 +2756,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "cm-titres-publics",
     category: "long_term",
     countries: ["CM"],
-    title: "Titres publics : des intérêts exonérés d'impôt",
-    body:
-      "Les Obligations du Trésor (OTA) camerounaises versent des intérêts exonérés d'IRCM — et la loi de finances 2026 étend l'exonération aux titres des autres États CEMAC. La souscription passe par les banques agréées SVT, avec un ticket minimum réel d'environ 1 000 000 FCFA. Une option de diversification une fois ton épargne de précaution constituée.",
+    titleKey: "adv.cm-titres-publics.title",
+    bodyKey: "adv.cm-titres-publics.body",
+    actionLabelKey: "adv.cm-titres-publics.action",
     action: {
-      label: "Se renseigner auprès d'une banque SVT",
       link: "https://dgtcfm.cm/pourquoi-investir-dans-les-titres-publics/",
     },
     appliesWhen: always,
     priority: 70,
-    figures: [{ label: "Ticket minimum", value: "~1 M FCFA" }],
+    figures: [{ label: "adv.cm-titres-publics.fig.0.label", value: "~1 M FCFA" }],
     sources: ["https://dgtcfm.cm/pourquoi-investir-dans-les-titres-publics/"],
     lastVerified: "2026-07-27",
   },
@@ -2890,16 +2779,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-fondo-emergenza",
     category: "emergency",
     countries: ["IT"],
-    title: "Fondo di emergenza : 3 à 6 mois de dépenses essentielles",
-    body:
-      "Recommandation usuelle en Italie : garder 3 à 6 mois de dépenses essentielles sur un support liquide (conto deposito svincolabile, libretto), jusqu'à 12 mois si tes revenus sont irréguliers. C'est le prérequis avant fonds de pension et investissements.",
+    titleKey: "adv.it-fondo-emergenza.title",
+    bodyKey: "adv.it-fondo-emergenza.body",
+    actionLabelKey: "adv.it-fondo-emergenza.action",
     action: {
-      label: "Voir le portail d'éducation financière de la Banca d'Italia",
       link: "https://economiapertutti.bancaditalia.it/",
     },
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "3-6 mois de dépenses" }],
+    figures: [{ label: "adv.it-fondo-emergenza.fig.0.label", value: "adv.it-fondo-emergenza.fig.0.value" }],
     sources: ["https://economiapertutti.bancaditalia.it/"],
     lastVerified: "2026-07-28",
   },
@@ -2907,15 +2795,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-fondi-pensione",
     category: "retirement",
     countries: ["IT"],
-    title: "Fondo pensione : 5 300 € déductibles (nouveau plafond 2026)",
-    body:
-      "La Legge di Bilancio 2026 a relevé le plafond de déductibilité de la previdenza complementare de 5 164,57 € à 5 300 €/an (contributions salarié + employeur ; le TFR versé au fonds ne compte PAS dans le plafond). À la sortie, la prestation est taxée 15 %, taux qui descend jusqu'à 9 % avec l'ancienneté — bien mieux que le TFR laissé en entreprise.",
-    action: { label: "Vérifier ton fonds de catégorie (contrat collectif)" },
+    titleKey: "adv.it-fondi-pensione.title",
+    bodyKey: "adv.it-fondi-pensione.body",
+    actionLabelKey: "adv.it-fondi-pensione.action",
+    action: {},
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 86,
     figures: [
-      { label: "Plafond 2026", value: "5 300 €/an" },
-      { label: "Taxation sortie", value: "15 % → 9 %" },
+      { label: "adv.it-fondi-pensione.fig.0.label", value: "adv.it-fondi-pensione.fig.0.value" },
+      { label: "adv.it-fondi-pensione.fig.1.label", value: "15 % → 9 %" },
     ],
     sources: [
       "https://www.mefop.it/blog/blog-mefop/deducibilita-extradeducibilita-post-legge-bilancio-2026",
@@ -2926,18 +2814,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-assegno-unico",
     category: "kids",
     countries: ["IT"],
-    title: "Assegno unico : jusqu'à 203,80 €/mois — mais mets ton ISEE à jour",
-    body:
-      "En 2026, l'assegno unico va de 58,30 € à 203,80 €/mois par enfant mineur selon l'ISEE (+50 % pour un enfant de moins d'1 an). Piège administratif : sans DSU/ISEE à jour, tu ne touches que le MINIMUM à partir de mars — renouvelle l'ISEE en début d'année, c'est plusieurs centaines d'euros par an.",
+    titleKey: "adv.it-assegno-unico.title",
+    bodyKey: "adv.it-assegno-unico.body",
+    actionLabelKey: "adv.it-assegno-unico.action",
     action: {
-      label: "Mettre à jour l'ISEE et vérifier le montant (INPS)",
       link: "https://www.inps.it/it/it/dettaglio-scheda.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
     },
     appliesWhen: hasAnyKids,
     priority: 88,
     figures: [
-      { label: "Max (ISEE bas)", value: "203,80 €/mois" },
-      { label: "< 1 an", value: "+50 %" },
+      { label: "adv.it-assegno-unico.fig.0.label", value: "adv.it-assegno-unico.fig.0.value" },
+      { label: "adv.it-assegno-unico.fig.1.label", value: "+50 %" },
     ],
     sources: ["Circolare INPS n. 7 del 30/01/2026"],
     lastVerified: "2026-07-28",
@@ -2946,18 +2833,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-bfp-fiscalita",
     category: "long_term",
     countries: ["IT"],
-    title: "12,5 % vs 26 % : la fiscalité fait la moitié du rendement",
-    body:
-      "Les Buoni Fruttiferi Postali et les titres d'État sont taxés à 12,5 % sur les intérêts ; un conto deposito ou une obligation privée à 26 %. À taux facial proche, compare toujours le NET — et n'oublie pas l'imposta di bollo de 0,2 %/an au-delà de 5 000 € qui rogne le rendement réel.",
+    titleKey: "adv.it-bfp-fiscalita.title",
+    bodyKey: "adv.it-bfp-fiscalita.body",
+    actionLabelKey: "adv.it-bfp-fiscalita.action",
     action: {
-      label: "Comparer les rendements nets",
       link: "https://buonielibretti.poste.it/faq-buoni-e-libretti",
     },
     appliesWhen: always,
     priority: 76,
     figures: [
-      { label: "BFP / titres d'État", value: "12,5 %" },
-      { label: "Conto deposito", value: "26 %" },
+      { label: "adv.it-bfp-fiscalita.fig.0.label", value: "12,5 %" },
+      { label: "adv.it-bfp-fiscalita.fig.1.label", value: "26 %" },
     ],
     sources: ["https://buonielibretti.poste.it/faq-buoni-e-libretti"],
     lastVerified: "2026-07-28",
@@ -2967,11 +2853,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-tfr-scelta",
     category: "retirement",
     countries: ["IT"],
-    title: "TFR : les 6 mois qui engagent toute ta carrière",
-    body:
-      "À ta première embauche, tu as 6 mois pour choisir : laisser le TFR (environ 6,91 % du salaire annuel) dans l'entreprise, ou le verser à un fondo pensione. Le silence vaut versement automatique au fonds de ta convention collective (« silenzio-assenso ») — et le versement au fonds est IRRÉVERSIBLE, alors que le maintien en entreprise se change à tout moment. Depuis 2026, l'adhésion automatique ajoute une fenêtre de 60 jours : vérifie ta situation dès l'embauche.",
+    titleKey: "adv.it-tfr-scelta.title",
+    bodyKey: "adv.it-tfr-scelta.body",
+    actionLabelKey: "adv.it-tfr-scelta.action",
     action: {
-      label: "Comprendre le choix du TFR (COVIP)",
       link: "https://www.covip.it/per-il-cittadino/educazione-previdenziale/faq/conferimento-tfr",
     },
     appliesWhen: occupationIs("employee"),
@@ -2983,16 +2868,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-garanzia-prima-casa",
     category: "real_estate",
     countries: ["IT"],
-    title: "Moins de 36 ans : l'État garantit jusqu'à 80 % de ton prêt immobilier",
-    body:
-      "Le Fondo di garanzia prima casa (CONSAP) garantit jusqu'à 80 % du prêt pour les moins de 36 ans avec ISEE ≤ 40 000 € (prêt ≤ 250 000 €, résidence principale non de luxe) — prorogé jusqu'au 31/12/2027. Attention : les exonérations fiscales « prima casa under 36 » (registro, TVA) ont EXPIRÉ et n'ont pas été reconduites — seule la garantie subsiste. Demande via ta banque.",
+    titleKey: "adv.it-garanzia-prima-casa.title",
+    bodyKey: "adv.it-garanzia-prima-casa.body",
+    actionLabelKey: "adv.it-garanzia-prima-casa.action",
     action: {
-      label: "Voir le fonds de garantie (CONSAP)",
       link: "https://www.consap.it/fondi-di-garanzia/casa/fondo-prima-casa/",
     },
     appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
     priority: 84,
-    figures: [{ label: "Garantie", value: "jusqu'à 80 % du prêt" }],
+    figures: [{ label: "adv.it-garanzia-prima-casa.fig.0.label", value: "adv.it-garanzia-prima-casa.fig.0.value" }],
     sources: ["https://www.consap.it/fondi-di-garanzia/casa/fondo-prima-casa/"],
     lastVerified: "2026-08-06",
   },
@@ -3000,16 +2884,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-bonus-nido",
     category: "kids",
     countries: ["IT"],
-    title: "Bonus asilo nido : jusqu'à 3 600 €/an pour la crèche",
-    body:
-      "L'INPS rembourse jusqu'à 3 600 €/an de frais de crèche agréée (ou d'assistance à domicile pour enfant malade chronique), versés en 11 mensualités, selon ton ISEE. Nouveauté 2026 : l'ISEE « prestations familiales » déduit désormais l'Assegno Unico perçu — beaucoup de familles montent d'une tranche. Demande en ligne (SPID/CIE) ou via un patronato, avec les justificatifs de paiement.",
+    titleKey: "adv.it-bonus-nido.title",
+    bodyKey: "adv.it-bonus-nido.body",
+    actionLabelKey: "adv.it-bonus-nido.action",
     action: {
-      label: "Faire la demande (INPS)",
       link: "https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.03.bonus-asilo-nido-2026-attivo-il-servizio-per-la-domanda.html",
     },
     appliesWhen: kids("0-6"),
     priority: 86,
-    figures: [{ label: "Plafond", value: "3 600 €/an" }],
+    figures: [{ label: "adv.it-bonus-nido.fig.0.label", value: "adv.it-bonus-nido.fig.0.value" }],
     sources: ["https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.03.bonus-asilo-nido-2026-attivo-il-servizio-per-la-domanda.html"],
     lastVerified: "2026-08-06",
   },
@@ -3017,16 +2900,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-carte-giovani",
     category: "emergency",
     countries: ["IT"],
-    title: "18 ans : jusqu'à 1 000 € de cartes culture cumulables",
-    body:
-      "Deux aides à réclamer l'année de tes 18 ans : la Carta della cultura giovani (500 €, ISEE familial ≤ 35 000 €) et la Carta del merito (500 € pour un bac à 100/100, sans condition de revenus) — cumulables. Livres, cinéma, concerts, musées, cours. Fenêtre de demande limitée dans l'année (en 2026 : du 31/01 au 30/06) — ne la rate pas, l'aide n'est jamais rétroactive.",
+    titleKey: "adv.it-carte-giovani.title",
+    bodyKey: "adv.it-carte-giovani.body",
+    actionLabelKey: "adv.it-carte-giovani.action",
     action: {
-      label: "Demander tes cartes",
       link: "https://cartegiovani.cultura.gov.it/",
     },
     appliesWhen: ageIn("18-25"),
     priority: 80,
-    figures: [{ label: "Cumul max", value: "1 000 €" }],
+    figures: [{ label: "adv.it-carte-giovani.fig.0.label", value: "1 000 €" }],
     sources: ["https://cartegiovani.cultura.gov.it/"],
     lastVerified: "2026-08-06",
   },
@@ -3034,11 +2916,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "it-isee-annuale",
     category: "tax",
     countries: ["IT"],
-    title: "Refais ton ISEE chaque janvier : c'est la clé de toutes les aides",
-    body:
-      "L'ISEE expire le 31 décembre : sans DSU renouvelée, l'Assegno Unico retombe au minimum dès mars et tu perds bonus nido, aides universitaires et tarifs sociaux. La DSU précompilée se fait en ligne en 20 minutes. Bonne nouvelle 2026 : la franchise sur la résidence principale est relevée (91 500 €, 120 000 € dans les métropoles) — ton ISEE peut baisser, et tes aides monter.",
+    titleKey: "adv.it-isee-annuale.title",
+    bodyKey: "adv.it-isee-annuale.body",
+    actionLabelKey: "adv.it-isee-annuale.action",
     action: {
-      label: "Faire ta DSU précompilée (INPS)",
       link: "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-strumenti.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee-53358.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee.html",
     },
     appliesWhen: always,
@@ -3056,16 +2937,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-fundo-emergencia",
     category: "emergency",
     countries: ["PT"],
-    title: "Fundo de emergência : 4 à 6 mois de dépenses",
-    body:
-      "Recommandation usuelle au Portugal : garder l'équivalent de 4 à 6 mois de dépenses mensuelles totales (fixes + variables) sur un support à liquidité immédiate — jusqu'à 12 mois pour les indépendants. À constituer avant tout PPR ou investissement.",
+    titleKey: "adv.pt-fundo-emergencia.title",
+    bodyKey: "adv.pt-fundo-emergencia.body",
+    actionLabelKey: "adv.pt-fundo-emergencia.action",
     action: {
-      label: "Voir Todos Contam (Banco de Portugal)",
       link: "https://www.todoscontam.pt/pt-pt/fundo-de-emergencia",
     },
     appliesWhen: always,
     priority: 98,
-    figures: [{ label: "Cible", value: "4-6 mois de dépenses" }],
+    figures: [{ label: "adv.pt-fundo-emergencia.fig.0.label", value: "adv.pt-fundo-emergencia.fig.0.value" }],
     sources: ["https://www.todoscontam.pt/pt-pt/fundo-de-emergencia"],
     lastVerified: "2026-07-28",
   },
@@ -3073,18 +2953,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-ppr",
     category: "retirement",
     countries: ["PT"],
-    title: "PPR : 20 % de tes versements remboursés par l'IRS",
-    body:
-      "Le PPR donne une déduction d'IRS de 20 % des versements : jusqu'à 400 € (< 35 ans au 1er janvier), 350 € (35-50 ans), 300 € (> 50 ans). Deux avertissements : la limite globale des deduções à coleta selon ton revenu peut réduire le gain réel, et un rachat hors conditions légales rembourse les déductions MAJORÉES de 10 % par an écoulé — c'est un engagement long terme.",
+    titleKey: "adv.pt-ppr.title",
+    bodyKey: "adv.pt-ppr.body",
+    actionLabelKey: "adv.pt-ppr.action",
     action: {
-      label: "Voir l'art. 21 de l'EBF (Portal das Finanças)",
       link: "https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/bf/Pages/bf-artigo-21-ordm-.aspx",
     },
     appliesWhen: ageIn("18-25", "26-35", "36-50", "51-65"),
     priority: 86,
     figures: [
-      { label: "Déduction", value: "20 % des versements" },
-      { label: "Max < 35 ans", value: "400 €/an" },
+      { label: "adv.pt-ppr.fig.0.label", value: "adv.pt-ppr.fig.0.value" },
+      { label: "adv.pt-ppr.fig.1.label", value: "adv.pt-ppr.fig.1.value" },
     ],
     sources: [
       "https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/bf/Pages/bf-artigo-21-ordm-.aspx",
@@ -3095,18 +2974,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-certificados-aforro",
     category: "long_term",
     countries: ["PT"],
-    title: "Certificados de Aforro : l'épargne d'État dès 100 €",
-    body:
-      "La Série F rémunère selon l'Euribor 3 mois (plafonnée à 2,5 %) plus une prime de permanence qui monte jusqu'à 1,75 % à partir de la 2e année. Souscription dès 100 €, rachat possible après 3 mois, intérêts imposés à 28 % retenus à la source par l'IGCP — rien à déclarer. Une brique simple entre le fonds d'urgence et l'investissement.",
+    titleKey: "adv.pt-certificados-aforro.title",
+    bodyKey: "adv.pt-certificados-aforro.body",
+    actionLabelKey: "adv.pt-certificados-aforro.action",
     action: {
-      label: "Voir les conditions IGCP (AforroNet)",
       link: "https://aforronet.igcp.pt/iimf.aforronet.ui/condicoes/CondicoesSubscricao.aspx",
     },
     appliesWhen: always,
     priority: 78,
     figures: [
-      { label: "Minimum", value: "100 €" },
-      { label: "Prime permanence", value: "jusqu'à +1,75 %" },
+      { label: "adv.pt-certificados-aforro.fig.0.label", value: "100 €" },
+      { label: "adv.pt-certificados-aforro.fig.1.label", value: "adv.pt-certificados-aforro.fig.1.value" },
     ],
     sources: [
       "https://aforronet.igcp.pt/iimf.aforronet.ui/condicoes/CondicoesSubscricao.aspx",
@@ -3117,18 +2995,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-irs-jovem",
     category: "tax",
     countries: ["PT"],
-    title: "IRS Jovem : jusqu'à 10 ans d'impôt allégé avant 35 ans",
-    body:
-      "Si tu as entre 18 et 35 ans (et n'es plus à charge), l'IRS Jovem exonère tes revenus du travail pendant 10 ans : 100 % la 1re année, 75 % les années 2-4, 50 % les années 5-7, 25 % les années 8-10 — dans la limite d'un plafond annuel (55 × IAS). Applicable dès la retenue mensuelle : signale-le à ton employeur, ne le découvre pas à la déclaration.",
+    titleKey: "adv.pt-irs-jovem.title",
+    bodyKey: "adv.pt-irs-jovem.body",
+    actionLabelKey: "adv.pt-irs-jovem.action",
     action: {
-      label: "Vérifier ton éligibilité (gov.pt)",
       link: "https://www.gov.pt/noticias/novo-modelo-de-irs-jovem-em-2025",
     },
     appliesWhen: ageIn("18-25", "26-35"),
     priority: 88,
     figures: [
-      { label: "Année 1", value: "100 % exonéré" },
-      { label: "Durée", value: "10 ans" },
+      { label: "adv.pt-irs-jovem.fig.0.label", value: "adv.pt-irs-jovem.fig.0.value" },
+      { label: "adv.pt-irs-jovem.fig.1.label", value: "adv.pt-irs-jovem.fig.1.value" },
     ],
     sources: [
       "https://www.gov.pt/noticias/novo-modelo-de-irs-jovem-em-2025",
@@ -3141,11 +3018,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-porta65",
     category: "housing",
     countries: ["PT"],
-    title: "Porta 65 Jovem : l'État paie une partie de ton loyer",
-    body:
-      "De 18 à 35 ans (en couple, l'un peut avoir jusqu'à 37 ans), avec un revenu du foyer sous environ 4 SMIC, l'IHRU subventionne ton loyer par périodes de 12 mois renouvelables. Les colocations sont éligibles si chacun remplit les critères. Les candidatures ouvrent par vagues sur le Portal da Habitação — prépare bail et justificatifs à l'avance, les fenêtres sont courtes.",
+    titleKey: "adv.pt-porta65.title",
+    bodyKey: "adv.pt-porta65.body",
+    actionLabelKey: "adv.pt-porta65.action",
     action: {
-      label: "Candidater (Portal da Habitação)",
       link: "https://www.portaldahabitacao.pt/web/guest/porta-65-jovem",
     },
     appliesWhen: and(housingIn("renter"), ageIn("18-25", "26-35")),
@@ -3157,16 +3033,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-garantia-publica",
     category: "real_estate",
     countries: ["PT"],
-    title: "Garantie publique ≤ 35 ans : financer 100 % — contrats jusqu'à fin 2026",
-    body:
-      "L'État se porte garant jusqu'à 15 % de ton prêt pour la première habitação própria e permanente : la banque peut financer 100 % du bien, sans apport. Conditions : 18-35 ans, revenus jusqu'au 8e échelon IRS, non-propriétaire. ÉCHÉANCE FERME : contrats signés jusqu'au 31/12/2026 — la prorogation n'est pas actée. Si un achat se profile, ne tarde pas.",
+    titleKey: "adv.pt-garantia-publica.title",
+    bodyKey: "adv.pt-garantia-publica.body",
+    actionLabelKey: "adv.pt-garantia-publica.action",
     action: {
-      label: "Voir le dispositif (gov.pt)",
       link: "https://www.gov.pt/servicos/pedir-a-garantia-publica-para-credito-a-habitacao",
     },
     appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
     priority: 88,
-    figures: [{ label: "Garantie", value: "jusqu'à 15 % du prêt" }],
+    figures: [{ label: "adv.pt-garantia-publica.fig.0.label", value: "adv.pt-garantia-publica.fig.0.value" }],
     sources: ["https://www.gov.pt/servicos/pedir-a-garantia-publica-para-credito-a-habitacao"],
     lastVerified: "2026-08-06",
   },
@@ -3174,11 +3049,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-imt-jovem",
     category: "real_estate",
     countries: ["PT"],
-    title: "IMT Jovem : zéro impôt d'achat avant 36 ans",
-    body:
-      "Première acquisition d'habitação própria e permanente avant 36 ans : exonération TOTALE d'IMT et d'Imposto do Selo jusqu'à un plafond de valeur réévalué chaque année (exonération partielle au-delà, nulle pour les biens les plus chers). Contrairement à la garantie publique, ce régime n'a PAS de date de fin. À demander via le Portal das Finanças AVANT l'acte — pas de rétroactivité.",
+    titleKey: "adv.pt-imt-jovem.title",
+    bodyKey: "adv.pt-imt-jovem.body",
+    actionLabelKey: "adv.pt-imt-jovem.action",
     action: {
-      label: "Vérifier ton éligibilité (Portal das Finanças)",
       link: "https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/IMT_Jovem/Pages/default.aspx",
     },
     appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
@@ -3190,11 +3064,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pt-abono-familia",
     category: "kids",
     countries: ["PT"],
-    title: "Abono de família : vérifie ton échelon chaque année",
-    body:
-      "L'abono de família dépend de ton échelon de revenus (ISS) et de l'âge de l'enfant : montant majoré avant 36 mois, +50 % pour les familles monoparentales, majoration si plusieurs enfants de moins de 36 mois. Les montants sont revalorisés chaque année et un changement de revenus peut te faire changer d'échelon — refais la simulation sur seg-social.pt après chaque changement de situation.",
+    titleKey: "adv.pt-abono-familia.title",
+    bodyKey: "adv.pt-abono-familia.body",
+    actionLabelKey: "adv.pt-abono-familia.action",
     action: {
-      label: "Simuler ton abono (Segurança Social)",
       link: "https://www.seg-social.pt/abono-de-familia-para-criancas-e-jovens",
     },
     appliesWhen: hasAnyKids,
@@ -3212,15 +3085,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ma-pea",
     category: "long_term",
     countries: ["MA"],
-    title: "PEA marocain : la Bourse de Casablanca sans impôt",
-    body:
-      "Le Plan d'Épargne en Actions exonère dividendes et plus-values (au lieu de 15 % et 20 % de retenue) pour les titres cotés à Casablanca — plafond de versements de 2 000 000 DH (l'ancien plafond de 600 000 DH qui circule encore est périmé). Condition : garder le plan au moins 5 ans, sinon clôture automatique et imposition de droit commun.",
-    action: { label: "Ouvrir un PEA auprès d'une banque ou société de bourse" },
+    titleKey: "adv.ma-pea.title",
+    bodyKey: "adv.ma-pea.body",
+    actionLabelKey: "adv.ma-pea.action",
+    action: {},
     appliesWhen: always,
     priority: 84,
     figures: [
-      { label: "Plafond", value: "2 000 000 DH" },
-      { label: "Durée minimale", value: "5 ans" },
+      { label: "adv.ma-pea.fig.0.label", value: "2 000 000 DH" },
+      { label: "adv.ma-pea.fig.1.label", value: "adv.ma-pea.fig.1.value" },
     ],
     sources: ["Code Général des Impôts 2026, art. 68 (DGI)"],
     lastVerified: "2026-07-28",
@@ -3229,15 +3102,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ma-pel",
     category: "real_estate",
     countries: ["MA"],
-    title: "PEL : des intérêts nets d'impôt pour ton futur logement",
-    body:
-      "Le Plan d'Épargne Logement exonère d'IR les intérêts, dans la limite de 400 000 DH de versements — à condition de garder le plan au moins 3 ans et d'affecter les fonds à l'acquisition ou la construction de ta résidence principale. Un retrait anticipé clôture le plan et rend les gains imposables.",
-    action: { label: "Comparer les PEL des banques marocaines" },
+    titleKey: "adv.ma-pel.title",
+    bodyKey: "adv.ma-pel.body",
+    actionLabelKey: "adv.ma-pel.action",
+    action: {},
     appliesWhen: housingIn("renter", "free_housing"),
     priority: 80,
     figures: [
-      { label: "Plafond", value: "400 000 DH" },
-      { label: "Durée minimale", value: "3 ans" },
+      { label: "adv.ma-pel.fig.0.label", value: "400 000 DH" },
+      { label: "adv.ma-pel.fig.1.label", value: "adv.ma-pel.fig.1.value" },
     ],
     sources: ["Code Général des Impôts 2026, art. 68 (DGI)"],
     lastVerified: "2026-07-28",
@@ -3246,15 +3119,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ma-pee",
     category: "kids",
     countries: ["MA"],
-    title: "PEE : épargne défiscalisée pour les études des enfants",
-    body:
-      "Le Plan d'Épargne Éducation exonère d'IR les intérêts, jusqu'à 300 000 DH PAR ENFANT à charge, si les fonds financent leurs études (tous cycles + formation professionnelle). Durée minimale 5 ans, un seul PEE par personne. Commencer tôt transforme les années de primaire en capital pour le supérieur.",
-    action: { label: "Ouvrir un PEE au nom de chaque enfant" },
+    titleKey: "adv.ma-pee.title",
+    bodyKey: "adv.ma-pee.body",
+    actionLabelKey: "adv.ma-pee.action",
+    action: {},
     appliesWhen: hasAnyKids,
     priority: 86,
     figures: [
-      { label: "Plafond / enfant", value: "300 000 DH" },
-      { label: "Durée minimale", value: "5 ans" },
+      { label: "adv.ma-pee.fig.0.label", value: "300 000 DH" },
+      { label: "adv.ma-pee.fig.1.label", value: "adv.ma-pee.fig.1.value" },
     ],
     sources: ["Code Général des Impôts 2026, art. 68 (DGI)"],
     lastVerified: "2026-07-28",
@@ -3263,18 +3136,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ma-retraite-deduction",
     category: "retirement",
     countries: ["MA"],
-    title: "Retraite complémentaire : une déduction massive pour les salariés",
-    body:
-      "Les cotisations d'assurance retraite (CIMR ou assureur marocain) sont déductibles jusqu'à 50 % de ton salaire net imposable si tes revenus sont exclusivement salariaux (10 % du revenu global sinon). Conditions : contrat d'au moins 8 ans, prestations à partir de 45 ans, et l'option pour la déductibilité mentionnée sur l'attestation.",
+    titleKey: "adv.ma-retraite-deduction.title",
+    bodyKey: "adv.ma-retraite-deduction.body",
+    actionLabelKey: "adv.ma-retraite-deduction.action",
     action: {
-      label: "Se renseigner auprès de la CIMR",
       link: "https://www.cimr.ma/cotiser-a-la-cimr/",
     },
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 84,
     figures: [
-      { label: "Salariés", value: "jusqu'à 50 % du net imposable" },
-      { label: "Durée minimale", value: "8 ans" },
+      { label: "adv.ma-retraite-deduction.fig.0.label", value: "adv.ma-retraite-deduction.fig.0.value" },
+      { label: "adv.ma-retraite-deduction.fig.1.label", value: "adv.ma-retraite-deduction.fig.1.value" },
     ],
     sources: ["Code Général des Impôts 2026, art. 28-III (DGI)"],
     lastVerified: "2026-07-28",
@@ -3283,15 +3155,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ma-allocations-cnss",
     category: "kids",
     countries: ["MA"],
-    title: "Allocations CNSS : 300 DH par enfant — et la hausse du 4e au 6e",
-    body:
-      "La CNSS verse 300 DH/mois pour chacun des trois premiers enfants, et 100 DH/mois du 4e au 6e (relevé de 36 DH par le décret d'octobre 2025, avec effet rétroactif à janvier 2023 — vérifie que le rappel t'a bien été versé). Enfants couverts jusqu'à 12 ans automatiquement, au-delà avec certificat de scolarité.",
-    action: { label: "Vérifier tes allocations et le rappel rétroactif (CNSS)" },
+    titleKey: "adv.ma-allocations-cnss.title",
+    bodyKey: "adv.ma-allocations-cnss.body",
+    actionLabelKey: "adv.ma-allocations-cnss.action",
+    action: {},
     appliesWhen: hasAnyKids,
     priority: 84,
     figures: [
-      { label: "Enfants 1-3", value: "300 DH/mois" },
-      { label: "Enfants 4-6", value: "100 DH/mois" },
+      { label: "adv.ma-allocations-cnss.fig.0.label", value: "adv.ma-allocations-cnss.fig.0.value" },
+      { label: "adv.ma-allocations-cnss.fig.1.label", value: "adv.ma-allocations-cnss.fig.1.value" },
     ],
     sources: [
       "https://www.maroc.ma/fr/actualites/plus-de-136000-familles-beneficieront-des-allocations-familiales-accordees-par-la-cnss",
@@ -3302,13 +3174,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ma-compte-carnet",
     category: "tax",
     countries: ["MA"],
-    title: "Compte sur carnet : 30 % retenus sur tes intérêts",
-    body:
-      "Les intérêts des comptes sur carnet subissent une retenue à la source de 30 % (libératoire) pour les particuliers sans activité professionnelle — 20 % imputable si tu es imposé au régime professionnel. Compare toujours le rendement NET, et pour l'épargne longue regarde les enveloppes exonérées (PEL, PEE, PEA) avant le carnet.",
-    action: { label: "Comparer carnet vs enveloppes exonérées selon ton objectif" },
+    titleKey: "adv.ma-compte-carnet.title",
+    bodyKey: "adv.ma-compte-carnet.body",
+    actionLabelKey: "adv.ma-compte-carnet.action",
+    action: {},
     appliesWhen: always,
     priority: 74,
-    figures: [{ label: "Retenue particuliers", value: "30 % libératoire" }],
+    figures: [{ label: "adv.ma-compte-carnet.fig.0.label", value: "adv.ma-compte-carnet.fig.0.value" }],
     sources: ["Code Général des Impôts 2026, art. 73-II (DGI)"],
     lastVerified: "2026-07-28",
   },
@@ -3322,18 +3194,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "uemoa-oat-tresor",
     category: "long_term",
     countries: ["SN", "CI"],
-    title: "Obligations du Trésor : accessibles dès 10 000 FCFA",
-    body:
-      "Le marché des titres publics UEMOA est ouvert aux particuliers : les Obligations Assimilables du Trésor (OAT) ont un nominal de 10 000 FCFA — le vrai point d'entrée (les Bons à 1 000 000 FCFA sont hors de portée). Souscription via une banque ou une SGI avec un compte-titres, et les intérêts des titres de TON État sont exonérés d'impôt pour ses résidents.",
+    titleKey: "adv.uemoa-oat-tresor.title",
+    bodyKey: "adv.uemoa-oat-tresor.body",
+    actionLabelKey: "adv.uemoa-oat-tresor.action",
     action: {
-      label: "Voir le guide particuliers UMOA-Titres",
       link: "https://www.umoatitres.org/particuliers/",
     },
     appliesWhen: always,
     priority: 76,
     figures: [
-      { label: "OAT (nominal)", value: "10 000 FCFA" },
-      { label: "Intérêts résidents", value: "exonérés" },
+      { label: "adv.uemoa-oat-tresor.fig.0.label", value: "10 000 FCFA" },
+      { label: "adv.uemoa-oat-tresor.fig.1.label", value: "adv.uemoa-oat-tresor.fig.1.value" },
     ],
     sources: ["https://www.umoatitres.org/particuliers/"],
     lastVerified: "2026-07-28",
@@ -3342,10 +3213,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "uemoa-tontine-sfd",
     category: "emergency",
     countries: ["SN", "CI"],
-    title: "Tontine : sécurise-la, ou passe par un SFD agréé",
-    body:
-      "La tontine n'a aucun statut juridique dans l'UEMOA — tout repose sur la confiance. Bonnes pratiques : règlement écrit signé, registre des versements, trésorier distinct du président, et versements tracés via mobile money plutôt qu'en espèces. L'alternative réglementée : les Systèmes Financiers Décentralisés agréés (mutuelles, microfinance), supervisés par la BCEAO — l'épargne y est encadrée.",
-    action: { label: "Formaliser la tontine ou comparer avec un SFD agréé" },
+    titleKey: "adv.uemoa-tontine-sfd.title",
+    bodyKey: "adv.uemoa-tontine-sfd.body",
+    actionLabelKey: "adv.uemoa-tontine-sfd.action",
+    action: {},
     appliesWhen: always,
     priority: 80,
     sources: [
@@ -3357,15 +3228,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "sn-livret-exonere",
     category: "tax",
     countries: ["SN"],
-    title: "Ton livret d'épargne est exonéré d'impôt",
-    body:
-      "Le CGI sénégalais (art. 105-3°) exonère d'impôt sur le revenu les intérêts des livrets d'épargne des personnes physiques servis par une banque, un SFD ou une caisse d'épargne au Sénégal — dans la limite d'un plafond fixé par arrêté ministériel. Hors livret, les intérêts de comptes de dépôt subissent une retenue de 8 % (16 % en droit commun). Le livret d'abord, donc.",
-    action: { label: "Ouvrir un livret d'épargne bancaire ou SFD" },
+    titleKey: "adv.sn-livret-exonere.title",
+    bodyKey: "adv.sn-livret-exonere.body",
+    actionLabelKey: "adv.sn-livret-exonere.action",
+    action: {},
     appliesWhen: always,
     priority: 86,
     figures: [
-      { label: "Livret", value: "intérêts exonérés" },
-      { label: "Compte de dépôt", value: "retenue 8 %" },
+      { label: "adv.sn-livret-exonere.fig.0.label", value: "adv.sn-livret-exonere.fig.0.value" },
+      { label: "adv.sn-livret-exonere.fig.1.label", value: "adv.sn-livret-exonere.fig.1.value" },
     ],
     sources: ["Code général des impôts (Sénégal), art. 105-3° et 173-2"],
     lastVerified: "2026-07-28",
@@ -3374,13 +3245,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "sn-allocations-css",
     category: "kids",
     countries: ["SN"],
-    title: "Allocations familiales CSS : 2 600 FCFA par enfant",
-    body:
-      "La Caisse de Sécurité Sociale verse 2 600 FCFA par mois et par enfant (payés par trimestre, maximum 6 enfants) aux travailleurs salariés déclarés — enfants de 2 à 14 ans, prolongé à 18 ans si scolarisé et 21 ans pour études. Ça suppose d'être déclaré par ton employeur : c'est aussi un argument pour exiger la formalisation.",
-    action: { label: "Vérifier tes droits auprès de la CSS" },
+    titleKey: "adv.sn-allocations-css.title",
+    bodyKey: "adv.sn-allocations-css.body",
+    actionLabelKey: "adv.sn-allocations-css.action",
+    action: {},
     appliesWhen: hasAnyKids,
     priority: 82,
-    figures: [{ label: "Par enfant", value: "2 600 FCFA/mois" }],
+    figures: [{ label: "adv.sn-allocations-css.fig.0.label", value: "adv.sn-allocations-css.fig.0.value" }],
     sources: ["https://www.cleiss.fr/docs/regimes/regime_senegal.html"],
     lastVerified: "2026-07-28",
   },
@@ -3388,15 +3259,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "sn-mobile-money",
     category: "emergency",
     countries: ["SN"],
-    title: "Mobile money : compare avant chaque transfert",
-    body:
-      "Au Sénégal, Wave facture 1 % le transfert (dépôts et retraits gratuits) et Orange Money 0,8 % (retrait devenu gratuit). Les grilles bougent souvent : compare avant les gros transferts. Et rappelle-toi que l'argent qui dort sur un wallet n'est pas rémunéré — bascule l'excédent vers un livret exonéré.",
-    action: { label: "Comparer Wave / Orange Money sur ton usage réel" },
+    titleKey: "adv.sn-mobile-money.title",
+    bodyKey: "adv.sn-mobile-money.body",
+    actionLabelKey: "adv.sn-mobile-money.action",
+    action: {},
     appliesWhen: always,
     priority: 78,
     figures: [
-      { label: "Wave transfert", value: "1 %" },
-      { label: "Orange Money", value: "0,8 %" },
+      { label: "adv.sn-mobile-money.fig.0.label", value: "1 %" },
+      { label: "adv.sn-mobile-money.fig.1.label", value: "0,8 %" },
     ],
     sources: [
       "https://www.wave.com/fr/",
@@ -3408,15 +3279,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ci-allocations-cnps",
     category: "kids",
     countries: ["CI"],
-    title: "Allocations familiales CNPS : 5 000 FCFA par enfant",
-    body:
-      "La CNPS verse 5 000 FCFA par mois et par enfant (paiement trimestriel) aux salariés du privé — condition : 18 jours ou 120 h de travail par mois, enfants de 12 mois à 14 ans (18 ans en apprentissage, 21 ans pour études). Les fonctionnaires relèvent d'un autre régime (7 500 FCFA versés par l'État). Être déclaré, c'est aussi ça.",
-    action: { label: "Vérifier tes droits auprès de la CNPS" },
+    titleKey: "adv.ci-allocations-cnps.title",
+    bodyKey: "adv.ci-allocations-cnps.body",
+    actionLabelKey: "adv.ci-allocations-cnps.action",
+    action: {},
     appliesWhen: hasAnyKids,
     priority: 82,
     figures: [
-      { label: "Privé (CNPS)", value: "5 000 FCFA/mois" },
-      { label: "Fonctionnaires", value: "7 500 FCFA/mois" },
+      { label: "adv.ci-allocations-cnps.fig.0.label", value: "adv.ci-allocations-cnps.fig.0.value" },
+      { label: "adv.ci-allocations-cnps.fig.1.label", value: "adv.ci-allocations-cnps.fig.1.value" },
     ],
     sources: [
       "https://www.cleiss.fr/docs/regimes/regime_cotedivoire.html",
@@ -3428,15 +3299,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ci-epargne-fiscalite",
     category: "tax",
     countries: ["CI"],
-    title: "Compte d'épargne populaire : des intérêts sans impôt",
-    body:
-      "En Côte d'Ivoire, les intérêts des comptes d'épargne populaire sont exonérés d'IRC, et les bons et obligations du Trésor sont exonérés d'IGR. Les comptes de dépôt classiques bénéficient de taux réduits selon la durée (jusqu'à 13,5 % pour un particulier, contre 18 % en droit commun). Choisir la bonne enveloppe change directement ton rendement net.",
-    action: { label: "Demander un compte d'épargne populaire à ta banque" },
+    titleKey: "adv.ci-epargne-fiscalite.title",
+    bodyKey: "adv.ci-epargne-fiscalite.body",
+    actionLabelKey: "adv.ci-epargne-fiscalite.action",
+    action: {},
     appliesWhen: always,
     priority: 84,
     figures: [
-      { label: "Épargne populaire", value: "exonérée d'IRC" },
-      { label: "Droit commun", value: "18 %" },
+      { label: "adv.ci-epargne-fiscalite.fig.0.label", value: "adv.ci-epargne-fiscalite.fig.0.value" },
+      { label: "adv.ci-epargne-fiscalite.fig.1.label", value: "18 %" },
     ],
     sources: ["DGI Côte d'Ivoire — Impôts et taxes (IRC, art. 192 s. CGI)"],
     lastVerified: "2026-07-28",
@@ -3445,15 +3316,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ci-mobile-money",
     category: "emergency",
     countries: ["CI"],
-    title: "Mobile money : le transfert peut être gratuit, le retrait non",
-    body:
-      "En Côte d'Ivoire, Orange Money facture 0 FCFA le transfert national OM→OM mais 1 % le retrait ; Wave facture 1 % le transfert avec dépôts et retraits gratuits. Selon que tu envoies ou que tu retires, le gagnant change — compare sur TON usage. Et l'argent qui dort sur le wallet n'est pas rémunéré.",
-    action: { label: "Comparer Orange Money / Wave sur ton usage réel" },
+    titleKey: "adv.ci-mobile-money.title",
+    bodyKey: "adv.ci-mobile-money.body",
+    actionLabelKey: "adv.ci-mobile-money.action",
+    action: {},
     appliesWhen: always,
     priority: 78,
     figures: [
-      { label: "OM transfert national", value: "0 FCFA" },
-      { label: "OM retrait", value: "1 %" },
+      { label: "adv.ci-mobile-money.fig.0.label", value: "0 FCFA" },
+      { label: "adv.ci-mobile-money.fig.1.label", value: "1 %" },
     ],
     sources: [
       "https://www.orange.ci/fr/tarifs-orange-money.html",
@@ -3471,18 +3342,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "dz-allocations-cnas",
     category: "kids",
     countries: ["DZ"],
-    title: "Allocations familiales CNAS : vérifie ton barème",
-    body:
-      "La CNAS verse 600 DA/mois par enfant (du 1er au 5e) si ton revenu mensuel est ≤ 15 000 DA, 300 DA sinon — plus une prime de scolarité annuelle de 800 DA par enfant (barème réduit au-delà du 5e enfant). Enfants couverts jusqu'à 17 ans (21 ans si études). Réservé aux salariés déclarés : vérifie que ton employeur te déclare.",
+    titleKey: "adv.dz-allocations-cnas.title",
+    bodyKey: "adv.dz-allocations-cnas.body",
+    actionLabelKey: "adv.dz-allocations-cnas.action",
     action: {
-      label: "Vérifier tes droits sur cnas.dz",
       link: "https://cnas.dz",
     },
     appliesWhen: hasAnyKids,
     priority: 82,
     figures: [
-      { label: "Revenu ≤ 15 000 DA", value: "600 DA/mois/enfant" },
-      { label: "Prime scolarité", value: "800 DA/an" },
+      { label: "adv.dz-allocations-cnas.fig.0.label", value: "adv.dz-allocations-cnas.fig.0.value" },
+      { label: "adv.dz-allocations-cnas.fig.1.label", value: "adv.dz-allocations-cnas.fig.1.value" },
     ],
     sources: ["https://cnas.dz (page المنح العائلية)"],
     lastVerified: "2026-07-28",
@@ -3491,10 +3361,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "dz-epargne-logement",
     category: "real_estate",
     countries: ["DZ"],
-    title: "Livret Épargne Logement : la porte du crédit préférentiel",
-    body:
-      "Le Livret Épargne Logement (CNEP-Banque, aussi via Algérie Poste) donne accès, après une phase d'épargne, à des crédits immobiliers à conditions préférentielles — en plus de rémunérer ton épargne. Les taux ne sont pas publiés en ligne de façon fiable : compare en agence le LEL et le Livret Épargne Populaire selon ton projet.",
-    action: { label: "Comparer LEL et LEP en agence CNEP ou Algérie Poste" },
+    titleKey: "adv.dz-epargne-logement.title",
+    bodyKey: "adv.dz-epargne-logement.body",
+    actionLabelKey: "adv.dz-epargne-logement.action",
+    action: {},
     appliesWhen: housingIn("renter", "free_housing"),
     priority: 80,
     sources: ["https://www.poste.dz/services/particular/cnep-ecnep"],
@@ -3504,10 +3374,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "dz-finance-islamique",
     category: "long_term",
     countries: ["DZ"],
-    title: "Finance islamique : un cadre officiel depuis 2020",
-    body:
-      "Le règlement 2020-02 de la Banque d'Algérie encadre la finance islamique : mourabaha, ijara, moudaraba, comptes d'investissement — sans intérêts, avec certification de conformité charia obligatoire. Les banques publiques (BNA, CPA, BEA…) et des banques dédiées (Al Baraka, Al Salam) proposent ces guichets. Une épargne conforme ET supervisée, si c'est ton critère.",
-    action: { label: "Comparer les guichets finance islamique des banques" },
+    titleKey: "adv.dz-finance-islamique.title",
+    bodyKey: "adv.dz-finance-islamique.body",
+    actionLabelKey: "adv.dz-finance-islamique.action",
+    action: {},
     appliesWhen: always,
     priority: 74,
     sources: [
@@ -3526,13 +3396,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "tn-epargne-tre",
     category: "emergency",
     countries: ["TN"],
-    title: "Ton épargne de précaution mérite au moins le TRE",
-    body:
-      "Les comptes d'épargne (bancaires et postaux) sont rémunérés au minimum au Taux de Rémunération de l'Épargne fixé par la Banque Centrale — 6 % depuis janvier 2026. Avec une inflation autour de 5 %, le rendement réel reste mince : le TRE protège ton matelas de précaution, mais il ne construit pas un patrimoine — pour ça, regarde le CEA et l'assurance-vie.",
-    action: { label: "Vérifier que ton compte épargne sert bien le TRE" },
+    titleKey: "adv.tn-epargne-tre.title",
+    bodyKey: "adv.tn-epargne-tre.body",
+    actionLabelKey: "adv.tn-epargne-tre.action",
+    action: {},
     appliesWhen: always,
     priority: 90,
-    figures: [{ label: "TRE (janv. 2026)", value: "6 %/an" }],
+    figures: [{ label: "adv.tn-epargne-tre.fig.0.label", value: "adv.tn-epargne-tre.fig.0.value" }],
     sources: ["Banque Centrale de Tunisie — décision du 30/12/2025"],
     lastVerified: "2026-07-28",
   },
@@ -3540,15 +3410,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "tn-cea",
     category: "tax",
     countries: ["TN"],
-    title: "CEA : déduis jusqu'à 100 000 DT de ton assiette IRPP",
-    body:
-      "Le Compte Épargne en Actions déduit tes versements de l'assiette IRPP (jusqu'à 100 000 DT/an), investis à 80 % minimum en actions cotées à la BVMT. Conditions : principal bloqué 5 ans (dividendes disponibles), et l'avantage est plafonné par le minimum d'impôt — la déduction ne ramène jamais ton impôt à zéro. Retrait anticipé = reprise de l'impôt + pénalités.",
-    action: { label: "Ouvrir un CEA auprès d'une banque ou d'un intermédiaire" },
+    titleKey: "adv.tn-cea.title",
+    bodyKey: "adv.tn-cea.body",
+    actionLabelKey: "adv.tn-cea.action",
+    action: {},
     appliesWhen: always,
     priority: 84,
     figures: [
-      { label: "Déduction max", value: "100 000 DT/an" },
-      { label: "Blocage", value: "5 ans" },
+      { label: "adv.tn-cea.fig.0.label", value: "adv.tn-cea.fig.0.value" },
+      { label: "adv.tn-cea.fig.1.label", value: "adv.tn-cea.fig.1.value" },
     ],
     sources: ["Art. 39 code IRPP/IS · loi 89-114 (minimum d'impôt)"],
     lastVerified: "2026-07-28",
@@ -3557,15 +3427,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "tn-assurance-vie",
     category: "retirement",
     countries: ["TN"],
-    title: "Assurance-vie : 100 000 DT déductibles, sortie exonérée",
-    body:
-      "Les primes d'assurance-vie (et takaful) sont déductibles de l'assiette IRPP jusqu'à 100 000 DT/an — plafond relevé par la loi de finances 2021, beaucoup de contenus citent encore l'ancien 10 000 DT. Contrat d'au moins 8 ans, capitaux exonérés à la sortie, avantage soumis au minimum d'impôt. Le pilier retraite long terme tunisien.",
-    action: { label: "Comparer les contrats d'assureurs agréés" },
+    titleKey: "adv.tn-assurance-vie.title",
+    bodyKey: "adv.tn-assurance-vie.body",
+    actionLabelKey: "adv.tn-assurance-vie.action",
+    action: {},
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 84,
     figures: [
-      { label: "Déduction max", value: "100 000 DT/an" },
-      { label: "Durée minimale", value: "8 ans" },
+      { label: "adv.tn-assurance-vie.fig.0.label", value: "adv.tn-assurance-vie.fig.0.value" },
+      { label: "adv.tn-assurance-vie.fig.1.label", value: "adv.tn-assurance-vie.fig.1.value" },
     ],
     sources: ["Art. 39 §2 code IRPP/IS · loi de finances 2021"],
     lastVerified: "2026-07-28",
@@ -3611,11 +3481,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "season-impots",
     category: "tax",
     countries: ["FR"],
-    title: "Période de déclaration : les cases qui rendent de l'argent",
-    body:
-      "Avril-juin, c'est la déclaration de revenus. Trois vérifications qui paient : les dons (66 % de réduction, case 7UF), les frais réels vs l'abattement de 10 % si tu fais beaucoup de kilomètres, et les services à la personne (crédit d'impôt 50 %). Dix minutes de vérification valent souvent plusieurs centaines d'euros.",
+    titleKey: "adv.season-impots.title",
+    bodyKey: "adv.season-impots.body",
+    actionLabelKey: "adv.season-impots.action",
     action: {
-      label: "Ouvrir mon espace impots.gouv.fr",
       link: "https://www.impots.gouv.fr",
     },
     appliesWhen: always,
@@ -3661,15 +3530,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-net-net-net",
     category: "real_estate",
     countries: ["FR"],
-    title: "Ton loyer n'est pas ton rendement : pense « net-net-net »",
-    body:
-      "Le loyer encaissé (brut) fond en trois étages. Net de charges : retire taxe foncière (hors TEOM), charges de copro non récupérables, assurance PNO, gestion, entretien et vacance locative. Net-net : retire ensuite l'impôt ET les prélèvements sociaux — 17,2 % en location nue, 18,6 % en meublé depuis 2026. C'est ce dernier chiffre qui doit entrer dans ton budget, pas le loyer affiché.",
-    action: { label: "Calculer le net-net de chaque bien dans le budget" },
+    titleKey: "adv.immo-net-net-net.title",
+    bodyKey: "adv.immo-net-net-net.body",
+    actionLabelKey: "adv.immo-net-net-net.action",
+    action: {},
     appliesWhen: propertyCountAtLeast(2),
     priority: 90,
     figures: [
-      { label: "Prélèv. sociaux (nue)", value: "17,2 %" },
-      { label: "Prélèv. sociaux (meublé 2026)", value: "18,6 %" },
+      { label: "adv.immo-net-net-net.fig.0.label", value: "17,2 %" },
+      { label: "adv.immo-net-net-net.fig.1.label", value: "18,6 %" },
     ],
     sources: [
       "https://www.impots.gouv.fr/particulier/questions/je-donne-un-bien-en-location-dois-je-payer-des-prelevements-sociaux",
@@ -3681,18 +3550,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-micro-foncier-reel",
     category: "tax",
     countries: ["FR"],
-    title: "Location nue : micro-foncier ou réel, le mauvais choix coûte cher",
-    body:
-      "Jusqu'à 15 000 € de loyers annuels, le micro-foncier applique 30 % d'abattement automatique — simple, mais AUCUNE charge déductible en plus. Au réel : travaux, intérêts d'emprunt, taxe foncière, assurances se déduisent, et un déficit foncier s'impute sur ton revenu global jusqu'à 10 700 €/an. Si tes charges dépassent 30 % des loyers, le réel gagne (option irrévocable 3 ans).",
+    titleKey: "adv.immo-micro-foncier-reel.title",
+    bodyKey: "adv.immo-micro-foncier-reel.body",
+    actionLabelKey: "adv.immo-micro-foncier-reel.action",
     action: {
-      label: "Comparer micro-foncier et réel",
       link: "https://www.impots.gouv.fr/particulier/location-vide-de-meubles",
     },
     appliesWhen: propertyCountAtLeast(2),
     priority: 84,
     figures: [
-      { label: "Micro-foncier", value: "≤ 15 000 € · abatt. 30 %" },
-      { label: "Déficit foncier", value: "10 700 €/an" },
+      { label: "adv.immo-micro-foncier-reel.fig.0.label", value: "adv.immo-micro-foncier-reel.fig.0.value" },
+      { label: "adv.immo-micro-foncier-reel.fig.1.label", value: "adv.immo-micro-foncier-reel.fig.1.value" },
     ],
     sources: ["https://www.impots.gouv.fr/particulier/location-vide-de-meubles"],
     lastVerified: "2026-08-06",
@@ -3701,18 +3569,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-lmnp-2026",
     category: "tax",
     countries: ["FR"],
-    title: "Meublé (LMNP) : les règles ont changé, vérifie ton régime",
-    body:
-      "Pour les revenus 2026 : micro-BIC jusqu'à 83 600 € avec 50 % d'abattement (longue durée et tourisme classé) — mais le meublé de tourisme NON classé est tombé à 15 000 € et 30 % (loi Le Meur). Au réel, l'amortissement du bien et des meubles réduit fortement l'imposition. Beaucoup de contenus en ligne datent d'avant la réforme : vérifie sur la source officielle.",
+    titleKey: "adv.immo-lmnp-2026.title",
+    bodyKey: "adv.immo-lmnp-2026.body",
+    actionLabelKey: "adv.immo-lmnp-2026.action",
     action: {
-      label: "Voir les seuils meublé à jour",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F32744",
     },
     appliesWhen: propertyCountAtLeast(2),
     priority: 82,
     figures: [
-      { label: "Micro-BIC 2026", value: "83 600 € · 50 %" },
-      { label: "Tourisme non classé", value: "15 000 € · 30 %" },
+      { label: "adv.immo-lmnp-2026.fig.0.label", value: "83 600 € · 50 %" },
+      { label: "adv.immo-lmnp-2026.fig.1.label", value: "15 000 € · 30 %" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F32744"],
     lastVerified: "2026-08-06",
@@ -3721,11 +3588,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-charges-recuperables",
     category: "real_estate",
     countries: ["FR"],
-    title: "Charges récupérables : la liste est limitative, récupère tout",
-    body:
-      "Le décret 87-713 fixe la liste exacte de ce que tu peux refacturer au locataire : eau, chauffage collectif, entretien des communs, et la TEOM (taxe ordures ménagères — elle est sur ton avis de taxe foncière, beaucoup de bailleurs oublient de la récupérer). La taxe foncière elle-même, le syndic et les gros travaux restent à ta charge : c'est eux qui creusent l'écart brut/net.",
+    titleKey: "adv.immo-charges-recuperables.title",
+    bodyKey: "adv.immo-charges-recuperables.body",
+    actionLabelKey: "adv.immo-charges-recuperables.action",
     action: {
-      label: "Vérifier la liste officielle",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F947",
     },
     appliesWhen: propertyCountAtLeast(2),
@@ -3740,11 +3606,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-gli-visale",
     category: "insurance",
     countries: ["FR"],
-    title: "Impayés : GLI ou Visale, mais pas caution + GLI",
-    body:
-      "La garantie loyers impayés (généralement 2 à 4 % du loyer annuel, déductible au régime réel) n'est PAS cumulable avec une caution personne physique — sauf locataire étudiant ou apprenti. Alternative gratuite : la garantie Visale d'Action Logement, selon le profil du locataire. Dans ton budget bailleur, la GLI est une charge qui s'ajoute à l'étage « net ».",
+    titleKey: "adv.immo-gli-visale.title",
+    bodyKey: "adv.immo-gli-visale.body",
+    actionLabelKey: "adv.immo-gli-visale.action",
     action: {
-      label: "Comparer GLI et Visale",
       link: "https://www.anil.org/votre-besoin/gerer-un-bien/bailleur/impayes-de-loyer/",
     },
     appliesWhen: propertyCountAtLeast(2),
@@ -3760,10 +3625,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "housing-maison-entretien",
     category: "housing",
     countries: "all",
-    title: "Maison : l'entretien ne prévient pas, provisionne-le",
-    body:
-      "En maison, il n'y a pas de copropriété pour lisser les coups durs : toiture, chaudière, façade, clôtures arrivent d'un coup et coûtent cher. Le réflexe : une ligne « entretien maison » alimentée chaque mois, toute l'année, même quand tout va bien — c'est elle qui transforme une toiture à refaire en dépense planifiée au lieu d'un crédit.",
-    action: { label: "Créer une provision mensuelle « entretien maison »" },
+    titleKey: "adv.housing-maison-entretien.title",
+    bodyKey: "adv.housing-maison-entretien.body",
+    actionLabelKey: "adv.housing-maison-entretien.action",
+    action: {},
     appliesWhen: and(housingTypeIs("house"), housingIn("owner", "accessor")),
     priority: 80,
     sources: ["Principe universel de finances personnelles"],
@@ -3773,10 +3638,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "housing-appart-copro",
     category: "housing",
     countries: ["FR"],
-    title: "Copropriété : ton budget se vote en AG, sois-y",
-    body:
-      "En appartement, tes charges se décident à l'assemblée générale : budget prévisionnel, fonds de travaux obligatoire (loi ALUR), et surtout les gros appels de fonds votés parfois des années à l'avance. Lis les PV d'AG, anticipe les travaux votés dans ton budget, et compare le contrat de syndic — c'est un poste négociable que presque personne ne challenge.",
-    action: { label: "Relire le dernier PV d'AG et noter les travaux votés" },
+    titleKey: "adv.housing-appart-copro.title",
+    bodyKey: "adv.housing-appart-copro.body",
+    actionLabelKey: "adv.housing-appart-copro.action",
+    action: {},
     appliesWhen: and(housingTypeIs("apartment"), housingIn("owner", "accessor")),
     priority: 80,
     sources: ["Loi n° 65-557 du 10 juillet 1965 · loi ALUR (fonds de travaux)"],
@@ -3917,14 +3782,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "drom-abattement-ir",
     category: "tax",
     countries: ["FR"],
-    title: "DOM : ta réduction d'impôt automatique",
-    body: (p) => {
+    titleKey: "adv.drom-abattement-ir.title",
+    // Corps DYNAMIQUE : le taux dépend du département — clés posées EN LIGNE.
+    body: (p, { t }) => {
       const forte = p.region === "Guyane" || p.region === "Mayotte";
       return forte
-        ? "En Guyane et à Mayotte, l'impôt sur le revenu issu du barème est automatiquement réduit de 40 % (plafonné à 4 050 €). Aucune démarche — mais vérifie sur ton avis que la réduction apparaît bien, et intègre-la dans ton budget annuel."
-        : "En Guadeloupe, Martinique et à La Réunion, l'impôt sur le revenu issu du barème est automatiquement réduit de 30 % (plafonné à 2 450 €). Aucune démarche — mais vérifie sur ton avis que la réduction apparaît bien, et intègre-la dans ton budget annuel.";
+        ? t("adv.drom-abattement-ir.body.forte")
+        : t("adv.drom-abattement-ir.body.standard");
     },
-    action: { label: "Vérifier sur ton avis d'imposition", link: "https://www.impots.gouv.fr" },
+    actionLabelKey: "adv.drom-abattement-ir.action",
+    action: { link: "https://www.impots.gouv.fr" },
     appliesWhen: regionIs("Guadeloupe", "Martinique", "Guyane", "La Réunion", "Mayotte"),
     priority: 84,
     sources: ["BOFiP BOI-IR-LIQ-20-30-10"],
@@ -3983,15 +3850,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ae-plafonds-tva",
     category: "tax",
     countries: ["FR"],
-    title: "Plafonds micro et TVA 2026 : surveille deux compteurs",
-    body:
-      "Nouveaux plafonds micro 2026 : 203 100 € (vente) / 83 600 € (services). Mais la TVA a SES propres seuils, bien plus bas : franchise jusqu'à 85 000 € (vente) / 37 500 € (services) — la réforme du seuil unique à 25 000 € a été abandonnée. Dépasser le seuil majoré (93 500/41 250) rend la TVA applicable IMMÉDIATEMENT : suis ton CA cumulé dans l'app.",
-    action: { label: "Voir les seuils officiels", link: "https://entreprendre.service-public.gouv.fr/vosdroits/F21746" },
+    titleKey: "adv.ae-plafonds-tva.title",
+    bodyKey: "adv.ae-plafonds-tva.body",
+    actionLabelKey: "adv.ae-plafonds-tva.action",
+    action: { link: "https://entreprendre.service-public.gouv.fr/vosdroits/F21746" },
     appliesWhen: occupationIs("self_employed"),
     priority: 86,
     figures: [
-      { label: "TVA services", value: "37 500 €" },
-      { label: "TVA vente", value: "85 000 €" },
+      { label: "adv.ae-plafonds-tva.fig.0.label", value: "37 500 €" },
+      { label: "adv.ae-plafonds-tva.fig.1.label", value: "85 000 €" },
     ],
     sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F23267", "https://entreprendre.service-public.gouv.fr/vosdroits/F21746"],
     lastVerified: "2026-08-06",
@@ -4000,13 +3867,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ae-acre-2026",
     category: "tax",
     countries: ["FR"],
-    title: "ACRE : l'exonération a fondu au 1er juillet 2026",
-    body:
-      "Si tu crées ton activité : l'ACRE réduit tes cotisations la première année, mais l'exonération est passée de 50 % à 25 % pour les créations à partir du 1er juillet 2026. Conditions (demandeur d'emploi, RSA, 18-25 ans…), pas d'ACRE dans les 3 dernières années, et la demande se fait dans les 60 JOURS suivant le début d'activité — après, c'est perdu.",
-    action: { label: "Vérifier l'éligibilité ACRE", link: "https://entreprendre.service-public.gouv.fr/actualites/A18795" },
+    titleKey: "adv.ae-acre-2026.title",
+    bodyKey: "adv.ae-acre-2026.body",
+    actionLabelKey: "adv.ae-acre-2026.action",
+    action: { link: "https://entreprendre.service-public.gouv.fr/actualites/A18795" },
     appliesWhen: occupationIs("self_employed"),
     priority: 80,
-    figures: [{ label: "Créations dès 07/2026", value: "exonération 25 %" }],
+    figures: [{ label: "adv.ae-acre-2026.fig.0.label", value: "adv.ae-acre-2026.fig.0.value" }],
     sources: ["https://entreprendre.service-public.gouv.fr/actualites/A18795"],
     lastVerified: "2026-08-06",
   },
@@ -4014,13 +3881,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ae-chomage-retraite",
     category: "insurance",
     countries: ["FR"],
-    title: "Indépendant : ni chômage automatique, ni retraite sans CA",
-    body:
-      "Deux angles morts du statut : pas d'assurance chômage (l'ATI existe mais elle est restrictive : ~6 mois, conditions strictes, une fois dans la vie) — vise donc un fonds d'urgence de 6 à 12 mois, pas 3. Et ta retraite ne valide des trimestres que si ton CA dépasse des seuils minimaux chaque année : une année blanche = zéro trimestre.",
-    action: { label: "Vérifier les seuils retraite", link: "https://entreprendre.service-public.gouv.fr/vosdroits/F23369" },
+    titleKey: "adv.ae-chomage-retraite.title",
+    bodyKey: "adv.ae-chomage-retraite.body",
+    actionLabelKey: "adv.ae-chomage-retraite.action",
+    action: {
+      link: "https://entreprendre.service-public.gouv.fr/vosdroits/F23369",
+    },
     appliesWhen: occupationIs("self_employed"),
     priority: 84,
-    figures: [{ label: "Fonds d'urgence visé", value: "6-12 mois" }],
+    figures: [{ label: "adv.ae-chomage-retraite.fig.0.label", value: "adv.ae-chomage-retraite.fig.0.value" }],
     sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F23369", "https://www.francetravail.fr"],
     lastVerified: "2026-08-06",
   },
@@ -4111,18 +3980,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-credit-impot-garde",
     category: "kids",
     countries: ["FR"],
-    title: "Garde d'enfant : l'État rembourse la moitié",
-    body:
-      "Crèche, halte-garderie, assistante maternelle agréée, périscolaire : 50 % de crédit d'impôt jusqu'à 3 500 € de dépenses par enfant de moins de 6 ans (soit 1 750 € max par enfant) — après déduction du CMG. Et à domicile, les services à la personne donnent aussi 50 % (plafond 12 000 € + 1 500 €/enfant). Vérifie que tout est déclaré, les cases se pré-remplissent mal.",
+    titleKey: "adv.fr-credit-impot-garde.title",
+    bodyKey: "adv.fr-credit-impot-garde.body",
+    actionLabelKey: "adv.fr-credit-impot-garde.action",
     action: {
-      label: "Vérifier le crédit garde d'enfant",
       link: "https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire",
     },
     appliesWhen: kids("0-6"),
     priority: 88,
     figures: [
-      { label: "Crédit d'impôt", value: "50 %" },
-      { label: "Max / enfant < 6 ans", value: "1 750 €" },
+      { label: "adv.fr-credit-impot-garde.fig.0.label", value: "50 %" },
+      { label: "adv.fr-credit-impot-garde.fig.1.label", value: "1 750 €" },
     ],
     sources: ["https://www.impots.gouv.fr/particulier/questions/je-fais-garder-mon-jeune-enfant-lexterieur-du-domicile-que-puis-je-deduire"],
     lastVerified: "2026-08-06",
@@ -4131,11 +3999,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-cmg-reforme",
     category: "kids",
     countries: ["FR"],
-    title: "CMG : la réforme 2025 a changé ton reste à charge",
-    body:
-      "Le Complément de libre choix du Mode de Garde est calculé autrement depuis septembre 2025 (revenus, nombre d'enfants, heures réelles de garde) — ton reste à charge a pu monter ou baisser sans que tu t'en rendes compte. Nouveautés : CMG jusqu'aux 12 ans de l'enfant pour les parents isolés, et partageable en résidence alternée. Refais le point sur monenfant.fr.",
+    titleKey: "adv.fr-cmg-reforme.title",
+    bodyKey: "adv.fr-cmg-reforme.body",
+    actionLabelKey: "adv.fr-cmg-reforme.action",
     action: {
-      label: "Vérifier mon CMG",
       link: "https://www.caf.fr/allocataires/actualites/actualites-nationales/reforme-du-cmg-la-foire-aux-questions",
     },
     appliesWhen: kids("0-6", "7-11"),
@@ -4147,18 +4014,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-pension-alimentaire-majeur",
     category: "tax",
     countries: ["FR"],
-    title: "Tu aides ton enfant majeur ? C'est déductible",
-    body:
-      "La pension versée à un enfant majeur NON rattaché à ton foyer fiscal se déduit de ton revenu imposable : jusqu'à 6 855 € par enfant (revenus 2025), et un forfait de 4 075 € sans justificatifs s'il vit sous ton toit. Compare chaque année : rattachement (quotient familial) ou pension déduite — le gagnant dépend de ta TMI.",
+    titleKey: "adv.fr-pension-alimentaire-majeur.title",
+    bodyKey: "adv.fr-pension-alimentaire-majeur.body",
+    actionLabelKey: "adv.fr-pension-alimentaire-majeur.action",
     action: {
-      label: "Voir les plafonds à jour",
       link: "https://www.service-public.gouv.fr/particuliers/actualites/A15453",
     },
     appliesWhen: kids("19+"),
     priority: 84,
     figures: [
-      { label: "Plafond (revenus 2025)", value: "6 855 €" },
-      { label: "Forfait sous ton toit", value: "4 075 €" },
+      { label: "adv.fr-pension-alimentaire-majeur.fig.0.label", value: "6 855 €" },
+      { label: "adv.fr-pension-alimentaire-majeur.fig.1.label", value: "4 075 €" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A15453"],
     lastVerified: "2026-08-06",
@@ -4167,18 +4033,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-dons-coluche-double",
     category: "tax",
     countries: ["FR"],
-    title: "Dons « Coluche » : le plafond des 75 % a doublé",
-    body:
-      "Les dons aux organismes d'aide aux personnes en difficulté donnent 75 % de réduction d'impôt — et le plafond est passé à 2 000 € pour les dons effectués depuis le 14 octobre 2025 (au-delà, l'excédent bascule à 66 %). Presque tout le web affiche encore 1 000 €. Si tu donnes régulièrement, c'est jusqu'à 1 500 € d'impôt en moins.",
+    titleKey: "adv.fr-dons-coluche-double.title",
+    bodyKey: "adv.fr-dons-coluche-double.body",
+    actionLabelKey: "adv.fr-dons-coluche-double.action",
     action: {
-      label: "Voir la règle officielle",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F426",
     },
     appliesWhen: always,
     priority: 78,
     figures: [
-      { label: "Réduction", value: "75 %" },
-      { label: "Plafond (dons ≥ 14/10/2025)", value: "2 000 €" },
+      { label: "adv.fr-dons-coluche-double.fig.0.label", value: "75 %" },
+      { label: "adv.fr-dons-coluche-double.fig.1.label", value: "2 000 €" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F426"],
     lastVerified: "2026-08-06",
@@ -4187,11 +4052,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-parent-isole-case-t",
     category: "tax",
     countries: ["FR"],
-    title: "Parent solo : la case T vaut une part entière",
-    body:
-      "Si tu vis seul·e avec tes enfants à charge, coche la case T : ton premier enfant compte pour une part ENTIÈRE de quotient familial au lieu d'une demi-part (avantage plafonné, réindexé chaque année). C'est l'une des cases les plus oubliées de la déclaration — et l'une des plus rentables.",
+    titleKey: "adv.fr-parent-isole-case-t.title",
+    bodyKey: "adv.fr-parent-isole-case-t.body",
+    actionLabelKey: "adv.fr-parent-isole-case-t.action",
     action: {
-      label: "Vérifier la case T sur ma déclaration",
       link: "https://www.impots.gouv.fr",
     },
     appliesWhen: familyIn("single_parent"),
@@ -4203,11 +4067,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-cantine-bourses",
     category: "kids",
     countries: ["FR"],
-    title: "Cantine à 1 € et bourses scolaires : as-tu vérifié ?",
-    body:
-      "Plus de 4 000 communes rurales proposent la cantine à 1 € (ou moins) selon le quotient familial — demande à ta mairie. Et les bourses de collège/lycée se demandent en ligne via EduConnect, avec un simulateur officiel. Deux dispositifs sous-utilisés faute d'être connus.",
+    titleKey: "adv.fr-cantine-bourses.title",
+    bodyKey: "adv.fr-cantine-bourses.body",
+    actionLabelKey: "adv.fr-cantine-bourses.action",
     action: {
-      label: "Simuler les bourses scolaires",
       link: "https://www.education.gouv.fr/les-aides-financieres-au-college-4970",
     },
     appliesWhen: kids("7-11", "12-15", "16-18"),
@@ -4219,16 +4082,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "pets-identification-obligatoire",
     category: "pets",
     countries: ["FR"],
-    title: "Identification : obligatoire, et l'amende pique",
-    body:
-      "L'identification (puce ou tatouage, fichier I-CAD) est obligatoire : chiens dès 4 mois, chats dès 7 mois — défaut = amende jusqu'à 750 €. Compte une fourchette de 50 à 100 € chez le vétérinaire (prix libre). Depuis 2022, un certificat d'engagement gratuit est aussi exigé 7 jours avant toute acquisition : il liste les vrais coûts récurrents — lis-le, c'est ton budget.",
+    titleKey: "adv.pets-identification-obligatoire.title",
+    bodyKey: "adv.pets-identification-obligatoire.body",
+    actionLabelKey: "adv.pets-identification-obligatoire.action",
     action: {
-      label: "Vérifier l'identification sur I-CAD",
       link: "https://www.i-cad.fr",
     },
     appliesWhen: hasAnyPet,
     priority: 76,
-    figures: [{ label: "Amende encourue", value: "750 €" }],
+    figures: [{ label: "adv.pets-identification-obligatoire.fig.0.label", value: "750 €" }],
     sources: ["https://www.i-cad.fr", "https://agriculture.gouv.fr/animaux-de-compagnie-equides-tout-savoir-sur-le-certificat-dengagement-et-de-connaissance"],
     lastVerified: "2026-08-06",
   },
@@ -4273,11 +4135,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-ptz-primo",
     category: "real_estate",
     countries: ["FR"],
-    title: "PTZ : l'État te prête une partie de ton premier logement à 0 %",
-    body:
-      "Le Prêt à Taux Zéro finance une partie de l'achat de ta première résidence principale (pas propriétaire depuis 2 ans), sous plafonds de ressources — et depuis 2025 il couvre le NEUF sur tout le territoire. Aucune condition d'âge : c'est le statut de primo-accédant qui compte. Avant tout projet, fais la simulation : ça change la capacité d'emprunt.",
+    titleKey: "adv.immo-ptz-primo.title",
+    bodyKey: "adv.immo-ptz-primo.body",
+    actionLabelKey: "adv.immo-ptz-primo.action",
     action: {
-      label: "Vérifier l'éligibilité PTZ",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F10871",
     },
     appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35", "36-50")),
@@ -4289,11 +4150,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-pel-jeune",
     category: "real_estate",
     countries: ["FR"],
-    title: "PEL : verrouille un taux de prêt des années à l'avance",
-    body:
-      "Le Plan Épargne Logement fige, dès l'ouverture, le taux du futur prêt immobilier auquel il donne droit — utile quand tu épargnes pour un achat à 4-10 ans. Versement minimum annuel, plafond de dépôt, prime selon la génération du plan : les paramètres changent par génération, mais le principe demeure : ouvrir tôt fige les conditions. Compare avec un simple livret selon les taux du moment.",
+    titleKey: "adv.immo-pel-jeune.title",
+    bodyKey: "adv.immo-pel-jeune.body",
+    actionLabelKey: "adv.immo-pel-jeune.action",
     action: {
-      label: "Comparer PEL et alternatives",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F16140",
     },
     appliesWhen: and(housingIn("renter", "free_housing"), ageIn("18-25", "26-35")),
@@ -4305,11 +4165,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-bail-mobilite",
     category: "housing",
     countries: ["FR"],
-    title: "Bail mobilité : le contrat souple des étudiants et alternants",
-    body:
-      "Meublé, de 1 à 10 mois, SANS dépôt de garantie : le bail mobilité est réservé aux étudiants, alternants, stagiaires, personnes en formation ou mutation professionnelle. Couplé à la garantie Visale (gratuite), il supprime les deux gros obstacles d'entrée : la caution et le garant. Pense à le demander explicitement — les bailleurs n'y pensent pas toujours.",
+    titleKey: "adv.immo-bail-mobilite.title",
+    bodyKey: "adv.immo-bail-mobilite.body",
+    actionLabelKey: "adv.immo-bail-mobilite.action",
     action: {
-      label: "Voir les règles du bail mobilité",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34759",
     },
     appliesWhen: and(housingIn("renter"), or(ageIn("18-25"), occupationIs("student"))),
@@ -4321,11 +4180,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "immo-action-logement-jeunes",
     category: "housing",
     countries: ["FR"],
-    title: "Action Logement : les aides jeunes que ton employeur finance déjà",
-    body:
-      "Si tu es salarié (ou alternant) du privé, Action Logement propose : l'avance LOCA-PASS (dépôt de garantie prêté à 0 %), l'aide MOBILI-JEUNE® qui prend en charge une partie du loyer des alternants de moins de 30 ans, et la garantie Visale. Financées par la cotisation logement des entreprises — tu y as droit, réclame-les.",
+    titleKey: "adv.immo-action-logement-jeunes.title",
+    bodyKey: "adv.immo-action-logement-jeunes.body",
+    actionLabelKey: "adv.immo-action-logement-jeunes.action",
     action: {
-      label: "Tester ton éligibilité Action Logement",
       link: "https://www.actionlogement.fr",
     },
     appliesWhen: and(housingIn("renter"), ageIn("18-25", "26-35")),
@@ -4377,16 +4235,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-frais-succession",
     category: "inheritance",
     countries: ["FR"],
-    title: "Frais bancaires de succession : plafonnés depuis fin 2025",
-    body:
-      "Les frais de clôture des comptes d'un défunt sont désormais plafonnés à 1 % du total des soldes, avec un maximum de 857 € (montant 2026, réindexé chaque année). Attention : les cas de gratuité initialement prévus (défunt mineur, petit solde) ont été censurés par le Conseil constitutionnel en juin 2026 — seul le plafond subsiste. Vérifie la facture, les erreurs sont fréquentes.",
+    titleKey: "adv.fr-frais-succession.title",
+    bodyKey: "adv.fr-frais-succession.body",
+    actionLabelKey: "adv.fr-frais-succession.action",
     action: {
-      label: "Voir la règle en vigueur",
       link: "https://www.service-public.gouv.fr/particuliers/actualites/A18973",
     },
     appliesWhen: always,
     priority: 60,
-    figures: [{ label: "Plafond 2026", value: "1 % · max 857 €" }],
+    figures: [{ label: "adv.fr-frais-succession.fig.0.label", value: "adv.fr-frais-succession.fig.0.value" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A18973"],
     lastVerified: "2026-08-06",
   },
@@ -4425,11 +4282,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-c2s",
     category: "insurance",
     countries: ["FR"],
-    title: "Complémentaire santé solidaire : une mutuelle gratuite ou à moins d'1 €/jour",
-    body:
-      "Sous plafonds de ressources (revalorisés chaque avril), la C2S est une vraie complémentaire santé GRATUITE — ou avec une petite participation selon l'âge au-dessus du plafond. Des millions d'ayants droit ne la demandent jamais. La simulation prend 5 minutes sur ameli.fr ou mesdroitssociaux.gouv.fr, la demande se fait depuis le compte ameli.",
+    titleKey: "adv.fr-c2s.title",
+    bodyKey: "adv.fr-c2s.body",
+    actionLabelKey: "adv.fr-c2s.action",
     action: {
-      label: "Faire la simulation (ameli)",
       link: "https://www.ameli.fr/assure/droits-demarches/difficultes-acces-droits-soins/complementaire-sante/complementaire-sante-beneficiaires",
     },
     appliesWhen: savingsCapacityLow,
@@ -4441,11 +4297,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-100-sante",
     category: "insurance",
     countries: ["FR"],
-    title: "Lunettes, dents, audition : le panier 100 % Santé = zéro reste à charge",
-    body:
-      "Avec n'importe quel contrat de mutuelle « responsable » (la quasi-totalité du marché) ou la C2S, tu as droit à des montures, verres, couronnes, dentiers et aides auditives SANS aucun reste à charge — il suffit de demander le devis « 100 % Santé » que le professionnel est obligé de proposer. Beaucoup paient des centaines d'euros faute de le demander.",
+    titleKey: "adv.fr-100-sante.title",
+    bodyKey: "adv.fr-100-sante.body",
+    actionLabelKey: "adv.fr-100-sante.action",
     action: {
-      label: "Comprendre le 100 % Santé (ameli)",
       link: "https://www.ameli.fr/assure/remboursements/rembourse/soins-protheses-dentaires-optique-audition/soins-dentaires-comprendre-le-100-sante",
     },
     appliesWhen: always,
@@ -4457,11 +4312,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-mt-dents",
     category: "kids",
     countries: ["FR"],
-    title: "M'T dents : le rendez-vous dentaire gratuit chaque année (3-24 ans)",
-    body:
-      "Le rendez-vous de prévention bucco-dentaire est désormais ANNUEL de 3 à 24 ans : pris en charge à 100 %, sans avance de frais, sans courrier d'invitation — la carte Vitale suffit, précise « M'T dents » en prenant rendez-vous. Les soins qui en découlent sont aussi couverts à 100 % pendant 6 mois. Pour toute la fratrie, c'est des centaines d'euros de prévention gratuite.",
+    titleKey: "adv.fr-mt-dents.title",
+    bodyKey: "adv.fr-mt-dents.body",
+    actionLabelKey: "adv.fr-mt-dents.action",
     action: {
-      label: "Voir le dispositif (ameli)",
       link: "https://www.ameli.fr/assure/sante/themes/carie-dentaire/mt-dents-tous-les-ans",
     },
     appliesWhen: or(hasAnyKids, ageIn("18-25")),
@@ -4473,11 +4327,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-resiliation-mutuelle",
     category: "insurance",
     countries: ["FR"],
-    title: "Ta mutuelle se résilie à tout moment après un an",
-    body:
-      "Toute complémentaire santé individuelle peut être résiliée à tout moment après la première année, sans frais ni pénalité — et c'est le NOUVEL assureur qui s'occupe des démarches. Compare chaque année : à garanties égales, les écarts de cotisation sont importants, surtout après 50 ans. Même règle pour l'assurance auto et habitation (loi Hamon).",
+    titleKey: "adv.fr-resiliation-mutuelle.title",
+    bodyKey: "adv.fr-resiliation-mutuelle.body",
+    actionLabelKey: "adv.fr-resiliation-mutuelle.action",
     action: {
-      label: "Voir les règles de résiliation",
       link: "https://www.economie.gouv.fr/particuliers/gerer-mon-argent/emprunter-et-sassurer/assurance-habitation-auto-complementaire-sante-comment-resilier-son-contrat",
     },
     appliesWhen: always,
@@ -4513,18 +4366,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-aah",
     category: "disability",
     countries: ["FR"],
-    title: "AAH : un revenu à toi, qui ne dépend plus de ton conjoint",
-    body:
-      "L'allocation aux adultes handicapés atteint 1 041,59 €/mois au maximum (avril 2026), pour un taux d'incapacité d'au moins 80 %, ou de 50 à 79 % avec une restriction d'accès à l'emploi reconnue. Depuis octobre 2023, les revenus du conjoint ne sont PLUS comptés : se mettre en couple ne supprime plus l'allocation. Et travailler reste gagnant — 80 % de tes premiers revenus d'activité sont neutralisés dans le calcul.",
+    titleKey: "adv.hand-aah.title",
+    bodyKey: "adv.hand-aah.body",
+    actionLabelKey: "adv.hand-aah.action",
     action: {
-      label: "Vérifier tes droits à l'AAH",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12242",
     },
     appliesWhen: disabledSelf,
     priority: 96,
     figures: [
-      { label: "Maximum", value: "1 041,59 €/mois" },
-      { label: "Conjoint", value: "revenus non comptés" },
+      { label: "adv.hand-aah.fig.0.label", value: "adv.hand-aah.fig.0.value" },
+      { label: "adv.hand-aah.fig.1.label", value: "adv.hand-aah.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F12242", "https://www.service-public.gouv.fr/particuliers/actualites/A16521"],
     lastVerified: "2026-08-08",
@@ -4533,18 +4385,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-pch",
     category: "disability",
     countries: ["FR"],
-    title: "PCH : ce n'est PAS une aide sous condition de ressources",
-    body:
-      "Beaucoup y renoncent en croyant « gagner trop ». Faux : tes revenus ne changent que le reste à charge (0 % en dessous d'environ 31 000 €/an, 20 % au-dessus), jamais le droit lui-même. Et les salaires sont même exclus de ce calcul. La PCH couvre l'aide humaine, les aides techniques (13 200 € par 10 ans), l'aménagement du logement et du véhicule (10 000 € chacun), les surcoûts de transport et le chien guide ou d'assistance.",
+    titleKey: "adv.hand-pch.title",
+    bodyKey: "adv.hand-pch.body",
+    actionLabelKey: "adv.hand-pch.action",
     action: {
-      label: "Voir les 5 éléments de la PCH",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F14202",
     },
     appliesWhen: or(disabledSelf, disabledChild),
     priority: 94,
     figures: [
-      { label: "Aides techniques", value: "13 200 € / 10 ans" },
-      { label: "Logement", value: "10 000 € / 10 ans" },
+      { label: "adv.hand-pch.fig.0.label", value: "adv.hand-pch.fig.0.value" },
+      { label: "adv.hand-pch.fig.1.label", value: "adv.hand-pch.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F14202"],
     lastVerified: "2026-08-08",
@@ -4553,11 +4404,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-mdph-dossier",
     category: "disability",
     countries: ["FR"],
-    title: "MDPH : les 3 règles qui évitent une rupture de droits",
-    body:
-      "Un seul formulaire (Cerfa 15692*01) ouvre TOUS les droits — coche chaque rubrique qui te concerne, une case oubliée n'est jamais instruite. Le certificat médical doit avoir moins de 12 mois. Et surtout : dépose ton renouvellement 6 mois avant l'échéance, car un dossier tardif crée une coupure de versement qui n'est pas toujours rattrapée. Sans réponse au bout de 4 mois, la demande est considérée comme refusée.",
+    titleKey: "adv.hand-mdph-dossier.title",
+    bodyKey: "adv.hand-mdph-dossier.body",
+    actionLabelKey: "adv.hand-mdph-dossier.action",
     action: {
-      label: "Déposer ou renouveler un dossier MDPH",
       link: "https://www.monparcourshandicap.gouv.fr/aides/le-depot-du-dossier-et-le-traitement-de-la-demande-par-la-maison-departementale-des-personnes",
     },
     appliesWhen: disabilityAny,
@@ -4569,11 +4419,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-recours",
     category: "disability",
     countries: ["FR"],
-    title: "Un refus de la MDPH n'est jamais définitif",
-    body:
-      "Tu as 2 mois pour déposer un recours (le RAPO) auprès de la MDPH elle-même — c'est une étape obligatoire avant le tribunal, et elle aboutit souvent. En recommandé avec accusé de réception, avec la copie de la décision contestée et, si possible, des éléments médicaux nouveaux. Si la MDPH ne répond pas sous 2 mois, la voie du tribunal s'ouvre.",
+    titleKey: "adv.hand-recours.title",
+    bodyKey: "adv.hand-recours.body",
+    actionLabelKey: "adv.hand-recours.action",
     action: {
-      label: "Comprendre le recours (guide en Facile à lire)",
       link: "https://www.cnsa.fr/sites/default/files/2024-06/Fiche-accessible-en-Facile_A_lire_Voies-Recours_MDPH-Demande-Refusee.pdf",
     },
     appliesWhen: disabilityAny,
@@ -4585,11 +4434,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-cmi",
     category: "disability",
     countries: ["FR"],
-    title: "Carte Mobilité Inclusion : le stationnement gratuit, partout",
-    body:
-      "La mention « stationnement » donne le stationnement gratuit et sans limite de durée sur toute la voirie publique — quel que soit ton taux d'incapacité, et elle suit LA PERSONNE, pas la voiture (utilisable en tant que passager). En ville, c'est souvent l'économie mensuelle la plus concrète. La mention « invalidité » (taux ≥ 80 %) ajoute une demi-part fiscale et des réductions de transport.",
+    titleKey: "adv.hand-cmi.title",
+    bodyKey: "adv.hand-cmi.body",
+    actionLabelKey: "adv.hand-cmi.action",
     action: {
-      label: "Demander la CMI",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34049",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -4601,16 +4449,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-fiscalite",
     category: "disability",
     countries: ["FR"],
-    title: "Impôts : la demi-part compte dès la DEMANDE de carte",
-    body:
-      "La CMI mention invalidité donne une demi-part supplémentaire — et le droit s'ouvre dès lors que la carte a été DEMANDÉE avant le 1er janvier de l'année d'imposition, même si elle n'est pas encore arrivée. Autre levier méconnu : la TVA tombe à 5,5 % au lieu de 20 % sur les appareillages et équipements adaptés. Vérifie tes factures — l'oubli du taux réduit par le vendeur est fréquent, et l'écart est de 14,5 points.",
+    titleKey: "adv.hand-fiscalite.title",
+    bodyKey: "adv.hand-fiscalite.body",
+    actionLabelKey: "adv.hand-fiscalite.action",
     action: {
-      label: "Déclarer une invalidité aux impôts",
       link: "https://www.impots.gouv.fr/particulier/questions/jai-une-carte-dinvalidite-comment-la-declarer",
     },
     appliesWhen: or(disabledSelf, disabledChild),
     priority: 86,
-    figures: [{ label: "TVA équipements adaptés", value: "5,5 %" }],
+    figures: [{ label: "adv.hand-fiscalite.fig.0.label", value: "5,5 %" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F387", "https://bofip.impots.gouv.fr/bofip/1724-PGP"],
     lastVerified: "2026-08-08",
   },
@@ -4618,16 +4465,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-logement",
     category: "disability",
     countries: ["FR"],
-    title: "Adapter le logement : jusqu'à 70 % financés",
-    body:
-      "MaPrimeAdapt' prend en charge 50 à 70 % des travaux d'adaptation (douche de plain-pied, élargissement, monte-escalier…) dans la limite de 22 000 € HT, sous conditions de ressources — accessible dès un taux d'incapacité de 50 %, ou si tu perçois PCH, AEEH ou AAH. Locataire du privé : c'est possible avec l'accord du bailleur. Action Logement ajoute jusqu'à 5 000 € pour la salle de bains, cumulables.",
+    titleKey: "adv.hand-logement.title",
+    bodyKey: "adv.hand-logement.body",
+    actionLabelKey: "adv.hand-logement.action",
     action: {
-      label: "Déposer un dossier MaPrimeAdapt'",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F37501",
     },
     appliesWhen: and(or(disabledSelf, disabledChild), housingIn("owner", "accessor", "renter")),
     priority: 88,
-    figures: [{ label: "Prise en charge", value: "50 à 70 % · max 22 000 € HT" }],
+    figures: [{ label: "adv.hand-logement.fig.0.label", value: "adv.hand-logement.fig.0.value" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F37501"],
     lastVerified: "2026-08-08",
   },
@@ -4635,16 +4481,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-emploi",
     category: "disability",
     countries: ["FR"],
-    title: "RQTH : confidentielle, et elle finance ton poste de travail",
-    body:
-      "La reconnaissance de la qualité de travailleur handicapé est CONFIDENTIELLE — tu n'es jamais obligé d'en parler à ton employeur ou à tes collègues. Elle ouvre les aides de l'Agefiph (privé) ou du FIPHFP (public) : adaptation du poste, matériel, formation aménagée, interprète LSF, et jusqu'à 6 300 € pour créer ton entreprise. Possible dès 16 ans, parfois attribuée définitivement.",
+    titleKey: "adv.hand-emploi.title",
+    bodyKey: "adv.hand-emploi.body",
+    actionLabelKey: "adv.hand-emploi.action",
     action: {
-      label: "Voir les aides Agefiph",
       link: "https://www.agefiph.fr/aides-financieres",
     },
     appliesWhen: and(disabledSelf, occupationIs("employee", "self_employed", "civil_servant", "unemployed", "student")),
     priority: 88,
-    figures: [{ label: "Création d'entreprise", value: "6 300 €" }],
+    figures: [{ label: "adv.hand-emploi.fig.0.label", value: "6 300 €" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F1650", "https://www.agefiph.fr/aides-financieres"],
     lastVerified: "2026-08-08",
   },
@@ -4652,16 +4497,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-mva",
     category: "disability",
     countries: ["FR"],
-    title: "Majoration pour la vie autonome : versée sans rien demander",
-    body:
-      "104,77 €/mois s'ajoutent automatiquement à l'AAH si tu as un taux d'au moins 80 %, que tu vis dans un logement indépendant avec une aide au logement, et que tu n'as pas de revenu d'activité. Aucune démarche — mais vérifie qu'elle figure bien sur ton relevé CAF. Elle se suspend après 60 jours d'hospitalisation et reprend au retour à domicile.",
+    titleKey: "adv.hand-mva.title",
+    bodyKey: "adv.hand-mva.body",
+    actionLabelKey: "adv.hand-mva.action",
     action: {
-      label: "Vérifier la MVA sur ton relevé CAF",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12903",
     },
     appliesWhen: disabledSelf,
     priority: 82,
-    figures: [{ label: "Montant", value: "104,77 €/mois" }],
+    figures: [{ label: "adv.hand-mva.fig.0.label", value: "adv.hand-mva.fig.0.value" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F12903"],
     lastVerified: "2026-08-08",
   },
@@ -4669,18 +4513,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-aeeh",
     category: "disability",
     countries: ["FR"],
-    title: "AEEH : sans condition de ressources, quel que soit ton salaire",
-    body:
-      "L'allocation d'éducation de l'enfant handicapé (153,01 €/mois de base, avril 2026) est versée pour tout enfant de moins de 20 ans avec un taux d'au moins 80 %, ou de 50 à 79 % s'il fréquente un établissement adapté ou reçoit des soins. Aucune condition de revenus. Six niveaux de compléments s'y ajoutent — jusqu'à 1 298,44 €/mois — selon le temps de travail que tu as dû réduire et les dépenses engagées.",
+    titleKey: "adv.hand-aeeh.title",
+    bodyKey: "adv.hand-aeeh.body",
+    actionLabelKey: "adv.hand-aeeh.action",
     action: {
-      label: "Demander l'AEEH",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F14809",
     },
     appliesWhen: disabledChild,
     priority: 96,
     figures: [
-      { label: "Base", value: "153,01 €/mois" },
-      { label: "Complément max", value: "1 298,44 €/mois" },
+      { label: "adv.hand-aeeh.fig.0.label", value: "adv.hand-aeeh.fig.0.value" },
+      { label: "adv.hand-aeeh.fig.1.label", value: "adv.hand-aeeh.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F14809"],
     lastVerified: "2026-08-08",
@@ -4689,11 +4532,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-aeeh-vs-pch",
     category: "disability",
     countries: ["FR"],
-    title: "Complément d'AEEH ou PCH ? Le choix se rejoue à chaque renouvellement",
-    body:
-      "Les deux ne se cumulent pas — sauf l'élément « aménagement du logement et du véhicule » de la PCH, qui reste cumulable. Repère de la CAF : le complément d'AEEH est souvent plus favorable pour un jeune enfant quand un parent réduit son temps de travail ; la PCH devient plus intéressante à l'adolescence, quand il faut rémunérer un intervenant extérieur. La CDAPH doit te présenter le comparatif chiffré — exige-le, et rejoue le choix à chaque renouvellement.",
+    titleKey: "adv.hand-aeeh-vs-pch.title",
+    bodyKey: "adv.hand-aeeh-vs-pch.body",
+    actionLabelKey: "adv.hand-aeeh-vs-pch.action",
     action: {
-      label: "Comparer AEEH et PCH (CAF)",
       link: "https://www.caf.fr/allocataires/vies-de-famille/articles/handicap-complement-d-aeeh-ou-pch-que-choisir",
     },
     appliesWhen: disabledChild,
@@ -4705,11 +4547,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-scolarite",
     category: "disability",
     countries: ["FR"],
-    title: "École : l'AESH, le matériel et le transport sont gratuits",
-    body:
-      "L'accompagnant (AESH) est financé par l'Éducation nationale. Le matériel adapté — ordinateur, clavier braille, logiciels — est prêté par l'académie et utilisable AUSSI à la maison. Et si le handicap empêche les transports en commun, le transport scolaire adapté est pris en charge par le département. Attention : ces trois droits se demandent dans la rubrique « Scolarité » du dossier MDPH. Non cochée, la demande n'est pas instruite.",
+    titleKey: "adv.hand-scolarite.title",
+    bodyKey: "adv.hand-scolarite.body",
+    actionLabelKey: "adv.hand-scolarite.action",
     action: {
-      label: "Voir les accompagnements scolaires",
       link: "https://www.monparcourshandicap.gouv.fr/scolarite/quels-sont-les-accompagnements-notifies-par-la-mdph",
     },
     appliesWhen: disabledChild,
@@ -4721,16 +4562,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ajpp",
     category: "disability",
     countries: ["FR"],
-    title: "Arrêter de travailler pour son enfant : 66,64 €/jour",
-    body:
-      "L'AJPP compense les journées où tu dois être présent auprès de ton enfant gravement malade ou handicapé : 66,64 € par jour, jusqu'à 22 jours par mois, dans la limite de 310 jours sur 3 ans. Un complément mensuel de 129,36 € couvre les frais engagés, sous plafond de ressources. Le formulaire (Cerfa 12666) se remplit AVEC le médecin — c'est son certificat détaillé qui déclenche le droit.",
+    titleKey: "adv.hand-ajpp.title",
+    bodyKey: "adv.hand-ajpp.body",
+    actionLabelKey: "adv.hand-ajpp.action",
     action: {
-      label: "Demander l'AJPP",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F15132",
     },
     appliesWhen: disabledChild,
     priority: 86,
-    figures: [{ label: "Par jour", value: "66,64 €" }],
+    figures: [{ label: "adv.hand-ajpp.fig.0.label", value: "66,64 €" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F15132"],
     lastVerified: "2026-08-08",
   },
@@ -4738,18 +4578,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-aidant",
     category: "disability",
     countries: ["FR"],
-    title: "Aidant : tes trimestres de retraite continuent de compter",
-    body:
-      "Le congé de proche aidant (3 mois renouvelables, 1 an maximum sur la carrière) n'est pas rémunéré par l'employeur, mais l'AJPA verse 66,64 €/jour jusqu'à 22 jours par mois — et tu restes affilié à l'assurance vieillesse des aidants : tes trimestres continuent de courir. Le levier le plus important reste méconnu : la personne aidée peut te dédommager jusqu'à 1 523,80 €/mois via l'aide humaine de SA PCH.",
+    titleKey: "adv.hand-aidant.title",
+    bodyKey: "adv.hand-aidant.body",
+    actionLabelKey: "adv.hand-aidant.action",
     action: {
-      label: "Congé de proche aidant et AJPA",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F16920",
     },
     appliesWhen: or(isCaregiver, disabledChild),
     priority: 84,
     figures: [
-      { label: "AJPA", value: "66,64 €/jour" },
-      { label: "Dédommagement PCH", value: "jusqu'à 1 523,80 €/mois" },
+      { label: "adv.hand-aidant.fig.0.label", value: "adv.hand-aidant.fig.0.value" },
+      { label: "adv.hand-aidant.fig.1.label", value: "adv.hand-aidant.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F16920", "https://www.cnsa.fr/budget-et-financement/autres-allocations-et-prestations/allocation-journaliere-du-proche-aidant"],
     lastVerified: "2026-08-08",
@@ -4758,11 +4597,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-pch-parentalite",
     category: "disability",
     countries: ["FR"],
-    title: "Parent en situation de handicap : la PCH parentalité existe",
-    body:
-      "Créée en 2021 et très peu réclamée : si tu es éligible à la PCH et que tu as un enfant de moins de 7 ans, un forfait d'aide humaine s'ajoute — de la naissance aux 3 ans, puis de 3 à 7 ans, avec un montant majoré pour les parents isolés. S'y ajoutent des forfaits d'aides techniques à la naissance, aux 3 ans et aux 6 ans. Si tu perçois déjà la PCH, la demande est simplifiée.",
+    titleKey: "adv.hand-pch-parentalite.title",
+    bodyKey: "adv.hand-pch-parentalite.body",
+    actionLabelKey: "adv.hand-pch-parentalite.action",
     action: {
-      label: "Voir la PCH parentalité",
       link: "https://www.monparcourshandicap.gouv.fr/aides/la-prestation-de-compensation-du-handicap-pch-parentalite",
     },
     appliesWhen: and(disabledSelf, kids("0-6")),
@@ -4774,11 +4612,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-retraite",
     category: "disability",
     countries: ["FR"],
-    title: "AAH et retraite : ce qui change à l'âge légal",
-    body:
-      "Avec un taux d'au moins 80 %, l'AAH continue APRÈS l'âge légal, en complément de ta retraite, tant que celle-ci reste sous 1 041,59 € — et tu n'as pas l'obligation de demander l'ASPA (celle-ci est récupérable sur succession, pas l'AAH). La retraite pour inaptitude est liquidée automatiquement au taux plein. Avec un taux de 50 à 79 %, en revanche, l'AAH s'arrête : prépare la bascule un an avant.",
+    titleKey: "adv.hand-retraite.title",
+    bodyKey: "adv.hand-retraite.body",
+    actionLabelKey: "adv.hand-retraite.action",
     action: {
-      label: "Préparer le passage à la retraite",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12242",
     },
     appliesWhen: and(disabledSelf, ageIn("51-65", "66+")),
@@ -4797,11 +4634,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-be-arr-ai",
     category: "disability",
     countries: ["BE"],
-    title: "Belgique : deux allocations, une seule demande — ne rate pas la 2e",
-    body:
-      "L'ARR (perte de capacité de gain) et l'AI (perte d'autonomie, évaluée sur 6 domaines) sont CUMULABLES et se demandent en une fois sur My Handicap. Beaucoup ne réclament que l'une des deux. À savoir : depuis 2021, les revenus du partenaire ne comptent plus pour l'AI — mais ils comptent toujours pour l'ARR. Les montants sont différentiels : passe par le simulateur officiel.",
+    titleKey: "adv.hand-be-arr-ai.title",
+    bodyKey: "adv.hand-be-arr-ai.body",
+    actionLabelKey: "adv.hand-be-arr-ai.action",
     action: {
-      label: "Faire la demande (My Handicap)",
       link: "https://handicap.belgium.be/fr/allocations/allocation-integration",
     },
     appliesWhen: disabledSelf,
@@ -4813,11 +4649,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-be-bim",
     category: "disability",
     countries: ["BE"],
-    title: "Belgique : le statut BIM, le gain le plus rapide et le moins connu",
-    body:
-      "L'intervention majorée réduit fortement tes tickets modérateurs, abaisse ton plafond de Maximum à facturer, et INTERDIT aux médecins de te facturer des suppléments d'honoraires en ambulatoire. Pour certains profils — dont les parents d'un enfant reconnu handicapé — le droit est automatique, sans enquête sur les revenus. Vérifie auprès de ta mutualité que tu l'as bien.",
+    titleKey: "adv.hand-be-bim.title",
+    bodyKey: "adv.hand-be-bim.body",
+    actionLabelKey: "adv.hand-be-bim.action",
     action: {
-      label: "Vérifier le statut BIM (INAMI)",
       link: "https://www.inami.fgov.be/fr/themes/soins-de-sante-cout-et-remboursement/facilites-financieres/intervention-majoree-plafonds-des-revenus",
     },
     appliesWhen: disabilityAny,
@@ -4829,11 +4664,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-be-enfant",
     category: "disability",
     countries: ["BE"],
-    title: "Belgique : pour ton enfant, tout se joue au niveau de ta RÉGION",
-    body:
-      "Le supplément pour enfant en situation de handicap n'est pas fédéral : FAMIWAL (évaluation par l'AVIQ) en Wallonie, Famiris/Iriscare (évaluation par le CEAH) à Bruxelles. Même logique dans les deux cas — trois piliers évalués : conséquences pour l'enfant, sur ses activités quotidiennes, et sur l'entourage familial. Le supplément s'ajoute chaque mois aux allocations de base, jusqu'à 21 ans.",
+    titleKey: "adv.hand-be-enfant.title",
+    bodyKey: "adv.hand-be-enfant.body",
+    actionLabelKey: "adv.hand-be-enfant.action",
     action: {
-      label: "Voir les allocations majorées",
       link: "https://www.handicap.brussels/fr/themes/les-aides-financieres/les-allocations/les-allocations-familiales-majorees-afm",
     },
     appliesWhen: disabledChild,
@@ -4845,11 +4679,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ch-reeducation",
     category: "disability",
     countries: ["CH"],
-    title: "Suisse : annonce-toi TÔT — la réadaptation prime la rente",
-    body:
-      "L'AI examine toujours d'abord si ta capacité de gain peut être maintenue ou rétablie ; la rente n'est étudiée qu'ensuite. Le bon réflexe n'est donc pas d'attendre pour demander une rente, mais de faire une annonce en détection précoce le plus tôt possible, tant que l'emploi existe encore. Un budget de 20 000 fr. est mobilisable en intervention précoce, et l'accompagnement dure jusqu'à 3 ans après la dernière mesure.",
+    titleKey: "adv.hand-ch-reeducation.title",
+    bodyKey: "adv.hand-ch-reeducation.body",
+    actionLabelKey: "adv.hand-ch-reeducation.action",
     action: {
-      label: "Détection précoce AI",
       link: "https://www.ahv-iv.ch/fr/M%C3%A9mentos-Formulaires/M%C3%A9mentos/Assurance-invalidit%C3%A9-AI",
     },
     appliesWhen: disabledSelf,
@@ -4861,18 +4694,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ch-impotence",
     category: "disability",
     countries: ["CH"],
-    title: "Suisse : allocation pour impotent et contribution d'assistance",
-    body:
-      "Deux dispositifs distincts, souvent confondus. L'allocation pour impotent (504 à 2 016 fr./mois à domicile selon le degré) ne dépend pas de tes revenus. La contribution d'assistance (35.30 fr./heure, 52.95 fr. pour un soin qualifié) te permet en plus d'engager toi-même un assistant — bien moins connue. Attention : en institution, l'allocation tombe au quart du montant à domicile.",
+    titleKey: "adv.hand-ch-impotence.title",
+    bodyKey: "adv.hand-ch-impotence.body",
+    actionLabelKey: "adv.hand-ch-impotence.action",
     action: {
-      label: "Voir les mémentos AI",
       link: "https://www.ahv-iv.ch/fr/M%C3%A9mentos-Formulaires/M%C3%A9mentos/Assurance-invalidit%C3%A9-AI",
     },
     appliesWhen: or(disabledSelf, disabledChild),
     priority: 92,
     figures: [
-      { label: "Impotence grave à domicile", value: "2 016 fr./mois" },
-      { label: "Assistance", value: "35.30 fr./heure" },
+      { label: "adv.hand-ch-impotence.fig.0.label", value: "adv.hand-ch-impotence.fig.0.value" },
+      { label: "adv.hand-ch-impotence.fig.1.label", value: "adv.hand-ch-impotence.fig.1.value" },
     ],
     sources: ["https://www.bsv.admin.ch/dam/fr/sd-web/sAgdISSXenMT/f_Betr%C3%A4ge%202026.pdf"],
     lastVerified: "2026-08-08",
@@ -4881,11 +4713,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ca-ciph",
     category: "disability",
     countries: ["CA"],
-    title: "Canada : le CIPH ouvre TOUTES les autres portes",
-    body:
-      "Sans approbation du crédit d'impôt pour personnes handicapées (formulaire T2201, partie B remplie par un professionnel de la santé), aucun accès au REEI, aux subventions, au bon, ni à la nouvelle Prestation canadienne pour les personnes handicapées. C'est le point de passage obligé. Bonne nouvelle : la demande peut être rétroactive sur les années antérieures, et un refus se conteste.",
+    titleKey: "adv.hand-ca-ciph.title",
+    bodyKey: "adv.hand-ca-ciph.body",
+    actionLabelKey: "adv.hand-ca-ciph.action",
     action: {
-      label: "Demander le CIPH (T2201)",
       link: "https://www.canada.ca/fr/agence-revenu/services/impot/particuliers/segments/deductions-credits-impot-personnes-handicapees/credit-impot-personnes-handicapees.html",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -4897,18 +4728,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ca-reei",
     category: "disability",
     countries: ["CA"],
-    title: "REEI : jusqu'à 1 000 $/an SANS mettre un dollar",
-    body:
-      "Le bon canadien pour l'épargne-invalidité verse jusqu'à 1 000 $/an (20 000 $ à vie) sans aucune cotisation requise, sous condition de revenu — il suffit d'ouvrir le régime. Et si tu peux cotiser, la subvention va jusqu'à 300 % sur tes premiers dollars. Le compte à rebours compte : les droits sont reportables 10 ans et versés jusqu'à l'année de tes 49 ans. Ouvrir à 45 ans capte encore des arriérés ; à 50 ans, il est trop tard.",
+    titleKey: "adv.hand-ca-reei.title",
+    bodyKey: "adv.hand-ca-reei.body",
+    actionLabelKey: "adv.hand-ca-reei.action",
     action: {
-      label: "Ouvrir un REEI",
       link: "https://www.canada.ca/fr/emploi-developpement-social/programmes/epargne-invalidite.html",
     },
     appliesWhen: or(disabledSelf, disabledChild),
     priority: 96,
     figures: [
-      { label: "Bon, sans cotiser", value: "jusqu'à 1 000 $/an" },
-      { label: "Subvention", value: "jusqu'à 300 %" },
+      { label: "adv.hand-ca-reei.fig.0.label", value: "adv.hand-ca-reei.fig.0.value" },
+      { label: "adv.hand-ca-reei.fig.1.label", value: "adv.hand-ca-reei.fig.1.value" },
     ],
     sources: ["https://www.canada.ca/fr/emploi-developpement-social/programmes/epargne-invalidite.html"],
     lastVerified: "2026-08-08",
@@ -4917,11 +4747,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ca-pcph",
     category: "disability",
     countries: ["CA"],
-    title: "Canada : la nouvelle prestation exige une déclaration de revenus",
-    body:
-      "La Prestation canadienne pour les personnes handicapées (jusqu'à 204,20 $/mois pour 2026-2027) suppose trois choses : une approbation CIPH valide, un statut de résidence admissible, et surtout une DÉCLARATION DE REVENUS produite — même sans revenu à déclarer. C'est le point de blocage le plus fréquent : pas de déclaration, pas de prestation.",
+    titleKey: "adv.hand-ca-pcph.title",
+    bodyKey: "adv.hand-ca-pcph.body",
+    actionLabelKey: "adv.hand-ca-pcph.action",
     action: {
-      label: "Voir la prestation",
       link: "https://www.canada.ca/fr/services/prestations/handicap.html",
     },
     appliesWhen: disabledSelf,
@@ -4933,11 +4762,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-lu-rpgh",
     category: "disability",
     countries: ["LU"],
-    title: "Luxembourg : RPGH, assurance dépendance — dépose sans attendre",
-    body:
-      "Le revenu pour personnes gravement handicapées s'adresse aux personnes dont la capacité de travail est réduite d'au moins 30 % (avant 65 ans) et qu'aucun poste ne peut accueillir, même en milieu protégé. Il est différentiel : le FNS verse la différence. Pour l'assurance dépendance (seuil : 3,5 h d'aide par semaine), la prestation est due À PARTIR DE LA DATE DE LA DEMANDE — chaque mois d'attente est perdu.",
+    titleKey: "adv.hand-lu-rpgh.title",
+    bodyKey: "adv.hand-lu-rpgh.body",
+    actionLabelKey: "adv.hand-lu-rpgh.action",
     action: {
-      label: "Demander le RPGH",
       link: "https://fns.public.lu/fr/rpgh.html",
     },
     appliesWhen: disabledSelf,
@@ -4949,16 +4777,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-lu-enfant",
     category: "disability",
     countries: ["LU"],
-    title: "Luxembourg : 200 €/mois de plus pour ton enfant",
-    body:
-      "L'allocation spéciale supplémentaire ajoute 200 €/mois par enfant à l'allocation familiale, dès lors qu'une insuffisance permanente d'au moins 50 % de la capacité physique ou mentale est certifiée médicalement. Versée jusqu'à 18 ans, prolongeable jusqu'à 25 ans aux mêmes conditions que les allocations familiales.",
+    titleKey: "adv.hand-lu-enfant.title",
+    bodyKey: "adv.hand-lu-enfant.body",
+    actionLabelKey: "adv.hand-lu-enfant.action",
     action: {
-      label: "Demander l'allocation spéciale (CAE)",
       link: "https://cae.public.lu/fr/allocations/enfant-handicape.html",
     },
     appliesWhen: disabledChild,
     priority: 94,
-    figures: [{ label: "Supplément", value: "200 €/mois" }],
+    figures: [{ label: "adv.hand-lu-enfant.fig.0.label", value: "adv.hand-lu-enfant.fig.0.value" }],
     sources: ["https://cae.public.lu/fr/allocations/enfant-handicape.html"],
     lastVerified: "2026-08-08",
   },
@@ -4966,11 +4793,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ma-carte",
     category: "disability",
     countries: ["MA"],
-    title: "Maroc : la carte de personne en situation de handicap est gratuite",
-    body:
-      "Créée par la loi-cadre 97.13 et son décret d'application, elle se demande désormais en ligne sur la plateforme du ministère de la Solidarité, gratuitement et en format numérique. Elle ouvre l'accès aux soins et prestations paramédicales, à une prise en charge élargie dans le cadre de l'AMO, au transport et à l'appui à l'insertion professionnelle. Le déploiement est progressif par région — vérifie où en est la tienne.",
+    titleKey: "adv.hand-ma-carte.title",
+    bodyKey: "adv.hand-ma-carte.body",
+    actionLabelKey: "adv.hand-ma-carte.action",
     action: {
-      label: "Demander la carte",
       link: "https://social.gov.ma/",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -4982,11 +4808,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-sn-cec",
     category: "disability",
     countries: ["SN"],
-    title: "Sénégal : la Carte d'égalité des chances ouvre tes droits",
-    body:
-      "Prévue par la loi d'orientation sociale de 2010, elle est délivrée par le ministère de l'Action sociale sur proposition des commissions techniques départementales. Elle donne accès aux soins, à la réadaptation, aux aides techniques, à un appui financier, à l'éducation, à la formation, à l'emploi et au transport. Le déploiement s'accélère (23 037 cartes en 2024 contre 4 588 en 2023) mais reste partiel : le titre est la clé, fais la démarche.",
+    titleKey: "adv.hand-sn-cec.title",
+    bodyKey: "adv.hand-sn-cec.body",
+    actionLabelKey: "adv.hand-sn-cec.action",
     action: {
-      label: "Se renseigner sur la CEC",
       link: "https://www.primature.sn/actions-et-realisations/sante-et-protection-sociale/cartes-degalite-des-chances",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -4998,11 +4823,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-dz-allocation",
     category: "disability",
     countries: ["DZ"],
-    title: "Algérie : allocation et carte Chifa automatique",
-    body:
-      "Une allocation mensuelle existe pour les personnes de 18 ans et plus dont le taux d'incapacité est de 100 %, titulaires de la carte de personne handicapée et sans autre ressource. Point important : son attribution ouvre AUTOMATIQUEMENT droit à la couverture sociale (carte Chifa). S'y ajoutent la gratuité et les réductions tarifaires dans les transports. Le montant fait l'objet d'une revalorisation annoncée — vérifie le montant en vigueur auprès du ministère.",
+    titleKey: "adv.hand-dz-allocation.title",
+    bodyKey: "adv.hand-dz-allocation.body",
+    actionLabelKey: "adv.hand-dz-allocation.action",
     action: {
-      label: "Voir la démarche",
       link: "https://bawabatic.dz/?req=informations&op=detail&id=789&lang=fr",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -5014,11 +4838,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-tn-carte",
     category: "disability",
     countries: ["TN"],
-    title: "Tunisie : la carte de handicap, réponse sous 45 jours",
-    body:
-      "Le dossier se dépose à l'Unité locale de promotion sociale de ton domicile (demande écrite au ministre des Affaires sociales + certificat médical sur formulaire fourni). La commission régionale doit répondre sous 45 jours. La carte donne la gratuité des soins, des médicaments et de l'hébergement dans les structures sanitaires publiques, le transport gratuit ou à tarif réduit, et la priorité d'accueil dans les administrations.",
+    titleKey: "adv.hand-tn-carte.title",
+    bodyKey: "adv.hand-tn-carte.body",
+    actionLabelKey: "adv.hand-tn-carte.action",
     action: {
-      label: "Voir la procédure",
       link: "https://www.social.gov.tn/en/attribution-disabled-persons-card",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -5030,11 +4853,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-cm-carte",
     category: "disability",
     countries: ["CM"],
-    title: "Cameroun : la carte nationale d'invalidité et le quota d'emploi",
-    body:
-      "La loi de 2010 prévoit une carte délivrée par le MINAS (en cours d'informatisation avec la DGSN), qui ouvre des mesures préférentielles dans les transports, une réduction des coûts d'examens de laboratoire, un quota de 10 % de postes réservés dans la limite des postes disponibles, et l'assistance judiciaire pour les personnes sans ressources. Aucune allocation monétaire régulière n'est prévue par les textes : le levier, c'est le titre et l'emploi.",
+    titleKey: "adv.hand-cm-carte.title",
+    bodyKey: "adv.hand-cm-carte.body",
+    actionLabelKey: "adv.hand-cm-carte.action",
     action: {
-      label: "Se renseigner auprès du MINAS",
       link: "http://www.minas.cm/fr/component/k2/item/4-personnes-handicapees.html",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -5046,11 +4868,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-ci-cmu",
     category: "disability",
     countries: ["CI"],
-    title: "Côte d'Ivoire : passe par la CMU et la Direction dédiée",
-    body:
-      "La loi de 1998 garantit l'égalité de droits en éducation, emploi, formation et loisirs, mais aucune procédure de carte d'invalidité n'est documentée publiquement — inutile de chercher un formulaire en ligne. Les deux leviers concrets : la CMU (1 000 FCFA/mois par personne, avec un régime d'assistance médicale non contributif pour les personnes démunies), et la Direction de la promotion des personnes handicapées pour l'emploi et les recrutements réservés.",
+    titleKey: "adv.hand-ci-cmu.title",
+    bodyKey: "adv.hand-ci-cmu.body",
+    actionLabelKey: "adv.hand-ci-cmu.action",
     action: {
-      label: "S'affilier à la CMU",
       link: "https://dg-cmu.ci/faq/",
     },
     appliesWhen: or(disabledSelf, disabledChild),
@@ -5062,10 +4883,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "hand-universel-nonrecours",
     category: "disability",
     countries: "all",
-    title: "Le premier obstacle n'est pas le refus : c'est de ne pas demander",
-    body:
-      "Partout, une part importante des droits liés au handicap n'est jamais réclamée — non par refus, mais faute d'information. Trois réflexes qui valent dans tous les pays : demande TOUT ce qui te concerne en une fois (une case non cochée n'est jamais instruite), garde une copie datée de chaque dépôt, et redemande à chaque changement de situation. Un refus se conteste presque partout, dans un délai court : note-le dès réception.",
-    action: { label: "Lister tes démarches en cours" },
+    titleKey: "adv.hand-universel-nonrecours.title",
+    bodyKey: "adv.hand-universel-nonrecours.body",
+    actionLabelKey: "adv.hand-universel-nonrecours.action",
+    action: {},
     appliesWhen: disabilityAny,
     priority: 88,
     sources: ["https://drees.solidarites-sante.gouv.fr/sites/default/files/2023-04/ER1263.pdf"],
