@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLang } from "../../../src/contexts/LangContext";
 import type { SavingsGoal } from "../../../src/types/premium";
 
 const MIDNIGHT = "#0F172A";
@@ -60,6 +61,7 @@ export default function GoalEditor({
   onSave,
   onDelete,
 }: Props) {
+  const { t } = useLang();
   const insets = useSafeAreaInsets();
 
   // Track keyboard height pour cap la hauteur du sheet dynamiquement.
@@ -121,12 +123,15 @@ export default function GoalEditor({
 
   function submit() {
     if (!label.trim()) {
-      Alert.alert("Nom manquant", "Donne un nom à ton objectif.");
+      Alert.alert(
+        t("goals.err.nameMissing.title"),
+        t("goals.err.nameMissing.msg"),
+      );
       return;
     }
     const targetNum = parseAmount(target);
     if (targetNum <= 0) {
-      Alert.alert("Montant cible", "Le montant cible doit être supérieur à 0.");
+      Alert.alert(t("goals.err.target.title"), t("goals.err.target.msg"));
       return;
     }
     const now = new Date().toISOString();
@@ -152,14 +157,10 @@ export default function GoalEditor({
 
   function confirmDelete() {
     if (!onDelete) return;
-    Alert.alert(
-      "Supprimer l'objectif",
-      "Cette action est irréversible.",
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "Supprimer", style: "destructive", onPress: onDelete },
-      ],
-    );
+    Alert.alert(t("goals.delete.title"), t("goals.delete.msg"), [
+      { text: t("btn.cancel"), style: "cancel" },
+      { text: t("btn.delete"), style: "destructive", onPress: onDelete },
+    ]);
   }
 
   return (
@@ -180,11 +181,11 @@ export default function GoalEditor({
             <View style={styles.handle} />
             <View style={styles.headerRow}>
               <Text style={styles.title}>
-                {goal ? "Modifier l'objectif" : "Nouvel objectif"}
+                {goal ? t("goals.editor.edit") : t("goals.editor.new")}
               </Text>
               <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
+              accessibilityLabel={t("common.close")} onPress={onClose} hitSlop={10}>
                 <Feather name="x" size={22} color={TEXT_2} />
               </TouchableOpacity>
             </View>
@@ -193,17 +194,17 @@ export default function GoalEditor({
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-            <Text style={styles.label}>Nom</Text>
+            <Text style={styles.label}>{t("goals.field.name")}</Text>
             <TextInput
               style={styles.input}
               value={label}
               onChangeText={setLabel}
-              placeholder="Voyage Japon, Apport maison…"
+              placeholder={t("goals.name.placeholder")}
               placeholderTextColor={TEXT_3}
               autoFocus={!goal}
             />
 
-            <Text style={styles.label}>Montant cible (€)</Text>
+            <Text style={styles.label}>{t("goals.field.target")}</Text>
             <TextInput
               style={styles.input}
               value={target}
@@ -213,7 +214,7 @@ export default function GoalEditor({
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>Déjà épargné (€)</Text>
+            <Text style={styles.label}>{t("goals.field.current")}</Text>
             <TextInput
               style={styles.input}
               value={current}
@@ -223,7 +224,7 @@ export default function GoalEditor({
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>Versement mensuel prévu (optionnel)</Text>
+            <Text style={styles.label}>{t("goals.field.monthly")}</Text>
             <TextInput
               style={styles.input}
               value={monthly}
@@ -233,13 +234,13 @@ export default function GoalEditor({
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>Priorité</Text>
+            <Text style={styles.label}>{t("goals.field.priority")}</Text>
             <View style={styles.chipsRow}>
               {(
                 [
-                  ["urgent", "Urgent", "#F87171"],
-                  ["normal", "Normal", GOLD],
-                  ["optional", "Optionnel", "#94A3B8"],
+                  ["urgent", t("goals.tag.urgent"), "#F87171"],
+                  ["normal", t("goals.tag.normal"), GOLD],
+                  ["optional", t("goals.tag.optional"), "#94A3B8"],
                 ] as const
               ).map(([value, lbl, color]) => {
                 const active = priority === value;
@@ -261,26 +262,23 @@ export default function GoalEditor({
               })}
             </View>
 
-            <Text style={styles.label}>Échéance</Text>
-            <Text style={styles.helper}>
-              Avec une échéance, NetBudget calcule le versement mensuel
-              nécessaire pour tenir l'objectif.
-            </Text>
+            <Text style={styles.label}>{t("goals.field.deadline")}</Text>
+            <Text style={styles.helper}>{t("goals.deadline.hint")}</Text>
             <View style={styles.chipsRow}>
               {(
                 [
-                  [undefined, "Aucune"],
-                  [3, "3 mois"],
-                  [6, "6 mois"],
-                  [12, "1 an"],
-                  [24, "2 ans"],
-                  [36, "3 ans"],
+                  [undefined, t("goals.deadline.none")],
+                  [3, t("goals.deadline.m3")],
+                  [6, t("goals.deadline.m6")],
+                  [12, t("goals.deadline.y1")],
+                  [24, t("goals.deadline.y2")],
+                  [36, t("goals.deadline.y3")],
                 ] as const
               ).map(([value, lbl]) => {
                 const active = horizon === value;
                 return (
                   <TouchableOpacity
-                    key={lbl}
+                    key={String(value)}
                     onPress={() => setHorizon(value)}
                     style={[styles.chip, active && styles.chipActive]}
                     activeOpacity={0.85}
@@ -295,10 +293,8 @@ export default function GoalEditor({
 
             <View style={styles.toggleRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Extra-budgétaire (ExtraP)</Text>
-                <Text style={styles.helper}>
-                  N'entre pas dans le total global (ex: cadeau exceptionnel).
-                </Text>
+                <Text style={styles.label}>{t("goals.field.extraP")}</Text>
+                <Text style={styles.helper}>{t("goals.extraP.hint")}</Text>
               </View>
               <Switch
                 value={extraP}
@@ -314,7 +310,7 @@ export default function GoalEditor({
                 <TouchableOpacity
               hitSlop={10}
               accessibilityRole="button"
-              accessibilityLabel="Supprimer"
+              accessibilityLabel={t("btn.delete")}
                   onPress={confirmDelete}
                   style={styles.btnDelete}
                   activeOpacity={0.85}
@@ -328,7 +324,7 @@ export default function GoalEditor({
                 activeOpacity={0.85}
               >
                 <Text style={styles.btnSaveText}>
-                  {goal ? "Enregistrer" : "Créer l'objectif"}
+                  {goal ? t("btn.save") : t("goals.create")}
                 </Text>
               </TouchableOpacity>
             </View>

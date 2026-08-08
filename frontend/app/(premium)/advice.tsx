@@ -22,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
+import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import {
@@ -64,61 +65,71 @@ const MINT = "#10B981";
 const BORDER = "rgba(255,255,255,0.08)";
 const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
 
-const AGE_OPTIONS: { value: AgeBracket; label: string }[] = [
-  { value: "under_18", label: "Moins de 18 ans" },
-  { value: "18-25", label: "18 - 25 ans" },
-  { value: "26-35", label: "26 - 35 ans" },
-  { value: "36-50", label: "36 - 50 ans" },
-  { value: "51-65", label: "51 - 65 ans" },
-  { value: "66+", label: "66+ ans" },
+// Les libellés d'options sont construits à la volée à partir du catalogue de
+// traductions : ils dépendent de la langue, donc plus de constantes figées.
+type Translate = (key: string) => string;
+type Interpolate = (
+  key: string,
+  params: Record<string, string | number>,
+) => string;
+type Option<T extends string> = { value: T; label: string };
+
+const ageOptions = (t: Translate): Option<AgeBracket>[] => [
+  { value: "under_18", label: t("coach.age.under18") },
+  { value: "18-25", label: t("coach.age.18_25") },
+  { value: "26-35", label: t("coach.age.26_35") },
+  { value: "36-50", label: t("coach.age.36_50") },
+  { value: "51-65", label: t("coach.age.51_65") },
+  { value: "66+", label: t("coach.age.66plus") },
 ];
 
-const FAMILY_OPTIONS: { value: FamilyStatus; label: string }[] = [
-  { value: "single", label: "Célibataire" },
-  { value: "couple_no_kids", label: "En couple, sans enfant" },
-  { value: "couple_with_kids", label: "En couple avec enfants" },
-  { value: "single_parent", label: "Parent solo" },
+const familyOptions = (t: Translate): Option<FamilyStatus>[] => [
+  { value: "single", label: t("coach.family.single") },
+  { value: "couple_no_kids", label: t("coach.family.coupleNoKids") },
+  { value: "couple_with_kids", label: t("coach.family.coupleWithKids") },
+  { value: "single_parent", label: t("coach.family.singleParent") },
 ];
 
-const HOUSING_OPTIONS: { value: HousingStatus; label: string }[] = [
-  { value: "renter", label: "Locataire" },
-  { value: "owner", label: "Propriétaire" },
-  { value: "accessor", label: "Accédant (crédit en cours)" },
-  { value: "free_housing", label: "Hébergé gratuitement" },
+const housingOptions = (t: Translate): Option<HousingStatus>[] => [
+  { value: "renter", label: t("coach.housing.renter") },
+  { value: "owner", label: t("coach.housing.owner") },
+  { value: "accessor", label: t("coach.housing.accessor") },
+  { value: "free_housing", label: t("coach.housing.freeHousing") },
 ];
 
-const PET_OPTIONS: { value: PetSpecies; label: string }[] = [
-  { value: "dog", label: "Chien" },
-  { value: "cat", label: "Chat" },
-  { value: "small_mammal", label: "Rongeur / lapin" },
-  { value: "bird", label: "Oiseau" },
-  { value: "fish", label: "Poisson / aquarium" },
-  { value: "reptile", label: "Reptile / NAC" },
+const petOptions = (t: Translate): Option<PetSpecies>[] => [
+  { value: "dog", label: t("coach.pet.dog") },
+  { value: "cat", label: t("coach.pet.cat") },
+  { value: "small_mammal", label: t("coach.pet.smallMammal") },
+  { value: "bird", label: t("coach.pet.bird") },
+  { value: "fish", label: t("coach.pet.fish") },
+  { value: "reptile", label: t("coach.pet.reptile") },
 ];
 
-
-const TMI_OPTIONS: { value: TaxBracket; label: string }[] = [
-  { value: "0", label: "0% (non imposable)" },
+// Seule la tranche à 0% porte une mention à traduire ; les autres ne sont que
+// des pourcentages.
+const tmiOptions = (t: Translate): Option<TaxBracket>[] => [
+  { value: "0", label: t("coach.tmi.zero") },
   { value: "11", label: "11%" },
   { value: "30", label: "30%" },
   { value: "41", label: "41%" },
   { value: "45", label: "45%" },
 ];
 
-const CHILDREN_OPTIONS: { value: ChildAgeBracket; label: string }[] = [
-  { value: "0-6", label: "0 - 6 ans (petite enfance)" },
-  { value: "7-11", label: "7 - 11 ans (primaire)" },
-  { value: "12-15", label: "12 - 15 ans (collège)" },
-  { value: "16-18", label: "16 - 18 ans (lycée)" },
-  { value: "19+", label: "19+ ans (études sup / autonomes)" },
+const childrenOptions = (t: Translate): Option<ChildAgeBracket>[] => [
+  { value: "0-6", label: t("coach.children.0_6") },
+  { value: "7-11", label: t("coach.children.7_11") },
+  { value: "12-15", label: t("coach.children.12_15") },
+  { value: "16-18", label: t("coach.children.16_18") },
+  { value: "19+", label: t("coach.children.19plus") },
 ];
 
-const SAVINGS_OPTIONS: { value: SavingsCapacity; label: string }[] = [
-  { value: "under_100", label: "< 100 € / mois" },
-  { value: "100_300", label: "100 - 300 € / mois" },
-  { value: "300_800", label: "300 - 800 € / mois" },
-  { value: "800_2000", label: "800 - 2 000 € / mois" },
-  { value: "2000_plus", label: "> 2 000 € / mois" },
+const savingsOptions = (t: Translate): Option<SavingsCapacity>[] => [
+  { value: "under_100", label: t("coach.savings.under100") },
+  { value: "100_300", label: t("coach.savings.100_300") },
+  { value: "300_800", label: t("coach.savings.300_800") },
+  { value: "800_2000", label: t("coach.savings.800_2000") },
+  { value: "2000_plus", label: t("coach.savings.2000plus") },
 ];
 
 function hasKids(family?: FamilyStatus): boolean {
@@ -127,9 +138,9 @@ function hasKids(family?: FamilyStatus): boolean {
 
 // Foyer d'un workspace "famille" : deux parents ou parent solo.
 // Réutilise le champ profile.family (valeurs avec enfants uniquement).
-const FOYER_OPTIONS: { value: FamilyStatus; label: string }[] = [
-  { value: "couple_with_kids", label: "Deux parents" },
-  { value: "single_parent", label: "Parent solo" },
+const foyerOptions = (t: Translate): Option<FamilyStatus>[] => [
+  { value: "couple_with_kids", label: t("coach.foyer.twoParents") },
+  { value: "single_parent", label: t("coach.family.singleParent") },
 ];
 
 // ============================================================================
@@ -161,105 +172,95 @@ type OnboardingConfig = {
   petsLabel: string;
 };
 
-const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
+const onboardingConfig = (
+  t: Translate,
+): Record<AdviceMode, OnboardingConfig> => ({
   perso: {
-    intro:
-      "Seuls l'âge et la situation familiale sont nécessaires pour démarrer. Plus tu remplis, plus les conseils deviennent précis (règles fiscales 2026).",
-    minimumHint:
-      "Renseigne au moins l'âge et la situation familiale pour débloquer les conseils.",
+    intro: t("coach.onb.perso.intro"),
+    minimumHint: t("coach.onb.perso.minHint"),
     askAge: true,
-    ageLabel: "Ton âge *",
+    ageLabel: t("coach.onb.perso.ageLabel"),
     askFamily: true,
     askFoyer: false,
     askKids: "auto",
-    kidsLabel: "Âges de tes enfants",
+    kidsLabel: t("coach.onb.perso.kidsLabel"),
     askCountry: true,
-    countryLabel: "Ton pays",
+    countryLabel: t("coach.onb.perso.countryLabel"),
     askHousing: true,
-    housingLabel: "Ton logement",
+    housingLabel: t("coach.onb.perso.housingLabel"),
     askTmi: true,
-    tmiLabel: "Ta tranche marginale d'imposition (TMI)",
+    tmiLabel: t("coach.onb.perso.tmiLabel"),
     askSavings: true,
-    savingsLabel: "Ta capacité d'épargne mensuelle",
-    savingsHint:
-      "Ce qu'il te reste chaque mois après charges fixes et dépenses courantes. Retape ta sélection pour la retirer.",
+    savingsLabel: t("coach.onb.perso.savingsLabel"),
+    savingsHint: t("coach.onb.perso.savingsHint"),
     askPets: true,
-    petsLabel: "As-tu un animal de compagnie ?",
+    petsLabel: t("coach.onb.perso.petsLabel"),
   },
   couple: {
-    intro:
-      "Profil du couple — les conseils portent sur votre budget commun : compte joint, déclaration, projets à deux. Seule la tranche d'âge est nécessaire pour démarrer.",
-    minimumHint: "Renseigne la tranche d'âge du couple pour débloquer les conseils.",
+    intro: t("coach.onb.couple.intro"),
+    minimumHint: t("coach.onb.couple.minHint"),
     askAge: true,
-    ageLabel: "Tranche d'âge du couple *",
+    ageLabel: t("coach.onb.couple.ageLabel"),
     askFamily: false,
     askFoyer: false,
     askKids: "always",
-    kidsLabel: "Vos enfants (laisser vide si aucun)",
+    kidsLabel: t("coach.onb.couple.kidsLabel"),
     askCountry: true,
-    countryLabel: "Votre pays",
+    countryLabel: t("coach.onb.couple.countryLabel"),
     askHousing: true,
-    housingLabel: "Votre logement",
+    housingLabel: t("coach.onb.couple.housingLabel"),
     askTmi: true,
-    tmiLabel: "TMI du foyer",
+    tmiLabel: t("coach.onb.couple.tmiLabel"),
     askSavings: true,
-    savingsLabel: "Capacité d'épargne du foyer",
-    savingsHint:
-      "Ce que vous mettez de côté à deux chaque mois, une fois toutes les charges payées.",
+    savingsLabel: t("coach.onb.couple.savingsLabel"),
+    savingsHint: t("coach.onb.couple.savingsHint"),
     askPets: true,
-    petsLabel: "Des animaux dans le foyer ?",
+    petsLabel: t("coach.onb.couple.petsLabel"),
   },
   family: {
-    intro:
-      "Profil du foyer — conseils famille : allocations, garde, études, quotient familial, transmission. L'âge des parents et le type de foyer suffisent pour démarrer.",
-    minimumHint:
-      "Renseigne la tranche d'âge des parents et le type de foyer pour débloquer les conseils.",
+    intro: t("coach.onb.family.intro"),
+    minimumHint: t("coach.onb.family.minHint"),
     askAge: true,
-    ageLabel: "Tranche d'âge des parents *",
+    ageLabel: t("coach.onb.family.ageLabel"),
     askFamily: false,
     askFoyer: true,
     askKids: "always",
-    kidsLabel: "Âges des enfants",
+    kidsLabel: t("coach.onb.family.kidsLabel"),
     askCountry: true,
-    countryLabel: "Votre pays",
+    countryLabel: t("coach.onb.family.countryLabel"),
     askHousing: true,
-    housingLabel: "Votre logement",
+    housingLabel: t("coach.onb.family.housingLabel"),
     askTmi: true,
-    tmiLabel: "TMI du foyer",
+    tmiLabel: t("coach.onb.family.tmiLabel"),
     askSavings: true,
-    savingsLabel: "Capacité d'épargne du foyer",
-    savingsHint:
-      "Ce que le foyer met de côté chaque mois, une fois toutes les charges payées.",
+    savingsLabel: t("coach.onb.family.savingsLabel"),
+    savingsHint: t("coach.onb.family.savingsHint"),
     askPets: true,
-    petsLabel: "Des animaux dans le foyer ?",
+    petsLabel: t("coach.onb.family.petsLabel"),
   },
   coloc: {
-    intro:
-      "Profil de la coloc — les conseils portent sur le budget commun : compte joint, bail, charges, caution. La tranche d'âge des colocataires suffit pour démarrer.",
-    minimumHint:
-      "Renseigne la tranche d'âge des colocataires pour débloquer les conseils.",
+    intro: t("coach.onb.coloc.intro"),
+    minimumHint: t("coach.onb.coloc.minHint"),
     askAge: true,
-    ageLabel: "Tranche d'âge des colocataires *",
+    ageLabel: t("coach.onb.coloc.ageLabel"),
     askFamily: false,
     askFoyer: false,
     askKids: "never",
     kidsLabel: "",
     askCountry: true,
-    countryLabel: "Votre pays",
+    countryLabel: t("coach.onb.coloc.countryLabel"),
     askHousing: true,
-    housingLabel: "Votre logement",
+    housingLabel: t("coach.onb.coloc.housingLabel"),
     askTmi: false, // l'impôt reste individuel en coloc
     tmiLabel: "",
     askSavings: true,
-    savingsLabel: "Capacité d'épargne commune",
-    savingsHint:
-      "Ce que la coloc peut mettre de côté chaque mois (caution, cagnotte commune, imprévus).",
+    savingsLabel: t("coach.onb.coloc.savingsLabel"),
+    savingsHint: t("coach.onb.coloc.savingsHint"),
     askPets: true,
-    petsLabel: "Des animaux dans la coloc ?",
+    petsLabel: t("coach.onb.coloc.petsLabel"),
   },
   association: {
-    intro:
-      "Espace association — les conseils portent sur la gestion de l'asso : trésorerie, comptabilité, dons, subventions, assurance. Aucune information personnelle n'est demandée.",
+    intro: t("coach.onb.association.intro"),
     minimumHint: "",
     askAge: false,
     ageLabel: "",
@@ -274,13 +275,12 @@ const ONBOARDING_CONFIG: Record<AdviceMode, OnboardingConfig> = {
     askTmi: false,
     tmiLabel: "",
     askSavings: true,
-    savingsLabel: "Mise en réserve mensuelle possible",
-    savingsHint:
-      "Ce que l'association peut mettre de côté chaque mois une fois ses charges payées. Retape ta sélection pour la retirer.",
+    savingsLabel: t("coach.onb.association.savingsLabel"),
+    savingsHint: t("coach.onb.association.savingsHint"),
     askPets: false,
     petsLabel: "",
   },
-};
+});
 
 // Le minimum requis dépend du mode : une asso n'a rien d'obligatoire,
 // un couple / une coloc n'ont besoin que de la tranche d'âge.
@@ -319,39 +319,55 @@ function profileCompleteness(
 }
 
 // Résumé lisible du profil affiché au-dessus des conseils, selon le mode.
-function profileSummary(p: UserProfile, mode: AdviceMode): string {
-  const age = AGE_OPTIONS.find((o) => o.value === p.age)?.label;
-  const housing = HOUSING_OPTIONS.find((o) => o.value === p.housing)?.label;
-  const kidsPart = p.children?.length
-    ? `enfants (${p.children.length} tranche${p.children.length > 1 ? "s" : ""} d'âge)`
+function profileSummary(
+  p: UserProfile,
+  mode: AdviceMode,
+  t: Translate,
+  tp: Interpolate,
+): string {
+  const age = ageOptions(t).find((o) => o.value === p.age)?.label;
+  const housing = housingOptions(t).find((o) => o.value === p.housing)?.label;
+  const kidsCount = p.children?.length ?? 0;
+  const kidsPart = kidsCount
+    ? tp(kidsCount > 1 ? "coach.summary.kidsPlural" : "coach.summary.kids", {
+        n: kidsCount,
+      })
     : null;
   const parts: (string | null | undefined)[] = [];
   switch (mode) {
     case "association":
-      return "Association · gestion, trésorerie, dons & subventions";
+      return t("coach.summary.association");
     case "couple":
-      parts.push("Couple", age, kidsPart ?? "sans enfant", housing);
+      parts.push(
+        t("coach.summary.couple"),
+        age,
+        kidsPart ?? t("coach.summary.noKids"),
+        housing,
+      );
       break;
     case "family":
       parts.push(
-        p.family === "single_parent" ? "Parent solo" : "Deux parents",
+        p.family === "single_parent"
+          ? t("coach.family.singleParent")
+          : t("coach.foyer.twoParents"),
         age,
         kidsPart,
         housing,
       );
       break;
     case "coloc":
-      parts.push("Colocation", age, housing);
+      parts.push(t("coach.summary.coloc"), age, housing);
       break;
     default:
       parts.push(
         age,
-        FAMILY_OPTIONS.find((o) => o.value === p.family)?.label,
+        familyOptions(t).find((o) => o.value === p.family)?.label,
         kidsPart,
         housing,
       );
   }
-  if (mode !== "coloc" && p.tmi) parts.push(`TMI ${p.tmi}%`);
+  if (mode !== "coloc" && p.tmi)
+    parts.push(tp("coach.summary.tmi", { rate: p.tmi }));
   if (p.country && p.country !== "FR") {
     parts.push(COUNTRY_OPTIONS.find((o) => o.value === p.country)?.label);
   }
@@ -368,6 +384,7 @@ function currentWeekSeed(): number {
 }
 
 export default function AdviceScreen() {
+  const { t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
   // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
   // jamais la liste — l'utilisateur continue de remplir naturellement.
@@ -375,9 +392,11 @@ export default function AdviceScreen() {
   const {
     workspaceId,
     workspaceKind,
-    scopeLabel,
+    scopeLabel, scopeLabelIsKey,
     loading: scopeLoading,
   } = useActiveScope();
+  // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
+  const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [profile, setProfile] = useState<UserProfile>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -389,7 +408,7 @@ export default function AdviceScreen() {
   );
 
   const mode = modeFor(workspaceKind);
-  const cfg = ONBOARDING_CONFIG[mode];
+  const cfg = useMemo(() => onboardingConfig(t)[mode], [t, mode]);
 
   const toggleGroup = useCallback((key: string) => {
     setExpandedGroups((prev) => {
@@ -435,17 +454,18 @@ export default function AdviceScreen() {
   // qui donne envie de finir, pas un pourcentage abstrait.
   const missingQuestions = useMemo(() => {
     const out: string[] = [];
-    if (!profile.age) out.push("ton âge");
-    if (cfg.askFamily && !profile.family) out.push("ta situation familiale");
-    if (cfg.askHousing && !profile.housing) out.push("ton logement");
+    if (!profile.age) out.push(t("coach.missing.age"));
+    if (cfg.askFamily && !profile.family) out.push(t("coach.missing.family"));
+    if (cfg.askHousing && !profile.housing) out.push(t("coach.missing.housing"));
     if (cfg.askKids === "auto" && hasKids(profile.family) && !profile.children?.length)
-      out.push("l'âge de tes enfants");
+      out.push(t("coach.missing.children"));
     if (cfg.askSavings && !profile.monthlySavingsCapacity)
-      out.push("ta capacité d'épargne");
-    if (cfg.askTmi && !profile.tmi) out.push("ta tranche d'imposition");
-    if (cfg.askPets && profile.hasPets === undefined) out.push("si tu as des animaux");
+      out.push(t("coach.missing.savings"));
+    if (cfg.askTmi && !profile.tmi) out.push(t("coach.missing.tmi"));
+    if (cfg.askPets && profile.hasPets === undefined)
+      out.push(t("coach.missing.pets"));
     return out;
-  }, [profile, cfg]);
+  }, [profile, cfg, t]);
 
   const totalCount = useMemo(
     () => grouped.reduce((s, g) => s + g.cards.length, 0),
@@ -459,12 +479,14 @@ export default function AdviceScreen() {
       const result = await saveAdviceProfile(user.id, next, workspaceId);
       if (!result.ok) {
         Alert.alert(
-          "Sync",
-          `Sauvegardé en local. Sync cloud échoué : ${result.error ?? "erreur inconnue"}`,
+          t("coach.sync.title"),
+          tp("coach.sync.body", {
+            error: result.error ?? t("coach.sync.unknownError"),
+          }),
         );
       }
     },
-    [user?.id, workspaceId],
+    [user?.id, workspaceId, t, tp],
   );
 
   function updateField<K extends keyof UserProfile>(
@@ -515,13 +537,13 @@ export default function AdviceScreen() {
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
           <Feather name="lock" size={32} color={TEXT_3} />
-          <Text style={styles.emptyTitle}>Connexion Premium requise</Text>
+          <Text style={styles.emptyTitle}>{t("coach.locked.title")}</Text>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.emptyBtn}
             activeOpacity={0.85}
           >
-            <Text style={styles.emptyBtnText}>Retour</Text>
+            <Text style={styles.emptyBtnText}>{t("coach.locked.back")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -545,14 +567,16 @@ export default function AdviceScreen() {
             <Feather name="arrow-left" size={22} color={TEXT_1} />
           </TouchableOpacity>
           <Text style={styles.title}>
-            {mode === "perso" ? "Ton profil" : "Profil de l'espace"}
+            {mode === "perso"
+              ? t("coach.profileTitle.perso")
+              : t("coach.profileTitle.space")}
           </Text>
           <View style={{ width: 22 }} />
         </View>
 
         <View style={styles.scopeBadge}>
           <Feather name={workspaceId ? "users" : "user"} size={13} color={GOLD} />
-          <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
+          <Text style={styles.scopeBadgeText}>{resolvedScopeLabel}</Text>
         </View>
 
         <ScrollView
@@ -564,7 +588,7 @@ export default function AdviceScreen() {
           {cfg.askAge ? (
             <QuestionBlock
               label={cfg.ageLabel}
-              options={AGE_OPTIONS}
+              options={ageOptions(t)}
               value={profile.age}
               onSelect={(v) => updateField("age", v)}
             />
@@ -572,8 +596,8 @@ export default function AdviceScreen() {
 
           {cfg.askFamily ? (
             <QuestionBlock
-              label="Ta situation familiale *"
-              options={FAMILY_OPTIONS}
+              label={t("coach.familyLabel")}
+              options={familyOptions(t)}
               value={profile.family}
               onSelect={(v) => {
                 // Update famille + reset children si sans enfant, DANS LE MÊME
@@ -588,8 +612,8 @@ export default function AdviceScreen() {
 
           {cfg.askFoyer ? (
             <QuestionBlock
-              label="Le foyer *"
-              options={FOYER_OPTIONS}
+              label={t("coach.foyerLabel")}
+              options={foyerOptions(t)}
               value={profile.family}
               onSelect={(v) => updateField("family", v)}
             />
@@ -606,14 +630,14 @@ export default function AdviceScreen() {
 
           {cfg.askCountry || cfg.askHousing || cfg.askTmi || cfg.askSavings || cfg.askPets ? (
             <Text style={styles.optionalHeader}>
-              Optionnel — plus tu remplis, plus c'est précis
+              {t("coach.optionalHeader")}
             </Text>
           ) : null}
 
           {cfg.askCountry ? (
             <ChipsBlock
               label={cfg.countryLabel}
-              hint="France par défaut. Les conseils s'adaptent à la fiscalité et aux dispositifs de ton pays."
+              hint={t("coach.country.hint")}
               options={COUNTRY_OPTIONS}
               value={profile.country}
               onSelect={(v) => updateField("country", v)}
@@ -621,8 +645,12 @@ export default function AdviceScreen() {
           ) : null}
           {cfg.askCountry && (profile.country ?? "FR") === "FR" ? (
             <ChipsBlock
-              label={mode === "perso" ? "Ta région (France)" : "Votre région (France)"}
-              hint="Les aides locales varient (transport jeunes, cartes région, bourses). Retape ta sélection pour la retirer."
+              label={
+                mode === "perso"
+                  ? t("coach.region.labelPerso")
+                  : t("coach.region.labelShared")
+              }
+              hint={t("coach.region.hint")}
               options={FR_REGIONS.map((r) => ({ value: r, label: r }))}
               value={profile.region}
               onSelect={(v) => updateField("region", v)}
@@ -631,7 +659,7 @@ export default function AdviceScreen() {
           {cfg.askHousing ? (
             <QuestionBlock
               label={cfg.housingLabel}
-              options={HOUSING_OPTIONS}
+              options={housingOptions(t)}
               value={profile.housing}
               onSelect={(v) => updateField("housing", v)}
               allowDeselect
@@ -641,22 +669,22 @@ export default function AdviceScreen() {
           (profile.housing === "owner" || profile.housing === "accessor") ? (
             <>
               <ChipsBlock
-                label="Appartement ou maison ?"
-                hint="Copropriété et entretien intégral ne se budgètent pas pareil."
+                label={t("coach.housingType.label")}
+                hint={t("coach.housingType.hint")}
                 options={[
-                  { value: "apartment", label: "Appartement" },
-                  { value: "house", label: "Maison" },
+                  { value: "apartment", label: t("coach.housingType.apartment") },
+                  { value: "house", label: t("coach.housingType.house") },
                 ]}
                 value={profile.housingType}
                 onSelect={(v) => updateField("housingType", v)}
               />
               <ChipsBlock
-                label="Nombre de biens immobiliers"
-                hint="Résidence principale incluse. À partir de 2, les conseils bailleur (rendement net-net, fiscalité locative) s'activent."
+                label={t("coach.propertyCount.label")}
+                hint={t("coach.propertyCount.hint")}
                 options={[
                   { value: "1", label: "1" },
                   { value: "2", label: "2" },
-                  { value: "3", label: "3 et +" },
+                  { value: "3", label: t("coach.propertyCount.threePlus") },
                 ]}
                 value={
                   profile.propertyCount ? String(profile.propertyCount) : undefined
@@ -669,14 +697,18 @@ export default function AdviceScreen() {
           ) : null}
           {cfg.askHousing ? (
             <ChipsBlock
-              label={mode === "perso" ? "Ton cadre de vie" : "Votre cadre de vie"}
-              hint="Le train de vie littoral ≠ montagne ≠ grande ville — certains conseils s'y adaptent (et aux saisons)."
+              label={
+                mode === "perso"
+                  ? t("coach.zone.labelPerso")
+                  : t("coach.zone.labelShared")
+              }
+              hint={t("coach.zone.hint")}
               options={[
-                { value: "big_city", label: "Grande ville" },
-                { value: "province", label: "Ville moyenne" },
-                { value: "rural", label: "Campagne" },
-                { value: "coastal", label: "Littoral" },
-                { value: "mountain", label: "Montagne" },
+                { value: "big_city", label: t("coach.zone.bigCity") },
+                { value: "province", label: t("coach.zone.province") },
+                { value: "rural", label: t("coach.zone.rural") },
+                { value: "coastal", label: t("coach.zone.coastal") },
+                { value: "mountain", label: t("coach.zone.mountain") },
               ]}
               value={profile.zone}
               onSelect={(v) => updateField("zone", v)}
@@ -685,8 +717,8 @@ export default function AdviceScreen() {
           {cfg.askTmi ? (
             <QuestionBlock
               label={cfg.tmiLabel}
-              hint="0% = non imposable · 11% ~ jusqu'à 28k€/an · 30% ~ 28k à 80k€ · 41% ~ 80k à 170k€ · 45% > 170k€ · Retape ta sélection pour la retirer."
-              options={TMI_OPTIONS}
+              hint={t("coach.tmi.hint")}
+              options={tmiOptions(t)}
               value={profile.tmi}
               onSelect={(v) => updateField("tmi", v)}
               allowDeselect
@@ -696,7 +728,7 @@ export default function AdviceScreen() {
             <QuestionBlock
               label={cfg.savingsLabel}
               hint={cfg.savingsHint}
-              options={SAVINGS_OPTIONS}
+              options={savingsOptions(t)}
               value={profile.monthlySavingsCapacity}
               onSelect={(v) => updateField("monthlySavingsCapacity", v)}
               allowDeselect
@@ -723,7 +755,7 @@ export default function AdviceScreen() {
                     {profile.hasPets === true ? <Feather name="check" size={12} color="#000" /> : null}
                   </View>
                   <Text style={[styles.optionText, profile.hasPets === true && styles.optionTextActive]}>
-                    Oui
+                    {t("coach.yes")}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -735,7 +767,7 @@ export default function AdviceScreen() {
                     {profile.hasPets === false ? <Feather name="check" size={12} color="#000" /> : null}
                   </View>
                   <Text style={[styles.optionText, profile.hasPets === false && styles.optionTextActive]}>
-                    Non
+                    {t("coach.no")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -753,19 +785,14 @@ export default function AdviceScreen() {
           {/* Situation de handicap — question facultative, formulée en termes de
               DROITS. Trois cases indépendantes : un adulte concerné, un parent
               et un aidant n'ont pas du tout les mêmes démarches. */}
-          <Text style={styles.qLabel}>Handicap — des droits à ne pas laisser passer</Text>
-          <Text style={styles.qHint}>
-            Facultatif. Si tu coches, le Coach ajoute les aides et démarches
-            correspondantes (allocations, compensation, fiscalité, école). Ces
-            informations restent dans ton profil et servent uniquement à
-            personnaliser tes conseils.
-          </Text>
+          <Text style={styles.qLabel}>{t("coach.disability.label")}</Text>
+          <Text style={styles.qHint}>{t("coach.disability.hint")}</Text>
           <View style={{ gap: 8, marginTop: 8, marginBottom: 4 }}>
             {(
               [
-                ["disabilitySelf", "Je suis en situation de handicap"],
-                ["disabilityChild", "Un de mes enfants est concerné"],
-                ["caregiver", "J'aide un proche au quotidien"],
+                ["disabilitySelf", t("coach.disability.self")],
+                ["disabilityChild", t("coach.disability.child")],
+                ["caregiver", t("coach.disability.caregiver")],
               ] as const
             ).map(([field, label]) => {
               const active = profile[field] === true;
@@ -798,16 +825,16 @@ export default function AdviceScreen() {
                 activeOpacity={0.85}
               >
                 <Feather name="check" size={18} color="#000" />
-                <Text style={styles.ctaBtnText}>Profil complet — voir mes conseils</Text>
+                <Text style={styles.ctaBtnText}>{t("coach.cta.complete")}</Text>
               </TouchableOpacity>
             ) : (
               <>
                 <View style={styles.missingBox}>
                   <Feather name="alert-circle" size={16} color={GOLD} />
                   <Text style={styles.missingText}>
-                    Il te manque {missingQuestions.join(", ")}. Chaque réponse
-                    débloque des conseils que tu ne verras pas autrement —
-                    remonte compléter, ça prend 30 secondes.
+                    {tp("coach.missing.box", {
+                      list: missingQuestions.join(", "),
+                    })}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -816,8 +843,10 @@ export default function AdviceScreen() {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.ctaBtnSecondaryText}>
-                    Voir les conseils quand même ({completeness.filled}/
-                    {completeness.total})
+                    {tp("coach.cta.skip", {
+                      filled: completeness.filled,
+                      total: completeness.total,
+                    })}
                   </Text>
                 </TouchableOpacity>
               </>
@@ -850,7 +879,7 @@ export default function AdviceScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Coach budget</Text>
+        <Text style={styles.title}>{t("coach.title")}</Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <TouchableOpacity onPress={() => setEditing(true)} hitSlop={10}>
             <Feather name="settings" size={20} color={TEXT_2} />
@@ -873,7 +902,7 @@ export default function AdviceScreen() {
         activeOpacity={0.8}
       >
         <Feather name={workspaceId ? "users" : "user"} size={13} color={GOLD} />
-        <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
+        <Text style={styles.scopeBadgeText}>{resolvedScopeLabel}</Text>
         <Feather name="chevron-down" size={13} color={TEXT_3} />
       </TouchableOpacity>
 
@@ -885,15 +914,26 @@ export default function AdviceScreen() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         <View style={styles.profileTag}>
           <Text style={styles.profileTagText}>
-            {profileSummary(profile, mode)}
+            {profileSummary(profile, mode, t, tp)}
           </Text>
         </View>
 
         <View style={styles.summaryRow}>
           <Text style={styles.summaryText}>
-            {totalCount} conseil{totalCount > 1 ? "s" : ""} en{" "}
-            {rotatedGrouped.length} catégorie
-            {rotatedGrouped.length > 1 ? "s" : ""}
+            {tp("coach.summary.tpl", {
+              advice: tp(
+                totalCount > 1
+                  ? "coach.summary.advicePlural"
+                  : "coach.summary.advice",
+                { n: totalCount },
+              ),
+              categories: tp(
+                rotatedGrouped.length > 1
+                  ? "coach.summary.categoryPlural"
+                  : "coach.summary.category",
+                { n: rotatedGrouped.length },
+              ),
+            })}
           </Text>
           {rotatedGrouped.length > 0 ? (
             <TouchableOpacity
@@ -906,8 +946,8 @@ export default function AdviceScreen() {
             >
               <Text style={styles.expandAllText}>
                 {rotatedGrouped.every((g) => expandedGroups.has(g.group.key))
-                  ? "Tout replier"
-                  : "Tout déplier"}
+                  ? t("coach.collapseAll")
+                  : t("coach.expandAll")}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -916,10 +956,8 @@ export default function AdviceScreen() {
         {rotatedGrouped.length === 0 ? (
           <View style={styles.emptyList}>
             <Feather name="compass" size={28} color={TEXT_3} />
-            <Text style={styles.emptyTitle}>Aucun conseil ne match ton profil</Text>
-            <Text style={styles.emptyBody}>
-              Le catalogue s'enrichit chaque mois. Reviens bientôt.
-            </Text>
+            <Text style={styles.emptyTitle}>{t("coach.empty.title")}</Text>
+            <Text style={styles.emptyBody}>{t("coach.empty.body")}</Text>
           </View>
         ) : (
           rotatedGrouped.map(({ group, cards }) => {
@@ -1070,12 +1108,13 @@ function PetsBlock({
   onToggleSpecies: (s: PetSpecies) => void;
   onSetCount: (s: PetSpecies, count: number) => void;
 }) {
+  const { t } = useLang();
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={styles.qLabel}>Quels animaux ?</Text>
-      <Text style={styles.qHint}>Sélectionne les espèces, précise le nombre pour chacune.</Text>
+      <Text style={styles.qLabel}>{t("coach.pets.label")}</Text>
+      <Text style={styles.qHint}>{t("coach.pets.hint")}</Text>
       <View style={{ gap: 8, marginTop: 8 }}>
-        {PET_OPTIONS.map((opt) => {
+        {petOptions(t).map((opt) => {
           const pet = pets.find((p) => p.species === opt.value);
           const active = !!pet;
           return (
@@ -1128,14 +1167,13 @@ function ChildrenBlock({
   value: ChildAgeBracket[];
   onToggle: (b: ChildAgeBracket) => void;
 }) {
+  const { t } = useLang();
   return (
     <View style={{ marginBottom: 20 }}>
       <Text style={styles.qLabel}>{label}</Text>
-      <Text style={styles.qHint}>
-        Sélectionne toutes les tranches concernées (multi-choix).
-      </Text>
+      <Text style={styles.qHint}>{t("coach.children.hint")}</Text>
       <View style={{ gap: 8, marginTop: 8 }}>
-        {CHILDREN_OPTIONS.map((opt) => {
+        {childrenOptions(t).map((opt) => {
           const active = value.includes(opt.value);
           return (
             <TouchableOpacity
@@ -1167,6 +1205,7 @@ function AdviceCardView({
   card: AdviceCard;
   profile: UserProfile;
 }) {
+  const { tp } = useLang();
   const [expanded, setExpanded] = useState(false);
   const body = resolveBody(card, profile);
   const action = resolveAction(card, profile);
@@ -1215,8 +1254,9 @@ function AdviceCardView({
           color={TEXT_3}
         />
         <Text style={styles.sourcesToggleText}>
-          {expanded ? "Masquer" : "Voir"} les sources · vérifié le{" "}
-          {card.lastVerified}
+          {tp(expanded ? "coach.sources.hide" : "coach.sources.show", {
+            date: card.lastVerified,
+          })}
         </Text>
       </TouchableOpacity>
 

@@ -31,7 +31,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "react-native";
+import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
+import type { Lang } from "../../src/i18n/translations";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadWorkspacePhoto } from "../../src/lib/photos";
 import {
@@ -63,13 +65,30 @@ const DANGER = "#DC2626";
 const BORDER = "rgba(255,255,255,0.08)";
 const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
 
-const KIND_OPTIONS: { value: WorkspaceKind; label: string; icon: keyof typeof Feather.glyphMap }[] = [
-  { value: "couple", label: "Couple", icon: "heart" },
-  { value: "family", label: "Famille", icon: "users" },
-  { value: "coloc", label: "Colocation", icon: "home" },
-  { value: "association", label: "Association", icon: "award" },
-  { value: "other", label: "Autre", icon: "more-horizontal" },
+// Le libellé est une CLÉ de traduction, résolue à l'affichage via t().
+const KIND_OPTIONS: {
+  value: WorkspaceKind;
+  labelKey: string;
+  icon: keyof typeof Feather.glyphMap;
+}[] = [
+  { value: "couple", labelKey: "ws.kind.couple", icon: "heart" },
+  { value: "family", labelKey: "ws.kind.family", icon: "users" },
+  { value: "coloc", labelKey: "ws.kind.coloc", icon: "home" },
+  { value: "association", labelKey: "ws.kind.association", icon: "award" },
+  { value: "other", labelKey: "ws.kind.other", icon: "more-horizontal" },
 ];
+
+// Locale d'affichage des dates, dérivée de la langue de l'app.
+const DATE_LOCALES: Record<Lang, string> = {
+  fr: "fr-FR",
+  en: "en-GB",
+  es: "es-ES",
+  pt: "pt-PT",
+  de: "de-DE",
+  it: "it-IT",
+  ar: "ar",
+  ja: "ja-JP",
+};
 
 // Suit la hauteur du clavier pour que les sheets flottent au-dessus
 // (même pattern que GoalEditor — KeyboardAvoidingView pousse les sheets
@@ -92,6 +111,7 @@ function useKeyboardHeight(): number {
 }
 
 export default function WorkspacesScreen() {
+  const { t } = useLang();
   const { user } = useSession();
   const { workspaceId: activeId, setScope } = useActiveScope();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -116,31 +136,29 @@ export default function WorkspacesScreen() {
       await setScope(id, name, kind);
       // Feedback rapide
       Alert.alert(
-        id ? "Espace activé" : "Compte perso activé",
-        id
-          ? "Tes objectifs et données Premium suivent maintenant cet espace."
-          : "Retour sur ton compte personnel.",
+        t(id ? "ws.switched.space.title" : "ws.switched.personal.title"),
+        t(id ? "ws.switched.space.msg" : "ws.switched.personal.msg"),
       );
     },
-    [setScope],
+    [setScope, t],
   );
 
   const activeLabel =
     activeId === null
-      ? "Perso"
-      : workspaces.find((w) => w.id === activeId)?.name ?? "Espace supprimé";
+      ? t("ws.personalShort")
+      : workspaces.find((w) => w.id === activeId)?.name ?? t("ws.deletedSpace");
 
   if (!user) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
           <Feather name="lock" size={32} color={TEXT_3} />
-          <Text style={styles.emptyTitle}>Connexion Premium requise</Text>
+          <Text style={styles.emptyTitle}>{t("common.premiumRequired")}</Text>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.emptyBtn}
           >
-            <Text style={styles.emptyBtnText}>Retour</Text>
+            <Text style={styles.emptyBtnText}>{t("common.back")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -153,7 +171,7 @@ export default function WorkspacesScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Espaces partagés</Text>
+        <Text style={styles.title}>{t("ws.title")}</Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <TouchableOpacity onPress={reload} hitSlop={10}>
             <Feather name="refresh-cw" size={18} color={TEXT_2} />
@@ -177,12 +195,9 @@ export default function WorkspacesScreen() {
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.activeLabel}>Scope actif</Text>
+              <Text style={styles.activeLabel}>{t("ws.activeScope")}</Text>
               <Text style={styles.activeName}>{activeLabel}</Text>
-              <Text style={styles.activeHint}>
-                Tes données Premium (objectifs, budget, conseils) sont
-                enregistrées dans ce scope. Tape pour ouvrir tes Objectifs.
-              </Text>
+              <Text style={styles.activeHint}>{t("ws.activeHint")}</Text>
             </View>
             <Feather name="chevron-right" size={22} color={TEXT_3} />
           </View>
@@ -190,8 +205,8 @@ export default function WorkspacesScreen() {
 
         {/* Perso */}
         <ScopeCard
-          name="Compte personnel"
-          subtitle="Tes données privées, non partagées"
+          name={t("ws.personalAccount")}
+          subtitle={t("ws.personalSubtitle")}
           icon="user"
           active={activeId === null}
           onSwitch={() => onSwitchScope(null)}
@@ -209,7 +224,10 @@ export default function WorkspacesScreen() {
               name={ws.name}
               subtitle={
                 ws.description ||
-                (KIND_OPTIONS.find((k) => k.value === ws.kind)?.label ?? ws.kind)
+                (() => {
+                  const opt = KIND_OPTIONS.find((k) => k.value === ws.kind);
+                  return opt ? t(opt.labelKey) : ws.kind;
+                })()
               }
               icon={KIND_OPTIONS.find((k) => k.value === ws.kind)?.icon ?? "users"}
               photoUrl={ws.photo_url}
@@ -227,7 +245,7 @@ export default function WorkspacesScreen() {
           activeOpacity={0.85}
         >
           <Feather name="plus" size={18} color="#000" />
-          <Text style={styles.primaryBtnText}>Créer un espace</Text>
+          <Text style={styles.primaryBtnText}>{t("ws.create")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -236,7 +254,7 @@ export default function WorkspacesScreen() {
           activeOpacity={0.85}
         >
           <Feather name="link" size={16} color={GOLD} />
-          <Text style={styles.secondaryBtnText}>Rejoindre via un code</Text>
+          <Text style={styles.secondaryBtnText}>{t("ws.joinWithCode")}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -305,6 +323,7 @@ function ScopeCard({
   onDetail?: () => void;
   isOwner?: boolean;
 }) {
+  const { t } = useLang();
   return (
     <View style={[styles.scopeCard, active && styles.scopeCardActive]}>
       <View style={styles.scopeIconWrap}>
@@ -322,7 +341,9 @@ function ScopeCard({
           <Text style={styles.scopeName}>{name}</Text>
           {isOwner ? (
             <View style={styles.ownerBadge}>
-              <Text style={styles.ownerBadgeText}>OWNER</Text>
+              <Text style={styles.ownerBadgeText}>
+                {t("ws.owner").toUpperCase()}
+              </Text>
             </View>
           ) : null}
         </View>
@@ -332,7 +353,7 @@ function ScopeCard({
         {onDetail ? (
           <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Réglages" onPress={onDetail} hitSlop={10} style={styles.scopeBtn}>
+              accessibilityLabel={t("settings.title")} onPress={onDetail} hitSlop={10} style={styles.scopeBtn}>
             <Feather name="settings" size={16} color={TEXT_2} />
           </TouchableOpacity>
         ) : null}
@@ -347,7 +368,7 @@ function ScopeCard({
             style={[styles.scopeBtn, { backgroundColor: SURFACE_2 }]}
             activeOpacity={0.85}
           >
-            <Text style={styles.scopeBtnText}>Activer</Text>
+            <Text style={styles.scopeBtnText}>{t("ws.activate")}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -368,6 +389,7 @@ function CreateModal({
   onClose: () => void;
   onCreated: (ws: Workspace) => void;
 }) {
+  const { t } = useLang();
   const keyboardHeight = useKeyboardHeight();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -385,14 +407,14 @@ function CreateModal({
 
   async function submit() {
     if (!name.trim()) {
-      Alert.alert("Nom manquant", "Donne un nom à ton espace.");
+      Alert.alert(t("ws.err.nameMissing.title"), t("ws.err.nameMissing.msg"));
       return;
     }
     setBusy(true);
     const result = await createWorkspace(name.trim(), kind, description);
     setBusy(false);
     if (!result.ok || !result.workspace) {
-      Alert.alert("Erreur", result.error ?? "Création échouée.");
+      Alert.alert(t("common.error"), result.error ?? t("ws.err.createFailed"));
       return;
     }
     onCreated(result.workspace);
@@ -405,35 +427,35 @@ function CreateModal({
         <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Nouvel espace</Text>
+            <Text style={styles.sheetTitle}>{t("ws.new.title")}</Text>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
+              accessibilityLabel={t("common.close")} onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.label}>Nom</Text>
+          <Text style={styles.label}>{t("ws.field.name")}</Text>
           <TextInput
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder="Nom de famille, Coloc Bordeaux..."
+            placeholder={t("ws.name.placeholder")}
             placeholderTextColor={TEXT_3}
             autoFocus
           />
 
-          <Text style={styles.label}>Description (optionnel)</Text>
+          <Text style={styles.label}>{t("ws.field.description")}</Text>
           <TextInput
             style={styles.input}
             value={description}
             onChangeText={setDescription}
-            placeholder="Budget commun pour le loyer et les courses…"
+            placeholder={t("ws.description.placeholder")}
             placeholderTextColor={TEXT_3}
             maxLength={80}
           />
 
-          <Text style={styles.label}>Type</Text>
+          <Text style={styles.label}>{t("ws.field.kind")}</Text>
           <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
             {KIND_OPTIONS.map((k) => {
               const active = k.value === kind;
@@ -446,7 +468,7 @@ function CreateModal({
                 >
                   <Feather name={k.icon} size={14} color={active ? "#000" : TEXT_2} />
                   <Text style={[styles.kindChipText, active && styles.kindChipTextActive]}>
-                    {k.label}
+                    {t(k.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -464,7 +486,7 @@ function CreateModal({
             ) : (
               <>
                 <Feather name="plus" size={18} color="#000" />
-                <Text style={styles.primaryBtnText}>Créer l'espace</Text>
+                <Text style={styles.primaryBtnText}>{t("ws.create.submit")}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -487,6 +509,7 @@ function JoinModal({
   onClose: () => void;
   onJoined: () => void;
 }) {
+  const { t } = useLang();
   const keyboardHeight = useKeyboardHeight();
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
@@ -500,17 +523,17 @@ function JoinModal({
 
   async function submit() {
     if (!token.trim()) {
-      Alert.alert("Code manquant", "Colle le code d'invitation que tu as reçu.");
+      Alert.alert(t("ws.err.codeMissing.title"), t("ws.err.codeMissing.msg"));
       return;
     }
     setBusy(true);
     const result = await acceptInvite(token.trim());
     setBusy(false);
     if (!result.ok) {
-      Alert.alert("Impossible de rejoindre", result.error ?? "Erreur inconnue");
+      Alert.alert(t("ws.err.joinFailed"), result.error ?? t("common.unknownError"));
       return;
     }
-    Alert.alert("Bienvenue !", "Tu as rejoint l'espace.");
+    Alert.alert(t("ws.joined.title"), t("ws.joined.msg"));
     onJoined();
   }
 
@@ -521,20 +544,17 @@ function JoinModal({
         <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Rejoindre un espace</Text>
+            <Text style={styles.sheetTitle}>{t("ws.join.title")}</Text>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
+              accessibilityLabel={t("common.close")} onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.sheetIntro}>
-            Colle le code d'invitation partagé par un membre de l'espace. Le
-            code n'est valide que pour l'email de ton compte Premium.
-          </Text>
+          <Text style={styles.sheetIntro}>{t("ws.join.intro")}</Text>
 
-          <Text style={styles.label}>Code d'invitation</Text>
+          <Text style={styles.label}>{t("ws.field.code")}</Text>
           <TextInput
             style={[styles.input, { fontFamily: MONO_FONT, fontSize: 12 }]}
             value={token}
@@ -557,7 +577,7 @@ function JoinModal({
             ) : (
               <>
                 <Feather name="log-in" size={18} color="#000" />
-                <Text style={styles.primaryBtnText}>Rejoindre</Text>
+                <Text style={styles.primaryBtnText}>{t("ws.join.submit")}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -584,6 +604,7 @@ function WorkspaceDetailModal({
   onDeleted: () => void;
   onLeft: () => void;
 }) {
+  const { lang, t, tp } = useLang();
   const keyboardHeight = useKeyboardHeight();
   const [members, setMembers] = useState<MemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -606,12 +627,12 @@ function WorkspaceDetailModal({
     if (result.ok) {
       setPhotoUrl(result.url);
     } else if (result.reason === "permission") {
-      Alert.alert(
-        "Photos",
-        "Autorise l'accès à tes photos dans les réglages du téléphone.",
-      );
+      Alert.alert(t("common.photos"), t("common.photosPermission"));
     } else if (result.reason === "error") {
-      Alert.alert("Upload échoué", result.message ?? "Erreur inconnue");
+      Alert.alert(
+        t("common.uploadFailed"),
+        result.message ?? t("common.unknownError"),
+      );
     }
   }
 
@@ -640,15 +661,11 @@ function WorkspaceDetailModal({
   // reste écrit en clair pour ceux qui n'ont pas encore installé l'app.
   async function shareInvite(token: string) {
     const link = Linking.createURL("/(premium)/workspaces", { queryParams: { join: token } });
-    const name = workspace.name ?? "notre espace";
+    const name = workspace.name ?? t("ws.share.fallbackName");
     try {
       await Share.share({
-        message:
-          `Rejoins « ${name} » sur NetBudget pour qu'on gère notre budget ensemble.\n\n` +
-          `Code d'invitation : ${token}\n\n` +
-          `Ouvre le lien depuis ton téléphone : ${link}\n` +
-          `(ou colle le code dans « Rejoindre via un code » dans l'app)`,
-        title: `Invitation — ${name}`,
+        message: tp("ws.share.message", { name, token, link }),
+        title: tp("ws.share.title", { name }),
       });
     } catch {
       // partage annulé
@@ -657,14 +674,17 @@ function WorkspaceDetailModal({
 
   async function sendInvite() {
     if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
-      Alert.alert("Email invalide", "Renseigne un email valide.");
+      Alert.alert(
+        t("ws.err.emailInvalid.title"),
+        t("ws.err.emailInvalid.msg"),
+      );
       return;
     }
     setBusy(true);
     const result = await createInvite(workspace.id, inviteEmail.trim());
     setBusy(false);
     if (!result.ok || !result.invite) {
-      Alert.alert("Erreur", result.error ?? "Invitation échouée.");
+      Alert.alert(t("common.error"), result.error ?? t("ws.err.inviteFailed"));
       return;
     }
     setPendingToken(result.invite.token);
@@ -674,17 +694,17 @@ function WorkspaceDetailModal({
 
   function confirmDelete() {
     Alert.alert(
-      "Supprimer l'espace ?",
-      `"${workspace.name}" et TOUTES ses données seront supprimées définitivement. Les membres perdent l'accès. Cette action est irréversible.`,
+      t("ws.delete.title"),
+      tp("ws.delete.msg", { name: workspace.name }),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("btn.cancel"), style: "cancel" },
         {
-          text: "Supprimer",
+          text: t("btn.delete"),
           style: "destructive",
           onPress: async () => {
             const r = await deleteWorkspace(workspace.id);
             if (!r.ok) {
-              Alert.alert("Erreur", r.error ?? "Suppression échouée");
+              Alert.alert(t("common.error"), r.error ?? t("ws.err.deleteFailed"));
               return;
             }
             onDeleted();
@@ -696,17 +716,17 @@ function WorkspaceDetailModal({
 
   function confirmLeave() {
     Alert.alert(
-      "Quitter l'espace ?",
-      "Tu perdras l'accès aux données partagées. Cet espace continuera d'exister pour les autres membres.",
+      t("ws.leave.title"),
+      t("ws.leave.msg"),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("btn.cancel"), style: "cancel" },
         {
-          text: "Quitter",
+          text: t("ws.leave.confirm"),
           style: "destructive",
           onPress: async () => {
             const r = await leaveWorkspace(workspace.id);
             if (!r.ok) {
-              Alert.alert("Erreur", r.error ?? "Sortie échouée");
+              Alert.alert(t("common.error"), r.error ?? t("ws.err.leaveFailed"));
               return;
             }
             onLeft();
@@ -750,14 +770,14 @@ function WorkspaceDetailModal({
             </View>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
+              accessibilityLabel={t("common.close")} onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>
 
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={styles.label}>
-              Membres {loading ? "…" : `(${members.length})`}
+              {t("ws.members")} {loading ? "…" : `(${members.length})`}
             </Text>
             {loading ? (
               <ActivityIndicator color={GOLD} />
@@ -765,7 +785,7 @@ function WorkspaceDetailModal({
               members.map((m) => {
                 const displayName =
                   m.user_id === currentUserId
-                    ? "Toi"
+                    ? t("ws.you")
                     : m.username ?? m.first_name ?? m.user_id.slice(0, 8) + "…";
                 return (
                   <View key={m.user_id} style={styles.memberRow}>
@@ -787,7 +807,9 @@ function WorkspaceDetailModal({
                       {displayName}
                     </Text>
                     <View style={styles.roleBadge}>
-                      <Text style={styles.roleBadgeText}>{m.role}</Text>
+                      <Text style={styles.roleBadgeText}>
+                        {m.role === "owner" ? t("ws.role.owner") : t("ws.role.member")}
+                      </Text>
                     </View>
                   </View>
                 );
@@ -797,14 +819,14 @@ function WorkspaceDetailModal({
             {isOwner ? (
               <>
                 <Text style={[styles.label, { marginTop: 16 }]}>
-                  Inviter un membre
+                  {t("ws.invite.title")}
                 </Text>
                 <View style={{ flexDirection: "row", gap: 8 }}>
                   <TextInput
                     style={[styles.input, { flex: 1 }]}
                     value={inviteEmail}
                     onChangeText={setInviteEmail}
-                    placeholder="email@exemple.com"
+                    placeholder={t("ws.invite.emailPlaceholder")}
                     placeholderTextColor={TEXT_3}
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -827,7 +849,7 @@ function WorkspaceDetailModal({
                 {/* Invitations en attente : repartageables à tout moment */}
                 {openInvites.length > 0 ? (
                   <View style={{ gap: 8, marginTop: 4 }}>
-                    <Text style={styles.tokenLabel}>Invitations en attente</Text>
+                    <Text style={styles.tokenLabel}>{t("ws.invite.pending")}</Text>
                     {openInvites.map((inv) => (
                       <View key={inv.id} style={styles.inviteRow}>
                         <View style={{ flex: 1 }}>
@@ -835,18 +857,23 @@ function WorkspaceDetailModal({
                             {inv.email}
                           </Text>
                           <Text style={styles.inviteMeta}>
-                            expire le{" "}
-                            {new Date(inv.expires_at).toLocaleDateString("fr-FR")}
+                            {tp("ws.invite.expires", {
+                              date: new Date(inv.expires_at).toLocaleDateString(
+                                DATE_LOCALES[lang],
+                              ),
+                            })}
                           </Text>
                         </View>
                         <TouchableOpacity
                           onPress={async () => {
                             await Clipboard.setStringAsync(inv.token);
-                            notify("Copié", "Le code est dans ton presse-papiers.");
+                            notify(t("ws.copied.title"), t("ws.copied.msg"));
                           }}
                           hitSlop={10}
                           accessibilityRole="button"
-                          accessibilityLabel={`Copier le code pour ${inv.email}`}
+                          accessibilityLabel={tp("ws.invite.copyA11y", {
+                            email: inv.email,
+                          })}
                         >
                           <Feather name="copy" size={17} color={TEXT_2} />
                         </TouchableOpacity>
@@ -854,7 +881,9 @@ function WorkspaceDetailModal({
                           onPress={() => shareInvite(inv.token)}
                           hitSlop={10}
                           accessibilityRole="button"
-                          accessibilityLabel={`Partager l'invitation de ${inv.email}`}
+                          accessibilityLabel={tp("ws.invite.shareA11y", {
+                            email: inv.email,
+                          })}
                         >
                           <Feather name="share-2" size={17} color={GOLD} />
                         </TouchableOpacity>
@@ -865,9 +894,7 @@ function WorkspaceDetailModal({
 
                 {pendingToken ? (
                   <View style={styles.tokenBox}>
-                    <Text style={styles.tokenLabel}>
-                      Code d'invitation généré · valable 14 jours
-                    </Text>
+                    <Text style={styles.tokenLabel}>{t("ws.token.label")}</Text>
                     <Text selectable style={styles.tokenValue}>
                       {pendingToken}
                     </Text>
@@ -877,11 +904,11 @@ function WorkspaceDetailModal({
                         activeOpacity={0.85}
                         onPress={async () => {
                           await Clipboard.setStringAsync(pendingToken);
-                          notify("Copié", "Le code est dans ton presse-papiers.");
+                          notify(t("ws.copied.title"), t("ws.copied.msg"));
                         }}
                       >
                         <Feather name="copy" size={15} color={GOLD} />
-                        <Text style={styles.tokenActionText}>Copier le code</Text>
+                        <Text style={styles.tokenActionText}>{t("ws.token.copy")}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.tokenActionBtn, styles.tokenActionPrimary]}
@@ -890,15 +917,11 @@ function WorkspaceDetailModal({
                       >
                         <Feather name="share-2" size={15} color="#000" />
                         <Text style={[styles.tokenActionText, { color: "#000" }]}>
-                          Partager l'invitation
+                          {t("ws.token.share")}
                         </Text>
                       </TouchableOpacity>
                     </View>
-                    <Text style={styles.tokenHint}>
-                      « Partager » ouvre WhatsApp, Mail, SMS… avec le message
-                      et le lien déjà écrits. Ton invité doit rejoindre avec le
-                      même e-mail que celui saisi ci-dessus.
-                    </Text>
+                    <Text style={styles.tokenHint}>{t("ws.token.hint")}</Text>
                   </View>
                 ) : null}
 
@@ -909,7 +932,7 @@ function WorkspaceDetailModal({
                   activeOpacity={0.85}
                 >
                   <Feather name="trash-2" size={16} color="#fff" />
-                  <Text style={styles.dangerBtnText}>Supprimer cet espace</Text>
+                  <Text style={styles.dangerBtnText}>{t("ws.deleteSpaceBtn")}</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -919,7 +942,7 @@ function WorkspaceDetailModal({
                 activeOpacity={0.85}
               >
                 <Feather name="log-out" size={16} color="#fff" />
-                <Text style={styles.dangerBtnText}>Quitter cet espace</Text>
+                <Text style={styles.dangerBtnText}>{t("ws.leaveSpaceBtn")}</Text>
               </TouchableOpacity>
             )}
 

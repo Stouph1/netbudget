@@ -25,6 +25,7 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import ScopeSwitcher from "./ScopeSwitcher";
+import { useLang } from "../contexts/LangContext";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
@@ -60,14 +61,12 @@ function formatEuro(n: number): string {
   }).format(n);
 }
 
-const MONTHS_FR = [
-  "janv.", "févr.", "mars", "avr.", "mai", "juin",
-  "juil.", "août", "sept.", "oct.", "nov.", "déc.",
-];
-
-function monthLabel(month: string): string {
+// Les noms de mois viennent du catalogue de traductions (month.short.N /
+// month.long.N), déjà traduits dans les 8 langues.
+function monthLabel(month: string, t: (key: string) => string): string {
   const idx = parseInt(month.slice(5), 10) - 1;
-  return MONTHS_FR[idx] ?? month;
+  if (idx < 0 || idx > 11) return month;
+  return t(`month.short.${idx}`);
 }
 
 type Props = {
@@ -78,8 +77,11 @@ type Props = {
 };
 
 export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Props) {
+  const { t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
-  const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
+  const { workspaceId, scopeLabel, scopeLabelIsKey, loading: scopeLoading } = useActiveScope();
+  // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
+  const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [s1, setS1] = useState<S1Payload | null>(null);
   const [history, setHistory] = useState<BudgetHistoryPoint[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -131,14 +133,14 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     if (result.ok) {
       setAvatarUrl(result.url);
     } else if (result.reason === "permission") {
-      Alert.alert(
-        "Photos",
-        "Autorise l'accès à tes photos dans les réglages du téléphone.",
-      );
+      Alert.alert(t("common.photos"), t("common.photosPermission"));
     } else if (result.reason === "error") {
-      Alert.alert("Upload échoué", result.message ?? "Erreur inconnue");
+      Alert.alert(
+        t("common.uploadFailed"),
+        result.message ?? t("common.unknownError"),
+      );
     }
-  }, [user?.id]);
+  }, [user?.id, t]);
 
   // Après n'importe quel provider : consentement horodaté (la case était
   // obligatoire) puis inscription incomplète → écran dédié
@@ -152,10 +154,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
 
   function requireConsent(): boolean {
     if (consentOk) return true;
-    notify(
-      "Un instant",
-      "Coche d'abord la case pour accepter la politique de confidentialité et les conditions d'utilisation.",
-    );
+    notify(t("home.consent.required.title"), t("home.consent.required.msg"));
     return false;
   }
 
@@ -165,7 +164,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     const result = await signInWithApple();
     setBusyAuth(false);
     if (!result.ok && result.reason !== "cancelled") {
-      Alert.alert("Connexion", result.message ?? result.reason);
+      Alert.alert(t("home.err.signin"), result.message ?? result.reason);
       return;
     }
     if (result.ok) await afterSignIn(result.userId);
@@ -177,7 +176,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     const result = await signInWithGoogle();
     setBusyAuth(false);
     if (!result.ok && result.reason !== "cancelled") {
-      Alert.alert("Connexion Google", result.message ?? result.reason);
+      Alert.alert(t("home.err.signinGoogle"), result.message ?? result.reason);
       return;
     }
     if (result.ok) await afterSignIn(result.userId);
@@ -201,15 +200,10 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           <View style={styles.signinIconWrap}>
             <Feather name="user" size={36} color={GOLD} />
           </View>
-          <Text style={styles.signinTitle}>Ton espace NetBudget</Text>
-          <Text style={styles.signinBody}>
-            Pas besoin de compte pour utiliser NetBudget — ton budget reste
-            100% sur ton téléphone.
-          </Text>
+          <Text style={styles.signinTitle}>{t("home.signin.title")}</Text>
+          <Text style={styles.signinBody}>{t("home.signin.body1")}</Text>
           <Text style={[styles.signinBody, { marginTop: 10 }]}>
-            Un compte débloque les fonctions Premium : synchronisation
-            sécurisée, budgets partagés en couple ou en famille, et conseils
-            personnalisés.
+            {t("home.signin.body2")}
           </Text>
 
           {/* Consentement RGPD — obligatoire avant toute création de compte */}
@@ -222,21 +216,21 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
               {consentOk ? <Feather name="check" size={13} color="#000" /> : null}
             </View>
             <Text style={styles.consentText}>
-              J'ai lu et j'accepte la{" "}
+              {t("home.consent.prefix")}
               <Text
                 style={styles.consentLink}
                 onPress={() => openExternal("https://www.netbudget.app/privacy")}
               >
-                politique de confidentialité
-              </Text>{" "}
-              et les{" "}
+                {t("home.consent.privacy")}
+              </Text>
+              {t("home.consent.mid")}
               <Text
                 style={styles.consentLink}
                 onPress={() => openExternal("https://www.netbudget.app/terms")}
               >
-                conditions d'utilisation
+                {t("home.consent.terms")}
               </Text>
-              .
+              {t("home.consent.suffix")}
             </Text>
           </TouchableOpacity>
 
@@ -275,7 +269,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
                   <Path fill="#FBBC05" d="M5.28 14.28A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.38-2.28v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.38l4.01-3.1z" />
                   <Path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.95 1.19 15.23 0 12 0 7.31 0 3.24 2.7 1.27 6.62l4.01 3.1C6.22 6.88 8.87 4.77 12 4.77z" />
                 </Svg>
-                <Text style={styles.providerBtnText}>Continuer avec Google</Text>
+                <Text style={styles.providerBtnText}>{t("home.signin.google")}</Text>
               </TouchableOpacity>
 
               {/* 3. E-mail + mot de passe (création de compte ou connexion) */}
@@ -289,16 +283,13 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
               >
                 <Feather name="mail" size={17} color={TEXT_1} />
                 <Text style={styles.providerBtnText}>
-                  Continuer avec un e-mail
+                  {t("home.signin.email")}
                 </Text>
               </TouchableOpacity>
             </View>
           )}
 
-          <Text style={styles.signinFootnote}>
-            Gratuit pendant le développement. Aucune donnée n'est partagée sans
-            ton accord.
-          </Text>
+          <Text style={styles.signinFootnote}>{t("home.signin.footnote")}</Text>
         </View>
       </ScrollView>
     );
@@ -322,10 +313,8 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
         >
           <Feather name="alert-circle" size={18} color="#000" />
           <View style={{ flex: 1 }}>
-            <Text style={styles.completeBannerTitle}>Finalise ton inscription</Text>
-            <Text style={styles.completeBannerText}>
-              Pseudo, photo et profil — 1 minute pour débloquer tes conseils.
-            </Text>
+            <Text style={styles.completeBannerTitle}>{t("home.complete.title")}</Text>
+            <Text style={styles.completeBannerText}>{t("home.complete.body")}</Text>
           </View>
           <Feather name="chevron-right" size={18} color="#000" />
         </TouchableOpacity>
@@ -355,13 +344,13 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           <TouchableOpacity onPress={editUsername} activeOpacity={0.7}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Text style={styles.profileName} numberOfLines={1}>
-                {username ?? "Choisir un nom d'utilisateur"}
+                {username ?? t("home.chooseUsername")}
               </Text>
               <Feather name="edit-2" size={11} color={TEXT_3} />
             </View>
           </TouchableOpacity>
           <Text style={styles.profileEmail} numberOfLines={1}>
-            {user.email ?? "email masqué"}
+            {user.email ?? t("home.emailHidden")}
           </Text>
           <TouchableOpacity
             style={styles.scopeInline}
@@ -373,15 +362,19 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
               size={12}
               color={GOLD}
             />
-            <Text style={styles.scopeInlineText}>{scopeLabel}</Text>
+            <Text style={styles.scopeInlineText}>{resolvedScopeLabel}</Text>
             <Feather name="chevron-down" size={12} color={TEXT_3} />
           </TouchableOpacity>
         </View>
         <TouchableOpacity
           onPress={() =>
-            Alert.alert("Déconnexion", "Te déconnecter de ton compte ?", [
-              { text: "Annuler", style: "cancel" },
-              { text: "Déconnexion", style: "destructive", onPress: () => signOut() },
+            Alert.alert(t("home.signout.title"), t("home.signout.msg"), [
+              { text: t("btn.cancel"), style: "cancel" },
+              {
+                text: t("home.signout.title"),
+                style: "destructive",
+                onPress: () => signOut(),
+              },
             ])
           }
           hitSlop={10}
@@ -396,7 +389,9 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
         onPress={() => router.push("/(premium)/s1-epargne" as never)}
         activeOpacity={0.85}
       >
-        <Text style={styles.overviewLabel}>Épargne · {scopeLabel}</Text>
+        <Text style={styles.overviewLabel}>
+          {tp("home.savings", { scope: resolvedScopeLabel })}
+        </Text>
         <View style={styles.overviewRow}>
           <Text style={styles.overviewCurrent}>{formatEuro(current)}</Text>
           <Text style={styles.overviewTarget}>/ {formatEuro(target)}</Text>
@@ -405,8 +400,10 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           <View style={[styles.progressBarFill, { width: `${pct}%` }]} />
         </View>
         <Text style={styles.overviewMeta}>
-          {activeGoals.length} objectif{activeGoals.length > 1 ? "s" : ""} ·{" "}
-          {pct.toFixed(0)}%
+          {tp(activeGoals.length > 1 ? "home.goals.many" : "home.goals.one", {
+            count: activeGoals.length,
+            pct: pct.toFixed(0),
+          })}
         </Text>
       </TouchableOpacity>
 
@@ -414,43 +411,43 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
       <View style={styles.tilesRow}>
         <Tile
           icon="target"
-          label="Objectifs"
+          label={t("home.tile.goals")}
           onPress={() => router.push("/(premium)/s1-epargne" as never)}
         />
         <Tile
           icon="compass"
-          label="Coach"
+          label={t("home.tile.coach")}
           onPress={() => router.push("/(premium)/advice" as never)}
         />
       </View>
       <View style={styles.tilesRow}>
         <Tile
           icon="users"
-          label="Espaces"
+          label={t("home.tile.spaces")}
           onPress={() => router.push("/(premium)/workspaces" as never)}
         />
         <Tile
           icon="pie-chart"
-          label="Budget"
+          label={t("tab.budget")}
           onPress={() => (onGoBudget ? onGoBudget() : router.back())}
         />
       </View>
       <View style={styles.tilesRow}>
         <Tile
           icon="bookmark"
-          label="Conseils gardés"
+          label={t("home.tile.saved")}
           onPress={() => router.push("/(premium)/saved-advice" as never)}
         />
         <Tile
           icon="gift"
-          label="Anniversaires"
+          label={t("home.tile.birthdays")}
           onPress={() => router.push("/(premium)/celebrations" as never)}
         />
       </View>
       <View style={styles.tilesRow}>
         <Tile
           icon="calendar"
-          label="Événements"
+          label={t("home.tile.events")}
           onPress={() => router.push("/(premium)/events" as never)}
         />
       </View>
@@ -467,7 +464,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
       {/* Évolution du budget — historique mensuel du scope actif */}
       <BudgetHistoryCard
         points={history}
-        scopeLabel={scopeLabel}
+        scopeLabel={resolvedScopeLabel}
         onSeedDemo={
           __DEV__
             ? async () => {
@@ -493,14 +490,9 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
 // Les points sont enregistrés automatiquement par le tab Budget.
 // ============================================================================
 
-const MONTHS_FULL_FR = [
-  "janvier", "février", "mars", "avril", "mai", "juin",
-  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-];
-
-function monthFullLabel(month: string): string {
+function monthFullLabel(month: string, t: (key: string) => string): string {
   const idx = parseInt(month.slice(5), 10) - 1;
-  const name = MONTHS_FULL_FR[idx] ?? month;
+  const name = idx >= 0 && idx <= 11 ? t(`month.long.${idx}`) : month;
   return `${name} ${month.slice(0, 4)}`;
 }
 
@@ -517,21 +509,22 @@ type CompareRow = {
 
 function buildRows(
   a: BudgetHistoryPoint,
-  b?: BudgetHistoryPoint,
+  b: BudgetHistoryPoint | undefined,
+  t: (key: string) => string,
 ): CompareRow[] {
   const rows: CompareRow[] = [
-    { label: "Net mensuel", a: a.net, b: b?.net, goodUp: true, strong: true },
-    { label: "Dépenses totales", a: a.expenses, b: b?.expenses, goodUp: false, strong: true },
-    { label: "Reste à vivre", a: a.remaining, b: b?.remaining, goodUp: true, strong: true },
+    { label: t("top.netMonthly"), a: a.net, b: b?.net, goodUp: true, strong: true },
+    { label: t("home.row.totalExpenses"), a: a.expenses, b: b?.expenses, goodUp: false, strong: true },
+    { label: t("top.remaining"), a: a.remaining, b: b?.remaining, goodUp: true, strong: true },
   ];
   const ba = a.breakdown;
   const bb = b?.breakdown;
   if (ba || bb) {
-    rows.push({ label: "Loyer", a: ba?.rent, b: bb?.rent, goodUp: false });
-    rows.push({ label: "Prêts", a: ba?.loans, b: bb?.loans, goodUp: false });
-    rows.push({ label: "Besoins", a: ba?.besoins, b: bb?.besoins, goodUp: false });
-    rows.push({ label: "Loisirs", a: ba?.loisirs, b: bb?.loisirs, goodUp: false });
-    rows.push({ label: "Épargne", a: ba?.epargne, b: bb?.epargne, goodUp: true });
+    rows.push({ label: t("donut.rent"), a: ba?.rent, b: bb?.rent, goodUp: false });
+    rows.push({ label: t("donut.loans"), a: ba?.loans, b: bb?.loans, goodUp: false });
+    rows.push({ label: t("family.besoins.label"), a: ba?.besoins, b: bb?.besoins, goodUp: false });
+    rows.push({ label: t("family.loisirs.label"), a: ba?.loisirs, b: bb?.loisirs, goodUp: false });
+    rows.push({ label: t("family.epargne.short"), a: ba?.epargne, b: bb?.epargne, goodUp: true });
     // Lignes détaillées : union des postes des deux mois
     const labels = new Map<string, { label: string; family: string }>();
     for (const it of ba?.items ?? []) labels.set(it.id, it);
@@ -572,6 +565,7 @@ function BudgetHistoryCard({
   scopeLabel: string;
   onSeedDemo?: () => void; // __DEV__ uniquement — absent en prod
 }) {
+  const { t, tp } = useLang();
   const [selected, setSelected] = useState<string | null>(null);
   const [compare, setCompare] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
@@ -600,7 +594,7 @@ function BudgetHistoryCard({
   const header = (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
       <Text style={[styles.overviewLabel, { flex: 1 }]}>
-        Évolution du budget · {scopeLabel}
+        {tp("home.history.title", { scope: scopeLabel })}
       </Text>
       {onSeedDemo ? (
         <TouchableOpacity onPress={onSeedDemo} hitSlop={8}>
@@ -614,9 +608,7 @@ function BudgetHistoryCard({
     return (
       <View style={styles.historyCard}>
         {header}
-        <Text style={styles.historyEmpty}>
-          {"L'historique se construit tout seul, mois après mois, dès que le tab Budget est rempli dans ce scope. Reviens le mois prochain pour voir la tendance."}
-        </Text>
+        <Text style={styles.historyEmpty}>{t("home.history.empty")}</Text>
       </View>
     );
   }
@@ -671,7 +663,7 @@ function BudgetHistoryCard({
                 ]}
                 numberOfLines={1}
               >
-                {monthLabel(p.month)}
+                {monthLabel(p.month, t)}
               </Text>
             </TouchableOpacity>
           );
@@ -680,21 +672,24 @@ function BudgetHistoryCard({
 
       <View style={styles.historyLegend}>
         <View style={[styles.legendDot, { backgroundColor: GOLD }]} />
-        <Text style={styles.legendText}>Net</Text>
+        <Text style={styles.legendText}>{t("home.legend.net")}</Text>
         <View
           style={[styles.legendDot, { backgroundColor: "#F87171", marginLeft: 14 }]}
         />
-        <Text style={styles.legendText}>Dépenses</Text>
+        <Text style={styles.legendText}>{t("top.expenses")}</Text>
         <Text style={[styles.legendText, { marginLeft: "auto", color: TEXT_3 }]}>
-          Tape un mois pour le détail
+          {t("home.legend.tapHint")}
         </Text>
       </View>
 
       {!selectedPoint ? (
         <Text style={styles.historyMeta}>
-          Reste à vivre : {formatEuro(latest.remaining)}
+          {tp("home.remaining", { amount: formatEuro(latest.remaining) })}
           {trendDelta !== null && prev
-            ? ` · ${trendDelta >= 0 ? "+" : "−"}${formatEuro(Math.abs(trendDelta))} vs ${monthLabel(prev.month)}`
+            ? tp("home.remaining.delta", {
+                delta: `${trendDelta >= 0 ? "+" : "−"}${formatEuro(Math.abs(trendDelta))}`,
+                month: monthLabel(prev.month, t),
+              })
             : ""}
         </Text>
       ) : (
@@ -702,8 +697,8 @@ function BudgetHistoryCard({
           {/* En-tête de la fiche mois / comparaison */}
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={styles.monthDetailTitle}>
-              {monthFullLabel(selectedPoint.month)}
-              {comparePoint ? ` → ${monthFullLabel(comparePoint.month)}` : ""}
+              {monthFullLabel(selectedPoint.month, t)}
+              {comparePoint ? ` → ${monthFullLabel(comparePoint.month, t)}` : ""}
             </Text>
             <TouchableOpacity
               onPress={() => {
@@ -719,22 +714,24 @@ function BudgetHistoryCard({
           </View>
 
           {picking ? (
-            <Text style={styles.pickingHint}>
-              Tape un autre mois dans le graphe pour comparer…
-            </Text>
+            <Text style={styles.pickingHint}>{t("home.compare.hint")}</Text>
           ) : null}
 
           {/* Colonnes */}
           {comparePoint ? (
             <View style={styles.rowHeader}>
               <View style={{ flex: 1 }} />
-              <Text style={styles.rowHeaderCell}>{monthLabel(selectedPoint.month)}</Text>
-              <Text style={styles.rowHeaderCell}>{monthLabel(comparePoint.month)}</Text>
-              <Text style={styles.rowHeaderCell}>Écart</Text>
+              <Text style={styles.rowHeaderCell}>
+                {monthLabel(selectedPoint.month, t)}
+              </Text>
+              <Text style={styles.rowHeaderCell}>
+                {monthLabel(comparePoint.month, t)}
+              </Text>
+              <Text style={styles.rowHeaderCell}>{t("home.col.delta")}</Text>
             </View>
           ) : null}
 
-          {buildRows(selectedPoint, comparePoint ?? undefined).map((row, i) => (
+          {buildRows(selectedPoint, comparePoint ?? undefined, t).map((row, i) => (
             <View key={`${row.label}-${i}`} style={styles.detailRow}>
               <Text
                 style={[
@@ -763,9 +760,7 @@ function BudgetHistoryCard({
           ))}
 
           {!selectedPoint.breakdown && !comparePoint?.breakdown ? (
-            <Text style={styles.historyEmpty}>
-              {"Le détail (loyer, catégories, postes) est enregistré à partir de maintenant — ce mois n'a que les totaux."}
-            </Text>
+            <Text style={styles.historyEmpty}>{t("home.detail.partial")}</Text>
           ) : null}
 
           {/* Action comparer */}
@@ -776,7 +771,7 @@ function BudgetHistoryCard({
               activeOpacity={0.85}
             >
               <Feather name="repeat" size={14} color={GOLD} />
-              <Text style={styles.compareBtnText}>Comparer avec un autre mois</Text>
+              <Text style={styles.compareBtnText}>{t("home.compare.btn")}</Text>
             </TouchableOpacity>
           ) : null}
         </View>

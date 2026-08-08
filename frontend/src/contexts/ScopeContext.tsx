@@ -34,7 +34,12 @@ type ScopeContextValue = {
   workspaceId: string | null;
   workspaceName: string | null;
   workspaceKind: ScopeKind | null;
+  /** Nom affichable. Pour le scope perso, c'est une CLÉ i18n (voir
+   *  scopeLabelIsKey) : le contexte est monté avant celui de la langue et ne
+   *  peut donc pas traduire lui-même. */
   scopeLabel: string;
+  /** true quand scopeLabel est une clé à passer à t(), pas un nom d'espace. */
+  scopeLabelIsKey: boolean;
   setScope: (
     id: string | null,
     name?: string | null,
@@ -98,7 +103,8 @@ export function ScopeProvider({ children }: { children: ReactNode }) {
       workspaceId: scope.id,
       workspaceName: scope.name,
       workspaceKind: scope.kind,
-      scopeLabel: scope.id ? (scope.name ?? "Workspace") : "Perso",
+      scopeLabel: scope.id ? (scope.name ?? "ws.deletedSpace") : "ws.personalShort",
+      scopeLabelIsKey: !scope.id || !scope.name,
       setScope,
       loading,
     }),

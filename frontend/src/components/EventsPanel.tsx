@@ -25,6 +25,7 @@ import {
   type EventTier,
 } from "../constants/eventTemplates";
 import ScopeSwitcher from "./ScopeSwitcher";
+import { useLang } from "../contexts/LangContext";
 import { useActiveScope } from "../contexts/ScopeContext";
 import { useSession } from "../contexts/SessionContext";
 import {
@@ -76,8 +77,11 @@ export function eventNeedsAttention(ev: EventProject, now: Date = new Date()): b
 }
 
 export default function EventsPanel({ standalone = false }: { standalone?: boolean }) {
+  const { lang, t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
-  const { workspaceId, scopeLabel } = useActiveScope();
+  const { workspaceId, scopeLabel, scopeLabelIsKey } = useActiveScope();
+  // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
+  const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [list, setList] = useState<EventProject[] | null>(null);
 
   // Assistant de création
@@ -111,12 +115,12 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     if (!user?.id || !tpl) return;
     const iso = parseFutureDate(dateStr);
     if (!iso) {
-      notify("Date invalide", "Format JJ/MM/AAAA, dans le futur (ex. 20/06/2027).");
+      notify(t("events.err.date.title"), t("events.err.date.body"));
       return;
     }
     const g = tpl.asksGuests ? Math.max(1, parseInt(guests, 10) || 0) : null;
     if (tpl.asksGuests && !g) {
-      notify(tpl.guestsLabel ?? "Invités", "Indique un nombre (même approximatif — tu ajusteras).");
+      notify(tpl.guestsLabel ?? t("events.guests.fallback"), t("events.err.guests.body"));
       return;
     }
     const ev: EventProject = {
@@ -170,11 +174,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     return (
       <View style={styles.center}>
         <Text style={{ fontSize: 34 }}>🗓️</Text>
-        <Text style={styles.emptyTitle}>Événements — avec Premium</Text>
-        <Text style={styles.emptyBody}>
-          Mariage, voyage, naissance… prépare chaque grand moment avec un
-          budget guidé. Connecte-toi depuis l'onglet Profil pour commencer.
-        </Text>
+        <Text style={styles.emptyTitle}>{t("events.locked.title")}</Text>
+        <Text style={styles.emptyBody}>{t("events.locked.body")}</Text>
       </View>
     );
   }
@@ -184,11 +185,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       contentContainerStyle={{ padding: 20, paddingBottom: standalone ? 60 : 130 }}
       showsVerticalScrollIndicator={false}
     >
-      {!standalone ? <Text style={styles.pageTitle}>Événements</Text> : null}
-      <Text style={styles.intro}>
-        Mariage, voyage, naissance, fête… prépare chaque grand moment avec un
-        budget guidé, un rétro-planning et des rappels.
-      </Text>
+      {!standalone ? <Text style={styles.pageTitle}>{t("events.title")}</Text> : null}
+      <Text style={styles.intro}>{t("events.intro")}</Text>
 
       {/* Espace actif : les événements d'un espace partagé sont visibles par
           tous ses membres. Changer d'espace recharge la liste. */}
@@ -199,19 +197,17 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       >
         <Feather name="users" size={15} color={GOLD} />
         <Text style={styles.scopeBarText} numberOfLines={1}>
-          {scopeLabel}
+          {resolvedScopeLabel}
         </Text>
-        <Text style={styles.scopeBarHint}>changer</Text>
+        <Text style={styles.scopeBarHint}>{t("events.scope.change")}</Text>
         <Feather name="chevron-down" size={16} color={TEXT_3} />
       </TouchableOpacity>
 
       {(list ?? []).length === 0 && !creating ? (
         <View style={styles.emptyBox}>
           <Text style={{ fontSize: 34 }}>🗓️</Text>
-          <Text style={styles.emptyTitle}>Aucun événement pour l'instant</Text>
-          <Text style={styles.emptyBody}>
-            Crée le premier : 3 questions et ton budget est posé.
-          </Text>
+          <Text style={styles.emptyTitle}>{t("events.empty.title")}</Text>
+          <Text style={styles.emptyBody}>{t("events.empty.body")}</Text>
         </View>
       ) : (
         (list ?? []).map((ev) => {
@@ -236,12 +232,12 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>{ev.name}</Text>
                   <Text style={styles.cardMeta}>
-                    {new Date(ev.dateIso + "T12:00:00").toLocaleDateString("fr-FR", {
+                    {new Date(ev.dateIso + "T12:00:00").toLocaleDateString(lang, {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
                     })}
-                    {ev.guests ? ` · ${ev.guests} pers.` : ""}
+                    {ev.guests ? ` · ${tp("events.people", { count: ev.guests })}` : ""}
                   </Text>
                   {ev.destinations?.length ? (
                     <Text style={styles.cardMeta} numberOfLines={1}>
@@ -254,14 +250,16 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
               <View
                 style={styles.progressBar}
                 accessibilityRole="progressbar"
-                accessibilityLabel={`Financement : ${pct.toFixed(0)} pour cent`}
+                accessibilityLabel={tp("events.a11y.funding", { pct: pct.toFixed(0) })}
                 accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
               >
                 <View style={[styles.progressFill, { width: `${pct}%` }]} />
               </View>
               <Text style={styles.cardMeta}>
-                {fmt(ev.saved)} / {fmt(planned)} financés
-                {monthly > 0 ? ` · ${fmt(monthly)}/mois pour y arriver` : " · financé 🎉"}
+                {tp("events.card.funded", { saved: fmt(ev.saved), planned: fmt(planned) })}
+                {monthly > 0
+                  ? ` · ${tp("events.card.monthly", { amount: fmt(monthly) })}`
+                  : ` · ${t("events.card.fullyFunded")}`}
               </Text>
             </TouchableOpacity>
           );
@@ -271,7 +269,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       {creating ? (
         <View style={styles.form}>
           <Text style={styles.formTitle}>
-            {tpl ? `${tpl.emoji} ${tpl.label}` : "Quel événement ?"}
+            {tpl ? `${tpl.emoji} ${tpl.label}` : t("events.form.pickType")}
           </Text>
           {!tpl ? (
             <View style={styles.typeGrid}>
@@ -294,14 +292,17 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 style={styles.input}
                 value={name}
                 onChangeText={setName}
-                placeholder={`Nom (ex. ${tpl.label} ${new Date().getFullYear() + 1})`}
+                placeholder={tp("events.form.namePlaceholder", {
+                  label: tpl.label,
+                  year: new Date().getFullYear() + 1,
+                })}
                 placeholderTextColor={TEXT_3}
               />
               <TextInput
                 style={styles.input}
                 value={dateStr}
                 onChangeText={setDateStr}
-                placeholder="Date de l'événement — JJ/MM/AAAA"
+                placeholder={t("events.form.datePlaceholder")}
                 placeholderTextColor={TEXT_3}
                 keyboardType="numbers-and-punctuation"
                 maxLength={10}
@@ -313,7 +314,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                       style={[styles.input, { flex: 1 }]}
                       value={destInput}
                       onChangeText={setDestInput}
-                      placeholder="Destination (ex. Lisbonne)"
+                      placeholder={t("events.form.destPlaceholder")}
                       placeholderTextColor={TEXT_3}
                       onSubmitEditing={addDestination}
                       returnKeyType="done"
@@ -321,7 +322,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                     <TouchableOpacity
               hitSlop={10}
               accessibilityRole="button"
-              accessibilityLabel="Ajouter"
+              accessibilityLabel={t("events.a11y.add")}
                       style={styles.addDestBtn}
                       onPress={addDestination}
                       activeOpacity={0.85}
@@ -348,10 +349,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                       ))}
                     </View>
                   ) : (
-                    <Text style={styles.hint}>
-                      Ajoute une ou plusieurs étapes — un tour d'Europe se
-                      budgète mieux ville par ville.
-                    </Text>
+                    <Text style={styles.hint}>{t("events.form.destHint")}</Text>
                   )}
                 </>
               ) : null}
@@ -360,7 +358,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                   style={styles.input}
                   value={guests}
                   onChangeText={setGuests}
-                  placeholder={tpl.guestsLabel ?? "Nombre d'invités"}
+                  placeholder={tpl.guestsLabel ?? t("events.form.guestsPlaceholder")}
                   placeholderTextColor={TEXT_3}
                   keyboardType="number-pad"
                   maxLength={4}
@@ -382,7 +380,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
               </View>
               {tpl.styles?.length ? (
                 <>
-                  <Text style={styles.styleQuestion}>Quel esprit ?</Text>
+                  <Text style={styles.styleQuestion}>{t("events.form.styleQuestion")}</Text>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                     {tpl.styles.map((st) => (
                       <TouchableOpacity
@@ -402,16 +400,16 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 </>
               ) : null}
               <Text style={styles.hint}>
-                Les montants proposés sont des ordres de grandeur (études
-                2025-2026){styleKey ? ", ajustés à ton style" : ""} — tu les
-                remplaceras par tes vrais devis.
+                {tp("events.form.amountsHint", {
+                  styleSuffix: styleKey ? t("events.form.amountsHintStyle") : "",
+                })}
               </Text>
               <TouchableOpacity style={styles.primaryBtn} onPress={create} activeOpacity={0.85}>
                 <Feather name="check" size={18} color="#000" />
-                <Text style={styles.primaryBtnText}>Créer le budget</Text>
+                <Text style={styles.primaryBtnText}>{t("events.form.submit")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setType(null)} style={{ alignSelf: "center" }}>
-                <Text style={styles.linkText}>← Changer de type</Text>
+                <Text style={styles.linkText}>{t("events.form.changeType")}</Text>
               </TouchableOpacity>
             </>
           )}
@@ -422,7 +420,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
             }}
             style={{ alignSelf: "center", marginTop: 4 }}
           >
-            <Text style={styles.linkText}>Annuler</Text>
+            <Text style={styles.linkText}>{t("events.form.cancel")}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -432,7 +430,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
           activeOpacity={0.85}
         >
           <Feather name="plus" size={18} color="#000" />
-          <Text style={styles.primaryBtnText}>Nouvel événement</Text>
+          <Text style={styles.primaryBtnText}>{t("events.new")}</Text>
         </TouchableOpacity>
       )}
 

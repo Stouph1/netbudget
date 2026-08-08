@@ -25,6 +25,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
 import { CITIES, getCountry } from "../../src/constants/cities";
+import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadAvatar } from "../../src/lib/photos";
@@ -49,6 +50,7 @@ const TEXT_3 = "#8193AC";
 const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
+// Libellés purement numériques : identiques dans les 8 langues, pas de clé i18n.
 const AGE_OPTIONS: { value: AgeBracket; label: string }[] = [
   { value: "under_18", label: "− 18" },
   { value: "18-25", label: "18-25" },
@@ -58,7 +60,18 @@ const AGE_OPTIONS: { value: AgeBracket; label: string }[] = [
   { value: "66+", label: "66+" },
 ];
 
+// Chaque situation pointe vers une clé de traduction (`signup.occupation.*`).
+const OCCUPATION_OPTIONS: { value: Occupation; key: string }[] = [
+  { value: "student", key: "signup.occupation.student" },
+  { value: "employee", key: "signup.occupation.employee" },
+  { value: "self_employed", key: "signup.occupation.selfEmployed" },
+  { value: "civil_servant", key: "signup.occupation.civilServant" },
+  { value: "unemployed", key: "signup.occupation.unemployed" },
+  { value: "retired", key: "signup.occupation.retired" },
+];
+
 export default function CompleteProfile() {
+  const { t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
   const { setScope } = useActiveScope();
   // ?edit=1 → mode édition (depuis le Profil) : mêmes champs, sans le
@@ -143,19 +156,19 @@ export default function CompleteProfile() {
     setBusyAvatar(false);
     if (result.ok) setAvatarUrl(result.url);
     else if (result.reason === "error") {
-      notify("Upload échoué", result.message ?? "Erreur inconnue");
+      notify(t("signup.avatar.uploadFailed"), result.message ?? t("signup.error.unknown"));
     }
   }
 
   async function submit() {
     if (!user?.id) return;
     if (!username.trim()) {
-      notify("Pseudo requis", "Choisis un nom d'utilisateur pour continuer.");
+      notify(t("signup.username.required"), t("signup.username.requiredHint"));
       return;
     }
     const pct = parseFloat(tithePercent.replace(",", "."));
     if (givingEnabled && (isNaN(pct) || pct < 0 || pct > 100)) {
-      notify("Dons & cadeaux", "Le pourcentage doit être entre 0 et 100.");
+      notify(t("signup.giving.title"), t("signup.giving.pctError"));
       return;
     }
 
@@ -165,7 +178,7 @@ export default function CompleteProfile() {
     if (birthInput.trim()) {
       const bd = parseBirthdate(birthInput);
       if (!bd) {
-        notify("Date de naissance", "Format attendu : JJ/MM/AAAA (ex. 23/04/2001).");
+        notify(t("signup.birth.title"), t("signup.birth.formatError"));
         return;
       }
       birthIso = dateToIso(bd);
@@ -206,12 +219,12 @@ export default function CompleteProfile() {
     setBusy(false);
 
     if (!result.ok) {
-      notify("Impossible", result.error ?? "Erreur inconnue");
+      notify(t("signup.save.failed"), result.error ?? t("signup.error.unknown"));
       return;
     }
 
     if (isEdit) {
-      notify("Profil mis à jour", undefined, () => router.back());
+      notify(t("signup.updated"), undefined, () => router.back());
       return;
     }
 
@@ -237,9 +250,9 @@ export default function CompleteProfile() {
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
           <Feather name="lock" size={32} color={TEXT_3} />
-          <Text style={styles.centerTitle}>Connecte-toi d'abord</Text>
+          <Text style={styles.centerTitle}>{t("signup.signin.first")}</Text>
           <TouchableOpacity onPress={() => router.back()} style={styles.secondaryBtn}>
-            <Text style={styles.secondaryBtnText}>Retour</Text>
+            <Text style={styles.secondaryBtnText}>{t("signup.back")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -256,7 +269,9 @@ export default function CompleteProfile() {
           <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
             <Feather name="arrow-left" size={22} color={TEXT_1} />
           </TouchableOpacity>
-          <Text style={styles.title}>{isEdit ? "Mon profil" : "Ton inscription"}</Text>
+          <Text style={styles.title}>
+            {isEdit ? t("signup.title.edit") : t("signup.title.new")}
+          </Text>
           <View style={{ width: 22 }} />
         </View>
 
@@ -265,9 +280,7 @@ export default function CompleteProfile() {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.intro}>
-            {isEdit
-              ? "Modifie tes informations — elles s'appliquent à ton compte, quel que soit l'espace actif."
-              : "Quelques infos pour personnaliser ton espace. Seul le pseudo est obligatoire — le reste améliore tes conseils."}
+            {isEdit ? t("signup.intro.edit") : t("signup.intro.new")}
           </Text>
 
           {/* Photo */}
@@ -286,15 +299,15 @@ export default function CompleteProfile() {
                 </View>
               </View>
             </TouchableOpacity>
-            <Text style={styles.avatarHint}>Photo de profil (optionnel)</Text>
+            <Text style={styles.avatarHint}>{t("signup.avatar.hint")}</Text>
           </View>
 
-          <Text style={styles.label}>Pseudo *</Text>
+          <Text style={styles.label}>{t("signup.label.username")}</Text>
           <TextInput
             style={styles.input}
             value={username}
             onChangeText={setUsername}
-            placeholder="stephane.p"
+            placeholder={t("signup.placeholder.username")}
             placeholderTextColor={TEXT_3}
             autoCapitalize="none"
             autoCorrect={false}
@@ -303,37 +316,34 @@ export default function CompleteProfile() {
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Prénom</Text>
+              <Text style={styles.label}>{t("signup.label.firstName")}</Text>
               <TextInput
                 style={styles.input}
                 value={firstName}
                 onChangeText={setFirstName}
-                placeholder="Stéphane"
+                placeholder={t("signup.placeholder.firstName")}
                 placeholderTextColor={TEXT_3}
               />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Nom</Text>
+              <Text style={styles.label}>{t("signup.label.lastName")}</Text>
               <TextInput
                 style={styles.input}
                 value={lastName}
                 onChangeText={setLastName}
-                placeholder="Dupont"
+                placeholder={t("signup.placeholder.lastName")}
                 placeholderTextColor={TEXT_3}
               />
             </View>
           </View>
 
-          <Text style={styles.label}>Ta date de naissance</Text>
-          <Text style={styles.hint}>
-            Ton âge se met à jour tout seul — et on te réserve une petite
-            surprise le jour J 🎂
-          </Text>
+          <Text style={styles.label}>{t("signup.label.birthdate")}</Text>
+          <Text style={styles.hint}>{t("signup.hint.birthdate")}</Text>
           <TextInput
             style={styles.input}
             value={birthInput}
             onChangeText={setBirthInput}
-            placeholder="JJ/MM/AAAA"
+            placeholder={t("signup.placeholder.birthdate")}
             placeholderTextColor={TEXT_3}
             keyboardType="numbers-and-punctuation"
             maxLength={10}
@@ -341,13 +351,15 @@ export default function CompleteProfile() {
           {(() => {
             const bd = parseBirthdate(birthInput);
             return bd ? (
-              <Text style={styles.ageEcho}>→ {computeAge(bd)} ans</Text>
+              <Text style={styles.ageEcho}>
+                {tp("signup.ageEcho", { age: computeAge(bd) })}
+              </Text>
             ) : null;
           })()}
 
           {!birthInput.trim() ? (
             <>
-              <Text style={styles.label}>… ou ta tranche d'âge</Text>
+              <Text style={styles.label}>{t("signup.label.ageBracket")}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {AGE_OPTIONS.map((opt) => {
                   const active = age === opt.value;
@@ -369,18 +381,9 @@ export default function CompleteProfile() {
           ) : null}
 
           {/* Situation professionnelle (CRM + conseils ciblés) */}
-          <Text style={styles.label}>Ta situation</Text>
+          <Text style={styles.label}>{t("signup.label.occupation")}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {(
-              [
-                ["student", "Étudiant·e"],
-                ["employee", "Salarié·e"],
-                ["self_employed", "Indépendant·e"],
-                ["civil_servant", "Fonctionnaire"],
-                ["unemployed", "Sans emploi"],
-                ["retired", "Retraité·e"],
-              ] as const
-            ).map(([value, lbl]) => {
+            {OCCUPATION_OPTIONS.map(({ value, key }) => {
               const active = occupation === value;
               return (
                 <TouchableOpacity
@@ -390,7 +393,7 @@ export default function CompleteProfile() {
                   activeOpacity={0.85}
                 >
                   <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {lbl}
+                    {t(key)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -401,8 +404,8 @@ export default function CompleteProfile() {
             <>
               <Text style={styles.label}>
                 {occupation === "student"
-                  ? "Ton domaine d'études"
-                  : "Ton domaine de travail"}
+                  ? t("signup.label.fieldStudy")
+                  : t("signup.label.fieldWork")}
               </Text>
               <TextInput
                 style={styles.input}
@@ -410,8 +413,8 @@ export default function CompleteProfile() {
                 onChangeText={setOccupationField}
                 placeholder={
                   occupation === "student"
-                    ? "Droit, informatique, médecine…"
-                    : "Informatique, santé, BTP, commerce…"
+                    ? t("signup.placeholder.fieldStudy")
+                    : t("signup.placeholder.fieldWork")
                 }
                 placeholderTextColor={TEXT_3}
                 autoCapitalize="sentences"
@@ -420,7 +423,7 @@ export default function CompleteProfile() {
           ) : null}
 
           {/* Lieu : personnalise les conseils (fiscalité pays, aides région) */}
-          <Text style={styles.label}>Où vis-tu ?</Text>
+          <Text style={styles.label}>{t("signup.label.country")}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {COUNTRY_OPTIONS.map((opt) => {
               const active = country === opt.value;
@@ -444,11 +447,8 @@ export default function CompleteProfile() {
 
           {country === "FR" ? (
             <>
-              <Text style={styles.label}>Ta région</Text>
-              <Text style={styles.hint}>
-                Les aides locales changent d'une région à l'autre (transport
-                jeunes, cartes région, bourses) — tes conseils s'y adaptent.
-              </Text>
+              <Text style={styles.label}>{t("signup.label.region")}</Text>
+              <Text style={styles.hint}>{t("signup.hint.region")}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {FR_REGIONS.map((r) => {
                   const active = region === r;
@@ -469,11 +469,8 @@ export default function CompleteProfile() {
             </>
           ) : null}
 
-          <Text style={styles.label}>Ta ville (optionnel)</Text>
-          <Text style={styles.hint}>
-            Choisis dans les suggestions : ces villes ont un indice de coût de
-            la vie dans l'app, ton budget s'y ajuste automatiquement.
-          </Text>
+          <Text style={styles.label}>{t("signup.label.city")}</Text>
+          <Text style={styles.hint}>{t("signup.hint.city")}</Text>
           <TextInput
             style={styles.input}
             value={city}
@@ -481,7 +478,7 @@ export default function CompleteProfile() {
               setCity(v);
               setCityTouched(true);
             }}
-            placeholder="Rouen, Douala, Montréal…"
+            placeholder={t("signup.placeholder.city")}
             placeholderTextColor={TEXT_3}
             autoCapitalize="words"
             autoCorrect={false}
@@ -503,7 +500,10 @@ export default function CompleteProfile() {
                     if (c.countryCode === "FR") setRegion(c.region);
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={`Choisir ${c.name}, ${c.region}`}
+                  accessibilityLabel={tp("signup.city.choose", {
+                    city: c.name,
+                    region: c.region,
+                  })}
                 >
                   <Text style={styles.suggestFlag}>
                     {getCountry(c.countryCode)?.flag ?? "🌍"}
@@ -518,8 +518,7 @@ export default function CompleteProfile() {
             </View>
           ) : cityTouched && city.trim().length >= 3 ? (
             <Text style={styles.suggestNone}>
-              « {city.trim()} » n'est pas dans notre référentiel — on utilisera
-              alors la moyenne de ta région pour ajuster les estimations.
+              {tp("signup.city.unknown", { city: city.trim() })}
             </Text>
           ) : null}
 
@@ -528,13 +527,8 @@ export default function CompleteProfile() {
           <View style={styles.titheCard}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.titheTitle}>Dons & cadeaux</Text>
-                <Text style={styles.titheHint}>
-                  Tu réserves régulièrement une part de tes revenus pour donner
-                  (dons, dîme, zakat, soutien familial, cadeaux) ? NetBudget
-                  peut la déduire automatiquement — tu choisiras revenu par
-                  revenu.
-                </Text>
+                <Text style={styles.titheTitle}>{t("signup.giving.title")}</Text>
+                <Text style={styles.titheHint}>{t("signup.giving.hint")}</Text>
               </View>
               <Switch
                 value={givingEnabled}
@@ -547,7 +541,7 @@ export default function CompleteProfile() {
 
             {givingEnabled ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
-                <Text style={styles.titheLabel}>Part réservée</Text>
+                <Text style={styles.titheLabel}>{t("signup.giving.share")}</Text>
                 <TextInput
                   style={[styles.input, { width: 80, textAlign: "center", marginBottom: 0 }]}
                   value={tithePercent}
@@ -572,7 +566,7 @@ export default function CompleteProfile() {
               <>
                 <Feather name="check" size={18} color="#000" />
                 <Text style={styles.ctaBtnText}>
-                  {isEdit ? "Enregistrer" : "Terminer mon inscription"}
+                  {isEdit ? t("signup.cta.save") : t("signup.cta.finish")}
                 </Text>
               </>
             )}
@@ -581,11 +575,7 @@ export default function CompleteProfile() {
           {/* Réassurance sécurité / confidentialité */}
           <View style={styles.secureNote}>
             <Feather name="lock" size={13} color={TEXT_3} />
-            <Text style={styles.secureNoteText}>
-              Tes données transitent en HTTPS et sont stockées en Europe.
-              Elles ne sont jamais vendues ni partagées — elles servent
-              uniquement à personnaliser tes conseils.
-            </Text>
+            <Text style={styles.secureNoteText}>{t("signup.secure")}</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

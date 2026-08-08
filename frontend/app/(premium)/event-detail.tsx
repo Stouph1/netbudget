@@ -23,6 +23,7 @@ import {
   styleFor,
   templateFor,
 } from "../../src/constants/eventTemplates";
+import { useLang } from "../../src/contexts/LangContext";
 import { useActiveScope } from "../../src/contexts/ScopeContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import {
@@ -60,6 +61,7 @@ function fmt(n: number): string {
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { lang, t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId } = useActiveScope();
   const [all, setAll] = useState<EventProject[] | null>(null);
@@ -138,9 +140,9 @@ export default function EventDetail() {
   function remove() {
     if (!ev || !user?.id || !all) return;
     confirmDialog(
-      "Supprimer l'événement",
-      `« ${ev.name} » et son budget seront supprimés. Continuer ?`,
-      "Supprimer",
+      t("event.delete.title"),
+      tp("event.delete.body", { name: ev.name }),
+      t("event.delete.confirm"),
       () => {
         const nextAll = all.filter((e) => e.id !== ev.id);
         setAll(nextAll);
@@ -164,9 +166,9 @@ export default function EventDetail() {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
-          <Text style={{ color: TEXT_2 }}>Événement introuvable dans cet espace.</Text>
+          <Text style={{ color: TEXT_2 }}>{t("event.notFound")}</Text>
           <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 12 }}>
-            <Text style={{ color: GOLD }}>← Retour</Text>
+            <Text style={{ color: GOLD }}>{t("event.back")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -177,7 +179,7 @@ export default function EventDetail() {
     if (!ev) return;
     const price = safeAmount(quotePrice);
     if (!quoteLabel.trim() || !price) {
-      notify("Relevé de prix", "Indique au moins un intitulé et un prix (ex. Vol Paris-Dakar, 480).");
+      notify(t("event.quote.err.title"), t("event.quote.err.body"));
       return;
     }
     const q: EventQuote = {
@@ -199,21 +201,23 @@ export default function EventDetail() {
   async function shareEvent() {
     if (!ev) return;
     const { planned: p, spent: sp } = eventTotals(ev);
-    const date = new Date(ev.dateIso + "T12:00:00").toLocaleDateString("fr-FR", {
+    const date = new Date(ev.dateIso + "T12:00:00").toLocaleDateString(lang, {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
     const lines: string[] = [
       `${ev.emoji} ${ev.name} — ${date}`,
-      ev.destinations?.length ? `Étapes : ${ev.destinations.join(" → ")}` : "",
-      ev.guests ? `${ev.guests} personnes` : "",
+      ev.destinations?.length
+        ? tp("event.share.stops", { list: ev.destinations.join(" → ") })
+        : "",
+      ev.guests ? tp("event.share.people", { count: ev.guests }) : "",
       "",
-      `Budget prévu : ${fmt(p)}`,
-      `Déjà mis de côté : ${fmt(ev.saved)}`,
-      sp > 0 ? `Déjà dépensé : ${fmt(sp)}` : "",
+      tp("event.share.planned", { amount: fmt(p) }),
+      tp("event.share.saved", { amount: fmt(ev.saved) }),
+      sp > 0 ? tp("event.share.spent", { amount: fmt(sp) }) : "",
       "",
-      "Postes :",
+      t("event.share.items"),
       ...ev.items
         .filter((it) => (it.actual ?? it.estimated) > 0)
         .map(
@@ -223,7 +227,7 @@ export default function EventDetail() {
             (it.done ? " ✓" : ""),
         ),
       "",
-      "Préparé avec NetBudget",
+      t("event.share.footer"),
     ];
     try {
       await Share.share({
@@ -267,12 +271,12 @@ export default function EventDetail() {
         <View style={{ flexDirection: "row", gap: 16 }}>
           <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Partager" onPress={shareEvent} hitSlop={10}>
+              accessibilityLabel={t("event.a11y.share")} onPress={shareEvent} hitSlop={10}>
             <Feather name="share-2" size={18} color={GOLD} />
           </TouchableOpacity>
           <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Supprimer" onPress={remove} hitSlop={10}>
+              accessibilityLabel={t("event.a11y.delete")} onPress={remove} hitSlop={10}>
             <Feather name="trash-2" size={18} color={TEXT_3} />
           </TouchableOpacity>
         </View>
@@ -282,36 +286,43 @@ export default function EventDetail() {
         {/* Vue d'ensemble */}
         <View style={styles.overview}>
           <Text style={styles.overviewDate}>
-            {new Date(ev.dateIso + "T12:00:00").toLocaleDateString("fr-FR", {
+            {new Date(ev.dateIso + "T12:00:00").toLocaleDateString(lang, {
               weekday: "long",
               day: "numeric",
               month: "long",
               year: "numeric",
             })}
-            {months > 0.2 ? ` · dans ${months < 1.5 ? "moins de 2 mois" : `${Math.round(months)} mois`}` : " · c'est aujourd'hui 🎉"}
-            {ev.guests ? ` · ${ev.guests} pers.` : ""}
+            {months > 0.2
+              ? ` · ${tp("event.in", {
+                  when:
+                    months < 1.5
+                      ? t("event.lessThan2Months")
+                      : tp("event.monthsCount", { n: Math.round(months) }),
+                })}`
+              : ` · ${t("event.today")}`}
+            {ev.guests ? ` · ${tp("event.people", { count: ev.guests })}` : ""}
           </Text>
           <View style={styles.overviewRow}>
             <Text style={styles.bigAmount}>{fmt(planned)}</Text>
-            <Text style={styles.bigAmountSub}>budget prévu</Text>
+            <Text style={styles.bigAmountSub}>{t("event.plannedBudget")}</Text>
           </View>
           <View
             style={styles.progressBar}
             accessibilityRole="progressbar"
-            accessibilityLabel={`Financement : ${pct.toFixed(0)} pour cent`}
+            accessibilityLabel={tp("event.a11y.funding", { pct: pct.toFixed(0) })}
             accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
           >
             <View style={[styles.progressFill, { width: `${pct}%` }]} />
           </View>
           <Text style={styles.overviewMeta}>
-            {fmt(ev.saved)} mis de côté ({pct.toFixed(0)} %)
-            {spent > 0 ? ` · ${fmt(spent)} déjà dépensés` : ""}
+            {tp("event.savedMeta", { amount: fmt(ev.saved), pct: pct.toFixed(0) })}
+            {spent > 0 ? ` · ${tp("event.spentMeta", { amount: fmt(spent) })}` : ""}
           </Text>
           {monthly > 0 && months > 0.5 ? (
             <View style={styles.monthlyBox}>
               <Feather name="trending-up" size={14} color={GOLD} />
               <Text style={styles.monthlyText}>
-                {fmt(monthly)}/mois d'ici l'événement pour tout financer
+                {tp("event.monthlyNeeded", { amount: fmt(monthly) })}
               </Text>
             </View>
           ) : null}
@@ -328,7 +339,7 @@ export default function EventDetail() {
         {/* Étapes du voyage */}
         {ev.destinations?.length ? (
           <View style={styles.destBox}>
-            <Text style={styles.destTitle}>Itinéraire</Text>
+            <Text style={styles.destTitle}>{t("event.itinerary")}</Text>
             <Text style={styles.destList}>{ev.destinations.join("  →  ")}</Text>
           </View>
         ) : null}
@@ -343,16 +354,18 @@ export default function EventDetail() {
               <Text style={styles.styleTitle}>{st.label}</Text>
               <Text style={styles.styleTip}>{st.tip}</Text>
               {placeLabel ? (
-                <Text style={styles.stylePlace}>📍 Pensé depuis {placeLabel} — les prix locaux peuvent varier, note tes vrais devis ci-dessous.</Text>
+                <Text style={styles.stylePlace}>
+                  {tp("event.stylePlace", { place: placeLabel })}
+                </Text>
               ) : null}
             </View>
           );
         })()}
 
         {/* Épargne mise de côté */}
-        <Text style={styles.sectionTitle}>Financement</Text>
+        <Text style={styles.sectionTitle}>{t("event.section.funding")}</Text>
         <View style={styles.savedRow}>
-          <Text style={styles.savedLabel}>Déjà mis de côté</Text>
+          <Text style={styles.savedLabel}>{t("event.savedLabel")}</Text>
           <TextInput
             style={styles.savedInput}
             defaultValue={ev.saved ? String(ev.saved) : ""}
@@ -371,7 +384,7 @@ export default function EventDetail() {
         </View>
 
         {/* Postes */}
-        <Text style={styles.sectionTitle}>Postes de dépense</Text>
+        <Text style={styles.sectionTitle}>{t("event.section.items")}</Text>
         {ev.items.map((it) => (
           <View key={it.id} style={styles.itemCard}>
             <TouchableOpacity
@@ -383,7 +396,10 @@ export default function EventDetail() {
                 hitSlop={8}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: !!it.done }}
-                accessibilityLabel={`${it.label} — ${it.done ? "réglé" : "à régler"}`}
+                accessibilityLabel={tp("event.a11y.item", {
+                  label: it.label,
+                  state: it.done ? t("event.a11y.settled") : t("event.a11y.toSettle"),
+                })}
                 onPress={() =>
                   persist({
                     ...ev,
@@ -404,7 +420,9 @@ export default function EventDetail() {
               <View style={{ alignItems: "flex-end" }}>
                 <Text style={styles.itemAmount}>{fmt(it.actual ?? it.estimated)}</Text>
                 {it.actual != null && it.actual !== it.estimated ? (
-                  <Text style={styles.itemEstimated}>prévu {fmt(it.estimated)}</Text>
+                  <Text style={styles.itemEstimated}>
+                    {tp("event.item.planned", { amount: fmt(it.estimated) })}
+                  </Text>
                 ) : null}
                 {it.paidBy ? <Text style={styles.itemPaidBy}>{it.paidBy}</Text> : null}
               </View>
@@ -412,7 +430,7 @@ export default function EventDetail() {
             {editingItem === it.id ? (
               <View style={styles.editBox}>
                 <View style={styles.editRow}>
-                  <Text style={styles.editLabel}>Prévu</Text>
+                  <Text style={styles.editLabel}>{t("event.edit.planned")}</Text>
                   <TextInput
                     style={styles.editInput}
                     value={draftEstimated}
@@ -421,7 +439,7 @@ export default function EventDetail() {
                     placeholder="0"
                     placeholderTextColor={TEXT_3}
                   />
-                  <Text style={styles.editLabel}>Réel</Text>
+                  <Text style={styles.editLabel}>{t("event.edit.actual")}</Text>
                   <TextInput
                     style={styles.editInput}
                     value={draftActual}
@@ -435,11 +453,11 @@ export default function EventDetail() {
                   style={[styles.editInput, { flex: 1 }]}
                   value={draftPaidBy}
                   onChangeText={setDraftPaidBy}
-                  placeholder="Payé par… (utile à plusieurs)"
+                  placeholder={t("event.edit.paidBy")}
                   placeholderTextColor={TEXT_3}
                 />
                 <TouchableOpacity style={styles.okBtn} onPress={commitEdit} activeOpacity={0.85}>
-                  <Text style={styles.okBtnText}>OK</Text>
+                  <Text style={styles.okBtnText}>{t("event.edit.ok")}</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
@@ -447,7 +465,7 @@ export default function EventDetail() {
         ))}
 
         {/* Rétro-planning */}
-        <Text style={styles.sectionTitle}>Rétro-planning</Text>
+        <Text style={styles.sectionTitle}>{t("event.section.plan")}</Text>
         {ev.milestones.map((ms) => {
           const due = milestoneDate(ev.dateIso, ms.monthsBefore);
           const overdue = !ms.done && due.getTime() < Date.now() && ms.monthsBefore > 0;
@@ -458,7 +476,14 @@ export default function EventDetail() {
               activeOpacity={0.8}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: !!ms.done }}
-              accessibilityLabel={`${ms.label} — ${ms.done ? "fait" : overdue ? "en retard" : "à faire"}`}
+              accessibilityLabel={tp("event.a11y.milestone", {
+                label: ms.label,
+                state: ms.done
+                  ? t("event.a11y.done")
+                  : overdue
+                    ? t("event.overdue")
+                    : t("event.a11y.todo"),
+              })}
               onPress={() =>
                 persist(
                   {
@@ -480,9 +505,9 @@ export default function EventDetail() {
                 <Text style={[styles.msLabel, ms.done && styles.itemDone]}>{ms.label}</Text>
                 <Text style={[styles.msDate, overdue && { color: "#F87171" }]}>
                   {ms.monthsBefore === 0
-                    ? "Jour J"
-                    : due.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
-                  {overdue ? " · en retard" : ""}
+                    ? t("event.dDay")
+                    : due.toLocaleDateString(lang, { month: "long", year: "numeric" })}
+                  {overdue ? ` · ${t("event.overdue")}` : ""}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -490,18 +515,14 @@ export default function EventDetail() {
         })}
 
         {/* Suivi des prix — vols, hôtels, prestataires : on note, on compare */}
-        <Text style={styles.sectionTitle}>Suivi des prix</Text>
-        <Text style={styles.trackerHint}>
-          Repère un prix (vol, hôtel, traiteur…), note-le ici, et re-note-le
-          plus tard : l'app te montre s'il monte ou descend — le bon moment
-          pour réserver se voit d'un coup d'œil.
-        </Text>
+        <Text style={styles.sectionTitle}>{t("event.section.priceTracking")}</Text>
+        <Text style={styles.trackerHint}>{t("event.tracker.hint")}</Text>
         <View style={styles.quoteForm}>
           <TextInput
             style={styles.quoteInput}
             value={quoteLabel}
             onChangeText={setQuoteLabel}
-            placeholder="Quoi ? (ex. Vol CDG-DSS, Salle Château X)"
+            placeholder={t("event.quote.whatPlaceholder")}
             placeholderTextColor={TEXT_3}
           />
           <View style={{ flexDirection: "row", gap: 8 }}>
@@ -509,7 +530,7 @@ export default function EventDetail() {
               style={[styles.quoteInput, { flex: 1 }]}
               value={quotePrice}
               onChangeText={setQuotePrice}
-              placeholder="Prix (€)"
+              placeholder={t("event.quote.pricePlaceholder")}
               placeholderTextColor={TEXT_3}
               keyboardType="decimal-pad"
             />
@@ -517,13 +538,13 @@ export default function EventDetail() {
               style={[styles.quoteInput, { flex: 1.4 }]}
               value={quoteSource}
               onChangeText={setQuoteSource}
-              placeholder="Où ? (site, agence…)"
+              placeholder={t("event.quote.wherePlaceholder")}
               placeholderTextColor={TEXT_3}
             />
             <TouchableOpacity
               hitSlop={10}
               accessibilityRole="button"
-              accessibilityLabel="Ajouter" style={styles.quoteAddBtn} onPress={addQuote} activeOpacity={0.85}>
+              accessibilityLabel={t("event.a11y.add")} style={styles.quoteAddBtn} onPress={addQuote} activeOpacity={0.85}>
               <Feather name="plus" size={18} color="#000" />
             </TouchableOpacity>
           </View>
@@ -535,7 +556,7 @@ export default function EventDetail() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.quoteLabel}>{q.label}</Text>
                 <Text style={styles.quoteMeta}>
-                  {new Date(q.date).toLocaleDateString("fr-FR")}
+                  {new Date(q.date).toLocaleDateString(lang)}
                   {q.source ? ` · ${q.source}` : ""}
                 </Text>
               </View>
@@ -544,7 +565,7 @@ export default function EventDetail() {
                 {delta !== null ? (
                   <Text style={[styles.quoteDelta, { color: delta > 0 ? "#F87171" : delta < 0 ? GOLD : TEXT_3 }]}>
                     {delta > 0 ? "↗ +" : delta < 0 ? "↘ " : "= "}
-                    {delta === 0 ? "stable" : fmt(Math.abs(delta))}
+                    {delta === 0 ? t("event.quote.stable") : fmt(Math.abs(delta))}
                   </Text>
                 ) : null}
               </View>
@@ -562,26 +583,24 @@ export default function EventDetail() {
           onPress={async () => {
             const n = await scheduleEventNotifications(ev);
             notify(
-              "Rappels",
-              n > 0
-                ? `${n} rappel${n > 1 ? "s" : ""} programmé${n > 1 ? "s" : ""} (jalons, J-7 et jour J).`
-                : "Active les notifications dans les réglages du téléphone pour recevoir les rappels.",
+              t("event.reminders.title"),
+              n > 1
+                ? tp("event.reminders.many", { n })
+                : n === 1
+                  ? t("event.reminders.one")
+                  : t("event.reminders.disabled"),
             );
           }}
         >
           <Feather name="bell" size={16} color={GOLD} />
-          <Text style={styles.notifBtnText}>Programmer les rappels</Text>
+          <Text style={styles.notifBtnText}>{t("event.reminders.button")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.shareBtn} onPress={shareEvent} activeOpacity={0.85}>
           <Feather name="share-2" size={16} color="#000" />
-          <Text style={styles.shareBtnText}>Partager le récapitulatif</Text>
+          <Text style={styles.shareBtnText}>{t("event.share.button")}</Text>
         </TouchableOpacity>
-        <Text style={styles.shareHint}>
-          Envoie le budget par message ou mail. Pour préparer l'événement À
-          PLUSIEURS (chacun modifie de son téléphone), crée-le plutôt dans un
-          espace partagé : Profil → Espaces, puis invite les participants.
-        </Text>
+        <Text style={styles.shareHint}>{t("event.share.hint")}</Text>
       </ScrollView>
     </SafeAreaView>
   );

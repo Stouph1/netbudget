@@ -17,7 +17,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DonutChart, { type DonutSegment } from "../../src/components/DonutChart";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
+import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
+import type { Lang } from "../../src/i18n/translations";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { loadS1, saveS1 } from "../../src/lib/premiumStore";
 import {
@@ -51,6 +53,18 @@ const SEGMENT_COLORS = [
   "#EF4444", // red
 ];
 
+// Locale d'affichage des dates, dérivée de la langue de l'app.
+const DATE_LOCALES: Record<Lang, string> = {
+  fr: "fr-FR",
+  en: "en-GB",
+  es: "es-ES",
+  pt: "pt-PT",
+  de: "de-DE",
+  it: "it-IT",
+  ar: "ar",
+  ja: "ja-JP",
+};
+
 function formatEuro(n: number): string {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -68,12 +82,15 @@ function progressPct(goal: SavingsGoal): number {
 // et alerte si le versement prévu ne suffit pas / si l'échéance est dépassée.
 function goalPlan(
   goal: SavingsGoal,
+  lang: Lang,
+  t: (key: string) => string,
+  tp: (key: string, params: Record<string, string | number>) => string,
 ): { text: string; tone: "ok" | "late" } | null {
   const remaining = goal.targetAmount - goal.currentAmount;
-  if (remaining <= 0) return { text: "Objectif atteint — bravo !", tone: "ok" };
+  if (remaining <= 0) return { text: t("goals.plan.done"), tone: "ok" };
 
   const monthLabel = (d: Date) =>
-    d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    d.toLocaleDateString(DATE_LOCALES[lang], { month: "long", year: "numeric" });
   const euro = (n: number) =>
     new Intl.NumberFormat("fr-FR", {
       style: "currency",
@@ -88,7 +105,7 @@ function goalPlan(
     const dateStr = monthLabel(new Date(goal.targetDate));
     if (monthsLeft <= 0.25) {
       return {
-        text: `Échéance dépassée — il manque ${euro(remaining)}. Décale la date ou augmente le versement.`,
+        text: tp("goals.plan.late", { amount: euro(remaining) }),
         tone: "late",
       };
     }
@@ -96,17 +113,24 @@ function goalPlan(
     if (goal.monthlyContribution && goal.monthlyContribution > 0) {
       if (goal.monthlyContribution >= required) {
         return {
-          text: `Au rythme de ${euro(goal.monthlyContribution)}/mois, objectif tenu pour ${dateStr}.`,
+          text: tp("goals.plan.onTrack", {
+            amount: euro(goal.monthlyContribution),
+            date: dateStr,
+          }),
           tone: "ok",
         };
       }
       return {
-        text: `Il faut ≈ ${euro(required)}/mois d'ici ${dateStr} (prévu : ${euro(goal.monthlyContribution)}). Augmente le versement ou décale l'échéance.`,
+        text: tp("goals.plan.short", {
+          required: euro(required),
+          date: dateStr,
+          planned: euro(goal.monthlyContribution),
+        }),
         tone: "late",
       };
     }
     return {
-      text: `≈ ${euro(required)}/mois pour y arriver d'ici ${dateStr}.`,
+      text: tp("goals.plan.needed", { amount: euro(required), date: dateStr }),
       tone: "ok",
     };
   }
@@ -115,7 +139,10 @@ function goalPlan(
     const months = remaining / goal.monthlyContribution;
     const eta = new Date(Date.now() + months * 30.44 * 24 * 60 * 60 * 1000);
     return {
-      text: `À ${euro(goal.monthlyContribution)}/mois, objectif atteint vers ${monthLabel(eta)}.`,
+      text: tp("goals.plan.eta", {
+        amount: euro(goal.monthlyContribution),
+        date: monthLabel(eta),
+      }),
       tone: "ok",
     };
   }
@@ -123,8 +150,11 @@ function goalPlan(
 }
 
 export default function S1Epargne() {
+  const { lang, t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
-  const { workspaceId, scopeLabel, loading: scopeLoading } = useActiveScope();
+  const { workspaceId, scopeLabel, scopeLabelIsKey, loading: scopeLoading } = useActiveScope();
+  // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
+  const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [payload, setPayload] = useState<S1Payload>(EMPTY_S1_PAYLOAD);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -173,12 +203,14 @@ export default function S1Epargne() {
       const result = await saveS1(user.id, next, workspaceId);
       if (!result.ok) {
         Alert.alert(
-          "Sync",
-          `Sauvegardé en local. Sync cloud échoué : ${result.error ?? "erreur inconnue"}`,
+          t("goals.sync.title"),
+          tp("goals.sync.msg", {
+            error: result.error ?? t("common.unknownError"),
+          }),
         );
       }
     },
-    [user?.id, workspaceId],
+    [user?.id, workspaceId, t, tp],
   );
 
   const upsertGoal = useCallback(
@@ -215,17 +247,14 @@ export default function S1Epargne() {
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
           <Feather name="lock" size={32} color={TEXT_3} />
-          <Text style={styles.emptyTitle}>Connexion Premium requise</Text>
-          <Text style={styles.emptyBody}>
-            L'écran Épargne est réservé aux abonnés Premium. Retourne dans
-            Réglages → Test auth pour te connecter.
-          </Text>
+          <Text style={styles.emptyTitle}>{t("common.premiumRequired")}</Text>
+          <Text style={styles.emptyBody}>{t("goals.premiumBody")}</Text>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.emptyBtn}
             activeOpacity={0.85}
           >
-            <Text style={styles.emptyBtnText}>Retour</Text>
+            <Text style={styles.emptyBtnText}>{t("common.back")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -238,7 +267,7 @@ export default function S1Epargne() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Objectifs</Text>
+        <Text style={styles.title}>{t("goals.title")}</Text>
         <TouchableOpacity
           onPress={() =>
             router.navigate({ pathname: "/", params: { tab: "premium" } } as never)
@@ -260,7 +289,7 @@ export default function S1Epargne() {
           size={13}
           color={GOLD}
         />
-        <Text style={styles.scopeBadgeText}>{scopeLabel}</Text>
+        <Text style={styles.scopeBadgeText}>{resolvedScopeLabel}</Text>
         <Feather name="chevron-down" size={13} color={TEXT_3} />
       </TouchableOpacity>
 
@@ -281,13 +310,15 @@ export default function S1Epargne() {
               centerValueColor={GOLD}
             />
             <Text style={styles.totalMeta}>
-              sur {formatEuro(totals.target)} · {totals.count} objectif
-              {totals.count > 1 ? "s" : ""}
+              {tp(
+                totals.count > 1 ? "goals.donutMeta.many" : "goals.donutMeta.one",
+                { total: formatEuro(totals.target), count: totals.count },
+              )}
             </Text>
           </View>
         ) : (
           <View style={styles.totalCard}>
-            <Text style={styles.totalLabel}>Progression globale</Text>
+            <Text style={styles.totalLabel}>{t("goals.totalLabel")}</Text>
             <View style={styles.totalRow}>
               <Text style={styles.totalCurrent}>{formatEuro(totals.current)}</Text>
               <Text style={styles.totalTarget}>/ {formatEuro(totals.target)}</Text>
@@ -303,11 +334,8 @@ export default function S1Epargne() {
         {payload.goals.length === 0 ? (
           <View style={styles.emptyList}>
             <Feather name="target" size={28} color={TEXT_3} />
-            <Text style={styles.emptyTitle}>Aucun objectif</Text>
-            <Text style={styles.emptyBody}>
-              Crée ton premier objectif d'épargne (voyage, apport maison,
-              retraite anticipée…). Suis ta progression mois après mois.
-            </Text>
+            <Text style={styles.emptyTitle}>{t("goals.empty.title")}</Text>
+            <Text style={styles.emptyBody}>{t("goals.empty.body")}</Text>
           </View>
         ) : (
           // Urgents d'abord, optionnels en dernier — puis ordre d'origine
@@ -321,7 +349,7 @@ export default function S1Epargne() {
             })
             .map(({ g: item, i }) => {
             const color = item.color ?? SEGMENT_COLORS[i % SEGMENT_COLORS.length];
-            const plan = goalPlan(item);
+            const plan = goalPlan(item, lang, t, tp);
             return (
               <TouchableOpacity
                 key={item.id}
@@ -338,13 +366,17 @@ export default function S1Epargne() {
                     <Text style={styles.goalLabel}>{item.label}</Text>
                     <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
                       {item.priority === "urgent" ? (
-                        <Text style={[styles.priorityTag, styles.priorityUrgent]}>Urgent</Text>
+                        <Text style={[styles.priorityTag, styles.priorityUrgent]}>
+                          {t("goals.tag.urgent")}
+                        </Text>
                       ) : null}
                       {item.priority === "optional" ? (
-                        <Text style={[styles.priorityTag, styles.priorityOptional]}>Optionnel</Text>
+                        <Text style={[styles.priorityTag, styles.priorityOptional]}>
+                          {t("goals.tag.optional")}
+                        </Text>
                       ) : null}
                       {item.extraP ? (
-                        <Text style={styles.extraPTag}>Extra-budgétaire</Text>
+                        <Text style={styles.extraPTag}>{t("goals.tag.extraP")}</Text>
                       ) : null}
                     </View>
                   </View>

@@ -40,7 +40,7 @@ import * as Sharing from "expo-sharing";
 import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
-import { humanRemaining, loanProgress } from "../src/utils/loanSchedule";
+import { loanProgress, remainingParts } from "../src/utils/loanSchedule";
 import LoanScheduleModal from "../src/components/LoanScheduleModal";
 import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import EventsPanel, { eventNeedsAttention } from "../src/components/EventsPanel";
@@ -335,6 +335,26 @@ export default function Index() {
   const { lang, setLang } = useLang();
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const t = (k: string) => tr(k, lang);
+
+  // Durée restante d'un prêt, composée dans la langue de l'app (l'utilitaire
+  // ne renvoie que les nombres — la phrase dépend de la langue).
+  const humanRemaining = useCallback(
+    (p: Parameters<typeof remainingParts>[0]): string => {
+      const { finished, years, months } = remainingParts(p);
+      if (finished) return t("schedule.finished");
+      const mLabel = interpolate(t("schedule.rem.months"), { m: months });
+      if (years === 0) return mLabel;
+      const yLabel =
+        years === 1
+          ? t("schedule.rem.years.one")
+          : interpolate(t("schedule.rem.years.many"), { y: years });
+      return months === 0
+        ? yLabel
+        : interpolate(t("schedule.rem.combo"), { years: yLabel, months: mLabel });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lang],
+  );
 
   // Navigation par onglet (bottom tabs).
   // Les 3 onglets sont rendus en rangée horizontale ; on translate le container
@@ -647,8 +667,10 @@ export default function Index() {
   const {
     workspaceId: activeWorkspaceId,
     workspaceKind: activeWorkspaceKind,
-    scopeLabel,
+    scopeLabel, scopeLabelIsKey,
   } = useActiveScope();
+  // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
+  const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
   // Ville libre saisie dans le profil (« Rouen »), à faire correspondre au
   // référentiel de villes pour l'indice de coût de la vie.
@@ -1624,7 +1646,7 @@ export default function Index() {
                 color={GOLD}
               />
               <Text style={styles.budgetScopeBadgeText} numberOfLines={1}>
-                Budget : {scopeLabel}
+                Budget : {resolvedScopeLabel}
               </Text>
               {budgetScope !== budgetScopeTarget ? (
                 <ActivityIndicator size="small" color={GOLD} />
@@ -3510,8 +3532,11 @@ export default function Index() {
                         return (
                           <Text style={styles.previewHint}>
                             {pr.finished
-                              ? "Ce prêt est arrivé à terme"
-                              : `Reste ${humanRemaining(pr)} · coût total du crédit ${fmt(pr.totalInterest)}`}
+                              ? t("loan.previewFinished")
+                              : interpolate(t("loan.previewRemaining"), {
+                                  time: humanRemaining(pr),
+                                  cost: fmt(pr.totalInterest),
+                                })}
                           </Text>
                         );
                       })()}

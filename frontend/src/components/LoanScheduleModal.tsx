@@ -16,10 +16,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLang } from "../contexts/LangContext";
 import {
   amortizationSchedule,
-  humanRemaining,
   loanProgress,
+  type LoanProgress,
 } from "../utils/loanSchedule";
 
 const MIDNIGHT = "#0F172A";
@@ -31,11 +32,6 @@ const GOLD = "#4ADE80";
 const CAPITAL = "#4ADE80";
 const INTEREST = "#F87171";
 const BORDER = "rgba(255,255,255,0.08)";
-
-const MONTHS = [
-  "janv.", "févr.", "mars", "avr.", "mai", "juin",
-  "juil.", "août", "sept.", "oct.", "nov.", "déc.",
-];
 
 type Props = {
   visible: boolean;
@@ -61,7 +57,23 @@ export default function LoanScheduleModal({
   monthlyPayment,
   format,
 }: Props) {
+  const { lang, t, tp } = useLang();
   const [expanded, setExpanded] = useState<number | null>(null);
+
+  // Nom de mois abrégé dans la langue de l'app (« janv. », « Jan », « 1月 »…).
+  const monthShort = (d: Date) => d.toLocaleDateString(lang, { month: "short" });
+
+  // Durée restante lisible, localisée (l'utilitaire renvoie du français).
+  function remainingLabel(p: LoanProgress): string {
+    if (p.finished) return t("schedule.finished");
+    const y = Math.floor(p.remainingMonths / 12);
+    const m = p.remainingMonths % 12;
+    const months = tp("schedule.rem.months", { m });
+    if (y === 0) return months;
+    const years =
+      y === 1 ? t("schedule.rem.years.one") : tp("schedule.rem.years.many", { y });
+    return m === 0 ? years : tp("schedule.rem.combo", { years, months });
+  }
 
   const schedule = useMemo(
     () => amortizationSchedule(principal, ratePercent, years, startIso, monthlyPayment),
@@ -89,14 +101,18 @@ export default function LoanScheduleModal({
                 {loanName}
               </Text>
               <Text style={styles.subtitle}>
-                {format(principal)} · {ratePercent} % · {years} ans
+                {tp("schedule.subtitle", {
+                  amount: format(principal),
+                  rate: ratePercent,
+                  years,
+                })}
               </Text>
             </View>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={12}
               accessibilityRole="button"
-              accessibilityLabel="Fermer l'échéancier"
+              accessibilityLabel={t("schedule.a11y.close")}
             >
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
@@ -105,37 +121,35 @@ export default function LoanScheduleModal({
           {schedule.length === 0 ? (
             <View style={styles.empty}>
               <Feather name="calendar" size={26} color={TEXT_3} />
-              <Text style={styles.emptyText}>
-                Ajoute la date de ta première échéance pour voir l'échéancier
-                complet, mois par mois.
-              </Text>
+              <Text style={styles.emptyText}>{t("schedule.empty")}</Text>
             </View>
           ) : (
             <>
               {/* Synthèse */}
               <View style={styles.summary}>
                 <View style={styles.summaryCell}>
-                  <Text style={styles.summaryLabel}>Mensualité</Text>
+                  <Text style={styles.summaryLabel}>{t("schedule.monthly")}</Text>
                   <Text style={styles.summaryValue}>{format(monthlyPayment)}</Text>
                 </View>
                 <View style={styles.summaryCell}>
-                  <Text style={styles.summaryLabel}>Coût du crédit</Text>
+                  <Text style={styles.summaryLabel}>{t("schedule.cost")}</Text>
                   <Text style={[styles.summaryValue, { color: INTEREST }]}>
                     {format(totalInterest)}
                   </Text>
                 </View>
                 <View style={styles.summaryCell}>
-                  <Text style={styles.summaryLabel}>Reste</Text>
+                  <Text style={styles.summaryLabel}>{t("schedule.remaining")}</Text>
                   <Text style={styles.summaryValue}>
-                    {progress ? humanRemaining(progress) : "—"}
+                    {progress ? remainingLabel(progress) : "—"}
                   </Text>
                 </View>
               </View>
 
               <Text style={styles.legend}>
-                <Text style={{ color: CAPITAL }}>■</Text> capital ·{" "}
-                <Text style={{ color: INTEREST }}>■</Text> intérêts — appuie sur
-                une année pour voir chaque mois
+                <Text style={{ color: CAPITAL }}>■</Text>{" "}
+                {t("schedule.legend.capital")} ·{" "}
+                <Text style={{ color: INTEREST }}>■</Text>{" "}
+                {t("schedule.legend.interest")} {t("schedule.legend.hint")}
               </Text>
 
               <ScrollView
@@ -159,7 +173,10 @@ export default function LoanScheduleModal({
                         activeOpacity={0.8}
                         accessibilityRole="button"
                         accessibilityState={{ expanded: isOpen }}
-                        accessibilityLabel={`Année ${y.year}, ${Math.round(capRatio)} pour cent de capital`}
+                        accessibilityLabel={tp("schedule.a11y.year", {
+                          year: y.year,
+                          pct: Math.round(capRatio),
+                        })}
                       >
                         <Text
                           style={[
@@ -169,7 +186,7 @@ export default function LoanScheduleModal({
                           ]}
                         >
                           {y.year}
-                          {y.current ? " · en cours" : ""}
+                          {y.current ? ` · ${t("schedule.current")}` : ""}
                         </Text>
 
                         <View style={{ flex: 1, gap: 4 }}>
@@ -191,8 +208,10 @@ export default function LoanScheduleModal({
                             />
                           </View>
                           <Text style={styles.yearDetail}>
-                            {format(y.principal)} de capital ·{" "}
-                            {format(y.interest)} d'intérêts
+                            {tp("schedule.yearDetail", {
+                              capital: format(y.principal),
+                              interest: format(y.interest),
+                            })}
                           </Text>
                         </View>
 
@@ -200,7 +219,9 @@ export default function LoanScheduleModal({
                           <Text style={[styles.yearBalance, y.past && styles.mutedText]}>
                             {format(y.balance)}
                           </Text>
-                          <Text style={styles.yearBalanceLabel}>restant</Text>
+                          <Text style={styles.yearBalanceLabel}>
+                            {t("schedule.balanceLabel")}
+                          </Text>
                         </View>
                         <Feather
                           name={isOpen ? "chevron-up" : "chevron-down"}
@@ -213,18 +234,22 @@ export default function LoanScheduleModal({
                         <View style={styles.monthsBox}>
                           <View style={styles.monthHead}>
                             <Text style={[styles.monthCell, styles.monthHeadText, { flex: 1.1 }]}>
-                              Mois
+                              {t("schedule.col.month")}
                             </Text>
-                            <Text style={[styles.monthCell, styles.monthHeadText]}>Capital</Text>
-                            <Text style={[styles.monthCell, styles.monthHeadText]}>Intérêts</Text>
+                            <Text style={[styles.monthCell, styles.monthHeadText]}>
+                              {t("schedule.col.capital")}
+                            </Text>
+                            <Text style={[styles.monthCell, styles.monthHeadText]}>
+                              {t("schedule.col.interest")}
+                            </Text>
                             <Text style={[styles.monthCell, styles.monthHeadText, { flex: 1.2 }]}>
-                              Restant
+                              {t("schedule.col.balance")}
                             </Text>
                           </View>
                           {y.rows.map((r) => (
                             <View key={r.index} style={styles.monthRow}>
                               <Text style={[styles.monthCell, styles.monthText, { flex: 1.1 }]}>
-                                {MONTHS[r.date.getMonth()]}
+                                {monthShort(r.date)}
                               </Text>
                               <Text style={[styles.monthCell, styles.monthText, { color: CAPITAL }]}>
                                 {format(r.principal)}
@@ -243,13 +268,7 @@ export default function LoanScheduleModal({
                   );
                 })}
 
-                <Text style={styles.footnote}>
-                  La mensualité reste constante toute la durée du prêt. Ce qui
-                  change, c'est sa composition : les intérêts diminuent à mesure
-                  que le capital restant baisse. Échéancier théorique — il peut
-                  différer de celui de ta banque (assurance emprunteur, frais,
-                  arrondis).
-                </Text>
+                <Text style={styles.footnote}>{t("schedule.footnote")}</Text>
               </ScrollView>
             </>
           )}

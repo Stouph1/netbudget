@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import {
   loadCelebrations,
@@ -32,6 +33,7 @@ const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function Celebrations() {
+  const { t } = useLang();
   const { user, loading: sessionLoading } = useSession();
   const [list, setList] = useState<CelebrationPerson[] | null>(null);
   const [kind, setKind] = useState<"child" | "pet">("child");
@@ -55,16 +57,13 @@ export default function Celebrations() {
   async function add() {
     if (!user?.id) return;
     if (!name.trim()) {
-      notify("Prénom", "Indique un prénom (ou un nom pour l'animal).");
+      notify(t("celeb.name.required"), t("celeb.name.requiredHint"));
       return;
     }
     // minAge 0 : un bébé né hier ou un chaton de 3 mois sont valides
     const bd = parseBirthdate(birth, { minAge: 0, maxAge: kind === "pet" ? 40 : 110 });
     if (!bd) {
-      notify(
-        "Date invalide",
-        "Format attendu : JJ/MM/AAAA (ex. 15/03/2021), dans le passé.",
-      );
+      notify(t("celeb.date.invalid"), t("celeb.date.invalidHint"));
       return;
     }
     const item: CelebrationPerson = {
@@ -94,7 +93,7 @@ export default function Celebrations() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Anniversaires</Text>
+        <Text style={styles.title}>{t("celeb.title")}</Text>
         <View style={{ width: 22 }} />
       </View>
 
@@ -104,20 +103,17 @@ export default function Celebrations() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
-          <Text style={styles.intro}>
-            Ajoute tes enfants et tes animaux : le jour de leur anniversaire,
-            NetBudget fête ça avec des cartes-conseils adaptées à leur âge.
-          </Text>
+          <Text style={styles.intro}>{t("celeb.intro")}</Text>
 
           {/* Formulaire d'ajout */}
           <View style={styles.form}>
             <View style={styles.switchRow}>
               {(
                 [
-                  ["child", "👶 Enfant"],
-                  ["pet", "🐾 Animal"],
+                  ["child", "celeb.kind.child"],
+                  ["pet", "celeb.kind.pet"],
                 ] as const
-              ).map(([k, lbl]) => (
+              ).map(([k, lblKey]) => (
                 <TouchableOpacity
                   key={k}
                   onPress={() => setKind(k)}
@@ -125,7 +121,7 @@ export default function Celebrations() {
                   activeOpacity={0.85}
                 >
                   <Text style={[styles.switchText, kind === k && styles.switchTextActive]}>
-                    {lbl}
+                    {t(lblKey)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -135,14 +131,18 @@ export default function Celebrations() {
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder={kind === "child" ? "Prénom" : "Nom de l'animal"}
+              placeholder={
+                kind === "child"
+                  ? t("celeb.placeholder.childName")
+                  : t("celeb.placeholder.petName")
+              }
               placeholderTextColor={TEXT_3}
             />
             <TextInput
               style={styles.input}
               value={birth}
               onChangeText={setBirth}
-              placeholder="Date de naissance — JJ/MM/AAAA"
+              placeholder={t("celeb.placeholder.birthdate")}
               placeholderTextColor={TEXT_3}
               keyboardType="numbers-and-punctuation"
               maxLength={10}
@@ -151,11 +151,11 @@ export default function Celebrations() {
               <View style={{ flexDirection: "row", gap: 8 }}>
                 {(
                   [
-                    ["dog", "🐶 Chien"],
-                    ["cat", "🐱 Chat"],
-                    ["other", "🐾 Autre"],
+                    ["dog", "celeb.species.dog"],
+                    ["cat", "celeb.species.cat"],
+                    ["other", "celeb.species.other"],
                   ] as const
-                ).map(([sp, lbl]) => (
+                ).map(([sp, lblKey]) => (
                   <TouchableOpacity
                     key={sp}
                     onPress={() => setSpecies(sp)}
@@ -163,7 +163,7 @@ export default function Celebrations() {
                     activeOpacity={0.85}
                   >
                     <Text style={[styles.chipText, species === sp && styles.chipTextActive]}>
-                      {lbl}
+                      {t(lblKey)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -172,13 +172,13 @@ export default function Celebrations() {
 
             <TouchableOpacity style={styles.addBtn} onPress={add} activeOpacity={0.85}>
               <Feather name="plus" size={18} color="#000" />
-              <Text style={styles.addBtnText}>Ajouter</Text>
+              <Text style={styles.addBtnText}>{t("celeb.add")}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Liste */}
           {list.length === 0 ? (
-            <Text style={styles.empty}>Personne pour l'instant — ajoute un premier anniversaire ci-dessus.</Text>
+            <Text style={styles.empty}>{t("celeb.empty")}</Text>
           ) : (
             list.map((p) => (
               <View key={p.id} style={styles.row}>

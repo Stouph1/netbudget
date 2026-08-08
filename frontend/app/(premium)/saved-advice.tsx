@@ -15,7 +15,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
+import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
+import type { Lang } from "../../src/i18n/translations";
 import {
   loadSavedAdvice,
   removeSavedAdvice,
@@ -30,17 +32,31 @@ const TEXT_3 = "#8193AC";
 const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
+// Locale d'affichage des dates, dérivée de la langue de l'app.
+const DATE_LOCALES: Record<Lang, string> = {
+  fr: "fr-FR",
+  en: "en-GB",
+  es: "es-ES",
+  pt: "pt-PT",
+  de: "de-DE",
+  it: "it-IT",
+  ar: "ar",
+  ja: "ja-JP",
+};
+
 // Regroupe par origine : mon anniversaire, celui d'un enfant, d'un animal…
 function groupBySource(
   items: SavedAdviceItem[],
+  t: (key: string) => string,
+  tp: (key: string, params: Record<string, string | number>) => string,
 ): { label: string; entries: SavedAdviceItem[] }[] {
   const byLabel = new Map<string, SavedAdviceItem[]>();
   const labelOf = (src: string): string => {
-    if (src === "birthday") return "🎂 Mon anniversaire";
-    if (src.startsWith("child:")) return `👶 ${src.slice(6)}`;
-    if (src.startsWith("pet:")) return `🐾 ${src.slice(4)}`;
-    if (src === "coach") return "🧭 Coach";
-    return "Autres";
+    if (src === "birthday") return t("saved.src.birthday");
+    if (src.startsWith("child:")) return tp("saved.src.child", { name: src.slice(6) });
+    if (src.startsWith("pet:")) return tp("saved.src.pet", { name: src.slice(4) });
+    if (src === "coach") return t("saved.src.coach");
+    return t("saved.src.other");
   };
   for (const it of items) {
     const label = labelOf(it.source);
@@ -60,6 +76,7 @@ const TONE_BORDER: Record<string, string> = {
 };
 
 export default function SavedAdvice() {
+  const { lang, t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
   const [items, setItems] = useState<SavedAdviceItem[] | null>(null);
 
@@ -88,7 +105,7 @@ export default function SavedAdvice() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Conseils gardés</Text>
+        <Text style={styles.title}>{t("saved.title")}</Text>
         <View style={{ width: 22 }} />
       </View>
 
@@ -99,15 +116,12 @@ export default function SavedAdvice() {
       ) : items.length === 0 ? (
         <View style={styles.center}>
           <Feather name="bookmark" size={30} color={TEXT_3} />
-          <Text style={styles.emptyTitle}>Rien de gardé pour l'instant</Text>
-          <Text style={styles.emptyBody}>
-            Le jour de ton anniversaire, swipe les cartes vers la droite pour
-            les retrouver ici.
-          </Text>
+          <Text style={styles.emptyTitle}>{t("saved.empty.title")}</Text>
+          <Text style={styles.emptyBody}>{t("saved.empty.body")}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
-          {groupBySource(items).map(({ label, entries }) => (
+          {groupBySource(items, t, tp).map(({ label, entries }) => (
             <View key={label} style={{ marginBottom: 10 }}>
               <Text style={styles.sectionTitle}>{label}</Text>
               {entries.map((it) => (
@@ -147,7 +161,11 @@ export default function SavedAdvice() {
                     </View>
                   ) : null}
                   <Text style={styles.cardMeta}>
-                    Gardé le {new Date(it.savedAt).toLocaleDateString("fr-FR")}
+                    {tp("saved.savedOn", {
+                      date: new Date(it.savedAt).toLocaleDateString(
+                        DATE_LOCALES[lang],
+                      ),
+                    })}
                   </Text>
                 </View>
               ))}

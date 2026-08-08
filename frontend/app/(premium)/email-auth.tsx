@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLang } from "../../src/contexts/LangContext";
 import { signInWithEmail, signUpWithEmail } from "../../src/lib/auth";
 import { recordConsent } from "../../src/lib/profile";
 import { notify } from "../../src/utils/notify";
@@ -32,6 +33,7 @@ const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function EmailAuth() {
+  const { t, tp } = useLang();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,15 +57,15 @@ export default function EmailAuth() {
   async function submit() {
     const mail = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      notify("E-mail", "Adresse e-mail invalide.");
+      notify(t("auth.label.email"), t("auth.email.invalid"));
       return;
     }
     if (password.length < 8) {
-      notify("Mot de passe", "8 caractères minimum.");
+      notify(t("auth.label.password"), t("auth.password.tooShort"));
       return;
     }
     if (isSignup && password !== confirm) {
-      notify("Mot de passe", "Les deux mots de passe ne correspondent pas.");
+      notify(t("auth.label.password"), t("auth.password.mismatch"));
       return;
     }
 
@@ -79,17 +81,19 @@ export default function EmailAuth() {
     }
     if (result.reason === "confirm_email") {
       notify(
-        "Vérifie ta boîte mail",
-        `Un e-mail de confirmation a été envoyé à ${mail}. Clique sur le lien puis reviens te connecter.`,
+        t("auth.confirmEmail.title"),
+        tp("auth.confirmEmail.body", { email: mail }),
         () => setMode("signin"),
       );
       return;
     }
+    // Chaîne technique renvoyée par Supabase : on la compare telle quelle,
+    // puis on affiche notre propre message traduit.
     const msg =
       result.message === "Invalid login credentials"
-        ? "E-mail ou mot de passe incorrect."
-        : (result.message ?? "Erreur inconnue");
-    notify(isSignup ? "Inscription impossible" : "Connexion impossible", msg);
+        ? t("auth.invalidCredentials")
+        : (result.message ?? t("auth.error.unknown"));
+    notify(t(isSignup ? "auth.signup.failed" : "auth.signin.failed"), msg);
   }
 
   return (
@@ -103,7 +107,7 @@ export default function EmailAuth() {
             <Feather name="arrow-left" size={22} color={TEXT_1} />
           </TouchableOpacity>
           <Text style={styles.title}>
-            {isSignup ? "Créer un compte" : "Se connecter"}
+            {isSignup ? t("auth.title.signup") : t("auth.title.signin")}
           </Text>
           <View style={{ width: 22 }} />
         </View>
@@ -116,10 +120,10 @@ export default function EmailAuth() {
           <View style={styles.switchRow}>
             {(
               [
-                ["signup", "Créer un compte"],
-                ["signin", "J'ai déjà un compte"],
+                ["signup", "auth.switch.signup"],
+                ["signin", "auth.switch.signin"],
               ] as const
-            ).map(([m, label]) => (
+            ).map(([m, labelKey]) => (
               <TouchableOpacity
                 key={m}
                 onPress={() => setMode(m)}
@@ -127,18 +131,18 @@ export default function EmailAuth() {
                 activeOpacity={0.85}
               >
                 <Text style={[styles.switchText, mode === m && styles.switchTextActive]}>
-                  {label}
+                  {t(labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={styles.label}>E-mail</Text>
+          <Text style={styles.label}>{t("auth.label.email")}</Text>
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
-            placeholder="toi@exemple.com"
+            placeholder={t("auth.placeholder.email")}
             placeholderTextColor={TEXT_3}
             autoCapitalize="none"
             autoCorrect={false}
@@ -146,13 +150,13 @@ export default function EmailAuth() {
             autoComplete="email"
           />
 
-          <Text style={styles.label}>Mot de passe</Text>
+          <Text style={styles.label}>{t("auth.label.password")}</Text>
           <View style={styles.pwdRow}>
             <TextInput
               style={[styles.input, { flex: 1, marginBottom: 0 }]}
               value={password}
               onChangeText={setPassword}
-              placeholder="8 caractères minimum"
+              placeholder={t("auth.placeholder.password")}
               placeholderTextColor={TEXT_3}
               secureTextEntry={!showPwd}
               autoCapitalize="none"
@@ -165,12 +169,12 @@ export default function EmailAuth() {
 
           {isSignup ? (
             <>
-              <Text style={styles.label}>Confirme le mot de passe</Text>
+              <Text style={styles.label}>{t("auth.label.confirm")}</Text>
               <TextInput
                 style={styles.input}
                 value={confirm}
                 onChangeText={setConfirm}
-                placeholder="Retape le mot de passe"
+                placeholder={t("auth.placeholder.confirm")}
                 placeholderTextColor={TEXT_3}
                 secureTextEntry={!showPwd}
                 autoCapitalize="none"
@@ -191,16 +195,14 @@ export default function EmailAuth() {
               <>
                 <Feather name={isSignup ? "user-plus" : "log-in"} size={18} color="#000" />
                 <Text style={styles.ctaBtnText}>
-                  {isSignup ? "Créer mon compte" : "Me connecter"}
+                  {isSignup ? t("auth.cta.signup") : t("auth.cta.signin")}
                 </Text>
               </>
             )}
           </TouchableOpacity>
 
           <Text style={styles.footnote}>
-            {isSignup
-              ? "Ton e-mail sert uniquement à la connexion et à la récupération du compte. Aucune publicité."
-              : "Mot de passe oublié ? Contacte le support depuis les réglages, la réinitialisation arrive bientôt."}
+            {isSignup ? t("auth.footnote.signup") : t("auth.footnote.signin")}
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

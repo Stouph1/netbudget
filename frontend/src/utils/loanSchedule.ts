@@ -105,14 +105,21 @@ export function loanProgress(
   };
 }
 
-/** « 18 ans et 4 mois », « 7 mois », « terminé » */
-export function humanRemaining(p: LoanProgress): string {
-  if (p.finished) return "terminé";
-  const y = Math.floor(p.remainingMonths / 12);
-  const m = p.remainingMonths % 12;
-  if (y === 0) return `${m} mois`;
-  if (m === 0) return `${y} an${y > 1 ? "s" : ""}`;
-  return `${y} an${y > 1 ? "s" : ""} et ${m} mois`;
+/**
+ * Décompose le temps restant SANS le formater : la composition de la phrase
+ * (« 18 ans et 4 mois », « 4 months left »…) dépend de la langue et appartient
+ * donc à l'appelant, qui a accès au catalogue de traductions.
+ */
+export function remainingParts(p: LoanProgress): {
+  finished: boolean;
+  years: number;
+  months: number;
+} {
+  return {
+    finished: p.finished,
+    years: Math.floor(p.remainingMonths / 12),
+    months: p.remainingMonths % 12,
+  };
 }
 
 // ============================================================================

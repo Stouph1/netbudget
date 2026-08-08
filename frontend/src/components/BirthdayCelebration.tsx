@@ -27,6 +27,7 @@ import Reanimated, {
   withTiming,
 } from "react-native-reanimated";
 import type { BirthdayCard, BirthdayTone } from "../constants/ageFacts";
+import { useLang } from "../contexts/LangContext";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -39,14 +40,15 @@ const { width: W, height: H } = Dimensions.get("window");
 const CARD_W = Math.min(W - 64, 360);
 const SWIPE_THRESHOLD = W * 0.28;
 
+// `labelKey` vide = pas de pastille (ton neutre).
 const TONE_STYLE: Record<
   BirthdayTone,
-  { border: string; badge: string; badgeBg: string; label: string }
+  { border: string; badge: string; badgeBg: string; labelKey: string }
 > = {
-  good: { border: "#4ADE80", badge: "#052E16", badgeBg: "#4ADE80", label: "BONNE NOUVELLE" },
-  gold: { border: "#FCD34D", badge: "#451A03", badgeBg: "#FCD34D", label: "✦ DÉCISIF ✦" },
-  bad: { border: "#F87171", badge: "#450A0A", badgeBg: "#F87171", label: "À ANTICIPER" },
-  neutral: { border: "rgba(255,255,255,0.14)", badge: "#0F172A", badgeBg: "#94A3B8", label: "" },
+  good: { border: "#4ADE80", badge: "#052E16", badgeBg: "#4ADE80", labelKey: "bday.tone.good" },
+  gold: { border: "#FCD34D", badge: "#451A03", badgeBg: "#FCD34D", labelKey: "bday.tone.gold" },
+  bad: { border: "#F87171", badge: "#450A0A", badgeBg: "#F87171", labelKey: "bday.tone.bad" },
+  neutral: { border: "rgba(255,255,255,0.14)", badge: "#0F172A", badgeBg: "#94A3B8", labelKey: "" },
 };
 
 // ---------------------------------------------------------------------------
@@ -130,6 +132,7 @@ function TopCard({
   item: BirthdayCard;
   onDecide: (kept: boolean) => void;
 }) {
+  const { t } = useLang();
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
   const enter = useSharedValue(0.86);
@@ -187,9 +190,11 @@ function TopCard({
       <Reanimated.View style={[styles.card, { borderColor: tone.border }, cardStyle]}>
         {item.tone === "gold" ? <GoldGlow /> : null}
 
-        {tone.label ? (
+        {tone.labelKey ? (
           <View style={[styles.toneBadge, { backgroundColor: tone.badgeBg }]}>
-            <Text style={[styles.toneBadgeText, { color: tone.badge }]}>{tone.label}</Text>
+            <Text style={[styles.toneBadgeText, { color: tone.badge }]}>
+              {t(tone.labelKey)}
+            </Text>
           </View>
         ) : null}
 
@@ -199,10 +204,10 @@ function TopCard({
 
         {/* Tampons façon Tinder */}
         <Reanimated.View style={[styles.stamp, styles.stampKeep, keepStamp]}>
-          <Text style={styles.stampKeepText}>GARDÉ ✓</Text>
+          <Text style={styles.stampKeepText}>{t("bday.stamp.keep")}</Text>
         </Reanimated.View>
         <Reanimated.View style={[styles.stamp, styles.stampTrash, trashStamp]}>
-          <Text style={styles.stampTrashText}>PASSÉ ✕</Text>
+          <Text style={styles.stampTrashText}>{t("bday.stamp.pass")}</Text>
         </Reanimated.View>
       </Reanimated.View>
     </GestureDetector>
@@ -220,6 +225,7 @@ type Props = {
 };
 
 export default function BirthdayCelebration({ visible, cards, onKeep, onClose }: Props) {
+  const { t, tp } = useLang();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -245,7 +251,7 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
 
         <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Fermer" style={styles.closeBtn} onPress={onClose} hitSlop={12}>
+              accessibilityLabel={t("bday.close")} style={styles.closeBtn} onPress={onClose} hitSlop={12}>
           <Feather name="x" size={22} color={TEXT_2} />
         </TouchableOpacity>
 
@@ -271,13 +277,10 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
           <View style={styles.deckArea}>
             <View style={[styles.card, { borderColor: GOLD }]}>
               <Text style={styles.cardEmoji}>🎉</Text>
-              <Text style={styles.cardTitle}>C'est noté !</Text>
-              <Text style={styles.cardBody}>
-                Tes conseils gardés t'attendent dans ton Profil, section
-                « Conseils gardés ». Très belle année à toi !
-              </Text>
+              <Text style={styles.cardTitle}>{t("bday.done.title")}</Text>
+              <Text style={styles.cardBody}>{t("bday.done.body")}</Text>
               <TouchableOpacity style={styles.cta} onPress={onClose} activeOpacity={0.85}>
-                <Text style={styles.ctaText}>Merci ! 🎂</Text>
+                <Text style={styles.ctaText}>{t("bday.done.cta")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -294,8 +297,8 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
                 onPress={() => decide(false)}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel="Passer ce conseil"
-                accessibilityHint="Le conseil ne sera pas conservé"
+                accessibilityLabel={t("bday.a11y.pass")}
+                accessibilityHint={t("bday.a11y.passHint")}
               >
                 <Feather name="x" size={26} color="#F87171" />
               </TouchableOpacity>
@@ -304,20 +307,20 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
                 onPress={() => decide(true)}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel="Garder ce conseil"
-                accessibilityHint="Il sera rangé dans Profil, Conseils gardés"
+                accessibilityLabel={t("bday.a11y.keep")}
+                accessibilityHint={t("bday.a11y.keepHint")}
               >
                 <Feather name="bookmark" size={24} color={GOLD} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.hint}>
-              Appuie sur ✕ pour passer, sur 🔖 pour garder — ou fais glisser la
-              carte.
-            </Text>
+            <Text style={styles.hint}>{t("bday.hint")}</Text>
             <View
               style={styles.dots}
               accessibilityRole="progressbar"
-              accessibilityLabel={`Carte ${index + 1} sur ${cards.length}`}
+              accessibilityLabel={tp("bday.a11y.progress", {
+                current: index + 1,
+                total: cards.length,
+              })}
               accessibilityValue={{ min: 1, max: cards.length, now: index + 1 }}
             >
               {cards.map((_, i) => (

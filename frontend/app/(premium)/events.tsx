@@ -6,18 +6,20 @@ import { router } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import EventsPanel from "../../src/components/EventsPanel";
+import { useLang } from "../../src/contexts/LangContext";
 
 const MIDNIGHT = "#0F172A";
 const TEXT_1 = "#FFFFFF";
 
 export default function Events() {
+  const { t } = useLang();
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
-        <Text style={styles.title}>Événements</Text>
+        <Text style={styles.title}>{t("events.title")}</Text>
         <View style={{ width: 22 }} />
       </View>
       <EventsPanel standalone />

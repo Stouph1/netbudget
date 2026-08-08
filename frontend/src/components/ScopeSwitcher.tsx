@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLang } from "../contexts/LangContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { listMyWorkspaces } from "../lib/workspacesStore";
 import type { Workspace, WorkspaceKind } from "../types/workspaces";
@@ -45,6 +46,7 @@ type Props = {
 };
 
 export default function ScopeSwitcher({ visible, onClose }: Props) {
+  const { t } = useLang();
   const { workspaceId, setScope } = useActiveScope();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,10 +74,10 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <View style={styles.header}>
-            <Text style={styles.title}>Changer de scope</Text>
+            <Text style={styles.title}>{t("ws.switcher.title")}</Text>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
+              accessibilityLabel={t("common.close")} onPress={onClose} hitSlop={10}>
               <Feather name="x" size={20} color={TEXT_2} />
             </TouchableOpacity>
           </View>
@@ -89,8 +91,8 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
               <Feather name="user" size={18} color={workspaceId === null ? "#000" : GOLD} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.rowName}>Compte personnel</Text>
-              <Text style={styles.rowSubtitle}>Tes données privées</Text>
+              <Text style={styles.rowName}>{t("ws.personalAccount")}</Text>
+              <Text style={styles.rowSubtitle}>{t("ws.switcher.personalSub")}</Text>
             </View>
             {workspaceId === null ? <Feather name="check" size={18} color={GOLD} /> : null}
           </TouchableOpacity>
@@ -141,7 +143,7 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
             activeOpacity={0.85}
           >
             <Feather name="settings" size={16} color={TEXT_2} />
-            <Text style={styles.manageBtnText}>Gérer mes espaces</Text>
+            <Text style={styles.manageBtnText}>{t("ws.manage")}</Text>
           </TouchableOpacity>
         </View>
       </View>
