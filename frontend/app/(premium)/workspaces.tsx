@@ -715,7 +715,12 @@ function WorkspaceDetailModal({
           onPress: async () => {
             const r = await deleteWorkspace(workspace.id);
             if (!r.ok) {
-              Alert.alert(t("common.error"), r.error ?? t("ws.err.deleteFailed"));
+              Alert.alert(
+                t("common.error"),
+                r.error === "not_owner"
+                  ? t("ws.err.deleteNotOwner")
+                  : (r.error ?? t("ws.err.deleteFailed")),
+              );
               return;
             }
             onDeleted();

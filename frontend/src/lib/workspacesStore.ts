@@ -64,11 +64,23 @@ export async function updateWorkspaceDescription(
 export async function deleteWorkspace(
   workspaceId: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { error } = await supabase
+  // Voie principale : fonction serveur qui vérifie la propriété puis supprime.
+  // Elle évite les subtilités de RLS où un DELETE filtré ne supprime rien SANS
+  // renvoyer d'erreur — l'utilisateur croyait alors que ça avait marché.
+  const rpc = await supabase.rpc("delete_own_workspace", { ws_id: workspaceId });
+  if (!rpc.error) return { ok: true };
+
+  // Repli : suppression directe, avec vérification explicite du résultat.
+  const { data, error } = await supabase
     .from("workspaces")
     .delete()
-    .eq("id", workspaceId);
+    .eq("id", workspaceId)
+    .select("id");
   if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    // 0 ligne supprimée = la policy a filtré. Ne jamais annoncer un succès.
+    return { ok: false, error: "not_owner" };
+  }
   return { ok: true };
 }
 

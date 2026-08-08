@@ -1143,6 +1143,7 @@ const fr: Catalog = {
   "evtNotif.j7.body": "Dernière ligne droite : confirme les effectifs et vérifie le budget dans NetBudget.",
   "evtNotif.jday.title": "{emoji} C'est le grand jour !",
   "evtNotif.jday.body": "{name} — profite, tout est prêt. NetBudget te souhaite un merveilleux moment.",
+  "ws.err.deleteNotOwner": "Seul le propriétaire de l'espace peut le supprimer. Si tu es bien le propriétaire, ferme et rouvre l'app puis réessaie.",
 };
 
 const en: Catalog = {
@@ -2220,6 +2221,7 @@ const en: Catalog = {
   "evtNotif.j7.body": "Home stretch: confirm numbers and check the budget in NetBudget.",
   "evtNotif.jday.title": "{emoji} The big day is here!",
   "evtNotif.jday.body": "{name} — enjoy, everything's ready. NetBudget wishes you a wonderful time.",
+  "ws.err.deleteNotOwner": "Only the space owner can delete it. If you are the owner, close and reopen the app, then try again.",
 };
 
 const es: Catalog = {
@@ -3297,6 +3299,7 @@ const es: Catalog = {
   "evtNotif.j7.body": "Recta final: confirma los asistentes y revisa el presupuesto en NetBudget.",
   "evtNotif.jday.title": "{emoji} ¡Llegó el gran día!",
   "evtNotif.jday.body": "{name} — disfruta, todo está listo. NetBudget te desea un momento maravilloso.",
+  "ws.err.deleteNotOwner": "Solo el propietario del espacio puede eliminarlo. Si eres el propietario, cierra y vuelve a abrir la app e inténtalo de nuevo.",
 };
 
 const pt: Catalog = {
@@ -4374,6 +4377,7 @@ const pt: Catalog = {
   "evtNotif.j7.body": "Reta final: confirma os números e verifica o orçamento no NetBudget.",
   "evtNotif.jday.title": "{emoji} Chegou o grande dia!",
   "evtNotif.jday.body": "{name} — aproveita, está tudo pronto. O NetBudget deseja-te um momento maravilhoso.",
+  "ws.err.deleteNotOwner": "Só o proprietário do espaço o pode eliminar. Se és o proprietário, fecha e reabre a app e tenta novamente.",
 };
 
 const de: Catalog = {
@@ -5451,6 +5455,7 @@ const de: Catalog = {
   "evtNotif.j7.body": "Endspurt: Teilnehmerzahl bestätigen und Budget in NetBudget prüfen.",
   "evtNotif.jday.title": "{emoji} Der große Tag ist da!",
   "evtNotif.jday.body": "{name} — genieß es, alles ist bereit. NetBudget wünscht dir eine wunderbare Zeit.",
+  "ws.err.deleteNotOwner": "Nur die Besitzerin oder der Besitzer kann den Space löschen. Falls du das bist, schließe die App, öffne sie neu und versuch es noch einmal.",
 };
 
 const it: Catalog = {
@@ -6528,6 +6533,7 @@ const it: Catalog = {
   "evtNotif.j7.body": "Rush finale: conferma i numeri e controlla il budget su NetBudget.",
   "evtNotif.jday.title": "{emoji} È arrivato il grande giorno!",
   "evtNotif.jday.body": "{name} — goditela, è tutto pronto. NetBudget ti augura un momento meraviglioso.",
+  "ws.err.deleteNotOwner": "Solo il proprietario dello spazio può eliminarlo. Se sei il proprietario, chiudi e riapri l'app e riprova.",
 };
 
 const ar: Catalog = {
@@ -7605,6 +7611,7 @@ const ar: Catalog = {
   "evtNotif.j7.body": "المرحلة الأخيرة: أكّد الأعداد وتحقّق من الميزانية في NetBudget.",
   "evtNotif.jday.title": "{emoji} حان اليوم الكبير!",
   "evtNotif.jday.body": "{name} — استمتع، كل شيء جاهز. يتمنّى لك NetBudget وقتاً رائعاً.",
+  "ws.err.deleteNotOwner": "يمكن لمالك المساحة وحده حذفها. إن كنت المالك، أغلق التطبيق وأعد فتحه ثم حاول مجدداً.",
 };
 
 const ja: Catalog = {
@@ -8682,6 +8689,7 @@ const ja: Catalog = {
   "evtNotif.j7.body": "最終段階です。人数を確定し、NetBudgetで予算を確認しましょう。",
   "evtNotif.jday.title": "{emoji} いよいよ当日です！",
   "evtNotif.jday.body": "{name} — 準備は万端です。素敵な時間になりますように。",
+  "ws.err.deleteNotOwner": "スペースを削除できるのはオーナーのみです。オーナーの場合は、アプリを再起動してからもう一度お試しください。",
 };
 
 export const CATALOGS: Record<Lang, Catalog> = { fr, en, es, pt, de, it, ar, ja };
