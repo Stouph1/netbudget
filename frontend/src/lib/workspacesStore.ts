@@ -190,6 +190,23 @@ export async function cancelInvite(
 //  2. Vérifier que l'email invité match l'auth.uid()
 //  3. Insérer dans workspace_members
 //  4. Marquer l'invite comme accepted
+// Invitations encore valables d'un espace (pour les repartager sans en
+// recréer une). La policy SELECT limite déjà aux invitations que l'appelant a
+// le droit de voir (inviteur ou destinataire).
+export async function listPendingInvites(
+  workspaceId: string,
+): Promise<{ id: string; email: string; token: string; expires_at: string }[]> {
+  const { data, error } = await supabase
+    .from("workspace_invites")
+    .select("id, email, token, expires_at")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "pending")
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return data as { id: string; email: string; token: string; expires_at: string }[];
+}
+
 export async function acceptInvite(
   token: string,
 ): Promise<{ ok: boolean; workspaceId?: string; error?: string }> {

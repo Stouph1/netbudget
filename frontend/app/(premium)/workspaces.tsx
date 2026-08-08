@@ -41,6 +41,7 @@ import {
   deleteWorkspace,
   leaveWorkspace,
   listMembersWithProfiles,
+  listPendingInvites,
   type MemberWithProfile,
   listMyWorkspaces,
 } from "../../src/lib/workspacesStore";
@@ -614,13 +615,25 @@ function WorkspaceDetailModal({
     }
   }
 
+  // Invitations déjà envoyées et encore valables : on doit pouvoir les
+  // repartager sans en générer une nouvelle.
+  const [openInvites, setOpenInvites] = useState<
+    { id: string; email: string; token: string; expires_at: string }[]
+  >([]);
+
+  const reloadInvites = useCallback(async () => {
+    const list = await listPendingInvites(workspace.id);
+    setOpenInvites(list);
+  }, [workspace.id]);
+
   useEffect(() => {
     (async () => {
       const m = await listMembersWithProfiles(workspace.id);
       setMembers(m);
+      await reloadInvites();
       setLoading(false);
     })();
-  }, [workspace.id]);
+  }, [workspace.id, reloadInvites]);
 
   // Partage du lien d'invitation via la feuille système (WhatsApp, Mail, SMS).
   // Le lien profond ouvre l'app directement sur l'écran « rejoindre » ; le code
@@ -810,6 +823,45 @@ function WorkspaceDetailModal({
                     )}
                   </TouchableOpacity>
                 </View>
+
+                {/* Invitations en attente : repartageables à tout moment */}
+                {openInvites.length > 0 ? (
+                  <View style={{ gap: 8, marginTop: 4 }}>
+                    <Text style={styles.tokenLabel}>Invitations en attente</Text>
+                    {openInvites.map((inv) => (
+                      <View key={inv.id} style={styles.inviteRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.inviteEmail} numberOfLines={1}>
+                            {inv.email}
+                          </Text>
+                          <Text style={styles.inviteMeta}>
+                            expire le{" "}
+                            {new Date(inv.expires_at).toLocaleDateString("fr-FR")}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={async () => {
+                            await Clipboard.setStringAsync(inv.token);
+                            notify("Copié", "Le code est dans ton presse-papiers.");
+                          }}
+                          hitSlop={10}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Copier le code pour ${inv.email}`}
+                        >
+                          <Feather name="copy" size={17} color={TEXT_2} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => shareInvite(inv.token)}
+                          hitSlop={10}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Partager l'invitation de ${inv.email}`}
+                        >
+                          <Feather name="share-2" size={17} color={GOLD} />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
 
                 {pendingToken ? (
                   <View style={styles.tokenBox}>
@@ -1142,6 +1194,19 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 8,
   },
+  inviteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: MIDNIGHT,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: BORDER,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
+  },
+  inviteEmail: { color: TEXT_1, fontSize: 13.5, fontWeight: "600" },
+  inviteMeta: { color: TEXT_3, fontSize: 11.5, marginTop: 2 },
   tokenActionBtn: {
     flex: 1,
     flexDirection: "row",

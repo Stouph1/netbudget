@@ -41,6 +41,7 @@ import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import { humanRemaining, loanProgress } from "../src/utils/loanSchedule";
+import LoanScheduleModal from "../src/components/LoanScheduleModal";
 import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import EventsPanel, { eventNeedsAttention } from "../src/components/EventsPanel";
 import { useSession } from "../src/contexts/SessionContext";
@@ -859,6 +860,8 @@ export default function Index() {
   const [loans, setLoans] = useState<Loan[]>([]);
   // Texte brut du champ « début du prêt » (MM/AAAA en cours de frappe)
   const [loanStartText, setLoanStartText] = useState("");
+  // Prêt dont on consulte l'échéancier détaillé
+  const [scheduleLoan, setScheduleLoan] = useState<Loan | null>(null);
   const [loanModalOpen, setLoanModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
   const [form, setForm] = useState<Loan>({
@@ -1739,11 +1742,11 @@ export default function Index() {
               </View>
               {monthlyTithe > 0 ? (
                 <View style={styles.revenusRow}>
-                  <Text style={styles.revenusLabel}>
-                    Dons & cadeaux ({tithePercent} % des revenus cochés)
+                  <Text style={styles.revenusLabel} numberOfLines={2}>
+                    Dons & cadeaux ({tithePercent} %)
                   </Text>
-                  <Text style={styles.revenusTotalMuted}>
-                    − {fmt(monthlyTithe)} / mois
+                  <Text style={styles.revenusTotalMuted} numberOfLines={1}>
+                    − {fmt(monthlyTithe)}
                   </Text>
                 </View>
               ) : null}
@@ -1849,6 +1852,18 @@ export default function Index() {
                               {fmt(prog.nextInterest)} d'intérêts
                             </Text>
                           ) : null}
+                          <TouchableOpacity
+                            onPress={() => setScheduleLoan(l)}
+                            hitSlop={8}
+                            style={styles.scheduleLinkRow}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Voir l'échéancier détaillé de ${l.name || "ce prêt"}`}
+                          >
+                            <Feather name="list" size={12} color={GOLD} />
+                            <Text style={styles.scheduleLinkText}>
+                              Voir l'échéancier mois par mois
+                            </Text>
+                          </TouchableOpacity>
                         </View>
                       ) : !isDirect ? (
                         <Text style={styles.loanHintText}>
@@ -2613,6 +2628,21 @@ export default function Index() {
         }}
         onClose={() => setBdayOpen(false)}
       />
+
+      {/* Échéancier détaillé d'un prêt */}
+      {scheduleLoan ? (
+        <LoanScheduleModal
+          visible
+          onClose={() => setScheduleLoan(null)}
+          loanName={scheduleLoan.name || t("loan.defaultName")}
+          principal={parseNumber(scheduleLoan.principal)}
+          ratePercent={parseNumber(scheduleLoan.ratePercent)}
+          years={parseNumber(scheduleLoan.years)}
+          startIso={scheduleLoan.startDate}
+          monthlyPayment={loanMonthlyPayment(scheduleLoan)}
+          format={fmt}
+        />
+      ) : null}
 
       {/* Bottom Tab Bar — bulle "liquid glass" façon Apple :
           - flotte AU-DESSUS du contenu (absolute) → le contenu défile derrière
@@ -4011,6 +4041,14 @@ const styles = StyleSheet.create({
   loanProgressFill: { height: 5, borderRadius: 3, backgroundColor: COLOR_PRETS },
   loanProgressText: { color: TEXT_2, fontSize: 11.5, fontWeight: "600" },
   loanSplitText: { color: TEXT_3, fontSize: 11 },
+  scheduleLinkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 6,
+    alignSelf: "flex-start",
+  },
+  scheduleLinkText: { color: GOLD, fontSize: 11.5, fontWeight: "700" },
   loanHintText: { color: TEXT_3, fontSize: 11, marginTop: 6, fontStyle: "italic" },
   tabBadge: {
     position: "absolute",
@@ -4193,11 +4231,17 @@ const styles = StyleSheet.create({
   },
   revenusRow: {
     flexDirection: "row", justifyContent: "space-between",
-    alignItems: "center", paddingVertical: 4,
+    alignItems: "center", paddingVertical: 4, gap: 10,
   },
-  revenusLabel: { color: TEXT_2, fontSize: 13 },
-  revenusTotal: { color: TEXT, fontSize: 15, fontWeight: "700" },
-  revenusTotalMuted: { color: TEXT_3, fontSize: 14, fontWeight: "500" },
+  revenusLabel: { color: TEXT_2, fontSize: 13, flexShrink: 1 },
+  revenusTotal: {
+    color: TEXT, fontSize: 15, fontWeight: "700",
+    flexShrink: 0, textAlign: "right",
+  },
+  revenusTotalMuted: {
+    color: TEXT_3, fontSize: 14, fontWeight: "500",
+    flexShrink: 0, textAlign: "right",
+  },
   statusToggle: { flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 12 },
   modeToggleRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
   pillsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 4 },

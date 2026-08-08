@@ -114,3 +114,106 @@ export function humanRemaining(p: LoanProgress): string {
   if (m === 0) return `${y} an${y > 1 ? "s" : ""}`;
   return `${y} an${y > 1 ? "s" : ""} et ${m} mois`;
 }
+
+// ============================================================================
+// Échéancier détaillé — la vue que les banques fournissent, dans l'app.
+// ============================================================================
+
+export type ScheduleRow = {
+  /** Numéro de mensualité (1 = première échéance). */
+  index: number;
+  date: Date;
+  /** Part de capital de cette échéance. */
+  principal: number;
+  /** Part d'intérêts de cette échéance. */
+  interest: number;
+  /** Capital restant dû APRÈS cette échéance. */
+  balance: number;
+  /** Cumul des intérêts versés jusqu'ici. */
+  cumulativeInterest: number;
+};
+
+export type ScheduleYear = {
+  year: number;
+  principal: number;
+  interest: number;
+  /** Capital restant dû à la fin de l'année. */
+  balance: number;
+  /** Année déjà entièrement passée. */
+  past: boolean;
+  /** Année en cours. */
+  current: boolean;
+  rows: ScheduleRow[];
+};
+
+/**
+ * Échéancier mois par mois, regroupé par année civile.
+ * La dernière échéance est ajustée pour solder exactement le capital (sinon
+ * les arrondis laissent quelques centimes).
+ */
+export function amortizationSchedule(
+  principal: number,
+  annualRatePercent: number,
+  years: number,
+  startIso: string | undefined,
+  monthlyPayment: number,
+  now: Date = new Date(),
+): ScheduleYear[] {
+  if (!startIso || !(principal > 0) || !(years > 0) || !(monthlyPayment > 0)) return [];
+  const start = new Date(startIso + "T12:00:00");
+  if (Number.isNaN(start.getTime())) return [];
+
+  const totalMonths = Math.round(years * 12);
+  const i = annualRatePercent / 100 / 12;
+  let balance = principal;
+  let cumulativeInterest = 0;
+  const byYear = new Map<number, ScheduleYear>();
+
+  for (let n = 1; n <= totalMonths; n++) {
+    const date = new Date(start);
+    date.setMonth(date.getMonth() + (n - 1));
+
+    const interest = balance * i;
+    // Dernière échéance : on solde le capital restant, quoi qu'il arrive.
+    let principalPart = n === totalMonths ? balance : monthlyPayment - interest;
+    if (principalPart > balance) principalPart = balance;
+    if (principalPart < 0) principalPart = 0;
+
+    balance = Math.max(0, balance - principalPart);
+    cumulativeInterest += interest;
+
+    const y = date.getFullYear();
+    if (!byYear.has(y)) {
+      byYear.set(y, {
+        year: y,
+        principal: 0,
+        interest: 0,
+        balance: 0,
+        past: false,
+        current: false,
+        rows: [],
+      });
+    }
+    const entry = byYear.get(y)!;
+    entry.principal += principalPart;
+    entry.interest += interest;
+    entry.balance = balance;
+    entry.rows.push({
+      index: n,
+      date,
+      principal: principalPart,
+      interest,
+      balance,
+      cumulativeInterest,
+    });
+  }
+
+  const currentYear = now.getFullYear();
+  return [...byYear.values()]
+    .sort((a, b) => a.year - b.year)
+    .map((y) => ({
+      ...y,
+      past: y.year < currentYear,
+      current: y.year === currentYear,
+    }));
+}
