@@ -53,6 +53,8 @@ async function main() {
   const drift = [];
   const ok = [];
   const failed = [];
+  const knownLag = [];
+  const toFill = [];
 
   for (const fig of TRACKED_FIGURES) {
     try {
@@ -62,10 +64,14 @@ async function main() {
         failed.push({ fig, reason: "aucune valeur en vigueur" });
         continue;
       }
+      // bmafRatio : on ignore la valeur OpenFisca (obsolète) et on applique
+      // notre ratio légal à la BMAF courante — le montant se revalorise seul.
       const official =
-        fig.kind === "bmaf"
-          ? Math.round(inForce.value * bmaf.value * 100) / 100
-          : inForce.value;
+        fig.kind === "bmafRatio"
+          ? Math.round((fig.ratio ?? 0) * bmaf.value * 100) / 100
+          : fig.kind === "bmaf"
+            ? Math.round(inForce.value * bmaf.value * 100) / 100
+            : inForce.value;
       const delta = Math.abs(official - fig.expected);
       const next = upcoming(param.values);
       const entry = {
@@ -76,7 +82,11 @@ async function main() {
         jo: param.metadata?.official_journal_date?.[inForce.date],
         next,
       };
-      if (delta <= TOLERANCE_EUR) ok.push(entry);
+      // expected = 0 → figure pas encore renseignée : on affiche la valeur
+      // officielle pour qu'un humain la recopie, sans crier à l'écart.
+      if (fig.expected === 0) toFill.push(entry);
+      else if (delta <= TOLERANCE_EUR) ok.push(entry);
+      else if (fig.openfiscaStale) knownLag.push({ ...entry, delta });
       else drift.push({ ...entry, delta });
     } catch (e) {
       failed.push({ fig, reason: e.message });
@@ -119,6 +129,24 @@ async function main() {
     }
   }
 
+  if (toFill.length) {
+    console.log(`À RENSEIGNER (${toFill.length}) — recopie la valeur officielle dans officialFigures.mjs`);
+    for (const e of toFill) {
+      console.log(`  → ${e.fig.label} : ${fmt(e.official)} (depuis le ${e.since})`);
+    }
+    console.log("");
+  }
+
+  if (knownLag.length) {
+    console.log(`RETARD OPENFISCA CONNU (${knownLag.length}) — pas une alerte, une note`);
+    for (const e of knownLag) {
+      console.log(`  ~ ${e.fig.label}`);
+      console.log(`      notre valeur : ${fmt(e.fig.expected)} · OpenFisca : ${fmt(e.official)} (${e.since})`);
+      console.log(`      ${e.fig.openfiscaStale}`);
+    }
+    console.log("");
+  }
+
   if (failed.length) {
     console.log(`Non vérifiables (${failed.length})`);
     for (const f of failed) console.log(`  ? ${f.fig.label} — ${f.reason}`);
@@ -126,8 +154,12 @@ async function main() {
   }
 
   console.log(
-    `Bilan : ${ok.length} à jour · ${drift.length} en écart · ${failed.length} non vérifiés`,
+    `Bilan : ${ok.length} à jour · ${drift.length} en écart réel · ` +
+      `${knownLag.length} retard OpenFisca connu · ${toFill.length} à renseigner · ` +
+      `${failed.length} non vérifiés`,
   );
+  // Seuls les écarts RÉELS font échouer : les retards documentés ne doivent pas
+  // transformer l'alerte hebdomadaire en bruit de fond.
   process.exit(drift.length > 0 ? 1 : 0);
 }
 

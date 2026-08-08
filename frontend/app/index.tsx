@@ -1766,7 +1766,7 @@ export default function Index() {
               {monthlyTithe > 0 ? (
                 <View style={styles.revenusRow}>
                   <Text style={styles.revenusLabel} numberOfLines={2}>
-                    Dons & cadeaux ({tithePercent} %)
+                    {interpolate(t("summary.giving"), { pct: tithePercent })}
                   </Text>
                   <Text style={styles.revenusTotalMuted} numberOfLines={1}>
                     − {fmt(monthlyTithe)}
@@ -1866,13 +1866,18 @@ export default function Index() {
                           </View>
                           <Text style={styles.loanProgressText}>
                             {prog.finished
-                              ? "Remboursé 🎉"
-                              : `Reste ${humanRemaining(prog)} · ${fmt(prog.remainingPrincipal)} de capital`}
+                              ? t("loan.repaid")
+                              : interpolate(t("loan.remaining"), {
+                                  time: humanRemaining(prog),
+                                  amount: fmt(prog.remainingPrincipal),
+                                })}
                           </Text>
                           {!prog.finished ? (
                             <Text style={styles.loanSplitText}>
-                              Cette mensualité : {fmt(prog.nextPrincipal)} de capital ·{" "}
-                              {fmt(prog.nextInterest)} d'intérêts
+                              {interpolate(t("loan.splitThisMonth"), {
+                                principal: fmt(prog.nextPrincipal),
+                                interest: fmt(prog.nextInterest),
+                              })}
                             </Text>
                           ) : null}
                           <TouchableOpacity
@@ -1880,17 +1885,17 @@ export default function Index() {
                             hitSlop={8}
                             style={styles.scheduleLinkRow}
                             accessibilityRole="button"
-                            accessibilityLabel={`Voir l'échéancier détaillé de ${l.name || "ce prêt"}`}
+                            accessibilityLabel={`${t("loan.scheduleA11y")} — ${l.name || t("loan.defaultName")}`}
                           >
                             <Feather name="list" size={12} color={GOLD} />
                             <Text style={styles.scheduleLinkText}>
-                              Voir l'échéancier mois par mois
+                              {t("loan.seeSchedule")}
                             </Text>
                           </TouchableOpacity>
                         </View>
                       ) : !isDirect ? (
                         <Text style={styles.loanHintText}>
-                          Ajoute la date de ta 1re échéance pour suivre ce qu'il te reste
+                          {t("loan.addStartHint")}
                         </Text>
                       ) : null}
                     </View>
@@ -2112,7 +2117,7 @@ export default function Index() {
                             {f.label}
                           </Text>
                           <Text style={[styles.miniDonutTarget, over && { color: DANGER }]}>
-                            cible {f.target}%
+                            {interpolate(t("donut.targetShort"), { pct: f.target })}
                           </Text>
                           <Text style={styles.miniDonutAmount}>{fmt(f.value)}</Text>
                         </View>
@@ -2350,9 +2355,9 @@ export default function Index() {
               >
                 <Feather name="user" size={15} color={GOLD} />
                 <Text style={styles.profileLocNoteText}>
-                  Ta localisation vient de ton profil ({city.name}
-                  {city.region ? `, ${city.region}` : ""}). Modifie-la là pour
-                  que budget et conseils restent cohérents.
+                  {interpolate(t("settings.locationFromProfile"), {
+                    place: city.region ? `${city.name}, ${city.region}` : city.name,
+                  })}
                 </Text>
                 <Feather name="chevron-right" size={16} color={TEXT_3} />
               </TouchableOpacity>
@@ -3468,7 +3473,7 @@ export default function Index() {
                       testID="loan-years-input"
                     />
                     <Field
-                      label="Début du prêt — 1re échéance (optionnel)"
+                      label={t("loan.startLabel")}
                       icon={<Feather name="clock" size={18} color={GOLD} />}
                       value={loanStartText}
                       onChangeText={(v) => {
@@ -3481,8 +3486,8 @@ export default function Index() {
                       }}
                       keyboardType="number-pad"
                       maxLength={7}
-                      placeholder="Mois puis année — ex. 092023"
-                      hintText="Tape juste les chiffres (092023). Tu verras ce qu'il te reste à rembourser et comment ta mensualité se répartit."
+                      placeholder={t("loan.startPlaceholder")}
+                      hintText={t("loan.startHint")}
                       testID="loan-start-input"
                     />
                     <View style={styles.previewBox}>
