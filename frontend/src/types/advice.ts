@@ -94,6 +94,11 @@ export type UserProfile = {
   workspaceKind?: WorkspaceKindForAdvice | null; // null/undefined = compte perso
   hasPets?: boolean;
   pets?: Pet[];                      // rempli seulement si hasPets === true
+  // Situation de handicap — DROITS, pas des faveurs. Un adulte concerné, un
+  // enfant concerné et un aidant n'ont pas du tout les mêmes démarches.
+  disabilitySelf?: boolean;          // l'utilisateur est concerné
+  disabilityChild?: boolean;         // un enfant du foyer est concerné
+  caregiver?: boolean;               // aide un proche (hors enfant du foyer)
 };
 
 // ============================================================================
@@ -126,7 +131,8 @@ export type AdviceCategory =
   | "insurance"       // → Prévoyance
   | "shared"          // → Budget à plusieurs (couple / famille / coloc)
   | "association"     // → Association (trésorerie, dons, subventions)
-  | "pets";           // → Animaux de compagnie
+  | "pets"            // → Animaux de compagnie
+  | "disability";     // → Handicap & autonomie (droits, compensation, aidants)
 
 // Regroupement UI par thème visible pour l'user.
 export type AdviceGroup = {
@@ -196,6 +202,12 @@ export const ADVICE_GROUPS: AdviceGroup[] = [
     label: "Animaux de compagnie",
     icon: "heart", // Feather n'a pas d'icône "patte" ; heart reste sobre et clair
     categories: ["pets"],
+  },
+  {
+    key: "disability",
+    label: "Handicap & autonomie",
+    icon: "shield",
+    categories: ["disability"],
   },
 ];
 

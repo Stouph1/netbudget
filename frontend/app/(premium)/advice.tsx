@@ -735,6 +735,46 @@ export default function AdviceScreen() {
             </>
           ) : null}
 
+          {/* Situation de handicap — question facultative, formulée en termes de
+              DROITS. Trois cases indépendantes : un adulte concerné, un parent
+              et un aidant n'ont pas du tout les mêmes démarches. */}
+          <Text style={styles.qLabel}>Handicap — des droits à ne pas laisser passer</Text>
+          <Text style={styles.qHint}>
+            Facultatif. Si tu coches, le Coach ajoute les aides et démarches
+            correspondantes (allocations, compensation, fiscalité, école). Ces
+            informations restent dans ton profil et servent uniquement à
+            personnaliser tes conseils.
+          </Text>
+          <View style={{ gap: 8, marginTop: 8, marginBottom: 4 }}>
+            {(
+              [
+                ["disabilitySelf", "Je suis en situation de handicap"],
+                ["disabilityChild", "Un de mes enfants est concerné"],
+                ["caregiver", "J'aide un proche au quotidien"],
+              ] as const
+            ).map(([field, label]) => {
+              const active = profile[field] === true;
+              return (
+                <TouchableOpacity
+                  key={field}
+                  onPress={() => persist({ ...profile, [field]: active ? undefined : true })}
+                  style={[styles.optionRow, active && styles.optionRowActive]}
+                  activeOpacity={0.85}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: active }}
+                  accessibilityLabel={label}
+                >
+                  <View style={[styles.radio, active && styles.radioActive]}>
+                    {active ? <Feather name="check" size={12} color="#000" /> : null}
+                  </View>
+                  <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {hasMinimumProfileFor(profile, mode) ? (
             <TouchableOpacity
               onPress={() => setEditing(false)}

@@ -144,6 +144,13 @@ export function deriveMatchingProfile(
 
 // Animaux de compagnie
 const hasAnyPet: AdvicePredicate = (p) => p.hasPets === true && !!p.pets?.length;
+
+// Handicap : soi, un enfant du foyer, ou un proche aidé.
+const disabledSelf: AdvicePredicate = (p) => p.disabilitySelf === true;
+const disabledChild: AdvicePredicate = (p) => p.disabilityChild === true;
+const isCaregiver: AdvicePredicate = (p) => p.caregiver === true;
+const disabilityAny: AdvicePredicate = (p) =>
+  p.disabilitySelf === true || p.disabilityChild === true || p.caregiver === true;
 const hasPetSpecies =
   (...species: PetSpecies[]): AdvicePredicate =>
   (p) =>
@@ -4507,6 +4514,576 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     figures: [{ label: "Après 12 mois", value: "0 € (ou 20 % si mobile subventionné)" }],
     sources: ["https://www.arcep.fr/mes-demarches-et-services/consommateurs/fiches-pratiques/quelles-sont-les-conditions-et-consequences-de-la-resiliation-du-contrat-par-le-consommateur.html"],
     lastVerified: "2026-08-06",
+  },
+
+  // ==========================================================================
+  // HANDICAP & AUTONOMIE — FRANCE (recherche vérifiée 2026-08-08 :
+  // service-public, CNSA, monparcourshandicap, CAF, Agefiph, impots.gouv,
+  // Légifrance). Ce sont des DROITS : le ton reste factuel et digne, jamais
+  // misérabiliste. Le non-recours est massif (DREES) — d'où ces cartes.
+  // Montants revalorisés au 1er avril : re-vérifier chaque printemps.
+  // ==========================================================================
+  {
+    id: "hand-aah",
+    category: "disability",
+    countries: ["FR"],
+    title: "AAH : un revenu à toi, qui ne dépend plus de ton conjoint",
+    body:
+      "L'allocation aux adultes handicapés atteint 1 041,59 €/mois au maximum (avril 2026), pour un taux d'incapacité d'au moins 80 %, ou de 50 à 79 % avec une restriction d'accès à l'emploi reconnue. Depuis octobre 2023, les revenus du conjoint ne sont PLUS comptés : se mettre en couple ne supprime plus l'allocation. Et travailler reste gagnant — 80 % de tes premiers revenus d'activité sont neutralisés dans le calcul.",
+    action: {
+      label: "Vérifier tes droits à l'AAH",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12242",
+    },
+    appliesWhen: disabledSelf,
+    priority: 96,
+    figures: [
+      { label: "Maximum", value: "1 041,59 €/mois" },
+      { label: "Conjoint", value: "revenus non comptés" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F12242", "https://www.service-public.gouv.fr/particuliers/actualites/A16521"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-pch",
+    category: "disability",
+    countries: ["FR"],
+    title: "PCH : ce n'est PAS une aide sous condition de ressources",
+    body:
+      "Beaucoup y renoncent en croyant « gagner trop ». Faux : tes revenus ne changent que le reste à charge (0 % en dessous d'environ 31 000 €/an, 20 % au-dessus), jamais le droit lui-même. Et les salaires sont même exclus de ce calcul. La PCH couvre l'aide humaine, les aides techniques (13 200 € par 10 ans), l'aménagement du logement et du véhicule (10 000 € chacun), les surcoûts de transport et le chien guide ou d'assistance.",
+    action: {
+      label: "Voir les 5 éléments de la PCH",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F14202",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 94,
+    figures: [
+      { label: "Aides techniques", value: "13 200 € / 10 ans" },
+      { label: "Logement", value: "10 000 € / 10 ans" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F14202"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-mdph-dossier",
+    category: "disability",
+    countries: ["FR"],
+    title: "MDPH : les 3 règles qui évitent une rupture de droits",
+    body:
+      "Un seul formulaire (Cerfa 15692*01) ouvre TOUS les droits — coche chaque rubrique qui te concerne, une case oubliée n'est jamais instruite. Le certificat médical doit avoir moins de 12 mois. Et surtout : dépose ton renouvellement 6 mois avant l'échéance, car un dossier tardif crée une coupure de versement qui n'est pas toujours rattrapée. Sans réponse au bout de 4 mois, la demande est considérée comme refusée.",
+    action: {
+      label: "Déposer ou renouveler un dossier MDPH",
+      link: "https://www.monparcourshandicap.gouv.fr/aides/le-depot-du-dossier-et-le-traitement-de-la-demande-par-la-maison-departementale-des-personnes",
+    },
+    appliesWhen: disabilityAny,
+    priority: 92,
+    sources: ["https://www.monparcourshandicap.gouv.fr/aides/le-depot-du-dossier-et-le-traitement-de-la-demande-par-la-maison-departementale-des-personnes"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-recours",
+    category: "disability",
+    countries: ["FR"],
+    title: "Un refus de la MDPH n'est jamais définitif",
+    body:
+      "Tu as 2 mois pour déposer un recours (le RAPO) auprès de la MDPH elle-même — c'est une étape obligatoire avant le tribunal, et elle aboutit souvent. En recommandé avec accusé de réception, avec la copie de la décision contestée et, si possible, des éléments médicaux nouveaux. Si la MDPH ne répond pas sous 2 mois, la voie du tribunal s'ouvre.",
+    action: {
+      label: "Comprendre le recours (guide en Facile à lire)",
+      link: "https://www.cnsa.fr/sites/default/files/2024-06/Fiche-accessible-en-Facile_A_lire_Voies-Recours_MDPH-Demande-Refusee.pdf",
+    },
+    appliesWhen: disabilityAny,
+    priority: 84,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2474"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-cmi",
+    category: "disability",
+    countries: ["FR"],
+    title: "Carte Mobilité Inclusion : le stationnement gratuit, partout",
+    body:
+      "La mention « stationnement » donne le stationnement gratuit et sans limite de durée sur toute la voirie publique — quel que soit ton taux d'incapacité, et elle suit LA PERSONNE, pas la voiture (utilisable en tant que passager). En ville, c'est souvent l'économie mensuelle la plus concrète. La mention « invalidité » (taux ≥ 80 %) ajoute une demi-part fiscale et des réductions de transport.",
+    action: {
+      label: "Demander la CMI",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34049",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 90,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F34049"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-fiscalite",
+    category: "disability",
+    countries: ["FR"],
+    title: "Impôts : la demi-part compte dès la DEMANDE de carte",
+    body:
+      "La CMI mention invalidité donne une demi-part supplémentaire — et le droit s'ouvre dès lors que la carte a été DEMANDÉE avant le 1er janvier de l'année d'imposition, même si elle n'est pas encore arrivée. Autre levier méconnu : la TVA tombe à 5,5 % au lieu de 20 % sur les appareillages et équipements adaptés. Vérifie tes factures — l'oubli du taux réduit par le vendeur est fréquent, et l'écart est de 14,5 points.",
+    action: {
+      label: "Déclarer une invalidité aux impôts",
+      link: "https://www.impots.gouv.fr/particulier/questions/jai-une-carte-dinvalidite-comment-la-declarer",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 86,
+    figures: [{ label: "TVA équipements adaptés", value: "5,5 %" }],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F387", "https://bofip.impots.gouv.fr/bofip/1724-PGP"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-logement",
+    category: "disability",
+    countries: ["FR"],
+    title: "Adapter le logement : jusqu'à 70 % financés",
+    body:
+      "MaPrimeAdapt' prend en charge 50 à 70 % des travaux d'adaptation (douche de plain-pied, élargissement, monte-escalier…) dans la limite de 22 000 € HT, sous conditions de ressources — accessible dès un taux d'incapacité de 50 %, ou si tu perçois PCH, AEEH ou AAH. Locataire du privé : c'est possible avec l'accord du bailleur. Action Logement ajoute jusqu'à 5 000 € pour la salle de bains, cumulables.",
+    action: {
+      label: "Déposer un dossier MaPrimeAdapt'",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F37501",
+    },
+    appliesWhen: and(or(disabledSelf, disabledChild), housingIn("owner", "accessor", "renter")),
+    priority: 88,
+    figures: [{ label: "Prise en charge", value: "50 à 70 % · max 22 000 € HT" }],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F37501"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-emploi",
+    category: "disability",
+    countries: ["FR"],
+    title: "RQTH : confidentielle, et elle finance ton poste de travail",
+    body:
+      "La reconnaissance de la qualité de travailleur handicapé est CONFIDENTIELLE — tu n'es jamais obligé d'en parler à ton employeur ou à tes collègues. Elle ouvre les aides de l'Agefiph (privé) ou du FIPHFP (public) : adaptation du poste, matériel, formation aménagée, interprète LSF, et jusqu'à 6 300 € pour créer ton entreprise. Possible dès 16 ans, parfois attribuée définitivement.",
+    action: {
+      label: "Voir les aides Agefiph",
+      link: "https://www.agefiph.fr/aides-financieres",
+    },
+    appliesWhen: and(disabledSelf, occupationIs("employee", "self_employed", "civil_servant", "unemployed", "student")),
+    priority: 88,
+    figures: [{ label: "Création d'entreprise", value: "6 300 €" }],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F1650", "https://www.agefiph.fr/aides-financieres"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-mva",
+    category: "disability",
+    countries: ["FR"],
+    title: "Majoration pour la vie autonome : versée sans rien demander",
+    body:
+      "104,77 €/mois s'ajoutent automatiquement à l'AAH si tu as un taux d'au moins 80 %, que tu vis dans un logement indépendant avec une aide au logement, et que tu n'as pas de revenu d'activité. Aucune démarche — mais vérifie qu'elle figure bien sur ton relevé CAF. Elle se suspend après 60 jours d'hospitalisation et reprend au retour à domicile.",
+    action: {
+      label: "Vérifier la MVA sur ton relevé CAF",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12903",
+    },
+    appliesWhen: disabledSelf,
+    priority: 82,
+    figures: [{ label: "Montant", value: "104,77 €/mois" }],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F12903"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-aeeh",
+    category: "disability",
+    countries: ["FR"],
+    title: "AEEH : sans condition de ressources, quel que soit ton salaire",
+    body:
+      "L'allocation d'éducation de l'enfant handicapé (153,01 €/mois de base, avril 2026) est versée pour tout enfant de moins de 20 ans avec un taux d'au moins 80 %, ou de 50 à 79 % s'il fréquente un établissement adapté ou reçoit des soins. Aucune condition de revenus. Six niveaux de compléments s'y ajoutent — jusqu'à 1 298,44 €/mois — selon le temps de travail que tu as dû réduire et les dépenses engagées.",
+    action: {
+      label: "Demander l'AEEH",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F14809",
+    },
+    appliesWhen: disabledChild,
+    priority: 96,
+    figures: [
+      { label: "Base", value: "153,01 €/mois" },
+      { label: "Complément max", value: "1 298,44 €/mois" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F14809"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-aeeh-vs-pch",
+    category: "disability",
+    countries: ["FR"],
+    title: "Complément d'AEEH ou PCH ? Le choix se rejoue à chaque renouvellement",
+    body:
+      "Les deux ne se cumulent pas — sauf l'élément « aménagement du logement et du véhicule » de la PCH, qui reste cumulable. Repère de la CAF : le complément d'AEEH est souvent plus favorable pour un jeune enfant quand un parent réduit son temps de travail ; la PCH devient plus intéressante à l'adolescence, quand il faut rémunérer un intervenant extérieur. La CDAPH doit te présenter le comparatif chiffré — exige-le, et rejoue le choix à chaque renouvellement.",
+    action: {
+      label: "Comparer AEEH et PCH (CAF)",
+      link: "https://www.caf.fr/allocataires/vies-de-famille/articles/handicap-complement-d-aeeh-ou-pch-que-choisir",
+    },
+    appliesWhen: disabledChild,
+    priority: 92,
+    sources: ["https://www.caf.fr/allocataires/vies-de-famille/articles/handicap-complement-d-aeeh-ou-pch-que-choisir"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-scolarite",
+    category: "disability",
+    countries: ["FR"],
+    title: "École : l'AESH, le matériel et le transport sont gratuits",
+    body:
+      "L'accompagnant (AESH) est financé par l'Éducation nationale. Le matériel adapté — ordinateur, clavier braille, logiciels — est prêté par l'académie et utilisable AUSSI à la maison. Et si le handicap empêche les transports en commun, le transport scolaire adapté est pris en charge par le département. Attention : ces trois droits se demandent dans la rubrique « Scolarité » du dossier MDPH. Non cochée, la demande n'est pas instruite.",
+    action: {
+      label: "Voir les accompagnements scolaires",
+      link: "https://www.monparcourshandicap.gouv.fr/scolarite/quels-sont-les-accompagnements-notifies-par-la-mdph",
+    },
+    appliesWhen: disabledChild,
+    priority: 90,
+    sources: ["https://www.monparcourshandicap.gouv.fr/scolarite/quels-sont-les-accompagnements-notifies-par-la-mdph"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ajpp",
+    category: "disability",
+    countries: ["FR"],
+    title: "Arrêter de travailler pour son enfant : 66,64 €/jour",
+    body:
+      "L'AJPP compense les journées où tu dois être présent auprès de ton enfant gravement malade ou handicapé : 66,64 € par jour, jusqu'à 22 jours par mois, dans la limite de 310 jours sur 3 ans. Un complément mensuel de 129,36 € couvre les frais engagés, sous plafond de ressources. Le formulaire (Cerfa 12666) se remplit AVEC le médecin — c'est son certificat détaillé qui déclenche le droit.",
+    action: {
+      label: "Demander l'AJPP",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F15132",
+    },
+    appliesWhen: disabledChild,
+    priority: 86,
+    figures: [{ label: "Par jour", value: "66,64 €" }],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F15132"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-aidant",
+    category: "disability",
+    countries: ["FR"],
+    title: "Aidant : tes trimestres de retraite continuent de compter",
+    body:
+      "Le congé de proche aidant (3 mois renouvelables, 1 an maximum sur la carrière) n'est pas rémunéré par l'employeur, mais l'AJPA verse 66,64 €/jour jusqu'à 22 jours par mois — et tu restes affilié à l'assurance vieillesse des aidants : tes trimestres continuent de courir. Le levier le plus important reste méconnu : la personne aidée peut te dédommager jusqu'à 1 523,80 €/mois via l'aide humaine de SA PCH.",
+    action: {
+      label: "Congé de proche aidant et AJPA",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F16920",
+    },
+    appliesWhen: or(isCaregiver, disabledChild),
+    priority: 84,
+    figures: [
+      { label: "AJPA", value: "66,64 €/jour" },
+      { label: "Dédommagement PCH", value: "jusqu'à 1 523,80 €/mois" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F16920", "https://www.cnsa.fr/budget-et-financement/autres-allocations-et-prestations/allocation-journaliere-du-proche-aidant"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-pch-parentalite",
+    category: "disability",
+    countries: ["FR"],
+    title: "Parent en situation de handicap : la PCH parentalité existe",
+    body:
+      "Créée en 2021 et très peu réclamée : si tu es éligible à la PCH et que tu as un enfant de moins de 7 ans, un forfait d'aide humaine s'ajoute — de la naissance aux 3 ans, puis de 3 à 7 ans, avec un montant majoré pour les parents isolés. S'y ajoutent des forfaits d'aides techniques à la naissance, aux 3 ans et aux 6 ans. Si tu perçois déjà la PCH, la demande est simplifiée.",
+    action: {
+      label: "Voir la PCH parentalité",
+      link: "https://www.monparcourshandicap.gouv.fr/aides/la-prestation-de-compensation-du-handicap-pch-parentalite",
+    },
+    appliesWhen: and(disabledSelf, kids("0-6")),
+    priority: 88,
+    sources: ["https://www.monparcourshandicap.gouv.fr/aides/la-prestation-de-compensation-du-handicap-pch-parentalite"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-retraite",
+    category: "disability",
+    countries: ["FR"],
+    title: "AAH et retraite : ce qui change à l'âge légal",
+    body:
+      "Avec un taux d'au moins 80 %, l'AAH continue APRÈS l'âge légal, en complément de ta retraite, tant que celle-ci reste sous 1 041,59 € — et tu n'as pas l'obligation de demander l'ASPA (celle-ci est récupérable sur succession, pas l'AAH). La retraite pour inaptitude est liquidée automatiquement au taux plein. Avec un taux de 50 à 79 %, en revanche, l'AAH s'arrête : prépare la bascule un an avant.",
+    action: {
+      label: "Préparer le passage à la retraite",
+      link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12242",
+    },
+    appliesWhen: and(disabledSelf, ageIn("51-65", "66+")),
+    priority: 86,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F12242"],
+    lastVerified: "2026-08-08",
+  },
+
+  // ==========================================================================
+  // HANDICAP — HORS FRANCE (recherche vérifiée 2026-08-08). Règle appliquée :
+  // ces allocations sont TOUTES différentielles (calculées sur les ressources)
+  // → on n'affiche jamais « tu toucheras X », on renvoie au simulateur officiel.
+  // Aucun vocabulaire français transposé : ni AAH, ni MDPH, ni PCH ailleurs.
+  // ==========================================================================
+  {
+    id: "hand-be-arr-ai",
+    category: "disability",
+    countries: ["BE"],
+    title: "Belgique : deux allocations, une seule demande — ne rate pas la 2e",
+    body:
+      "L'ARR (perte de capacité de gain) et l'AI (perte d'autonomie, évaluée sur 6 domaines) sont CUMULABLES et se demandent en une fois sur My Handicap. Beaucoup ne réclament que l'une des deux. À savoir : depuis 2021, les revenus du partenaire ne comptent plus pour l'AI — mais ils comptent toujours pour l'ARR. Les montants sont différentiels : passe par le simulateur officiel.",
+    action: {
+      label: "Faire la demande (My Handicap)",
+      link: "https://handicap.belgium.be/fr/allocations/allocation-integration",
+    },
+    appliesWhen: disabledSelf,
+    priority: 96,
+    sources: ["https://handicap.belgium.be/fr/allocations/allocation-de-remplacement-de-revenus", "https://handicap.belgium.be/fr/allocations/allocation-integration"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-be-bim",
+    category: "disability",
+    countries: ["BE"],
+    title: "Belgique : le statut BIM, le gain le plus rapide et le moins connu",
+    body:
+      "L'intervention majorée réduit fortement tes tickets modérateurs, abaisse ton plafond de Maximum à facturer, et INTERDIT aux médecins de te facturer des suppléments d'honoraires en ambulatoire. Pour certains profils — dont les parents d'un enfant reconnu handicapé — le droit est automatique, sans enquête sur les revenus. Vérifie auprès de ta mutualité que tu l'as bien.",
+    action: {
+      label: "Vérifier le statut BIM (INAMI)",
+      link: "https://www.inami.fgov.be/fr/themes/soins-de-sante-cout-et-remboursement/facilites-financieres/intervention-majoree-plafonds-des-revenus",
+    },
+    appliesWhen: disabilityAny,
+    priority: 92,
+    sources: ["https://www.inami.fgov.be/fr/themes/soins-de-sante-cout-et-remboursement/facilites-financieres/intervention-majoree-plafonds-des-revenus"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-be-enfant",
+    category: "disability",
+    countries: ["BE"],
+    title: "Belgique : pour ton enfant, tout se joue au niveau de ta RÉGION",
+    body:
+      "Le supplément pour enfant en situation de handicap n'est pas fédéral : FAMIWAL (évaluation par l'AVIQ) en Wallonie, Famiris/Iriscare (évaluation par le CEAH) à Bruxelles. Même logique dans les deux cas — trois piliers évalués : conséquences pour l'enfant, sur ses activités quotidiennes, et sur l'entourage familial. Le supplément s'ajoute chaque mois aux allocations de base, jusqu'à 21 ans.",
+    action: {
+      label: "Voir les allocations majorées",
+      link: "https://www.handicap.brussels/fr/themes/les-aides-financieres/les-allocations/les-allocations-familiales-majorees-afm",
+    },
+    appliesWhen: disabledChild,
+    priority: 94,
+    sources: ["https://www.famiwal.be/foire-aux-questions-faq", "https://www.handicap.brussels/fr/themes/les-aides-financieres/les-allocations/les-allocations-familiales-majorees-afm"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ch-reeducation",
+    category: "disability",
+    countries: ["CH"],
+    title: "Suisse : annonce-toi TÔT — la réadaptation prime la rente",
+    body:
+      "L'AI examine toujours d'abord si ta capacité de gain peut être maintenue ou rétablie ; la rente n'est étudiée qu'ensuite. Le bon réflexe n'est donc pas d'attendre pour demander une rente, mais de faire une annonce en détection précoce le plus tôt possible, tant que l'emploi existe encore. Un budget de 20 000 fr. est mobilisable en intervention précoce, et l'accompagnement dure jusqu'à 3 ans après la dernière mesure.",
+    action: {
+      label: "Détection précoce AI",
+      link: "https://www.ahv-iv.ch/fr/M%C3%A9mentos-Formulaires/M%C3%A9mentos/Assurance-invalidit%C3%A9-AI",
+    },
+    appliesWhen: disabledSelf,
+    priority: 96,
+    sources: ["https://www.bsv.admin.ch/dam/fr/sd-web/sAgdISSXenMT/f_Betr%C3%A4ge%202026.pdf"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ch-impotence",
+    category: "disability",
+    countries: ["CH"],
+    title: "Suisse : allocation pour impotent et contribution d'assistance",
+    body:
+      "Deux dispositifs distincts, souvent confondus. L'allocation pour impotent (504 à 2 016 fr./mois à domicile selon le degré) ne dépend pas de tes revenus. La contribution d'assistance (35.30 fr./heure, 52.95 fr. pour un soin qualifié) te permet en plus d'engager toi-même un assistant — bien moins connue. Attention : en institution, l'allocation tombe au quart du montant à domicile.",
+    action: {
+      label: "Voir les mémentos AI",
+      link: "https://www.ahv-iv.ch/fr/M%C3%A9mentos-Formulaires/M%C3%A9mentos/Assurance-invalidit%C3%A9-AI",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 92,
+    figures: [
+      { label: "Impotence grave à domicile", value: "2 016 fr./mois" },
+      { label: "Assistance", value: "35.30 fr./heure" },
+    ],
+    sources: ["https://www.bsv.admin.ch/dam/fr/sd-web/sAgdISSXenMT/f_Betr%C3%A4ge%202026.pdf"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ca-ciph",
+    category: "disability",
+    countries: ["CA"],
+    title: "Canada : le CIPH ouvre TOUTES les autres portes",
+    body:
+      "Sans approbation du crédit d'impôt pour personnes handicapées (formulaire T2201, partie B remplie par un professionnel de la santé), aucun accès au REEI, aux subventions, au bon, ni à la nouvelle Prestation canadienne pour les personnes handicapées. C'est le point de passage obligé. Bonne nouvelle : la demande peut être rétroactive sur les années antérieures, et un refus se conteste.",
+    action: {
+      label: "Demander le CIPH (T2201)",
+      link: "https://www.canada.ca/fr/agence-revenu/services/impot/particuliers/segments/deductions-credits-impot-personnes-handicapees/credit-impot-personnes-handicapees.html",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 98,
+    sources: ["https://www.canada.ca/fr/agence-revenu/services/impot/particuliers/segments/deductions-credits-impot-personnes-handicapees/credit-impot-personnes-handicapees.html"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ca-reei",
+    category: "disability",
+    countries: ["CA"],
+    title: "REEI : jusqu'à 1 000 $/an SANS mettre un dollar",
+    body:
+      "Le bon canadien pour l'épargne-invalidité verse jusqu'à 1 000 $/an (20 000 $ à vie) sans aucune cotisation requise, sous condition de revenu — il suffit d'ouvrir le régime. Et si tu peux cotiser, la subvention va jusqu'à 300 % sur tes premiers dollars. Le compte à rebours compte : les droits sont reportables 10 ans et versés jusqu'à l'année de tes 49 ans. Ouvrir à 45 ans capte encore des arriérés ; à 50 ans, il est trop tard.",
+    action: {
+      label: "Ouvrir un REEI",
+      link: "https://www.canada.ca/fr/emploi-developpement-social/programmes/epargne-invalidite.html",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 96,
+    figures: [
+      { label: "Bon, sans cotiser", value: "jusqu'à 1 000 $/an" },
+      { label: "Subvention", value: "jusqu'à 300 %" },
+    ],
+    sources: ["https://www.canada.ca/fr/emploi-developpement-social/programmes/epargne-invalidite.html"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ca-pcph",
+    category: "disability",
+    countries: ["CA"],
+    title: "Canada : la nouvelle prestation exige une déclaration de revenus",
+    body:
+      "La Prestation canadienne pour les personnes handicapées (jusqu'à 204,20 $/mois pour 2026-2027) suppose trois choses : une approbation CIPH valide, un statut de résidence admissible, et surtout une DÉCLARATION DE REVENUS produite — même sans revenu à déclarer. C'est le point de blocage le plus fréquent : pas de déclaration, pas de prestation.",
+    action: {
+      label: "Voir la prestation",
+      link: "https://www.canada.ca/fr/services/prestations/handicap.html",
+    },
+    appliesWhen: disabledSelf,
+    priority: 92,
+    sources: ["https://laws.justice.gc.ca/fra/reglements/DORS-2025-35/TexteComplet.html"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-lu-rpgh",
+    category: "disability",
+    countries: ["LU"],
+    title: "Luxembourg : RPGH, assurance dépendance — dépose sans attendre",
+    body:
+      "Le revenu pour personnes gravement handicapées s'adresse aux personnes dont la capacité de travail est réduite d'au moins 30 % (avant 65 ans) et qu'aucun poste ne peut accueillir, même en milieu protégé. Il est différentiel : le FNS verse la différence. Pour l'assurance dépendance (seuil : 3,5 h d'aide par semaine), la prestation est due À PARTIR DE LA DATE DE LA DEMANDE — chaque mois d'attente est perdu.",
+    action: {
+      label: "Demander le RPGH",
+      link: "https://fns.public.lu/fr/rpgh.html",
+    },
+    appliesWhen: disabledSelf,
+    priority: 96,
+    sources: ["https://fns.public.lu/fr/rpgh.html", "https://cns.public.lu/fr/assure/droits-demarches/dossiers-thematiques/dependance.html"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-lu-enfant",
+    category: "disability",
+    countries: ["LU"],
+    title: "Luxembourg : 200 €/mois de plus pour ton enfant",
+    body:
+      "L'allocation spéciale supplémentaire ajoute 200 €/mois par enfant à l'allocation familiale, dès lors qu'une insuffisance permanente d'au moins 50 % de la capacité physique ou mentale est certifiée médicalement. Versée jusqu'à 18 ans, prolongeable jusqu'à 25 ans aux mêmes conditions que les allocations familiales.",
+    action: {
+      label: "Demander l'allocation spéciale (CAE)",
+      link: "https://cae.public.lu/fr/allocations/enfant-handicape.html",
+    },
+    appliesWhen: disabledChild,
+    priority: 94,
+    figures: [{ label: "Supplément", value: "200 €/mois" }],
+    sources: ["https://cae.public.lu/fr/allocations/enfant-handicape.html"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ma-carte",
+    category: "disability",
+    countries: ["MA"],
+    title: "Maroc : la carte de personne en situation de handicap est gratuite",
+    body:
+      "Créée par la loi-cadre 97.13 et son décret d'application, elle se demande désormais en ligne sur la plateforme du ministère de la Solidarité, gratuitement et en format numérique. Elle ouvre l'accès aux soins et prestations paramédicales, à une prise en charge élargie dans le cadre de l'AMO, au transport et à l'appui à l'insertion professionnelle. Le déploiement est progressif par région — vérifie où en est la tienne.",
+    action: {
+      label: "Demander la carte",
+      link: "https://social.gov.ma/",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 94,
+    sources: ["https://social.gov.ma/madame-la-ministre-lance-la-plateforme-electronique-pour-la-gestion-des-demandes-de-la-carte-des-personnes-en-situation-de-handicap/"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-sn-cec",
+    category: "disability",
+    countries: ["SN"],
+    title: "Sénégal : la Carte d'égalité des chances ouvre tes droits",
+    body:
+      "Prévue par la loi d'orientation sociale de 2010, elle est délivrée par le ministère de l'Action sociale sur proposition des commissions techniques départementales. Elle donne accès aux soins, à la réadaptation, aux aides techniques, à un appui financier, à l'éducation, à la formation, à l'emploi et au transport. Le déploiement s'accélère (23 037 cartes en 2024 contre 4 588 en 2023) mais reste partiel : le titre est la clé, fais la démarche.",
+    action: {
+      label: "Se renseigner sur la CEC",
+      link: "https://www.primature.sn/actions-et-realisations/sante-et-protection-sociale/cartes-degalite-des-chances",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 94,
+    sources: ["https://www.primature.sn/actions-et-realisations/sante-et-protection-sociale/cartes-degalite-des-chances"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-dz-allocation",
+    category: "disability",
+    countries: ["DZ"],
+    title: "Algérie : allocation et carte Chifa automatique",
+    body:
+      "Une allocation mensuelle existe pour les personnes de 18 ans et plus dont le taux d'incapacité est de 100 %, titulaires de la carte de personne handicapée et sans autre ressource. Point important : son attribution ouvre AUTOMATIQUEMENT droit à la couverture sociale (carte Chifa). S'y ajoutent la gratuité et les réductions tarifaires dans les transports. Le montant fait l'objet d'une revalorisation annoncée — vérifie le montant en vigueur auprès du ministère.",
+    action: {
+      label: "Voir la démarche",
+      link: "https://bawabatic.dz/?req=informations&op=detail&id=789&lang=fr",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 94,
+    sources: ["https://bawabatic.dz/?req=informations&op=detail&id=789&lang=fr"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-tn-carte",
+    category: "disability",
+    countries: ["TN"],
+    title: "Tunisie : la carte de handicap, réponse sous 45 jours",
+    body:
+      "Le dossier se dépose à l'Unité locale de promotion sociale de ton domicile (demande écrite au ministre des Affaires sociales + certificat médical sur formulaire fourni). La commission régionale doit répondre sous 45 jours. La carte donne la gratuité des soins, des médicaments et de l'hébergement dans les structures sanitaires publiques, le transport gratuit ou à tarif réduit, et la priorité d'accueil dans les administrations.",
+    action: {
+      label: "Voir la procédure",
+      link: "https://www.social.gov.tn/en/attribution-disabled-persons-card",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 94,
+    sources: ["https://www.social.gov.tn/en/attribution-disabled-persons-card"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-cm-carte",
+    category: "disability",
+    countries: ["CM"],
+    title: "Cameroun : la carte nationale d'invalidité et le quota d'emploi",
+    body:
+      "La loi de 2010 prévoit une carte délivrée par le MINAS (en cours d'informatisation avec la DGSN), qui ouvre des mesures préférentielles dans les transports, une réduction des coûts d'examens de laboratoire, un quota de 10 % de postes réservés dans la limite des postes disponibles, et l'assistance judiciaire pour les personnes sans ressources. Aucune allocation monétaire régulière n'est prévue par les textes : le levier, c'est le titre et l'emploi.",
+    action: {
+      label: "Se renseigner auprès du MINAS",
+      link: "http://www.minas.cm/fr/component/k2/item/4-personnes-handicapees.html",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 92,
+    sources: ["http://www.minas.cm/fr/component/k2/item/4-personnes-handicapees.html"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-ci-cmu",
+    category: "disability",
+    countries: ["CI"],
+    title: "Côte d'Ivoire : passe par la CMU et la Direction dédiée",
+    body:
+      "La loi de 1998 garantit l'égalité de droits en éducation, emploi, formation et loisirs, mais aucune procédure de carte d'invalidité n'est documentée publiquement — inutile de chercher un formulaire en ligne. Les deux leviers concrets : la CMU (1 000 FCFA/mois par personne, avec un régime d'assistance médicale non contributif pour les personnes démunies), et la Direction de la promotion des personnes handicapées pour l'emploi et les recrutements réservés.",
+    action: {
+      label: "S'affilier à la CMU",
+      link: "https://dg-cmu.ci/faq/",
+    },
+    appliesWhen: or(disabledSelf, disabledChild),
+    priority: 90,
+    sources: ["https://dg-cmu.ci/faq/"],
+    lastVerified: "2026-08-08",
+  },
+  {
+    id: "hand-universel-nonrecours",
+    category: "disability",
+    countries: "all",
+    title: "Le premier obstacle n'est pas le refus : c'est de ne pas demander",
+    body:
+      "Partout, une part importante des droits liés au handicap n'est jamais réclamée — non par refus, mais faute d'information. Trois réflexes qui valent dans tous les pays : demande TOUT ce qui te concerne en une fois (une case non cochée n'est jamais instruite), garde une copie datée de chaque dépôt, et redemande à chaque changement de situation. Un refus se conteste presque partout, dans un délai court : note-le dès réception.",
+    action: { label: "Lister tes démarches en cours" },
+    appliesWhen: disabilityAny,
+    priority: 88,
+    sources: ["https://drees.solidarites-sante.gouv.fr/sites/default/files/2023-04/ER1263.pdf"],
+    lastVerified: "2026-08-08",
   },
 ];
 
