@@ -27,7 +27,7 @@ const SURFACE = "#1A2238";
 const SURFACE_2 = "#0F1B33";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
-const TEXT_3 = "#64748B";
+const TEXT_3 = "#8193AC";
 const MINT = "#10B981";
 const GOLD = "#4ADE80";
 const DANGER = "#DC2626";
@@ -312,6 +312,7 @@ export default function GoalEditor({
             <View style={styles.actions}>
               {onDelete ? (
                 <TouchableOpacity
+              hitSlop={10}
               accessibilityRole="button"
               accessibilityLabel="Supprimer"
                   onPress={confirmDelete}

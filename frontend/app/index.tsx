@@ -1933,6 +1933,7 @@ export default function Index() {
           <View style={styles.convSwapWrap}>
             <View style={styles.convDivider} />
             <TouchableOpacity
+              hitSlop={10}
               onPress={swapConv}
               style={styles.convSwapBtn}
               testID="conv-swap"

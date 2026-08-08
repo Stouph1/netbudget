@@ -44,7 +44,7 @@ const SURFACE = "#1A2238";
 const SURFACE_2 = "#0F1B33";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
-const TEXT_3 = "#64748B";
+const TEXT_3 = "#8193AC";
 const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 

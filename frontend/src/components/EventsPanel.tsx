@@ -39,7 +39,7 @@ const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
-const TEXT_3 = "#64748B";
+const TEXT_3 = "#8193AC";
 const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
@@ -319,6 +319,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                       returnKeyType="done"
                     />
                     <TouchableOpacity
+              hitSlop={10}
               accessibilityRole="button"
               accessibilityLabel="Ajouter"
                       style={styles.addDestBtn}
