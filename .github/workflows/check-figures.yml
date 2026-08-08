@@ -1,0 +1,25 @@
+# Vérifie chaque semaine que les montants officiels cités dans les conseils
+# correspondent toujours aux paramètres publiés par OpenFisca France.
+# Le job ÉCHOUE en cas d'écart → notification GitHub, puis relecture humaine.
+# Aucune mise à jour automatique : un chiffre faux est plus grave qu'un chiffre
+# légèrement daté.
+name: Montants officiels
+
+on:
+  schedule:
+    # Tous les lundis à 8h UTC. Les revalorisations françaises tombent surtout
+    # au 1er janvier et au 1er avril, mais un décret peut paraître à tout moment.
+    - cron: "0 8 * * 1"
+  workflow_dispatch: # lancement manuel depuis l'onglet Actions
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Comparer les montants à OpenFisca France
+        working-directory: frontend
+        run: node scripts/check-figures.mjs
