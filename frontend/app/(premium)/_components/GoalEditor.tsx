@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLang } from "../../../src/contexts/LangContext";
+import { confirmDialog } from "../../../src/utils/notify";
 import type { SavingsGoal } from "../../../src/types/premium";
 
 const MIDNIGHT = "#0F172A";
@@ -157,10 +158,14 @@ export default function GoalEditor({
 
   function confirmDelete() {
     if (!onDelete) return;
-    Alert.alert(t("goals.delete.title"), t("goals.delete.msg"), [
-      { text: t("btn.cancel"), style: "cancel" },
-      { text: t("btn.delete"), style: "destructive", onPress: onDelete },
-    ]);
+    // confirmDialog : Alert.alert à boutons est muet sur le web.
+    confirmDialog(
+      t("goals.delete.title"),
+      t("goals.delete.msg"),
+      t("btn.delete"),
+      onDelete,
+      { cancelLabel: t("btn.cancel"), destructive: true },
+    );
   }
 
   return (

@@ -39,6 +39,7 @@ import {
   resolveAction,
   resolveBody,
   resolveFigures,
+  resolveTitle,
 } from "../../src/types/advice";
 import type {
   AdviceCard,
@@ -975,7 +976,7 @@ export default function AdviceScreen() {
                     color={GOLD}
                     style={{ marginRight: 8 }}
                   />
-                  <Text style={styles.groupLabel}>{group.label}</Text>
+                  <Text style={styles.groupLabel}>{t(group.labelKey)}</Text>
                   <View style={styles.groupCount}>
                     <Text style={styles.groupCountText}>{cards.length}</Text>
                   </View>
@@ -1205,15 +1206,17 @@ function AdviceCardView({
   card: AdviceCard;
   profile: UserProfile;
 }) {
-  const { tp } = useLang();
+  const { t, tp } = useLang();
   const [expanded, setExpanded] = useState(false);
-  const body = resolveBody(card, profile);
-  const action = resolveAction(card, profile);
-  const figures = resolveFigures(card, profile);
+  // Le catalogue ne porte que des clés i18n (`adv.…`) : on traduit au rendu.
+  const i18n = useMemo(() => ({ t, tp }), [t, tp]);
+  const body = resolveBody(card, profile, i18n);
+  const action = resolveAction(card, profile, i18n);
+  const figures = resolveFigures(card, profile, i18n);
 
   return (
     <View style={styles.adviceCard}>
-      <Text style={styles.adviceTitle}>{card.title}</Text>
+      <Text style={styles.adviceTitle}>{resolveTitle(card, i18n)}</Text>
       <Text style={styles.adviceBody}>{body}</Text>
 
       {figures.length > 0 ? (

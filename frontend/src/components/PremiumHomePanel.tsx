@@ -31,7 +31,7 @@ import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
 import { recordConsent } from "../lib/profile";
-import { notify } from "../utils/notify";
+import { confirmDialog, notify } from "../utils/notify";
 import { openExternal } from "../utils/openExternal";
 import { pickAndUploadAvatar } from "../lib/photos";
 import {
@@ -365,15 +365,17 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
         </View>
         <TouchableOpacity
           onPress={() =>
-            Alert.alert(t("home.signout.title"), t("home.signout.msg"), [
-              { text: t("btn.cancel"), style: "cancel" },
-              {
-                text: t("home.signout.title"),
-                style: "destructive",
-                onPress: () => signOut(),
-              },
-            ])
+            // confirmDialog : Alert.alert à boutons est muet sur le web.
+            confirmDialog(
+              t("home.signout.title"),
+              t("home.signout.msg"),
+              t("home.signout.title"),
+              () => void signOut(),
+              { cancelLabel: t("btn.cancel"), destructive: true },
+            )
           }
+          accessibilityRole="button"
+          accessibilityLabel={t("home.signout.title")}
           hitSlop={10}
         >
           <Feather name="log-out" size={18} color={TEXT_3} />

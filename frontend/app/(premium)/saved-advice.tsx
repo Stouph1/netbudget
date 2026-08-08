@@ -1,6 +1,11 @@
 // Dépôt de conseils — les cartes gardées (swipe droite à l'anniversaire).
 import { openExternal } from "../../src/utils/openExternal";
 // Accessible depuis le Profil. Suppression à l'unité.
+//
+// i18n : les conseils gardés sont PERSISTÉS. On y stocke la CLÉ i18n quand la
+// source en fournit une (catalogue `adv.…`), et `resolveAdviceText()` traduit
+// au rendu — les conseils enregistrés AVANT la migration contiennent du texte
+// français en dur et s'affichent tels quels.
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -23,6 +28,7 @@ import {
   removeSavedAdvice,
   type SavedAdviceItem,
 } from "../../src/lib/premiumStore";
+import { resolveAdviceText } from "../../src/types/advice";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -134,7 +140,9 @@ export default function SavedAdvice() {
                 >
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                     {it.emoji ? <Text style={{ fontSize: 20 }}>{it.emoji}</Text> : null}
-                    <Text style={styles.cardTitle}>{it.title}</Text>
+                    <Text style={styles.cardTitle}>
+                      {resolveAdviceText(it.title, t)}
+                    </Text>
                     <TouchableOpacity
                       onPress={() => remove(it.id)}
                       hitSlop={10}
@@ -143,7 +151,9 @@ export default function SavedAdvice() {
                       <Feather name="trash-2" size={16} color={TEXT_3} />
                     </TouchableOpacity>
                   </View>
-                  <Text style={styles.cardBody}>{it.body}</Text>
+                  <Text style={styles.cardBody}>
+                    {resolveAdviceText(it.body, t)}
+                  </Text>
                   {it.sources?.length ? (
                     <View style={{ marginTop: 8, gap: 4 }}>
                       {it.sources.map((src, i) => (

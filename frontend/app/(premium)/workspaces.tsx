@@ -10,7 +10,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
-import { notify } from "../../src/utils/notify";
+import { confirmDialog, notify } from "../../src/utils/notify";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -703,54 +703,48 @@ function WorkspaceDetailModal({
     }
   }
 
+  // confirmDialog et NON Alert.alert : sur le web, un Alert à boutons est un
+  // no-op silencieux — le clic ne déclenchait strictement rien.
   function confirmDelete() {
-    Alert.alert(
+    confirmDialog(
       t("ws.delete.title"),
       tp("ws.delete.msg", { name: workspace.name }),
-      [
-        { text: t("btn.cancel"), style: "cancel" },
-        {
-          text: t("btn.delete"),
-          style: "destructive",
-          onPress: async () => {
-            const r = await deleteWorkspace(workspace.id);
-            if (!r.ok) {
-              Alert.alert(
-                t("common.error"),
-                r.error === "not_owner"
-                  ? t("ws.err.deleteNotOwner")
-                  : (r.error ?? t("ws.err.deleteFailed")),
-              );
-              return;
-            }
-            onDeleted();
-          },
-        },
-      ],
+      t("btn.delete"),
+      async () => {
+        const r = await deleteWorkspace(workspace.id);
+        if (!r.ok) {
+          notify(
+            t("common.error"),
+            r.error === "not_owner"
+              ? t("ws.err.deleteNotOwner")
+              : (r.error ?? t("ws.err.deleteFailed")),
+          );
+          return;
+        }
+        onDeleted();
+      },
+      { cancelLabel: t("btn.cancel"), destructive: true },
     );
   }
 
+
   function confirmLeave() {
-    Alert.alert(
+    confirmDialog(
       t("ws.leave.title"),
       t("ws.leave.msg"),
-      [
-        { text: t("btn.cancel"), style: "cancel" },
-        {
-          text: t("ws.leave.confirm"),
-          style: "destructive",
-          onPress: async () => {
-            const r = await leaveWorkspace(workspace.id);
-            if (!r.ok) {
-              Alert.alert(t("common.error"), r.error ?? t("ws.err.leaveFailed"));
-              return;
-            }
-            onLeft();
-          },
-        },
-      ],
+      t("ws.leave.confirm"),
+      async () => {
+        const r = await leaveWorkspace(workspace.id);
+        if (!r.ok) {
+          notify(t("common.error"), r.error ?? t("ws.err.leaveFailed"));
+          return;
+        }
+        onLeft();
+      },
+      { cancelLabel: t("btn.cancel"), destructive: true },
     );
   }
+
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>

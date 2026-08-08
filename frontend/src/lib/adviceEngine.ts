@@ -434,18 +434,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "priority-emergency-fund",
     category: "emergency",
-    title: "Priorité 1 : constituer 1 mois de dépenses",
-    body:
-      "Si ton épargne de précaution < 1 mois de dépenses, mets en pause tout le reste (PEA, PER, projets). Concentre-toi sur constituer un matelas sur Livret A. C'est le socle qui te protège des imprévus.",
+    titleKey: "adv.priority-emergency-fund.title",
+    bodyKey: "adv.priority-emergency-fund.body",
+    actionLabelKey: "adv.priority-emergency-fund.action",
     action: {
-      label: "Alimenter le Livret A",
       link: "https://www.economie.gouv.fr/particuliers/livret-a",
     },
     appliesWhen: savingsCapacityLow,
     priority: 100,
     figures: [
-      { label: "Objectif", value: "1 mois min." },
-      { label: "Cible finale", value: "3-6 mois" },
+      { label: "adv.priority-emergency-fund.fig.0.label", value: "adv.priority-emergency-fund.fig.0.value" },
+      { label: "adv.priority-emergency-fund.fig.1.label", value: "adv.priority-emergency-fund.fig.1.value" },
     ],
     sources: [
       "https://www.economie.gouv.fr/particuliers/livret-a",
@@ -456,25 +455,34 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "budget-split-personalized",
     category: "emergency",
     countries: "all",
-    title: "Ta répartition budgétaire idéale",
-    body: (p) => {
+    titleKey: "adv.budget-split-personalized.title",
+    // Corps DYNAMIQUE : le contexte dépend des ratios calculés. On compose
+    // uniquement à partir de clés i18n (aucun texte en dur ici).
+    body: (p, { t, tp }) => {
       const s = computeBudgetSplit(p);
       const parts: string[] = [];
-      if (s.besoins >= 60) parts.push("logement + charges pèsent lourd");
-      if (s.epargne >= 25) parts.push("marge d'épargne significative");
-      if (s.epargne <= 15) parts.push("épargne à protéger malgré tout");
-      const context = parts.length ? ` (${parts.join(", ")})` : "";
-      return `Adaptée à ton profil${context}. Les règles toutes faites ne conviennent pas à tout le monde — voici les ratios calculés pour TA situation. Ajuste sur 1-3 mois puis vérifie.`;
+      if (s.besoins >= 60) parts.push(t("adv.budget-split-personalized.part.needs"));
+      if (s.epargne >= 25) parts.push(t("adv.budget-split-personalized.part.margin"));
+      if (s.epargne <= 15) parts.push(t("adv.budget-split-personalized.part.fragile"));
+      const context = parts.length
+        ? tp("adv.budget-split-personalized.context", {
+            parts: parts.join(t("adv.listSep")),
+          })
+        : "";
+      return tp("adv.budget-split-personalized.body", { context });
     },
-    action: { label: "Comparer avec ta réalité dans le tab Budget" },
+    actionLabelKey: "adv.budget-split-personalized.action",
+    action: {},
     appliesWhen: always,
     priority: 80,
+    // Chiffres DYNAMIQUES : les valeurs sont calculées, les libellés portent
+    // des clés (résolues par `resolveFigures`).
     figures: (p) => {
       const s = computeBudgetSplit(p);
       return [
-        { label: "Besoins", value: `${s.besoins}%` },
-        { label: "Envies", value: `${s.envies}%` },
-        { label: "Épargne", value: `${s.epargne}%` },
+        { label: "adv.budget-split-personalized.fig.0.label", value: `${s.besoins}%` },
+        { label: "adv.budget-split-personalized.fig.1.label", value: `${s.envies}%` },
+        { label: "adv.budget-split-personalized.fig.2.label", value: `${s.epargne}%` },
       ];
     },
     sources: [
@@ -486,18 +494,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "emergency-fund-locataire",
     category: "emergency",
-    title: "Constitue 3 à 6 mois de dépenses",
-    body:
-      "En locataire, tu es exposé aux imprévus non couverts (déménagement, caution, perte d'emploi). Vise 3 mois si célibataire, 6 mois avec enfants ou revenu variable. À placer sur Livret A + LDDS.",
+    titleKey: "adv.emergency-fund-locataire.title",
+    bodyKey: "adv.emergency-fund-locataire.body",
+    actionLabelKey: "adv.emergency-fund-locataire.action",
     action: {
-      label: "Ouvrir/alimenter Livret A",
       link: "https://www.economie.gouv.fr/particuliers/livret-a",
     },
     appliesWhen: housingIn("renter"),
     priority: 90,
     figures: [
-      { label: "Livret A plafond", value: "22 950 €" },
-      { label: "Taux 2026", value: "1,5%" },
+      { label: "adv.emergency-fund-locataire.fig.0.label", value: "22 950 €" },
+      { label: "adv.emergency-fund-locataire.fig.1.label", value: "1,5%" },
     ],
     sources: [
       "https://www.economie.gouv.fr/actualites/epargne-reglementee-de-nouveaux-taux-pour-le-livret-et-le-lep-au-1er-fevrier-2026",
@@ -507,18 +514,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "lep-menages-modestes",
     category: "emergency",
-    title: "Vérifie ton éligibilité au LEP à 2,5%",
-    body:
-      "Le Livret d'Épargne Populaire rapporte 2,5% en 2026 (contre 1,5% Livret A) mais est réservé aux ménages modestes (test sur revenu fiscal). Un couple avec 2 LEP peut placer 20 000 € à ce taux.",
+    titleKey: "adv.lep-menages-modestes.title",
+    bodyKey: "adv.lep-menages-modestes.body",
+    actionLabelKey: "adv.lep-menages-modestes.action",
     action: {
-      label: "Vérifier l'éligibilité LEP",
       link: "https://www.economie.gouv.fr/particuliers/livret-epargne-populaire-lep",
     },
     appliesWhen: (p) => p.income === "low" || p.income === "medium",
     priority: 85,
     figures: [
-      { label: "Taux LEP 2026", value: "2,5%" },
-      { label: "Plafond", value: "10 000 €" },
+      { label: "adv.lep-menages-modestes.fig.0.label", value: "2,5%" },
+      { label: "adv.lep-menages-modestes.fig.1.label", value: "10 000 €" },
     ],
     sources: [
       "https://www.economie.gouv.fr/actualites/epargne-reglementee-de-nouveaux-taux-pour-le-livret-et-le-lep-au-1er-fevrier-2026",
@@ -528,15 +534,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "ldds-cascade-livret-a",
     category: "emergency",
-    title: "Livret A rempli ? Bascule sur LDDS",
-    body:
-      "Livret A plafonné à 22 950 € ? Le surplus va sur LDDS (12 000 € additionnels, même taux 1,5%, même défiscalisation). Ensemble : 34 950 € disponibles à tout moment.",
-    action: { label: "Ouvrir un LDDS dans ta banque" },
+    titleKey: "adv.ldds-cascade-livret-a.title",
+    bodyKey: "adv.ldds-cascade-livret-a.body",
+    actionLabelKey: "adv.ldds-cascade-livret-a.action",
+    action: {},
     appliesWhen: always,
     priority: 65,
     figures: [
-      { label: "LDDS plafond", value: "12 000 €" },
-      { label: "Cumul A+LDDS", value: "34 950 €" },
+      { label: "adv.ldds-cascade-livret-a.fig.0.label", value: "12 000 €" },
+      { label: "adv.ldds-cascade-livret-a.fig.1.label", value: "34 950 €" },
     ],
     sources: ["https://www.service-public.gouv.fr"],
     lastVerified: VERIFIED,
@@ -548,18 +554,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "pea-jeune-actif",
     category: "long_term",
-    title: "Ouvre un PEA dès maintenant, même vide",
-    body:
-      "L'ancienneté du PEA compte depuis la date d'ouverture. À 25 ans avec 100 €, tu déclenches le compteur des 5 ans avant exonération d'IR. Tu alimenteras quand tu pourras.",
+    titleKey: "adv.pea-jeune-actif.title",
+    bodyKey: "adv.pea-jeune-actif.body",
+    actionLabelKey: "adv.pea-jeune-actif.action",
     action: {
-      label: "Ouvrir un PEA (banque ou courtier)",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2385",
     },
     appliesWhen: ageIn("18-25", "26-35"),
     priority: 88,
     figures: [
-      { label: "Plafond PEA", value: "150 000 €" },
-      { label: "Après 5 ans", value: "0% IR + 18,6% PS" },
+      { label: "adv.pea-jeune-actif.fig.0.label", value: "150 000 €" },
+      { label: "adv.pea-jeune-actif.fig.1.label", value: "adv.pea-jeune-actif.fig.1.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F2385",
@@ -570,16 +575,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "av-vs-pea-nouvelle-parite",
     category: "long_term",
-    title: "En 2026, AV bat PEA sur les prélèvements sociaux",
-    body:
-      "Depuis la LFSS 2026, le PEA est à 18,6% de PS (nouvelle contribution CFA +1,4 pt). L'assurance-vie reste à 17,2%. Sur du long terme, ce delta pèse — considère l'AV comme complément.",
-    action: { label: "Comparer PEA vs Assurance-vie" },
+    titleKey: "adv.av-vs-pea-nouvelle-parite.title",
+    bodyKey: "adv.av-vs-pea-nouvelle-parite.body",
+    actionLabelKey: "adv.av-vs-pea-nouvelle-parite.action",
+    action: {},
     appliesWhen: ageIn("26-35", "36-50", "51-65"),
     priority: 75,
     figures: [
-      { label: "PS PEA", value: "18,6%" },
-      { label: "PS AV", value: "17,2%" },
-      { label: "Écart", value: "+1,4 pt" },
+      { label: "adv.av-vs-pea-nouvelle-parite.fig.0.label", value: "18,6%" },
+      { label: "adv.av-vs-pea-nouvelle-parite.fig.1.label", value: "17,2%" },
+      { label: "adv.av-vs-pea-nouvelle-parite.fig.2.label", value: "adv.av-vs-pea-nouvelle-parite.fig.2.value" },
     ],
     sources: [
       "https://www.legifrance.gouv.fr (loi n° 2026-103 du 19 février 2026)",
@@ -589,15 +594,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "couple-pea-double",
     category: "long_term",
-    title: "En couple, doublez votre capacité PEA",
-    body:
-      "Un couple marié ou pacsé peut détenir 2 PEA (1 chacun), soit 300 000 € de capacité totale. Chaque PEA garde sa propre ancienneté et fiscalité indépendante.",
-    action: { label: "Ouvrir un 2e PEA au nom du conjoint" },
+    titleKey: "adv.couple-pea-double.title",
+    bodyKey: "adv.couple-pea-double.body",
+    actionLabelKey: "adv.couple-pea-double.action",
+    action: {},
     appliesWhen: familyIn("couple_no_kids", "couple_with_kids"),
     priority: 68,
     figures: [
-      { label: "Plafond couple", value: "300 000 €" },
-      { label: "+ PEA-PME/pers", value: "75 000 €" },
+      { label: "adv.couple-pea-double.fig.0.label", value: "300 000 €" },
+      { label: "adv.couple-pea-double.fig.1.label", value: "75 000 €" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2385"],
     lastVerified: VERIFIED,
@@ -605,16 +610,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "av-abattement-fiscal",
     category: "long_term",
-    title: "AV après 8 ans : profite de l'abattement annuel",
-    body:
-      "Après 8 ans, retire jusqu'à 4 600 € de gains par an sans payer d'IR (9 200 € en couple). Utile pour compléter tes revenus sans surcoût fiscal.",
-    action: { label: "Programmer des rachats partiels annuels" },
+    titleKey: "adv.av-abattement-fiscal.title",
+    bodyKey: "adv.av-abattement-fiscal.body",
+    actionLabelKey: "adv.av-abattement-fiscal.action",
+    action: {},
     appliesWhen: ageIn("36-50", "51-65", "66+"),
     priority: 66,
     figures: [
-      { label: "Abattement seul", value: "4 600 €" },
-      { label: "Couple", value: "9 200 €" },
-      { label: "IR au-delà", value: "7,5%" },
+      { label: "adv.av-abattement-fiscal.fig.0.label", value: "4 600 €" },
+      { label: "adv.av-abattement-fiscal.fig.1.label", value: "9 200 €" },
+      { label: "adv.av-abattement-fiscal.fig.2.label", value: "7,5%" },
     ],
     sources: [
       "https://www.france-epargne.fr/outils/fiscalite/fiscalite-placement",
@@ -624,15 +629,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "per-tmi-41",
     category: "retirement",
-    title: "TMI à 41% ? Le PER devient très intéressant",
-    body:
-      "À TMI 41%, chaque euro versé sur un PER te fait économiser 41 centimes d'IR. Verse 10 000 € = 4 100 € d'économie immédiate. Combine avec un PEA pour la croissance.",
-    action: { label: "Ouvrir un PER individuel" },
+    titleKey: "adv.per-tmi-41.title",
+    bodyKey: "adv.per-tmi-41.body",
+    actionLabelKey: "adv.per-tmi-41.action",
+    action: {},
     appliesWhen: tmiAtLeast("41"),
     priority: 90,
     figures: [
-      { label: "10k€ à TMI 41%", value: "4 100 € éco." },
-      { label: "TMI break-even", value: "≥ 30%" },
+      { label: "adv.per-tmi-41.fig.0.label", value: "adv.per-tmi-41.fig.0.value" },
+      { label: "adv.per-tmi-41.fig.1.label", value: "≥ 30%" },
     ],
     sources: [
       "https://www.info-per.fr",
@@ -643,13 +648,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "per-warning-tmi-retraite",
     category: "retirement",
-    title: "PER : attention à ta TMI de retraite",
-    body:
-      "Le PER n'est fiscalement avantageux QUE si ta TMI à la retraite sera INFÉRIEURE à ta TMI active. Si tu vises TMI 30%+ à la retraite (dividendes, foncier), l'AV et le PEA sont plus intéressants.",
-    action: { label: "Estimer ta TMI de retraite" },
+    titleKey: "adv.per-warning-tmi-retraite.title",
+    bodyKey: "adv.per-warning-tmi-retraite.body",
+    actionLabelKey: "adv.per-warning-tmi-retraite.action",
+    action: {},
     appliesWhen: and(tmiAtLeast("30"), ageIn("36-50", "51-65")),
     priority: 82,
-    figures: [{ label: "Condition PER attractif", value: "TMI retraite < active" }],
+    figures: [{ label: "adv.per-warning-tmi-retraite.fig.0.label", value: "adv.per-warning-tmi-retraite.fig.0.value" }],
     sources: ["https://www.ramify.fr/epargne/per-pea-assurance-vie"],
     lastVerified: VERIFIED,
   },
@@ -875,19 +880,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "under18-livret-jeune",
     category: "emergency",
-    title: "Ton Livret Jeune : réservé aux 12-25 ans",
-    body:
-      "Rémunéré au minimum au taux du Livret A + prime (2-3% en 2026 selon banque). Plafond 1 600 €. Retrait à partir de 16 ans autorisé sans accord parental. C'est ton premier outil d'épargne.",
+    titleKey: "adv.under18-livret-jeune.title",
+    bodyKey: "adv.under18-livret-jeune.body",
+    actionLabelKey: "adv.under18-livret-jeune.action",
     action: {
-      label: "Ouvrir un Livret Jeune",
       link: "https://www.service-public.fr/particuliers/vosdroits/F2367",
     },
     appliesWhen: ageIn("under_18"),
     priority: 90,
     figures: [
-      { label: "Âge", value: "12 - 25 ans" },
-      { label: "Plafond", value: "1 600 €" },
-      { label: "Taux minimum", value: "1,5%" },
+      { label: "adv.under18-livret-jeune.fig.0.label", value: "adv.under18-livret-jeune.fig.0.value" },
+      { label: "adv.under18-livret-jeune.fig.1.label", value: "1 600 €" },
+      { label: "adv.under18-livret-jeune.fig.2.label", value: "1,5%" },
     ],
     sources: ["https://www.service-public.fr/particuliers/vosdroits/F2367"],
     lastVerified: VERIFIED,
@@ -895,10 +899,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "under18-budget-basics",
     category: "emergency",
-    title: "Ton premier budget hebdomadaire",
-    body:
-      "Commence par lister sur une semaine : ton argent de poche + ce que tu dépenses (goûters, transport, sorties). Ce simple exercice fait comprendre 80% des mécaniques d'un budget d'adulte.",
-    action: { label: "Créer un budget dans le tab Budget de l'app" },
+    titleKey: "adv.under18-budget-basics.title",
+    bodyKey: "adv.under18-budget-basics.body",
+    actionLabelKey: "adv.under18-budget-basics.action",
+    action: {},
     appliesWhen: ageIn("under_18"),
     priority: 85,
     sources: ["https://www.education.gouv.fr"],
@@ -1375,19 +1379,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "per-plafond-37680",
     category: "retirement",
-    title: "PER 2026 : plafond de 37 680 € pour les actifs",
-    body:
-      "Le plafond de déduction PER 2026 est de 10% des revenus 2025 nets de cotisations sociales, dans la limite de 37 680 € (= 8 × PASS 2025 × 10%). Chaque euro versé jusqu'à ce plafond est déductible de ton revenu imposable.",
+    titleKey: "adv.per-plafond-37680.title",
+    bodyKey: "adv.per-plafond-37680.body",
+    actionLabelKey: "adv.per-plafond-37680.action",
     action: {
-      label: "Consulter le mécanisme sur service-public.gouv.fr",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
     },
     appliesWhen: and(tmiAtLeast("30"), ageIn("26-35", "36-50", "51-65")),
     priority: 84,
     figures: [
-      { label: "Formule", value: "10% revenus N-1" },
-      { label: "Plafond max", value: "37 680 €" },
-      { label: "Base", value: "8 × PASS 2025 (47 100 €)" },
+      { label: "adv.per-plafond-37680.fig.0.label", value: "adv.per-plafond-37680.fig.0.value" },
+      { label: "adv.per-plafond-37680.fig.1.label", value: "37 680 €" },
+      { label: "adv.per-plafond-37680.fig.2.label", value: "adv.per-plafond-37680.fig.2.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
@@ -1398,19 +1401,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "per-non-actif-4710",
     category: "retirement",
-    title: "PER non-actif : plancher garanti à 4 710 €",
-    body:
-      "Sans revenu pro ou à faibles revenus (retraité, étudiant, parent au foyer, chômeur), tu retiens toujours le PLUS ÉLEVÉ entre 10% des revenus N-1 et 4 710 € en 2026. Utile pour continuer à défiscaliser malgré une transition professionnelle.",
+    titleKey: "adv.per-non-actif-4710.title",
+    bodyKey: "adv.per-non-actif-4710.body",
+    actionLabelKey: "adv.per-non-actif-4710.action",
     action: {
-      label: "Vérifier ton plafond épargne retraite",
       link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
     },
     appliesWhen: ageIn("51-65", "66+"),
     priority: 60,
     figures: [
-      { label: "Plancher 2026", value: "4 710 €" },
-      { label: "Base", value: "10% PASS 2025" },
-      { label: "Applicable si", value: "aucun/faible revenu" },
+      { label: "adv.per-non-actif-4710.fig.0.label", value: "4 710 €" },
+      { label: "adv.per-non-actif-4710.fig.1.label", value: "adv.per-non-actif-4710.fig.1.value" },
+      { label: "adv.per-non-actif-4710.fig.2.label", value: "adv.per-non-actif-4710.fig.2.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
@@ -1420,17 +1422,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "per-report-5-ans",
     category: "retirement",
-    title: "PER : le report des plafonds passe à 5 ans",
-    body:
-      "Nouveau depuis 2026 : les plafonds PER non utilisés se reportent désormais sur 5 ans (contre 3 ans avant). Si tu n'as pas maxé ton plafond 2026, tu as jusqu'en 2031 pour rattraper. Utile pour lisser tes versements sur des années à haut revenu.",
-    action: {
-      label: "Retrouver ton plafond dans ton avis d'imposition",
-    },
+    titleKey: "adv.per-report-5-ans.title",
+    bodyKey: "adv.per-report-5-ans.body",
+    actionLabelKey: "adv.per-report-5-ans.action",
+    action: {},
     appliesWhen: and(tmiAtLeast("30"), ageIn("36-50", "51-65")),
     priority: 62,
     figures: [
-      { label: "Report ancien (2024-2025)", value: "3 ans" },
-      { label: "Report nouveau (dès 2026)", value: "5 ans" },
+      { label: "adv.per-report-5-ans.fig.0.label", value: "adv.per-report-5-ans.fig.0.value" },
+      { label: "adv.per-report-5-ans.fig.1.label", value: "adv.per-report-5-ans.fig.1.value" },
     ],
     sources: [
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F34982",
@@ -1444,20 +1444,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "scpi-retraite-diversif",
     category: "retirement",
-    title: "SCPI : 4,92% de rendement moyen pour la retraite",
-    body:
-      "Les SCPI de rendement ont distribué 4,92% en moyenne en 2025 (chiffre ASPIM). Ticket d'entrée typique 200-1 000 €. Alternative au PER pour les TMI < 30% (moins d'intérêt fiscal du PER). Attention : la variation de prix des parts peut être négative (-3,45% en 2025) — c'est un placement long terme (10+ ans).",
+    titleKey: "adv.scpi-retraite-diversif.title",
+    bodyKey: "adv.scpi-retraite-diversif.body",
+    actionLabelKey: "adv.scpi-retraite-diversif.action",
     action: {
-      label: "Comparer les catégories sur aspim.fr",
       link: "https://www.aspim.fr",
     },
     appliesWhen: ageIn("36-50", "51-65"),
     priority: 55,
     figures: [
-      { label: "TD moyen 2025", value: "4,92%" },
-      { label: "Ticket d'entrée", value: "200 - 1 000 €" },
-      { label: "Horizon", value: "10+ ans" },
-      { label: "Perf globale 2025", value: "+1,46%" },
+      { label: "adv.scpi-retraite-diversif.fig.0.label", value: "4,92%" },
+      { label: "adv.scpi-retraite-diversif.fig.1.label", value: "200 - 1 000 €" },
+      { label: "adv.scpi-retraite-diversif.fig.2.label", value: "adv.scpi-retraite-diversif.fig.2.value" },
+      { label: "adv.scpi-retraite-diversif.fig.3.label", value: "+1,46%" },
     ],
     sources: [
       "https://www.aspim.fr/actualites/collecte-et-performance-des-fonds-immobiliers-grand-public-au-premier-trimestre-2026-et-principaux-indicateurs-des-scpi-en-2025/",
@@ -1467,20 +1466,19 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
   {
     id: "scpi-choix-categorie",
     category: "long_term",
-    title: "SCPI : logistique et diversifiées en tête en 2025",
-    body:
-      "Les catégories qui ont surperformé en 2025 : Logistique/industriel (+6,4% RGI), Diversifiées (+5,7%). Les catégories en repli : Bureaux (+2,4%), Santé/éducation (0,0%). Le marché SCPI se re-segmente — évite l'exposition unique aux bureaux.",
+    titleKey: "adv.scpi-choix-categorie.title",
+    bodyKey: "adv.scpi-choix-categorie.body",
+    actionLabelKey: "adv.scpi-choix-categorie.action",
     action: {
-      label: "Consulter le rapport ASPIM Q4 2025",
       link: "https://www.aspim.fr",
     },
     appliesWhen: ageIn("36-50", "51-65"),
     priority: 50,
     figures: [
-      { label: "Logistique RGI", value: "+6,4%" },
-      { label: "Diversifiées RGI", value: "+5,7%" },
-      { label: "Bureaux RGI", value: "+2,4%" },
-      { label: "Santé RGI", value: "0,0%" },
+      { label: "adv.scpi-choix-categorie.fig.0.label", value: "+6,4%" },
+      { label: "adv.scpi-choix-categorie.fig.1.label", value: "+5,7%" },
+      { label: "adv.scpi-choix-categorie.fig.2.label", value: "+2,4%" },
+      { label: "adv.scpi-choix-categorie.fig.3.label", value: "0,0%" },
     ],
     sources: [
       "https://www.aspim.fr/actualites/collecte-et-performance-des-fonds-immobiliers-grand-public-au-premier-trimestre-2026-et-principaux-indicateurs-des-scpi-en-2025/",
@@ -2179,11 +2177,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-idf-imagine-r",
     category: "emergency",
     countries: ["FR"],
-    title: "Imagine R : le transport francilien à tarif étudiant",
-    body:
-      "En Île-de-France, le forfait Imagine R (scolaires, étudiants et jeunes) donne accès à tout le réseau à tarif très réduit par rapport au Navigo classique — souvent l'un des premiers postes d'économie d'un foyer francilien avec ados ou étudiants. Les tarifs changent chaque rentrée : vérifie le prix en vigueur et les aides (certains départements en remboursent une partie).",
+    titleKey: "adv.fr-idf-imagine-r.title",
+    bodyKey: "adv.fr-idf-imagine-r.body",
+    actionLabelKey: "adv.fr-idf-imagine-r.action",
     action: {
-      label: "Voir les tarifs Imagine R en vigueur",
       link: "https://www.iledefrance-mobilites.fr/titres-et-tarifs",
     },
     appliesWhen: and(
@@ -2198,11 +2195,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-occitanie-carte-jeune",
     category: "emergency",
     countries: ["FR"],
-    title: "Carte Jeune Région : les aides occitanes pour les 15-25 ans",
-    body:
-      "En Occitanie, la Carte Jeune Région (gratuite) ouvre des aides concrètes aux lycéens et jeunes : manuels scolaires, prêt d'ordinateur, aides à la lecture, au sport et à la mobilité. Les montants évoluent chaque année scolaire — le réflexe : créer la carte dès l'entrée au lycée et activer chaque aide à laquelle le foyer a droit.",
+    titleKey: "adv.fr-occitanie-carte-jeune.title",
+    bodyKey: "adv.fr-occitanie-carte-jeune.body",
+    actionLabelKey: "adv.fr-occitanie-carte-jeune.action",
     action: {
-      label: "Créer la Carte Jeune Région",
       link: "https://www.laregion.fr/-cartejeune-",
     },
     appliesWhen: and(
@@ -2217,11 +2213,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-region-aides-jeunes",
     category: "emergency",
     countries: ["FR"],
-    title: "Ta région distribue des aides que presque personne ne réclame",
-    body:
-      "Chaque région française finance des dispositifs jeunesse : cartes jeunes, transport scolaire subventionné, aide au permis, au BAFA, à la culture et au sport, primes de rentrée. Ce sont des centaines d'euros par an qui ne demandent qu'un dossier. Le point d'entrée : le site de TA région (rubrique jeunesse/éducation) et le simulateur national 1jeune1solution.",
+    titleKey: "adv.fr-region-aides-jeunes.title",
+    bodyKey: "adv.fr-region-aides-jeunes.body",
+    actionLabelKey: "adv.fr-region-aides-jeunes.action",
     action: {
-      label: "Simuler tes aides sur 1jeune1solution",
       link: "https://www.1jeune1solution.gouv.fr/mes-aides",
     },
     appliesWhen: or(ageIn("under_18", "18-25"), hasAnyKids),
@@ -3584,11 +3579,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "season-rentree",
     category: "emergency",
     countries: ["FR"],
-    title: "Rentrée : le budget se prépare en août, pas en septembre",
-    body:
-      "Fournitures, assurance scolaire, cantine, activités : la rentrée est un pic de dépenses prévisible. Liste les postes dès août, compare les assurances scolaires (souvent déjà couvertes par ton assurance habitation !), et vérifie ton éligibilité à l'allocation de rentrée scolaire (ARS, versée sous conditions de ressources fin août).",
+    titleKey: "adv.season-rentree.title",
+    bodyKey: "adv.season-rentree.body",
+    actionLabelKey: "adv.season-rentree.action",
     action: {
-      label: "Vérifier l'ARS sur caf.fr",
       link: "https://www.caf.fr/allocataires/aides-et-demarches/droits-et-prestations/enfance-et-jeunesse/l-allocation-de-rentree-scolaire-ars",
     },
     appliesWhen: hasAnyKids,
@@ -3601,11 +3595,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "season-chauffage",
     category: "emergency",
     countries: ["FR"],
-    title: "L'hiver se gagne en octobre : chauffage sous contrôle",
-    body:
-      "Le chauffage est le premier poste d'énergie du foyer. Avant les premiers froids : purge des radiateurs, entretien chaudière (obligatoire et souvent exigé par l'assurance), 19 °C en pièce à vivre, et compare ton contrat d'énergie — les écarts entre offres se paient tout l'hiver. Vérifie aussi ton éligibilité au chèque énergie.",
+    titleKey: "adv.season-chauffage.title",
+    bodyKey: "adv.season-chauffage.body",
+    actionLabelKey: "adv.season-chauffage.action",
     action: {
-      label: "Vérifier le chèque énergie",
       link: "https://chequeenergie.gouv.fr",
     },
     appliesWhen: always,
@@ -3635,10 +3628,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "season-fetes",
     category: "emergency",
     countries: "all",
-    title: "Fêtes de fin d'année : provisionne dès novembre",
-    body:
-      "Cadeaux, repas, déplacements : décembre coûte souvent l'équivalent d'une demi-mensualité de dépenses en plus. Le réflexe qui change tout : une ligne « fêtes » provisionnée dès novembre (ou lissée sur l'année), et jamais de crédit conso pour des cadeaux — janvier te dira merci.",
-    action: { label: "Créer une ligne « fêtes » dans le budget" },
+    titleKey: "adv.season-fetes.title",
+    bodyKey: "adv.season-fetes.body",
+    actionLabelKey: "adv.season-fetes.action",
+    action: {},
     appliesWhen: always,
     months: [11, 12],
     priority: 82,
@@ -3649,10 +3642,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "season-soldes",
     category: "emergency",
     countries: ["FR"],
-    title: "Soldes : une liste avant, sinon ce n'est pas une économie",
-    body:
-      "Les soldes ne font économiser que sur ce que tu avais déjà PRÉVU d'acheter. Avant les périodes de soldes (janvier et juin-juillet), fais la liste de ce dont le foyer a réellement besoin, fixe une enveloppe, et ignore le reste : un article à −50 % dont tu n'avais pas besoin, c'est 100 % de dépense en plus.",
-    action: { label: "Préparer la liste et l'enveloppe soldes" },
+    titleKey: "adv.season-soldes.title",
+    bodyKey: "adv.season-soldes.body",
+    actionLabelKey: "adv.season-soldes.action",
+    action: {},
     appliesWhen: always,
     months: [1, 6, 7],
     priority: 76,
@@ -3793,10 +3786,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "zone-montagne-hiver",
     category: "emergency",
     countries: "all",
-    title: "En montagne, l'hiver est un poste budgétaire à part entière",
-    body:
-      "Chauffage prolongé, pneus hiver ou chaînes (obligatoires dans de nombreuses zones), surconsommation de carburant, équipements : l'hiver en montagne coûte structurellement plus cher. Provisionne dès septembre une enveloppe « hiver » distincte — la lisser sur l'année évite le trou de novembre-décembre.",
-    action: { label: "Créer une enveloppe « hiver » alimentée dès la rentrée" },
+    titleKey: "adv.zone-montagne-hiver.title",
+    bodyKey: "adv.zone-montagne-hiver.body",
+    actionLabelKey: "adv.zone-montagne-hiver.action",
+    action: {},
     appliesWhen: zoneIs("mountain"),
     months: [8, 9, 10, 11, 12, 1, 2],
     priority: 78,
@@ -3807,10 +3800,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "zone-littoral-saison",
     category: "emergency",
     countries: "all",
-    title: "Sur le littoral, ton budget vit au rythme des saisons",
-    body:
-      "L'été touristique fait grimper les prix locaux (courses, sorties, stationnement) et l'air marin accélère l'usure (humidité, sel : peinture, vélo, voiture). Deux réflexes : anticiper le surcoût estival dans les enveloppes concernées, et provisionner un petit budget entretien anti-corrosion annuel.",
-    action: { label: "Ajuster les enveloppes été et prévoir l'entretien" },
+    titleKey: "adv.zone-littoral-saison.title",
+    bodyKey: "adv.zone-littoral-saison.body",
+    actionLabelKey: "adv.zone-littoral-saison.action",
+    action: {},
     appliesWhen: zoneIs("coastal"),
     priority: 72,
     sources: ["Principe universel de finances personnelles"],
@@ -3826,10 +3819,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-aura-pass-region",
     category: "emergency",
     countries: ["FR"],
-    title: "PASS'Région jeunes : le réflexe AURA",
-    body:
-      "En Auvergne-Rhône-Alpes, le PASS'Région jeunes (lycéens et jeunes 16-25 ans selon statut) donne manuels scolaires gratuits et avantages sport, culture, cinéma et santé. Gratuit à activer — chaque avantage non activé est de l'argent laissé sur la table.",
-    action: { label: "Activer le PASS'Région jeunes", link: "https://www.auvergnerhonealpes.fr/passregionjeunes" },
+    titleKey: "adv.fr-aura-pass-region.title",
+    bodyKey: "adv.fr-aura-pass-region.body",
+    actionLabelKey: "adv.fr-aura-pass-region.action",
+    action: { link: "https://www.auvergnerhonealpes.fr/passregionjeunes" },
     appliesWhen: and(regionIs("Auvergne-Rhône-Alpes"), or(ageIn("under_18", "18-25"), kids("12-15", "16-18", "19+"))),
     priority: 80,
     sources: ["https://www.auvergnerhonealpes.fr/passregionjeunes"],
@@ -3839,13 +3832,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-hdf-transport",
     category: "emergency",
     countries: ["FR"],
-    title: "Hauts-de-France : l'aide transport que peu réclament",
-    body:
-      "La Région verse une aide forfaitaire de 20 €/mois (15 €/mois pour les apprentis) aux salariés qui font plus de 20 km domicile-travail en véhicule personnel, sous plafonds de revenus. Versée par trimestre sur 11 mois — un dossier en ligne, et c'est plus de 200 € par an.",
-    action: { label: "Vérifier l'éligibilité ATPS", link: "https://guide-aides.hautsdefrance.fr/dispositif458" },
+    titleKey: "adv.fr-hdf-transport.title",
+    bodyKey: "adv.fr-hdf-transport.body",
+    actionLabelKey: "adv.fr-hdf-transport.action",
+    action: { link: "https://guide-aides.hautsdefrance.fr/dispositif458" },
     appliesWhen: regionIs("Hauts-de-France"),
     priority: 80,
-    figures: [{ label: "Salariés", value: "20 €/mois" }, { label: "Apprentis", value: "15 €/mois" }],
+    figures: [{ label: "adv.fr-hdf-transport.fig.0.label", value: "adv.fr-hdf-transport.fig.0.value" }, { label: "adv.fr-hdf-transport.fig.1.label", value: "adv.fr-hdf-transport.fig.1.value" }],
     sources: ["https://guide-aides.hautsdefrance.fr/dispositif458"],
     lastVerified: "2026-08-06",
   },
@@ -3853,10 +3846,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-sud-zou",
     category: "emergency",
     countries: ["FR"],
-    title: "Région Sud : ZOU! Études, les transports illimités étudiants",
-    body:
-      "L'e-PASS Jeunes n'existe plus en PACA — les dispositifs actuels : le Pass ZOU! Études (trains et cars régionaux illimités pour les scolaires et étudiants, tarif annuel réduit) et le Pass Santé Jeunes (prestations santé gratuites). Si tu croises encore « e-PASS Jeunes » sur le web, c'est périmé.",
-    action: { label: "Voir les aides Région Sud", link: "https://www.maregionsud.fr/ma-region/cest-quoi-la-region/education-orientation-et-apprentissage/toutes-vos-aides-en-1-clic" },
+    titleKey: "adv.fr-sud-zou.title",
+    bodyKey: "adv.fr-sud-zou.body",
+    actionLabelKey: "adv.fr-sud-zou.action",
+    action: { link: "https://www.maregionsud.fr/ma-region/cest-quoi-la-region/education-orientation-et-apprentissage/toutes-vos-aides-en-1-clic" },
     appliesWhen: and(regionIs("Provence-Alpes-Côte d'Azur"), or(ageIn("under_18", "18-25"), kids("12-15", "16-18", "19+"))),
     priority: 80,
     sources: ["https://www.maregionsud.fr/vos-aides/detail/e-pass-jeunes"],
@@ -3866,10 +3859,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-grand-est-jeunest",
     category: "emergency",
     countries: ["FR"],
-    title: "Jeun'Est : gratuit pour tous les 15-29 ans du Grand Est",
-    body:
-      "Contrairement à la plupart des cartes jeunes limitées aux lycéens, Jeun'Est couvre TOUS les 15-29 ans du Grand Est (étudiants, apprentis, en emploi, en recherche) : réductions cinéma, livres, spectacles, licence sport, et une aide à la formation premiers secours. Inscription gratuite en ligne.",
-    action: { label: "S'inscrire sur Jeun'Est", link: "https://www.jeunest.fr/" },
+    titleKey: "adv.fr-grand-est-jeunest.title",
+    bodyKey: "adv.fr-grand-est-jeunest.body",
+    actionLabelKey: "adv.fr-grand-est-jeunest.action",
+    action: { link: "https://www.jeunest.fr/" },
     appliesWhen: and(regionIs("Grand Est"), or(ageIn("under_18", "18-25", "26-35"), kids("12-15", "16-18", "19+"))),
     priority: 80,
     sources: ["https://www.jeunest.fr/"],
@@ -3879,13 +3872,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-pdl-epass",
     category: "emergency",
     countries: ["FR"],
-    title: "Pays de la Loire : 8 € qui en valent plus de 130",
-    body:
-      "L'e.pass culture sport coûte 8 € par an et débloque plus de 130 € d'avantages pour les 15-19 ans : coupons licence sportive, événements, patrimoine, aide BAFA/premiers secours, entrée festival. L'un des meilleurs ratios coût/avantage des dispositifs régionaux.",
-    action: { label: "Activer l'e.pass jeunes", link: "https://www.epassjeunes-paysdelaloire.fr/" },
+    titleKey: "adv.fr-pdl-epass.title",
+    bodyKey: "adv.fr-pdl-epass.body",
+    actionLabelKey: "adv.fr-pdl-epass.action",
+    action: { link: "https://www.epassjeunes-paysdelaloire.fr/" },
     appliesWhen: and(regionIs("Pays de la Loire"), or(ageIn("under_18", "18-25"), kids("12-15", "16-18"))),
     priority: 80,
-    figures: [{ label: "Coût", value: "8 €/an" }, { label: "Avantages", value: "> 130 €" }],
+    figures: [{ label: "adv.fr-pdl-epass.fig.0.label", value: "adv.fr-pdl-epass.fig.0.value" }, { label: "adv.fr-pdl-epass.fig.1.label", value: "> 130 €" }],
     sources: ["https://www.epassjeunes-paysdelaloire.fr/"],
     lastVerified: "2026-08-06",
   },
@@ -3893,11 +3886,12 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-na-bretagne-portails",
     category: "emergency",
     countries: ["FR"],
-    title: "Ta région aide sans « carte » : passe par le portail",
-    body:
-      "La Nouvelle-Aquitaine et la Bretagne n'ont pas de carte jeune unique, mais un bouquet d'aides sur leur portail : manuels scolaires, premier équipement professionnel, aide au permis, soutien scolaire, mobilité internationale, logement chez l'habitant. Le réflexe : chercher sur le portail régional AVANT de payer.",
+    titleKey: "adv.fr-na-bretagne-portails.title",
+    bodyKey: "adv.fr-na-bretagne-portails.body",
+    // Action DYNAMIQUE (le lien dépend de la région) : le libellé porte la clé
+    // i18n en ligne, `resolveAction` la traduit.
     action: (p) => ({
-      label: "Explorer le portail jeunes de ta région",
+      label: "adv.fr-na-bretagne-portails.action",
       link: p.region === "Bretagne" ? "https://jeunes.bretagne.bzh" : "https://jeunes.nouvelle-aquitaine.fr/les-aides",
     }),
     appliesWhen: and(regionIs("Nouvelle-Aquitaine", "Bretagne"), or(ageIn("under_18", "18-25"), hasAnyKids)),
@@ -3909,13 +3903,13 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-permis-1-euro",
     category: "emergency",
     countries: ["FR"],
-    title: "Permis à 1 € par jour : le prêt à taux zéro des 15-25 ans",
-    body:
-      "L'État garantit un prêt à taux zéro de 600 à 1 200 € pour financer le permis (A1/A2/B) des 15-25 ans, remboursé environ 30 €/mois, sans condition de ressources, via une auto-école partenaire. Attention : l'ancienne aide de 500 € pour les apprentis a été SUPPRIMÉE en février 2026 — ne compte plus dessus.",
-    action: { label: "Vérifier les conditions", link: "https://www.securite-routiere.gouv.fr/passer-son-permis-de-conduire/financement-du-permis-de-conduire/permis-1-eu-par-jour/conditions-deligibilite" },
+    titleKey: "adv.fr-permis-1-euro.title",
+    bodyKey: "adv.fr-permis-1-euro.body",
+    actionLabelKey: "adv.fr-permis-1-euro.action",
+    action: { link: "https://www.securite-routiere.gouv.fr/passer-son-permis-de-conduire/financement-du-permis-de-conduire/permis-1-eu-par-jour/conditions-deligibilite" },
     appliesWhen: or(ageIn("under_18", "18-25"), kids("16-18", "19+")),
     priority: 76,
-    figures: [{ label: "Prêt taux zéro", value: "600 à 1 200 €" }],
+    figures: [{ label: "adv.fr-permis-1-euro.fig.0.label", value: "adv.fr-permis-1-euro.fig.0.value" }],
     sources: ["https://www.securite-routiere.gouv.fr/passer-son-permis-de-conduire/financement-du-permis-de-conduire/permis-1-eu-par-jour/conditions-deligibilite"],
     lastVerified: "2026-08-06",
   },
@@ -3940,10 +3934,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "drom-ladom",
     category: "emergency",
     countries: ["FR"],
-    title: "LADOM : tes billets vers l'Hexagone sont aidés",
-    body:
-      "La continuité territoriale finance une partie de tes déplacements : l'Aide à la Continuité Territoriale (billet aidé sous conditions de ressources, une fois tous les 3 ans) et surtout le Passeport Mobilité Études pour les étudiants de moins de 28 ans qui partent étudier dans l'Hexagone. Des centaines d'euros par billet — dossier AVANT d'acheter.",
-    action: { label: "Voir les aides LADOM", link: "https://ladom.fr" },
+    titleKey: "adv.drom-ladom.title",
+    bodyKey: "adv.drom-ladom.body",
+    actionLabelKey: "adv.drom-ladom.action",
+    action: { link: "https://ladom.fr" },
     appliesWhen: regionIs("Guadeloupe", "Martinique", "Guyane", "La Réunion", "Mayotte"),
     priority: 82,
     sources: ["https://ladom.fr/vie-etudiante/pme/"],
@@ -3953,10 +3947,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "drom-bqp",
     category: "emergency",
     countries: ["FR"],
-    title: "Bouclier Qualité Prix : le panier plafonné de ton territoire",
-    body:
-      "Dans chaque DROM, un panier de produits de consommation courante est négocié à prix plafonné entre la préfecture et les distributeurs (loi de régulation économique outre-mer). La liste et le prix changent chaque année et par territoire — repère les produits BQP en magasin, c'est un vrai levier face à la vie chère.",
-    action: { label: "Voir le BQP de ton territoire (préfecture)" },
+    titleKey: "adv.drom-bqp.title",
+    bodyKey: "adv.drom-bqp.body",
+    actionLabelKey: "adv.drom-bqp.action",
+    action: {},
     appliesWhen: regionIs("Guadeloupe", "Martinique", "Guyane", "La Réunion", "Mayotte"),
     priority: 80,
     sources: ["https://www.reunion.gouv.fr/Actions-de-l-Etat/Economie-commerce-exterieur-et-fiscalite-locale/Bouclier-qualite-prix-BQP"],
@@ -3971,16 +3965,16 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "ae-provision",
     category: "emergency",
     countries: ["FR"],
-    title: "Micro-entrepreneur : provisionne AVANT de te payer",
-    body:
-      "Ton CA n'est pas ton revenu. Cotisations 2026 : 12,3 % (vente), 21,2 % (services BIC), 25,6 % (libéral BNC) — plus l'impôt, la CFP et la CFE. Le réflexe qui sauve : à chaque encaissement, vire immédiatement ~15 % (vente), ~25 % (services) ou ~30 % (BNC) sur un compte dédié « charges ». Le reste seulement est à toi.",
-    action: { label: "Ouvrir un sous-compte « charges » et automatiser le virement" },
+    titleKey: "adv.ae-provision.title",
+    bodyKey: "adv.ae-provision.body",
+    actionLabelKey: "adv.ae-provision.action",
+    action: {},
     appliesWhen: occupationIs("self_employed"),
     priority: 92,
     figures: [
-      { label: "Vente", value: "12,3 %" },
-      { label: "Services BIC", value: "21,2 %" },
-      { label: "Libéral BNC", value: "25,6 %" },
+      { label: "adv.ae-provision.fig.0.label", value: "12,3 %" },
+      { label: "adv.ae-provision.fig.1.label", value: "21,2 %" },
+      { label: "adv.ae-provision.fig.2.label", value: "25,6 %" },
     ],
     sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F36232"],
     lastVerified: "2026-08-06",
@@ -4040,16 +4034,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-idf-solidarite-transport",
     category: "emergency",
     countries: ["FR"],
-    title: "Solidarité Transport : ton Navigo de −50 % à gratuit",
-    body:
-      "En Île-de-France, la tarification Solidarité Transport réduit le passe Navigo selon ton statut : gratuité (RSA sous conditions), −75 % (Complémentaire santé solidaire, ASS), −50 % (AME) — et pour le RSA/CSS, ça vaut pour tout le foyer. Des centaines d'euros par an, sur simple dossier en ligne.",
+    titleKey: "adv.fr-idf-solidarite-transport.title",
+    bodyKey: "adv.fr-idf-solidarite-transport.body",
+    actionLabelKey: "adv.fr-idf-solidarite-transport.action",
     action: {
-      label: "Vérifier mon éligibilité Solidarité Transport",
       link: "https://www.iledefrance-mobilites.fr/aide-et-contacts/reductions-et-gratuite/quest-ce-que-la-tarification-solidarite-transport",
     },
     appliesWhen: regionIs("Île-de-France"),
     priority: 86,
-    figures: [{ label: "Réduction", value: "50 % à 100 %" }],
+    figures: [{ label: "adv.fr-idf-solidarite-transport.fig.0.label", value: "adv.fr-idf-solidarite-transport.fig.0.value" }],
     sources: ["https://www.iledefrance-mobilites.fr/aide-et-contacts/reductions-et-gratuite/quest-ce-que-la-tarification-solidarite-transport"],
     lastVerified: "2026-08-06",
   },
@@ -4057,16 +4050,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-idf-labaz-permis",
     category: "emergency",
     countries: ["FR"],
-    title: "1 000 € pour ton permis via LABAZ",
-    body:
-      "La Région Île-de-France finance 1 000 € du permis B pour les 18-25 ans en insertion professionnelle (mission locale, formation régionale, demandeur d'emploi de moins de 26 ans en QPV ou zone rurale), code déjà obtenu. Demande uniquement via l'appli LABAZ — qui regorge aussi de bons plans 15-25 ans (aide vélo 100 €, places de festivals).",
+    titleKey: "adv.fr-idf-labaz-permis.title",
+    bodyKey: "adv.fr-idf-labaz-permis.body",
+    actionLabelKey: "adv.fr-idf-labaz-permis.action",
     action: {
-      label: "Télécharger LABAZ et vérifier l'éligibilité",
       link: "https://www.iledefrance.fr/tous-les-services/labaz-lappli-pour-les-15-25-ans",
     },
     appliesWhen: and(regionIs("Île-de-France"), ageIn("18-25")),
     priority: 82,
-    figures: [{ label: "Aide permis", value: "1 000 €" }],
+    figures: [{ label: "adv.fr-idf-labaz-permis.fig.0.label", value: "1 000 €" }],
     sources: ["https://www.iledefrance.fr/tous-les-services/labaz-lappli-pour-les-15-25-ans"],
     lastVerified: "2026-08-06",
   },
@@ -4074,11 +4066,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-musees-gratuits-26",
     category: "emergency",
     countries: ["FR"],
-    title: "Musées et monuments nationaux : gratuits avant 26 ans",
-    body:
-      "Les collections permanentes d'une cinquantaine de musées nationaux et une centaine de monuments sont GRATUITES pour les 18-25 ans résidant dans l'UE (et pour tous les mineurs) — Orsay, Versailles, Arc de Triomphe… sur simple pièce d'identité. Beaucoup sont aussi gratuits le 1er dimanche du mois (mais plus le Louvre). La culture n'a pas besoin de faire mal au budget.",
+    titleKey: "adv.fr-musees-gratuits-26.title",
+    bodyKey: "adv.fr-musees-gratuits-26.body",
+    actionLabelKey: "adv.fr-musees-gratuits-26.action",
     action: {
-      label: "Voir la liste officielle",
       link: "https://www.culture.gouv.fr/thematiques/musees/Les-musees-en-France/les-politiques-des-musees-de-france/politique-des-publics/la-gratuite-des-collections-permanentes-pour-les-moins-de-26-ans-dans-les-musees-nationaux",
     },
     appliesWhen: or(ageIn("under_18", "18-25"), hasAnyKids),
@@ -4090,11 +4081,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-opera-jeunes",
     category: "emergency",
     countries: ["FR"],
-    title: "Opéra et théâtre nationaux : les tarifs « moins de 28 ans »",
-    body:
-      "L'Opéra de Paris propose des avant-premières jeunes à prix symbolique et un pass saison dédié ; la Comédie-Française a des tarifs réduits permanents et des places offertes certains lundis — tous réservés aux moins de 28 ans. Les grandes scènes nationales sont accessibles : le réflexe est de passer par leurs pages « jeunes », pas par la billetterie standard.",
+    titleKey: "adv.fr-opera-jeunes.title",
+    bodyKey: "adv.fr-opera-jeunes.body",
+    actionLabelKey: "adv.fr-opera-jeunes.action",
     action: {
-      label: "Voir les offres jeunes de l'Opéra de Paris",
       link: "https://www.operadeparis.fr/billetterie/billets-services/offres-spectateurs/avant-premieres-jeunes",
     },
     appliesWhen: ageIn("18-25", "26-35"),
@@ -4106,14 +4096,14 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-billet-conge-annuel",
     category: "emergency",
     countries: ["FR"],
-    title: "Le billet de congé annuel SNCF : −25 % une fois par an",
-    body:
-      "Dispositif méconnu et toujours en vigueur : une fois par an, salariés, fonctionnaires, retraités et demandeurs d'emploi ont droit à −25 % sur un aller-retour de plus de 200 km en France, pour toute la famille du foyer. Non cumulable avec les cartes de réduction — compare, mais pour un long trajet familial, c'est souvent gagnant.",
-    action: { label: "Demander le billet congé annuel (guichet ou SNCF Connect)" },
+    titleKey: "adv.fr-billet-conge-annuel.title",
+    bodyKey: "adv.fr-billet-conge-annuel.body",
+    actionLabelKey: "adv.fr-billet-conge-annuel.action",
+    action: {},
     appliesWhen: always,
     months: [4, 5, 6, 7],
     priority: 70,
-    figures: [{ label: "Réduction", value: "−25 % · 1×/an" }],
+    figures: [{ label: "adv.fr-billet-conge-annuel.fig.0.label", value: "adv.fr-billet-conge-annuel.fig.0.value" }],
     sources: ["https://www.aide-sociale.fr/billet-annuel-sncf/"],
     lastVerified: "2026-08-06",
   },
@@ -4250,10 +4240,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "abo-audit-annuel",
     category: "emergency",
     countries: "all",
-    title: "L'audit d'abonnements : 30 minutes, des centaines d'euros",
-    body:
-      "Streaming, salles de sport, applis, box, assurances doublonnées : les abonnements sont le poste qui gonfle sans bruit. Une fois par an, liste-les TOUS depuis tes relevés bancaires (pas de mémoire !), classe-les en « j'utilise / j'ai oublié / doublon », et résilie sans pitié la 2e colonne. C'est souvent l'économie la plus rapide de l'année.",
-    action: { label: "Lister tous les abonnements depuis les relevés" },
+    titleKey: "adv.abo-audit-annuel.title",
+    bodyKey: "adv.abo-audit-annuel.body",
+    actionLabelKey: "adv.abo-audit-annuel.action",
+    action: {},
     appliesWhen: always,
     priority: 86,
     sources: ["Principe universel de finances personnelles"],
@@ -4263,11 +4253,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "abo-resiliation-3-clics",
     category: "emergency",
     countries: ["FR"],
-    title: "Résilier est devenu facile : le bouton « 3 clics » est un droit",
-    body:
-      "Depuis 2023, tout contrat souscrit en ligne (streaming, salle de sport, assurance, presse…) doit pouvoir être résilié en ligne, via une fonctionnalité directe — fini les recommandés et les plateformes injoignables. Et la loi Chatel oblige les professionnels à te prévenir avant chaque reconduction tacite : cet avis est ta fenêtre de sortie.",
+    titleKey: "adv.abo-resiliation-3-clics.title",
+    bodyKey: "adv.abo-resiliation-3-clics.body",
+    actionLabelKey: "adv.abo-resiliation-3-clics.action",
     action: {
-      label: "Connaître tes droits de résiliation",
       link: "https://www.economie.gouv.fr/particuliers/resiliation-contrats-trois-clics",
     },
     appliesWhen: always,
@@ -4354,11 +4343,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-mobilite-bancaire",
     category: "emergency",
     countries: ["FR"],
-    title: "Changer de banque : ta nouvelle banque fait tout, gratuitement",
-    body:
-      "Le service d'aide à la mobilité bancaire est gratuit et automatisé : tu signes un mandat à la banque d'arrivée, elle récupère tes prélèvements et virements récurrents et prévient tous les émetteurs — le tout en 22 jours ouvrés max. Et pour choisir, compare d'abord les frais sur le comparateur PUBLIC tarifs-bancaires.gouv.fr, pas sur les sites commerciaux.",
+    titleKey: "adv.fr-mobilite-bancaire.title",
+    bodyKey: "adv.fr-mobilite-bancaire.body",
+    actionLabelKey: "adv.fr-mobilite-bancaire.action",
     action: {
-      label: "Comparer les tarifs (site public)",
       link: "https://www.tarifs-bancaires.gouv.fr",
     },
     appliesWhen: always,
@@ -4370,18 +4358,17 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-frais-incidents",
     category: "emergency",
     countries: ["FR"],
-    title: "Frais d'incidents : des plafonds légaux existent, fais-les respecter",
-    body:
-      "Si ta banque te détecte « fragile financièrement », tes frais d'incidents sont plafonnés à 25 €/mois. L'Offre spécifique Clientèle Fragile (3 €/mois max) descend le plafond à 20 €/mois et 200 €/an, commissions d'intervention à 4 € l'opération. Et si aucune banque ne veut de toi : le droit au compte (Banque de France) impose l'ouverture d'un compte avec services de base gratuits.",
+    titleKey: "adv.fr-frais-incidents.title",
+    bodyKey: "adv.fr-frais-incidents.body",
+    actionLabelKey: "adv.fr-frais-incidents.action",
     action: {
-      label: "Vérifier tes droits (Banque de France)",
       link: "https://www.banque-france.fr/fr/a-votre-service/particuliers/connaitre-pratiques-bancaires-assurance/compte-frais/le-plafonnement-des-frais-bancaires-et-loffre-clientele-fragile",
     },
     appliesWhen: savingsCapacityLow,
     priority: 92,
     figures: [
-      { label: "Fragilité détectée", value: "25 €/mois max" },
-      { label: "Avec l'OCF", value: "20 €/mois · 200 €/an" },
+      { label: "adv.fr-frais-incidents.fig.0.label", value: "adv.fr-frais-incidents.fig.0.value" },
+      { label: "adv.fr-frais-incidents.fig.1.label", value: "adv.fr-frais-incidents.fig.1.value" },
     ],
     sources: ["https://www.banque-france.fr/fr/a-votre-service/particuliers/connaitre-pratiques-bancaires-assurance/compte-frais/le-plafonnement-des-frais-bancaires-et-loffre-clientele-fragile"],
     lastVerified: "2026-08-06",
@@ -4407,16 +4394,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-cheque-energie",
     category: "emergency",
     countries: ["FR"],
-    title: "Chèque énergie : automatique — mais réclame-le si rien n'arrive",
-    body:
-      "En 2026, le chèque énergie (48 à 277 € selon revenus et foyer) redevient AUTOMATIQUE : envoi en avril-mai à 4,5 millions de foyers, par croisement fiscal. Si tu es éligible mais rien ne vient (déménagement, premier logement…), le guichet de réclamation est ouvert d'avril à décembre sur chequeenergie.gouv.fr. À savoir : il ne paie plus les travaux de rénovation, uniquement les factures d'énergie.",
+    titleKey: "adv.fr-cheque-energie.title",
+    bodyKey: "adv.fr-cheque-energie.body",
+    actionLabelKey: "adv.fr-cheque-energie.action",
     action: {
-      label: "Vérifier / réclamer ton chèque",
       link: "https://chequeenergie.gouv.fr",
     },
     appliesWhen: savingsCapacityLow,
     priority: 90,
-    figures: [{ label: "Montant 2026", value: "48 à 277 €" }],
+    figures: [{ label: "adv.fr-cheque-energie.fig.0.label", value: "adv.fr-cheque-energie.fig.0.value" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A17885", "https://chequeenergie.gouv.fr/beneficiaire/faq"],
     lastVerified: "2026-08-06",
   },
@@ -4424,11 +4410,10 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-energie-fournisseur",
     category: "emergency",
     countries: ["FR"],
-    title: "Électricité et gaz : changer de fournisseur est gratuit, sans coupure",
-    body:
-      "Tu peux changer de fournisseur d'énergie à tout moment, gratuitement, sans engagement et sans risque de coupure — le nouveau résilie l'ancien automatiquement. Le seul comparateur vraiment indépendant est celui du médiateur national de l'énergie (comparateur-offres.energie-info.fr). Refais la comparaison chaque année : les écarts se chiffrent en centaines d'euros.",
+    titleKey: "adv.fr-energie-fournisseur.title",
+    bodyKey: "adv.fr-energie-fournisseur.body",
+    actionLabelKey: "adv.fr-energie-fournisseur.action",
     action: {
-      label: "Comparer (médiateur de l'énergie)",
       link: "https://comparateur-offres.energie-info.fr",
     },
     appliesWhen: always,
@@ -4504,16 +4489,15 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     id: "fr-telecom-resiliation",
     category: "emergency",
     countries: ["FR"],
-    title: "Forfait mobile : après 12 mois, partir ne coûte (presque) rien",
-    body:
-      "Depuis 2023, résilier un engagement 24 mois après le 12e mois ne coûte RIEN — sauf téléphone subventionné dans le contrat (alors 20 % max des sommes restantes). La portabilité du numéro est gratuite : appelle le 3179 pour ton RIO, et c'est le NOUVEL opérateur qui gère tout — ne résilie jamais toi-même avant le portage.",
+    titleKey: "adv.fr-telecom-resiliation.title",
+    bodyKey: "adv.fr-telecom-resiliation.body",
+    actionLabelKey: "adv.fr-telecom-resiliation.action",
     action: {
-      label: "Voir la règle ARCEP",
       link: "https://www.arcep.fr/mes-demarches-et-services/consommateurs/fiches-pratiques/quelles-sont-les-conditions-et-consequences-de-la-resiliation-du-contrat-par-le-consommateur.html",
     },
     appliesWhen: always,
     priority: 76,
-    figures: [{ label: "Après 12 mois", value: "0 € (ou 20 % si mobile subventionné)" }],
+    figures: [{ label: "adv.fr-telecom-resiliation.fig.0.label", value: "adv.fr-telecom-resiliation.fig.0.value" }],
     sources: ["https://www.arcep.fr/mes-demarches-et-services/consommateurs/fiches-pratiques/quelles-sont-les-conditions-et-consequences-de-la-resiliation-du-contrat-par-le-consommateur.html"],
     lastVerified: "2026-08-06",
   },
