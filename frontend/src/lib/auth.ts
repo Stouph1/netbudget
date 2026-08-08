@@ -230,35 +230,19 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
-// Suppression DÉFINITIVE du compte (RGPD / App Store) via l'Edge Function
-// `delete-account` (le client n'a pas le droit de s'auto-supprimer).
-// Purge ensuite les caches Premium locaux et la session.
+// Suppression DÉFINITIVE du compte (RGPD art. 17 / exigence App Store).
+//
+// Deux voies, dans cet ordre :
+//  1. la fonction SQL `delete_own_account()` (migration 012) — elle s'exécute
+//     en SECURITY DEFINER et ne peut supprimer que auth.uid(). Rien à déployer
+//     en plus : une migration appliquée suffit, et ça marche pour toujours.
+//  2. l'Edge Function `delete-account`, en repli, pour les projets où elle est
+//     déjà déployée (elle purge aussi les photos des espaces possédés).
+//
+// Les fichiers Storage de l'utilisateur sont purgés côté client AVANT la
+// suppression : après, la session n'existe plus et les policies l'interdisent.
 export async function deleteAccount(): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const { data, error } = await supabase.functions.invoke("delete-account", {
-      method: "POST",
-    });
-    if (error) {
-      // Cause n°1 en pratique : la fonction n'a jamais été déployée sur le
-      // projet Supabase → l'appel renvoie un 404 enveloppé dans un message
-      // générique « non-2xx status code », illisible pour l'utilisateur.
-      const raw = error.message ?? "";
-      const notDeployed =
-        raw.includes("404") ||
-        raw.includes("not found") ||
-        raw.includes("Failed to send a request");
-      return {
-        ok: false,
-        error: notDeployed
-          ? "Le service de suppression n'est pas encore disponible. Écris-nous à contact@netbudget.app et ton compte sera supprimé sous 30 jours (RGPD)."
-          : `La suppression a échoué (${raw}). Réessaie, ou écris-nous à contact@netbudget.app.`,
-      };
-    }
-    const res = data as { ok?: boolean; error?: string } | null;
-    if (!res?.ok) {
-      return { ok: false, error: res?.error ?? "La suppression a échoué." };
-    }
-    // Purge locale : caches par scope, scope actif, session
+  const finishLocally = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
       await AsyncStorage.multiRemove(
@@ -271,9 +255,55 @@ export async function deleteAccount(): Promise<{ ok: boolean; error?: string }> 
       );
     } catch {}
     await supabase.auth.signOut();
-    return { ok: true };
+  };
+
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return { ok: false, error: "Tu n'es pas connecté." };
+
+    // Purge de l'avatar tant qu'on a encore les droits (best-effort).
+    try {
+      const { data: files } = await supabase.storage.from("avatars").list(userId);
+      if (files?.length) {
+        await supabase.storage
+          .from("avatars")
+          .remove(files.map((f) => `${userId}/${f.name}`));
+      }
+    } catch {}
+
+    // 1. Voie principale : fonction SQL.
+    const rpc = await supabase.rpc("delete_own_account");
+    if (!rpc.error) {
+      await finishLocally();
+      return { ok: true };
+    }
+
+    // 2. Repli : Edge Function (projets où elle est déployée).
+    const fn = await supabase.functions.invoke("delete-account", { method: "POST" });
+    if (!fn.error) {
+      const res = fn.data as { ok?: boolean; error?: string } | null;
+      if (res?.ok) {
+        await finishLocally();
+        return { ok: true };
+      }
+    }
+
+    // Les deux ont échoué : message actionnable plutôt qu'un jargon technique.
+    const rpcMsg = rpc.error.message ?? "";
+    const missing =
+      rpcMsg.includes("does not exist") ||
+      rpcMsg.includes("PGRST202") ||
+      rpcMsg.includes("Could not find the function");
+    return {
+      ok: false,
+      error: missing
+        ? "La suppression n'est pas encore activée côté serveur (migration 012 à appliquer). Écris-nous à contact@netbudget.app : ton compte sera supprimé sous 30 jours."
+        : `La suppression a échoué : ${rpcMsg}. Réessaie, ou écris-nous à contact@netbudget.app.`,
+    };
   } catch (e: unknown) {
     const err = e as { message?: string };
-    return { ok: false, error: err.message };
+    return { ok: false, error: err.message ?? "Erreur inconnue." };
   }
 }
+
