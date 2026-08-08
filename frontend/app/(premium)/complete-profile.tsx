@@ -124,12 +124,15 @@ export default function CompleteProfile() {
         .replace(/[^a-z]/g, "");
     const q = norm(city);
     if (q.length < 2) return [];
-    // Exactitude d'abord (préfixe), puis contenu — et on limite à 6 pour ne
-    // pas noyer le formulaire.
-    const starts = CITIES.filter((c) => norm(c.name).startsWith(q));
+    // Pertinence : préfixe d'abord, et à préfixe égal le nom le plus COURT
+    // remonte — « rou » doit proposer Rouen avant Roubaix. Puis les villes qui
+    // contiennent la saisie ailleurs. Limité à 6 pour ne pas noyer le formulaire.
+    const byCloseness = (a: (typeof CITIES)[number], b: (typeof CITIES)[number]) =>
+      a.name.length - b.name.length || a.name.localeCompare(b.name, "fr");
+    const starts = CITIES.filter((c) => norm(c.name).startsWith(q)).sort(byCloseness);
     const contains = CITIES.filter(
       (c) => !norm(c.name).startsWith(q) && norm(c.name).includes(q),
-    );
+    ).sort(byCloseness);
     return [...starts, ...contains].slice(0, 6);
   }, [city, cityTouched]);
 
