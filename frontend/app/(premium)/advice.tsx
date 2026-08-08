@@ -431,6 +431,21 @@ export default function AdviceScreen() {
   }, [profile, workspaceKind, mode]);
 
   const completeness = profileCompleteness(profile, cfg);
+  // Questions non répondues, formulées comme des bénéfices concrets — c'est ce
+  // qui donne envie de finir, pas un pourcentage abstrait.
+  const missingQuestions = useMemo(() => {
+    const out: string[] = [];
+    if (!profile.age) out.push("ton âge");
+    if (cfg.askFamily && !profile.family) out.push("ta situation familiale");
+    if (cfg.askHousing && !profile.housing) out.push("ton logement");
+    if (cfg.askKids === "auto" && hasKids(profile.family) && !profile.children?.length)
+      out.push("l'âge de tes enfants");
+    if (cfg.askSavings && !profile.monthlySavingsCapacity)
+      out.push("ta capacité d'épargne");
+    if (cfg.askTmi && !profile.tmi) out.push("ta tranche d'imposition");
+    if (cfg.askPets && profile.hasPets === undefined) out.push("si tu as des animaux");
+    return out;
+  }, [profile, cfg]);
 
   const totalCount = useMemo(
     () => grouped.reduce((s, g) => s + g.cards.length, 0),
@@ -776,19 +791,37 @@ export default function AdviceScreen() {
           </View>
 
           {hasMinimumProfileFor(profile, mode) ? (
-            <TouchableOpacity
-              onPress={() => setEditing(false)}
-              style={styles.ctaBtn}
-              activeOpacity={0.85}
-            >
-              <Feather name="check" size={18} color="#000" />
-              <Text style={styles.ctaBtnText}>
-                Voir les conseils
-                {completeness.total > 0
-                  ? ` (${completeness.filled}/${completeness.total} détails)`
-                  : ""}
-              </Text>
-            </TouchableOpacity>
+            missingQuestions.length === 0 ? (
+              <TouchableOpacity
+                onPress={() => setEditing(false)}
+                style={styles.ctaBtn}
+                activeOpacity={0.85}
+              >
+                <Feather name="check" size={18} color="#000" />
+                <Text style={styles.ctaBtnText}>Profil complet — voir mes conseils</Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                <View style={styles.missingBox}>
+                  <Feather name="alert-circle" size={16} color={GOLD} />
+                  <Text style={styles.missingText}>
+                    Il te manque {missingQuestions.join(", ")}. Chaque réponse
+                    débloque des conseils que tu ne verras pas autrement —
+                    remonte compléter, ça prend 30 secondes.
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setEditing(false)}
+                  style={styles.ctaBtnSecondary}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.ctaBtnSecondaryText}>
+                    Voir les conseils quand même ({completeness.filled}/
+                    {completeness.total})
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )
           ) : (
             <Text style={styles.hint}>{cfg.minimumHint}</Text>
           )}
@@ -1346,6 +1379,28 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   ctaBtnText: { color: "#000", fontSize: 15, fontWeight: "700" },
+  ctaBtnSecondary: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginTop: 10,
+  },
+  ctaBtnSecondaryText: { color: TEXT_2, fontSize: 14, fontWeight: "600" },
+  missingBox: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "flex-start",
+    backgroundColor: "rgba(74,222,128,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.28)",
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 14,
+  },
+  missingText: { color: TEXT_2, fontSize: 13, lineHeight: 19, flex: 1 },
 
   hint: {
     color: TEXT_3,

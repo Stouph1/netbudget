@@ -159,12 +159,23 @@ type Loan = {
 
 // La date de 1re échéance se saisit en MM/AAAA (le jour n'a pas d'importance
 // pour un échéancier mensuel) et se stocke en ISO.
+// Saisie de la date : on ne garde que les chiffres et on formate en MM/AAAA
+// au fur et à mesure. Le clavier numérique n'a pas de touche "/" — l'utilisateur
+// tape 092023, l'app affiche 09/2023.
+function formatMonthInput(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 6);
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+}
+
 function monthInputToIso(input: string): string | undefined {
-  const m = input.trim().match(/^(\d{1,2})[/.-](\d{4})$/);
-  if (!m) return undefined;
-  const month = parseInt(m[1], 10);
+  const digits = input.replace(/\D/g, "");
+  if (digits.length !== 6) return undefined;
+  const month = parseInt(digits.slice(0, 2), 10);
+  const year = parseInt(digits.slice(2), 10);
   if (month < 1 || month > 12) return undefined;
-  return `${m[2]}-${String(month).padStart(2, "0")}-01`;
+  if (year < 1950 || year > 2100) return undefined;
+  return `${year}-${String(month).padStart(2, "0")}-01`;
 }
 
 function isoToMonthInput(iso: string | undefined): string {
@@ -806,6 +817,39 @@ export default function Index() {
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [cityInfoOpen, setCityInfoOpen] = useState(false);
+
+  // Alignement de la ville sur le profil Premium (source de vérité de « où je
+  // vis »). On ne le fait PAS si l'utilisateur a explicitement choisi sa ville
+  // dans les Réglages — son choix précis l'emporte sur la région du profil.
+  const CITY_PINNED_KEY = "netbudget:cityPinned";
+  const [cityPinned, setCityPinned] = useState<boolean | null>(null);
+  useEffect(() => {
+    AsyncStorage.getItem(CITY_PINNED_KEY)
+      .then((v) => setCityPinned(v === "1"))
+      .catch(() => setCityPinned(false));
+  }, []);
+
+  useEffect(() => {
+    if (cityPinned !== false) return; // pas encore chargé, ou ville épinglée
+    const profRegion = premiumProfile?.region;
+    const profCountry = premiumProfile?.country;
+    if (!profRegion && !profCountry) return;
+    // Déjà cohérent ? on ne touche à rien.
+    if (profRegion && city.region === profRegion) return;
+    if (!profRegion && profCountry && city.countryCode === profCountry) return;
+
+    const candidates = CITIES.filter((c) =>
+      profRegion
+        ? c.region === profRegion
+        : c.countryCode === profCountry,
+    );
+    if (!candidates.length) return;
+    // Ville de référence de la zone : indice médian, pour ne pas surestimer
+    // (la capitale) ni sous-estimer (le village) le coût de la vie.
+    const sorted = [...candidates].sort((a, b) => a.index - b.index);
+    setCity(sorted[Math.floor(sorted.length / 2)]);
+  }, [premiumProfile?.region, premiumProfile?.country, cityPinned, city]);
+
   // Picker à 2 étapes : "country" puis "city"
   const [pickerStep, setPickerStep] = useState<"country" | "city">("country");
   const [pickerCountry, setPickerCountry] = useState<string | null>(null);
@@ -813,6 +857,8 @@ export default function Index() {
 
   // Prêts
   const [loans, setLoans] = useState<Loan[]>([]);
+  // Texte brut du champ « début du prêt » (MM/AAAA en cours de frappe)
+  const [loanStartText, setLoanStartText] = useState("");
   const [loanModalOpen, setLoanModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
   const [form, setForm] = useState<Loan>({
@@ -1188,11 +1234,13 @@ export default function Index() {
       years: "0",
       directMonthly: "0",
     });
+    setLoanStartText("");
     setLoanModalOpen(true);
   }
   function openEditLoan(loan: Loan) {
     setEditingLoan(loan);
     setForm(loan);
+    setLoanStartText(isoToMonthInput(loan.startDate));
     setLoanModalOpen(true);
   }
   function saveLoan() {
@@ -2727,6 +2775,9 @@ export default function Index() {
                             style={styles.cityRow}
                             onPress={() => {
                               setCity(sug);
+                              // Choix explicite : il l'emporte désormais sur la région du profil.
+                              setCityPinned(true);
+                              void AsyncStorage.setItem(CITY_PINNED_KEY, "1");
                               setCityPickerOpen(false);
                               setCitySearch("");
                             }}
@@ -2820,6 +2871,9 @@ export default function Index() {
                       style={[styles.cityRow, active && styles.cityRowActive]}
                       onPress={() => {
                         setCity(item);
+                        // Choix explicite : il l'emporte désormais sur la région du profil.
+                        setCityPinned(true);
+                        void AsyncStorage.setItem(CITY_PINNED_KEY, "1");
                         setCityPickerOpen(false);
                         setCitySearch("");
                       }}
@@ -3349,15 +3403,21 @@ export default function Index() {
                       testID="loan-years-input"
                     />
                     <Field
-                      label="Première échéance (optionnel)"
+                      label="Début du prêt — 1re échéance (optionnel)"
                       icon={<Feather name="clock" size={18} color={GOLD} />}
-                      value={isoToMonthInput(form.startDate)}
-                      onChangeText={(v) =>
-                        setForm({ ...form, startDate: monthInputToIso(v) })
-                      }
-                      keyboardType="numeric"
-                      placeholder="MM/AAAA — ex. 09/2023"
-                      hintText="Pour voir ce qu'il te reste à rembourser et comment ta mensualité se répartit"
+                      value={loanStartText}
+                      onChangeText={(v) => {
+                        const formatted = formatMonthInput(v);
+                        setLoanStartText(formatted);
+                        setForm((f) => ({
+                          ...f,
+                          startDate: monthInputToIso(formatted),
+                        }));
+                      }}
+                      keyboardType="number-pad"
+                      maxLength={7}
+                      placeholder="Mois puis année — ex. 092023"
+                      hintText="Tape juste les chiffres (092023). Tu verras ce qu'il te reste à rembourser et comment ta mensualité se répartit."
                       testID="loan-start-input"
                     />
                     <View style={styles.previewBox}>
@@ -3535,28 +3595,34 @@ function Field({
   onDelete,
   onLabelChange,
   renameHint,
+  maxLength,
+  keepEmpty,
 }: {
   label: string;
   icon?: React.ReactNode;
   right?: string;
   value: string;
   onChangeText: (t: string) => void;
-  keyboardType?: "default" | "numeric" | "decimal-pad";
+  keyboardType?: "default" | "numeric" | "decimal-pad" | "number-pad";
   placeholder?: string;
   testID?: string;
   hintText?: string;
   onDelete?: () => void;
   onLabelChange?: (next: string) => void;
   renameHint?: string;
+  maxLength?: number;
+  // Les champs de MONTANT retombent à "0" quand on les vide (pratique pour
+  // saisir un chiffre). Un champ de DATE ne doit pas : "0" n'est pas une date.
+  keepEmpty?: boolean;
 }) {
   const [focused, setFocused] = useState(false);
   const handleFocus = () => {
     setFocused(true);
-    if (value === "0") onChangeText("");
+    if (!keepEmpty && value === "0") onChangeText("");
   };
   const handleBlur = () => {
     setFocused(false);
-    if (value === "") onChangeText("0");
+    if (!keepEmpty && value === "") onChangeText("0");
   };
   return (
     <View>
@@ -3584,6 +3650,7 @@ function Field({
             onFocus={handleFocus}
             onBlur={handleBlur}
             keyboardType={keyboardType || "default"}
+            maxLength={maxLength}
             placeholder={placeholder}
             placeholderTextColor={TEXT_3}
             selectTextOnFocus
