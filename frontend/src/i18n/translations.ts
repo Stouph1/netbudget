@@ -944,6 +944,17 @@ const fr: Catalog = {
   "goals.delete.msg": "Cette action est irréversible.",
   "loan.previewRemaining": "Reste {time} · coût total du crédit {cost}",
   "loan.previewFinished": "Ce prêt est arrivé à terme",
+  "ws.invite.howto": "Génère un code, envoie-le à la personne : elle le colle dans « Rejoindre un espace ». Valable 14 jours, utilisable une seule fois.",
+  "ws.invite.generate": "Générer un code d'invitation",
+  "ws.err.inviteInvalid": "Ce code est invalide, expiré, ou a déjà été utilisé. Demande-en un nouveau à la personne qui t'a invité.",
+  "ws.err.notSignedIn": "Connecte-toi pour rejoindre un espace.",
+  "ws.err.inviteNotReady": "Le service d'invitation n'est pas encore activé côté serveur. Réessaie dans un moment.",
+  "currency.convert.title": "Convertir tes montants ?",
+  "currency.convert.msg": "Tes montants sont en {from}. Veux-tu les convertir en {to} au taux du jour ? (1 000 {from} ≈ {example})\n\nSi tu refuses, seul le symbole change et tes chiffres restent tels quels.",
+  "currency.convert.yes": "Convertir",
+  "currency.convert.no": "Garder les chiffres",
+  "currency.offline.title": "Devise changée, montants inchangés",
+  "currency.offline.msg": "Impossible de récupérer les taux de change (hors ligne ?). Tes montants n'ont donc PAS été convertis — reviens changer la devise une fois connecté pour les convertir.",
 };
 
 const en: Catalog = {
@@ -1822,6 +1833,17 @@ const en: Catalog = {
   "goals.delete.msg": "This cannot be undone.",
   "loan.previewRemaining": "{time} left · total credit cost {cost}",
   "loan.previewFinished": "This loan is fully repaid",
+  "ws.invite.howto": "Generate a code and send it over: they paste it into “Join a space”. Valid for 14 days, single use.",
+  "ws.invite.generate": "Generate an invite code",
+  "ws.err.inviteInvalid": "This code is invalid, expired, or already used. Ask whoever invited you for a new one.",
+  "ws.err.notSignedIn": "Sign in to join a space.",
+  "ws.err.inviteNotReady": "The invite service isn't enabled on the server yet. Try again shortly.",
+  "currency.convert.title": "Convert your amounts?",
+  "currency.convert.msg": "Your amounts are in {from}. Convert them to {to} at today's rate? (1,000 {from} ≈ {example})\n\nIf you decline, only the symbol changes and your figures stay as they are.",
+  "currency.convert.yes": "Convert",
+  "currency.convert.no": "Keep figures",
+  "currency.offline.title": "Currency changed, amounts unchanged",
+  "currency.offline.msg": "Couldn't fetch exchange rates (offline?). Your amounts were NOT converted — change the currency again once you're online to convert them.",
 };
 
 const es: Catalog = {
@@ -2700,6 +2722,17 @@ const es: Catalog = {
   "goals.delete.msg": "Esta acción es irreversible.",
   "loan.previewRemaining": "Quedan {time} · coste total del crédito {cost}",
   "loan.previewFinished": "Este préstamo ya está pagado",
+  "ws.invite.howto": "Genera un código y envíaselo: lo pega en «Unirse a un espacio». Válido 14 días, un solo uso.",
+  "ws.invite.generate": "Generar un código de invitación",
+  "ws.err.inviteInvalid": "Este código no es válido, ha caducado o ya se usó. Pide uno nuevo a quien te invitó.",
+  "ws.err.notSignedIn": "Inicia sesión para unirte a un espacio.",
+  "ws.err.inviteNotReady": "El servicio de invitaciones aún no está activo en el servidor. Inténtalo en un momento.",
+  "currency.convert.title": "¿Convertir tus importes?",
+  "currency.convert.msg": "Tus importes están en {from}. ¿Convertirlos a {to} al cambio de hoy? (1 000 {from} ≈ {example})\n\nSi rechazas, solo cambia el símbolo y tus cifras se mantienen.",
+  "currency.convert.yes": "Convertir",
+  "currency.convert.no": "Mantener cifras",
+  "currency.offline.title": "Moneda cambiada, importes sin cambios",
+  "currency.offline.msg": "No se pudieron obtener los tipos de cambio (¿sin conexión?). Tus importes NO se convirtieron: vuelve a cambiar la moneda cuando tengas conexión.",
 };
 
 const pt: Catalog = {
@@ -3578,6 +3611,17 @@ const pt: Catalog = {
   "goals.delete.msg": "Esta ação é irreversível.",
   "loan.previewRemaining": "Faltam {time} · custo total do crédito {cost}",
   "loan.previewFinished": "Este empréstimo já está pago",
+  "ws.invite.howto": "Gera um código e envia-o: a pessoa cola-o em «Juntar-se a um espaço». Válido 14 dias, uso único.",
+  "ws.invite.generate": "Gerar um código de convite",
+  "ws.err.inviteInvalid": "Este código é inválido, expirou ou já foi usado. Pede um novo a quem te convidou.",
+  "ws.err.notSignedIn": "Inicia sessão para te juntares a um espaço.",
+  "ws.err.inviteNotReady": "O serviço de convites ainda não está ativo no servidor. Tenta novamente daqui a pouco.",
+  "currency.convert.title": "Converter os teus valores?",
+  "currency.convert.msg": "Os teus valores estão em {from}. Converter para {to} à taxa de hoje? (1 000 {from} ≈ {example})\n\nSe recusares, só o símbolo muda e os números ficam iguais.",
+  "currency.convert.yes": "Converter",
+  "currency.convert.no": "Manter números",
+  "currency.offline.title": "Moeda alterada, valores inalterados",
+  "currency.offline.msg": "Não foi possível obter as taxas de câmbio (offline?). Os teus valores NÃO foram convertidos — muda a moeda novamente quando tiveres ligação.",
 };
 
 const de: Catalog = {
@@ -4456,6 +4500,17 @@ const de: Catalog = {
   "goals.delete.msg": "Das lässt sich nicht rückgängig machen.",
   "loan.previewRemaining": "Noch {time} · Gesamtkosten des Kredits {cost}",
   "loan.previewFinished": "Dieser Kredit ist abbezahlt",
+  "ws.invite.howto": "Erzeuge einen Code und schick ihn weiter: die Person fügt ihn unter „Space beitreten“ ein. 14 Tage gültig, einmalig nutzbar.",
+  "ws.invite.generate": "Einladungscode erzeugen",
+  "ws.err.inviteInvalid": "Dieser Code ist ungültig, abgelaufen oder bereits verwendet. Bitte die einladende Person um einen neuen.",
+  "ws.err.notSignedIn": "Melde dich an, um einem Space beizutreten.",
+  "ws.err.inviteNotReady": "Der Einladungsdienst ist serverseitig noch nicht aktiv. Versuch es gleich noch einmal.",
+  "currency.convert.title": "Beträge umrechnen?",
+  "currency.convert.msg": "Deine Beträge sind in {from}. In {to} zum heutigen Kurs umrechnen? (1.000 {from} ≈ {example})\n\nWenn du ablehnst, ändert sich nur das Symbol, die Zahlen bleiben gleich.",
+  "currency.convert.yes": "Umrechnen",
+  "currency.convert.no": "Zahlen behalten",
+  "currency.offline.title": "Währung geändert, Beträge unverändert",
+  "currency.offline.msg": "Wechselkurse konnten nicht geladen werden (offline?). Deine Beträge wurden NICHT umgerechnet — ändere die Währung erneut, sobald du online bist.",
 };
 
 const it: Catalog = {
@@ -5334,6 +5389,17 @@ const it: Catalog = {
   "goals.delete.msg": "L’azione è irreversibile.",
   "loan.previewRemaining": "Restano {time} · costo totale del credito {cost}",
   "loan.previewFinished": "Questo prestito è estinto",
+  "ws.invite.howto": "Genera un codice e invialo: la persona lo incolla in «Unisciti a uno spazio». Valido 14 giorni, monouso.",
+  "ws.invite.generate": "Genera un codice d'invito",
+  "ws.err.inviteInvalid": "Questo codice non è valido, è scaduto o è già stato usato. Chiedine uno nuovo a chi ti ha invitato.",
+  "ws.err.notSignedIn": "Accedi per unirti a uno spazio.",
+  "ws.err.inviteNotReady": "Il servizio inviti non è ancora attivo sul server. Riprova tra poco.",
+  "currency.convert.title": "Convertire i tuoi importi?",
+  "currency.convert.msg": "I tuoi importi sono in {from}. Convertirli in {to} al cambio di oggi? (1 000 {from} ≈ {example})\n\nSe rifiuti, cambia solo il simbolo e le cifre restano invariate.",
+  "currency.convert.yes": "Converti",
+  "currency.convert.no": "Mantieni cifre",
+  "currency.offline.title": "Valuta cambiata, importi invariati",
+  "currency.offline.msg": "Impossibile recuperare i tassi di cambio (offline?). I tuoi importi NON sono stati convertiti — ricambia valuta quando sei online.",
 };
 
 const ar: Catalog = {
@@ -6212,6 +6278,17 @@ const ar: Catalog = {
   "goals.delete.msg": "لا يمكن التراجع عن هذا الإجراء.",
   "loan.previewRemaining": "يتبقّى {time} · التكلفة الإجمالية للقرض {cost}",
   "loan.previewFinished": "تم سداد هذا القرض بالكامل",
+  "ws.invite.howto": "أنشئ رمزاً وأرسله: يلصقه الشخص في «الانضمام إلى مساحة». صالح 14 يوماً، لمرة واحدة.",
+  "ws.invite.generate": "إنشاء رمز دعوة",
+  "ws.err.inviteInvalid": "هذا الرمز غير صالح أو منتهي أو مستخدم بالفعل. اطلب رمزاً جديداً ممن دعاك.",
+  "ws.err.notSignedIn": "سجّل الدخول للانضمام إلى مساحة.",
+  "ws.err.inviteNotReady": "خدمة الدعوات غير مفعّلة على الخادم بعد. أعد المحاولة بعد قليل.",
+  "currency.convert.title": "تحويل مبالغك؟",
+  "currency.convert.msg": "مبالغك بعملة {from}. هل تريد تحويلها إلى {to} بسعر اليوم؟ (1000 {from} ≈ {example})\n\nإذا رفضت، سيتغيّر الرمز فقط وتبقى الأرقام كما هي.",
+  "currency.convert.yes": "تحويل",
+  "currency.convert.no": "إبقاء الأرقام",
+  "currency.offline.title": "تغيّرت العملة، والمبالغ كما هي",
+  "currency.offline.msg": "تعذّر جلب أسعار الصرف (غير متصل؟). لم يتم تحويل مبالغك — غيّر العملة مجدداً عند الاتصال.",
 };
 
 const ja: Catalog = {
@@ -7090,6 +7167,17 @@ const ja: Catalog = {
   "goals.delete.msg": "この操作は取り消せません。",
   "loan.previewRemaining": "残り{time}・借入総コスト{cost}",
   "loan.previewFinished": "このローンは完済しています",
+  "ws.invite.howto": "コードを生成して相手に送ってください。相手は「スペースに参加」に貼り付けます。有効期間14日、1回のみ使用可能。",
+  "ws.invite.generate": "招待コードを生成",
+  "ws.err.inviteInvalid": "このコードは無効、期限切れ、または使用済みです。招待した方に新しいコードを依頼してください。",
+  "ws.err.notSignedIn": "スペースに参加するにはログインしてください。",
+  "ws.err.inviteNotReady": "招待機能はサーバー側でまだ有効化されていません。しばらくしてから再度お試しください。",
+  "currency.convert.title": "金額を換算しますか？",
+  "currency.convert.msg": "金額は{from}です。本日のレートで{to}に換算しますか？（1,000 {from} ≈ {example}）\n\n換算しない場合、記号のみが変わり数値はそのままです。",
+  "currency.convert.yes": "換算する",
+  "currency.convert.no": "数値を維持",
+  "currency.offline.title": "通貨を変更しました（金額は未換算）",
+  "currency.offline.msg": "為替レートを取得できませんでした（オフライン？）。金額は換算されていません。オンライン時に再度通貨を変更してください。",
 };
 
 export const CATALOGS: Record<Lang, Catalog> = { fr, en, es, pt, de, it, ar, ja };

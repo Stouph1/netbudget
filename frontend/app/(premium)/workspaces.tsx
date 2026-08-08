@@ -672,24 +672,35 @@ function WorkspaceDetailModal({
     }
   }
 
+  // Génère un code d'invitation. L'e-mail n'est plus demandé : il rendait
+  // l'invitation ingérable (Apple masque l'adresse, Google en renvoie une
+  // autre, fautes de frappe) alors que le code seul suffit — 256 bits,
+  // usage unique, expiration 14 jours.
   async function sendInvite() {
-    if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
-      Alert.alert(
-        t("ws.err.emailInvalid.title"),
-        t("ws.err.emailInvalid.msg"),
-      );
-      return;
-    }
     setBusy(true);
-    const result = await createInvite(workspace.id, inviteEmail.trim());
+    const result = await createInvite(workspace.id);
     setBusy(false);
     if (!result.ok || !result.invite) {
-      Alert.alert(t("common.error"), result.error ?? t("ws.err.inviteFailed"));
+      Alert.alert(t("common.error"), inviteErrorLabel(result.error));
       return;
     }
     setPendingToken(result.invite.token);
-    setInviteEmail("");
     Keyboard.dismiss();
+    void reloadInvites();
+  }
+
+  // Traduit les codes techniques renvoyés par le store.
+  function inviteErrorLabel(code?: string): string {
+    switch (code) {
+      case "invalid_invite":
+        return t("ws.err.inviteInvalid");
+      case "unauthenticated":
+        return t("ws.err.notSignedIn");
+      case "not_deployed":
+        return t("ws.err.inviteNotReady");
+      default:
+        return code || t("ws.err.inviteFailed");
+    }
   }
 
   function confirmDelete() {
@@ -821,27 +832,23 @@ function WorkspaceDetailModal({
                 <Text style={[styles.label, { marginTop: 16 }]}>
                   {t("ws.invite.title")}
                 </Text>
+                <Text style={styles.tokenHint}>{t("ws.invite.howto")}</Text>
                 <View style={{ flexDirection: "row", gap: 8 }}>
-                  <TextInput
-                    style={[styles.input, { flex: 1 }]}
-                    value={inviteEmail}
-                    onChangeText={setInviteEmail}
-                    placeholder={t("ws.invite.emailPlaceholder")}
-                    placeholderTextColor={TEXT_3}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
                   <TouchableOpacity
-                    style={styles.iconBtn}
+                    style={[styles.iconBtn, { flex: 1, flexDirection: "row", gap: 8 }]}
                     onPress={sendInvite}
                     disabled={busy}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("ws.invite.generate")}
                   >
                     {busy ? (
                       <ActivityIndicator color="#000" />
                     ) : (
-                      <Feather name="send" size={18} color="#000" />
+                      <>
+                        <Feather name="link" size={17} color="#000" />
+                        <Text style={styles.iconBtnText}>{t("ws.invite.generate")}</Text>
+                      </>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -1217,6 +1224,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 8,
   },
+  iconBtnText: { color: "#000", fontSize: 14, fontWeight: "700" },
   inviteRow: {
     flexDirection: "row",
     alignItems: "center",

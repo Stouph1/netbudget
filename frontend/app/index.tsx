@@ -41,6 +41,11 @@ import * as StoreReview from "expo-store-review";
 import * as Application from "expo-application";
 import { checkForUpdate, dismissUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import { loanProgress, remainingParts } from "../src/utils/loanSchedule";
+import {
+  convertEvents,
+  convertGoals,
+  convertHistory,
+} from "../src/utils/convertData";
 import LoanScheduleModal from "../src/components/LoanScheduleModal";
 import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import EventsPanel, { eventNeedsAttention } from "../src/components/EventsPanel";
@@ -70,12 +75,17 @@ import {
 } from "../src/lib/adviceEngine";
 import {
   addSavedAdvice,
+  loadBudgetHistory,
   loadCelebrations,
   loadAdviceProfile,
   loadBudget,
   loadEvents,
+  loadS1,
   recordBudgetHistoryPoint,
   saveBudget,
+  saveBudgetHistory,
+  saveEvents,
+  saveS1,
 } from "../src/lib/premiumStore";
 import { loadProfileDetails } from "../src/lib/profile";
 import ScopeSwitcher from "../src/components/ScopeSwitcher";
@@ -283,6 +293,10 @@ type ConfirmState = {
   danger?: boolean;
   confirmLabel?: string;
   onConfirm?: () => void;
+  /** Libellé du bouton d'annulation (défaut : « Annuler »). */
+  cancelLabel?: string;
+  /** Action au refus — utile quand « Non » n'est pas un simple abandon. */
+  onCancel?: () => void;
 };
 
 export default function Index() {
@@ -1293,6 +1307,125 @@ export default function Index() {
     setLoanStartText(isoToMonthInput(loan.startDate));
     setLoanModalOpen(true);
   }
+  // Convertit un champ texte de montant d'une devise à l'autre.
+  function convertOne(
+    raw: string,
+    from: CurrencyCode,
+    to: CurrencyCode,
+    rates: Parameters<typeof convert>[3],
+    decimals: number,
+  ): string {
+    const n = parseNumber(raw);
+    if (!n) return raw;
+    const c = convert(n, from, to, rates);
+    if (!isFinite(c) || c === 0) return raw;
+    return decimals === 0 ? String(Math.round(c)) : c.toFixed(2);
+  }
+
+  // Objectifs, événements et historique vivent côté serveur, par scope :
+  // on les convertit en tâche de fond après le budget local.
+  async function convertPremiumData(
+    from: CurrencyCode,
+    to: CurrencyCode,
+    rates: NonNullable<Awaited<ReturnType<typeof getRates>>>,
+  ) {
+    if (!premiumUser?.id) return;
+    const uid = premiumUser.id;
+    const scopes: (string | null)[] = [null, activeWorkspaceId];
+    for (const scope of new Set(scopes)) {
+      try {
+        const [s1, events, history] = await Promise.all([
+          loadS1(uid, scope),
+          loadEvents(uid, scope),
+          loadBudgetHistory(uid, scope),
+        ]);
+        await Promise.all([
+          saveS1(uid, convertGoals(s1, from, to, rates), scope),
+          saveEvents(uid, convertEvents(events, from, to, rates), scope),
+          saveBudgetHistory(uid, convertHistory(history, from, to, rates), scope),
+        ]);
+      } catch {
+        // Conversion best-effort : ne jamais bloquer le changement de devise.
+      }
+    }
+  }
+
+  // Changement de devise : on propose de CONVERTIR les montants existants.
+  // Sans ça, 12 000 € devenaient « 12 000 ¥ » — soit 70 € réels. Le symbole
+  // seul ne suffit pas, il faut convertir les valeurs.
+  const changeCurrency = useCallback(
+    async (next: CurrencyCode) => {
+      const prev = currency;
+      if (next === prev) return;
+
+      const hasAmounts =
+        parseNumber(rent) > 0 ||
+        incomes.some((i) => parseNumber(i.amount) > 0) ||
+        loans.length > 0 ||
+        expenseItems.some((e) => parseNumber(e.amount) > 0);
+
+      if (!hasAmounts) {
+        setCurrency(next);
+        return;
+      }
+
+      const rates = await getRates();
+      if (!rates) {
+        // Hors ligne : on change le symbole mais on prévient que les montants
+        // n'ont pas pu être convertis — mieux vaut le dire que laisser croire.
+        setCurrency(next);
+        notify(t("currency.offline.title"), t("currency.offline.msg"));
+        return;
+      }
+
+      const fromLabel = getCurrency(prev).code;
+      const toLabel = getCurrency(next).code;
+      const example = convert(1000, prev, next, rates);
+
+      setConfirm({
+        open: true,
+        title: t("currency.convert.title"),
+        message: interpolate(t("currency.convert.msg"), {
+          from: fromLabel,
+          to: toLabel,
+          example: formatCurrency(example, next),
+        }),
+        confirmLabel: t("currency.convert.yes"),
+        cancelLabel: t("currency.convert.no"),
+        onConfirm: () => {
+          const decimals = getCurrency(next).decimals;
+          setRent((r) => convertOne(r, prev, next, rates, decimals));
+          setIncomes((list) =>
+            list.map((i) => ({
+              ...i,
+              amount: convertOne(i.amount, prev, next, rates, decimals),
+            })),
+          );
+          setLoans((list) =>
+            list.map((l) => ({
+              ...l,
+              principal: convertOne(l.principal, prev, next, rates, decimals),
+              directMonthly: convertOne(l.directMonthly ?? "0", prev, next, rates, decimals),
+            })),
+          );
+          setExpenseItems((list) =>
+            list.map((e) => ({
+              ...e,
+              amount: convertOne(e.amount, prev, next, rates, decimals),
+            })),
+          );
+          setCurrency(next);
+          // Les données Premium (objectifs, événements, historique) vivent
+          // côté serveur : elles sont converties en tâche de fond.
+          void convertPremiumData(prev, next, rates);
+        },
+        onCancel: () => setCurrency(next),
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currency, rent, incomes, loans, expenseItems, lang],
+  );
+
   function saveLoan() {
     if (form.mode === "direct") {
       if (parseNumber(form.directMonthly || "0") <= 0) {
@@ -2657,8 +2790,8 @@ export default function Index() {
                     key={c.code}
                     style={[styles.currencyRow, active && styles.currencyRowActive]}
                     onPress={() => {
-                      setCurrency(c.code);
                       setCurrencyPickerOpen(false);
+                      void changeCurrency(c.code);
                     }}
                     testID={`currency-option-${c.code}`}
                     activeOpacity={0.85}
@@ -3574,10 +3707,16 @@ export default function Index() {
             <View style={styles.confirmActions}>
               <TouchableOpacity
                 style={styles.confirmCancelBtn}
-                onPress={() => setConfirm({ ...confirm, open: false })}
+                onPress={() => {
+                  const fn = confirm.onCancel;
+                  setConfirm({ ...confirm, open: false });
+                  if (fn) fn();
+                }}
                 testID="confirm-cancel"
               >
-                <Text style={styles.confirmCancelText}>{t("btn.cancel")}</Text>
+                <Text style={styles.confirmCancelText}>
+                  {confirm.cancelLabel || t("btn.cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.confirmOkBtn, confirm.danger && { backgroundColor: DANGER }]}

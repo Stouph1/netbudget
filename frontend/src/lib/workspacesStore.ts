@@ -151,19 +151,30 @@ function genInviteToken(): string {
   return globalThis.btoa(b64).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
+/**
+ * Crée un code d'invitation à usage unique.
+ *
+ * L'e-mail est FACULTATIF et purement mémo (« à qui ai-je donné ce code ? ») :
+ * il ne conditionne plus l'acceptation. L'exiger rendait les invitations
+ * ingérables — connexion Apple avec e-mail masqué, adresse Google différente
+ * de celle saisie, faute de frappe — et l'invité restait bloqué sans
+ * comprendre. La sécurité repose sur le code : 256 bits d'entropie, usage
+ * unique, expiration à 14 jours, révocable.
+ */
 export async function createInvite(
   workspaceId: string,
-  email: string,
+  email?: string,
 ): Promise<{ ok: boolean; invite?: WorkspaceInvite; error?: string }> {
   const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user?.id) return { ok: false, error: "Non authentifié" };
+  if (!userData.user?.id) return { ok: false, error: "unauthenticated" };
   const token = genInviteToken();
+  const note = email?.trim().toLowerCase() || null;
   const { data, error } = await supabase
     .from("workspace_invites")
     .insert({
       workspace_id: workspaceId,
       inviter_id: userData.user.id,
-      email: email.trim().toLowerCase(),
+      email: note,
       token,
       status: "pending",
     })
@@ -218,12 +229,16 @@ export async function acceptInvite(
     invite_token: token,
   });
   if (error) {
-    const msg = error.message.includes("invalid_invite")
-      ? "Invitation invalide, expirée, ou destinée à un autre e-mail."
-      : error.message.includes("unauthenticated")
-        ? "Connecte-toi pour accepter l'invitation."
-        : error.message;
-    return { ok: false, error: msg };
+    // Codes d'erreur techniques : l'écran les traduit pour l'utilisateur.
+    const raw = error.message ?? "";
+    const code = raw.includes("invalid_invite")
+      ? "invalid_invite"
+      : raw.includes("unauthenticated")
+        ? "unauthenticated"
+        : raw.includes("Could not find the function")
+          ? "not_deployed"
+          : raw;
+    return { ok: false, error: code };
   }
   return { ok: true, workspaceId: (data as string) ?? undefined };
 }

@@ -304,6 +304,19 @@ export async function loadBudgetHistory(
   return readPayload<BudgetHistoryPoint[]>(HISTORY_KEY, userId, [], workspaceId);
 }
 
+/**
+ * Remplace TOUT l'historique d'un scope. Utilisé par la conversion de devise
+ * (on réécrit les points convertis) — pas par l'enregistrement courant, qui
+ * passe par recordBudgetHistoryPoint.
+ */
+export async function saveBudgetHistory(
+  userId: string,
+  points: BudgetHistoryPoint[],
+  workspaceId: string | null,
+): Promise<void> {
+  await writePayload(HISTORY_KEY, userId, points, workspaceId);
+}
+
 export async function recordBudgetHistoryPoint(
   userId: string,
   workspaceId: string | null,
