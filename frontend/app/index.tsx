@@ -2399,6 +2399,7 @@ export default function Index() {
             experimentalBlurMethod="dimezisBlurView"
             style={styles.tabBarPill}
             onLayout={(e) => setTabBarWidth(e.nativeEvent.layout.width)}
+            accessibilityRole="tablist"
           >
             {/* Bulle de sélection animée (derrière les icônes) */}
             {tabBarWidth > 0 ? (
@@ -2425,9 +2426,22 @@ export default function Index() {
                   style={styles.tabBtn}
                   testID={`tab-${it.key}`}
                   activeOpacity={0.7}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={
+                    tabBadges[it.key]
+                      ? `${t(`tab.${it.key}`)}, nouveautés à voir`
+                      : t(`tab.${it.key}`)
+                  }
                 >
                   <View>
-                    <Feather name={it.icon} size={21} color={active ? GOLD : TEXT_3} />
+                    <Feather
+                      name={it.icon}
+                      size={21}
+                      color={active ? GOLD : TEXT_3}
+                      accessibilityElementsHidden
+                      importantForAccessibility="no"
+                    />
                     {tabBadges[it.key] ? <View style={styles.tabBadge} /> : null}
                   </View>
                   <Text
@@ -3363,6 +3377,8 @@ function Field({
         {right && <Text style={styles.inputRight}>{right}</Text>}
         {onDelete && (
           <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Fermer"
             onPress={onDelete}
             style={styles.fieldDeleteBtn}
             hitSlop={10}

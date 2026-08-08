@@ -265,10 +265,14 @@ export default function EventDetail() {
           {ev.emoji} {ev.name}
         </Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
-          <TouchableOpacity onPress={shareEvent} hitSlop={10}>
+          <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Partager" onPress={shareEvent} hitSlop={10}>
             <Feather name="share-2" size={18} color={GOLD} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={remove} hitSlop={10}>
+          <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Supprimer" onPress={remove} hitSlop={10}>
             <Feather name="trash-2" size={18} color={TEXT_3} />
           </TouchableOpacity>
         </View>
@@ -291,7 +295,12 @@ export default function EventDetail() {
             <Text style={styles.bigAmount}>{fmt(planned)}</Text>
             <Text style={styles.bigAmountSub}>budget prévu</Text>
           </View>
-          <View style={styles.progressBar}>
+          <View
+            style={styles.progressBar}
+            accessibilityRole="progressbar"
+            accessibilityLabel={`Financement : ${pct.toFixed(0)} pour cent`}
+            accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
+          >
             <View style={[styles.progressFill, { width: `${pct}%` }]} />
           </View>
           <Text style={styles.overviewMeta}>
@@ -372,6 +381,9 @@ export default function EventDetail() {
             >
               <TouchableOpacity
                 hitSlop={8}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: !!it.done }}
+                accessibilityLabel={`${it.label} — ${it.done ? "réglé" : "à régler"}`}
                 onPress={() =>
                   persist({
                     ...ev,
@@ -444,6 +456,9 @@ export default function EventDetail() {
               key={ms.id}
               style={styles.msRow}
               activeOpacity={0.8}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: !!ms.done }}
+              accessibilityLabel={`${ms.label} — ${ms.done ? "fait" : overdue ? "en retard" : "à faire"}`}
               onPress={() =>
                 persist(
                   {
@@ -505,7 +520,9 @@ export default function EventDetail() {
               placeholder="Où ? (site, agence…)"
               placeholderTextColor={TEXT_3}
             />
-            <TouchableOpacity style={styles.quoteAddBtn} onPress={addQuote} activeOpacity={0.85}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter" style={styles.quoteAddBtn} onPress={addQuote} activeOpacity={0.85}>
               <Feather name="plus" size={18} color="#000" />
             </TouchableOpacity>
           </View>

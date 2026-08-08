@@ -73,7 +73,9 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
           <View style={styles.handle} />
           <View style={styles.header}>
             <Text style={styles.title}>Changer de scope</Text>
-            <TouchableOpacity onPress={onClose} hitSlop={10}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
               <Feather name="x" size={20} color={TEXT_2} />
             </TouchableOpacity>
           </View>

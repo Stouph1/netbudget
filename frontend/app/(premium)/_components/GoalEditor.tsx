@@ -182,7 +182,9 @@ export default function GoalEditor({
               <Text style={styles.title}>
                 {goal ? "Modifier l'objectif" : "Nouvel objectif"}
               </Text>
-              <TouchableOpacity onPress={onClose} hitSlop={10}>
+              <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
                 <Feather name="x" size={22} color={TEXT_2} />
               </TouchableOpacity>
             </View>
@@ -310,6 +312,8 @@ export default function GoalEditor({
             <View style={styles.actions}>
               {onDelete ? (
                 <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Supprimer"
                   onPress={confirmDelete}
                   style={styles.btnDelete}
                   activeOpacity={0.85}

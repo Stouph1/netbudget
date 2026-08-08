@@ -243,7 +243,9 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
           <Balloon key={i} emoji={b.emoji} x={b.x * W} delay={b.delay} duration={b.duration} />
         ))}
 
-        <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={12}>
+        <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Fermer" style={styles.closeBtn} onPress={onClose} hitSlop={12}>
           <Feather name="x" size={22} color={TEXT_2} />
         </TouchableOpacity>
 
@@ -283,12 +285,17 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
 
         {!done ? (
           <>
-            {/* Boutons d'action (accessibilité, en plus du swipe) */}
+            {/* Boutons d'action : le swipe n'est JAMAIS le seul moyen d'agir.
+                Indispensable à la souris, au clavier, au switch control et à
+                toute personne dont la motricité fine rend le glissé difficile. */}
             <View style={styles.actionsRow}>
               <TouchableOpacity
                 style={[styles.actionBtn, { borderColor: "#F87171" }]}
                 onPress={() => decide(false)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Passer ce conseil"
+                accessibilityHint="Le conseil ne sera pas conservé"
               >
                 <Feather name="x" size={26} color="#F87171" />
               </TouchableOpacity>
@@ -296,14 +303,23 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
                 style={[styles.actionBtn, { borderColor: GOLD }]}
                 onPress={() => decide(true)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Garder ce conseil"
+                accessibilityHint="Il sera rangé dans Profil, Conseils gardés"
               >
                 <Feather name="bookmark" size={24} color={GOLD} />
               </TouchableOpacity>
             </View>
             <Text style={styles.hint}>
-              ← passer · garder dans mes conseils →
+              Appuie sur ✕ pour passer, sur 🔖 pour garder — ou fais glisser la
+              carte.
             </Text>
-            <View style={styles.dots}>
+            <View
+              style={styles.dots}
+              accessibilityRole="progressbar"
+              accessibilityLabel={`Carte ${index + 1} sur ${cards.length}`}
+              accessibilityValue={{ min: 1, max: cards.length, now: index + 1 }}
+            >
               {cards.map((_, i) => (
                 <View key={i} style={[styles.dot, i === index && styles.dotActive, i < index && styles.dotDone]} />
               ))}

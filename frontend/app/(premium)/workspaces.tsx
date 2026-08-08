@@ -325,7 +325,9 @@ function ScopeCard({
       </View>
       <View style={{ flexDirection: "row", gap: 8 }}>
         {onDetail ? (
-          <TouchableOpacity onPress={onDetail} hitSlop={10} style={styles.scopeBtn}>
+          <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Réglages" onPress={onDetail} hitSlop={10} style={styles.scopeBtn}>
             <Feather name="settings" size={16} color={TEXT_2} />
           </TouchableOpacity>
         ) : null}
@@ -399,7 +401,9 @@ function CreateModal({
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Nouvel espace</Text>
-            <TouchableOpacity onPress={onClose} hitSlop={10}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>
@@ -513,7 +517,9 @@ function JoinModal({
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Rejoindre un espace</Text>
-            <TouchableOpacity onPress={onClose} hitSlop={10}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>
@@ -705,7 +711,9 @@ function WorkspaceDetailModal({
                 {workspace.name}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} hitSlop={10}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>

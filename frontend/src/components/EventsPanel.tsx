@@ -251,7 +251,12 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 </View>
                 <Feather name="chevron-right" size={18} color={TEXT_3} />
               </View>
-              <View style={styles.progressBar}>
+              <View
+                style={styles.progressBar}
+                accessibilityRole="progressbar"
+                accessibilityLabel={`Financement : ${pct.toFixed(0)} pour cent`}
+                accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
+              >
                 <View style={[styles.progressFill, { width: `${pct}%` }]} />
               </View>
               <Text style={styles.cardMeta}>
@@ -314,6 +319,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                       returnKeyType="done"
                     />
                     <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter"
                       style={styles.addDestBtn}
                       onPress={addDestination}
                       activeOpacity={0.85}
