@@ -647,6 +647,9 @@ export default function Index() {
     scopeLabel,
   } = useActiveScope();
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
+  // Ville libre saisie dans le profil (« Rouen »), à faire correspondre au
+  // référentiel de villes pour l'indice de coût de la vie.
+  const [profileCity, setProfileCity] = useState<string | null>(null);
   // Points rouges de la tab bar : un signal par onglet (événement en retard /
   // J-7 sous-financé sur Événements, fête d'anniversaire prête sur Profil).
   const [tabBadges, setTabBadges] = useState<Partial<Record<Tab, boolean>>>({});
@@ -691,6 +694,9 @@ export default function Index() {
     // perso est neutralisé (mix 50/30/20 par défaut).
     setPremiumProfile(deriveMatchingProfile(p, activeWorkspaceKind));
     setTithePercent(details.tithe_enabled ? details.tithe_percent : 0);
+    // La ville saisie dans le profil est la donnée la PLUS précise sur « où je
+    // vis » : elle bat la région pour choisir l'indice de coût de la vie.
+    setProfileCity(details.city ?? null);
 
     // Anniversaires : le sien + ceux des enfants/animaux suivis.
     // Une célébration par personne et par an ; la sienne est prioritaire.
@@ -834,22 +840,46 @@ export default function Index() {
     if (cityPinned !== false) return; // pas encore chargé, ou ville épinglée
     const profRegion = premiumProfile?.region;
     const profCountry = premiumProfile?.country;
-    if (!profRegion && !profCountry) return;
-    // Déjà cohérent ? on ne touche à rien.
+    if (!profileCity && !profRegion && !profCountry) return;
+
+    // 1. La VILLE saisie dans le profil d'abord — c'est la donnée la plus
+    //    précise. Comparaison insensible à la casse et aux accents (« rouen »,
+    //    « ROUEN », « Rouën » doivent tous matcher « Rouen »).
+    if (profileCity?.trim()) {
+      const norm = (v: string) =>
+        v
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z]/g, "");
+      const target = norm(profileCity);
+      if (target) {
+        const exact = CITIES.find((c) => norm(c.name) === target);
+        // Repli : « saint etienne » doit trouver « Saint-Étienne » même si
+        // l'utilisateur a tapé une variante proche.
+        const partial =
+          exact ??
+          CITIES.find((c) => norm(c.name).startsWith(target) && target.length >= 4);
+        if (partial) {
+          if (partial.id !== city.id) setCity(partial);
+          return;
+        }
+      }
+    }
+
+    // 2. Sinon la région, 3. sinon le pays.
     if (profRegion && city.region === profRegion) return;
     if (!profRegion && profCountry && city.countryCode === profCountry) return;
 
     const candidates = CITIES.filter((c) =>
-      profRegion
-        ? c.region === profRegion
-        : c.countryCode === profCountry,
+      profRegion ? c.region === profRegion : c.countryCode === profCountry,
     );
     if (!candidates.length) return;
     // Ville de référence de la zone : indice médian, pour ne pas surestimer
     // (la capitale) ni sous-estimer (le village) le coût de la vie.
     const sorted = [...candidates].sort((a, b) => a.index - b.index);
     setCity(sorted[Math.floor(sorted.length / 2)]);
-  }, [premiumProfile?.region, premiumProfile?.country, cityPinned, city]);
+  }, [profileCity, premiumProfile?.region, premiumProfile?.country, cityPinned, city]);
 
   // Picker à 2 étapes : "country" puis "city"
   const [pickerStep, setPickerStep] = useState<"country" | "city">("country");

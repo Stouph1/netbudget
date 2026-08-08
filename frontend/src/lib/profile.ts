@@ -66,6 +66,11 @@ export type ProfileDetails = {
   birthdate: string | null; // ISO "AAAA-MM-JJ"
   occupation_status: string | null; // student | employee | self_employed | …
   occupation_field: string | null; // domaine de travail / d'études
+  // Lieu de vie déclaré. Écrit depuis l'inscription, il n'était pas relu :
+  // le Budget affichait donc la ville par défaut (Paris) au lieu de la sienne.
+  country: string | null;
+  region: string | null;
+  city: string | null;
 };
 
 export async function loadProfileDetails(
@@ -73,7 +78,7 @@ export async function loadProfileDetails(
 ): Promise<ProfileDetails> {
   const { data } = await supabase
     .from("profiles")
-    .select("username, first_name, last_name, avatar_url, tithe_enabled, tithe_percent, birthdate, occupation_status, occupation_field")
+    .select("username, first_name, last_name, avatar_url, tithe_enabled, tithe_percent, birthdate, occupation_status, occupation_field, country, region, city")
     .eq("id", userId)
     .maybeSingle();
   return {
@@ -86,6 +91,9 @@ export async function loadProfileDetails(
     birthdate: (data?.birthdate as string | null) ?? null,
     occupation_status: (data?.occupation_status as string | null) ?? null,
     occupation_field: (data?.occupation_field as string | null) ?? null,
+    country: (data?.country as string | null) ?? null,
+    region: (data?.region as string | null) ?? null,
+    city: (data?.city as string | null) ?? null,
   };
 }
 

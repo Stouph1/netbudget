@@ -103,6 +103,7 @@ export default function CompleteProfile() {
       setBirthInput(isoToInput(details.birthdate));
       if (details.occupation_status) setOccupation(details.occupation_status as Occupation);
       setOccupationField(details.occupation_field ?? "");
+      setCity(details.city ?? "");
       if (advicePerso.country) setCountry(advicePerso.country);
       if (advicePerso.region) setRegion(advicePerso.region);
       setLoading(false);
