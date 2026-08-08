@@ -26,6 +26,7 @@ import {
 import Svg, { Path } from "react-native-svg";
 import ScopeSwitcher from "./ScopeSwitcher";
 import { useLang } from "../contexts/LangContext";
+import { useCurrency } from "../contexts/CurrencyContext";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
@@ -53,13 +54,6 @@ const MINT = "#10B981";
 const BORDER = "rgba(255,255,255,0.08)";
 const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
 
-function formatEuro(n: number): string {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
 
 // Les noms de mois viennent du catalogue de traductions (month.short.N /
 // month.long.N), déjà traduits dans les 8 langues.
@@ -78,6 +72,9 @@ type Props = {
 
 export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Props) {
   const { t, tp } = useLang();
+  // Devise active (le « € » était codé en dur : changer de devise n'avait
+  // aucun effet sur cet écran).
+  const { fmt: formatEuro } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, scopeLabelIsKey, loading: scopeLoading } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
@@ -543,6 +540,7 @@ function buildRows(
 }
 
 function DeltaText({ row }: { row: CompareRow }) {
+  const { fmt: formatEuro } = useCurrency();
   if (row.a === undefined || row.b === undefined) {
     return <Text style={styles.rowDeltaNeutral}>—</Text>;
   }
@@ -566,6 +564,7 @@ function BudgetHistoryCard({
   onSeedDemo?: () => void; // __DEV__ uniquement — absent en prod
 }) {
   const { t, tp } = useLang();
+  const { fmt: formatEuro } = useCurrency();
   const [selected, setSelected] = useState<string | null>(null);
   const [compare, setCompare] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);

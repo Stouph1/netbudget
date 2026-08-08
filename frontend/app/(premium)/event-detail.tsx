@@ -24,6 +24,7 @@ import {
   templateFor,
 } from "../../src/constants/eventTemplates";
 import { useLang } from "../../src/contexts/LangContext";
+import { useCurrency } from "../../src/contexts/CurrencyContext";
 import { useActiveScope } from "../../src/contexts/ScopeContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import {
@@ -55,13 +56,13 @@ function safeAmount(input: string): number {
   return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
-function fmt(n: number): string {
-  return `${Math.round(n).toLocaleString("fr-FR")} €`;
-}
+
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang, t, tp } = useLang();
+  // Devise active : « € » était codé en dur, changer de devise n'avait aucun effet ici.
+  const { fmt } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId } = useActiveScope();
   const [all, setAll] = useState<EventProject[] | null>(null);

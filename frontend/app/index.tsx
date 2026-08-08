@@ -60,6 +60,7 @@ import {
   scheduleBirthdayNotification,
 } from "../src/utils/birthday";
 import { useActiveScope } from "../src/hooks/useActiveScope";
+import { useCurrency } from "../src/contexts/CurrencyContext";
 import { useLang } from "../src/contexts/LangContext";
 import {
   computeBudgetSplit,
@@ -325,7 +326,9 @@ export default function Index() {
   const [hydrated, setHydrated] = useState(false);
 
   // Devise
-  const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
+  // Devise partagée avec tous les écrans (contexte) : un changement dans les
+  // Réglages se propage aux Projets, aux objectifs et au profil.
+  const { currency, setCurrency } = useCurrency();
   const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
   const fmt = (v: number) => formatCurrency(v, currency);
 
@@ -967,12 +970,8 @@ export default function Index() {
           const found = CITIES.find((c) => c.id === stored.cityId);
           if (found) setCity(found);
         }
-        if (stored.currency) {
-          setCurrency(stored.currency as CurrencyCode);
-        }
-        if (stored.lang) {
-          setLang(stored.lang as Lang);
-        }
+        // Langue et devise sont restaurées par leurs contextes respectifs
+        // (montés à la racine) — pas ici, sinon deux sources de vérité.
       }
       setHydrated(true);
     })();

@@ -26,6 +26,7 @@ import {
 } from "../constants/eventTemplates";
 import ScopeSwitcher from "./ScopeSwitcher";
 import { useLang } from "../contexts/LangContext";
+import { useCurrency } from "../contexts/CurrencyContext";
 import { useActiveScope } from "../contexts/ScopeContext";
 import { useSession } from "../contexts/SessionContext";
 import {
@@ -44,9 +45,7 @@ const TEXT_3 = "#8193AC";
 const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
-function fmt(n: number): string {
-  return `${Math.round(n).toLocaleString("fr-FR")} €`;
-}
+
 
 // "JJ/MM/AAAA" futur → ISO (les événements sont devant nous, pas derrière)
 function parseFutureDate(input: string): string | null {
@@ -78,6 +77,8 @@ export function eventNeedsAttention(ev: EventProject, now: Date = new Date()): b
 
 export default function EventsPanel({ standalone = false }: { standalone?: boolean }) {
   const { lang, t, tp } = useLang();
+  // Devise active : « € » était codé en dur, changer de devise n'avait aucun effet ici.
+  const { fmt } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, scopeLabelIsKey } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.

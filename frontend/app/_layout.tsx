@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { CurrencyProvider } from "../src/contexts/CurrencyContext";
 import { LangProvider } from "../src/contexts/LangContext";
 import { ScopeProvider } from "../src/contexts/ScopeContext";
 import { SessionProvider } from "../src/contexts/SessionContext";
@@ -12,6 +13,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <SessionProvider>
           <LangProvider>
+          <CurrencyProvider>
           <ScopeProvider>
             <StatusBar style="light" />
             <Stack
@@ -21,6 +23,7 @@ export default function RootLayout() {
               }}
             />
           </ScopeProvider>
+          </CurrencyProvider>
           </LangProvider>
         </SessionProvider>
       </SafeAreaProvider>

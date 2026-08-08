@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DonutChart, { type DonutSegment } from "../../src/components/DonutChart";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { useLang } from "../../src/contexts/LangContext";
+import { useCurrency } from "../../src/contexts/CurrencyContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import type { Lang } from "../../src/i18n/translations";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
@@ -65,13 +66,6 @@ const DATE_LOCALES: Record<Lang, string> = {
   ja: "ja-JP",
 };
 
-function formatEuro(n: number): string {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
 
 function progressPct(goal: SavingsGoal): number {
   if (goal.targetAmount <= 0) return 0;
@@ -151,6 +145,9 @@ function goalPlan(
 
 export default function S1Epargne() {
   const { lang, t, tp } = useLang();
+  // Devise active (le « € » était codé en dur : changer de devise n'avait
+  // aucun effet sur cet écran).
+  const { fmt: formatEuro } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId, scopeLabel, scopeLabelIsKey, loading: scopeLoading } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
