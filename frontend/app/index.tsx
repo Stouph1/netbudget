@@ -60,6 +60,7 @@ import {
   scheduleBirthdayNotification,
 } from "../src/utils/birthday";
 import { useActiveScope } from "../src/hooks/useActiveScope";
+import { useLang } from "../src/contexts/LangContext";
 import {
   computeBudgetSplit,
   deriveMatchingProfile,
@@ -329,7 +330,9 @@ export default function Index() {
   const fmt = (v: number) => formatCurrency(v, currency);
 
   // Langue
-  const [lang, setLang] = useState<Lang>(DEFAULT_LANG);
+  // Langue partagée avec tous les écrans (contexte) : un changement dans les
+  // Réglages se propage au Coach, aux Projets et à l'inscription.
+  const { lang, setLang } = useLang();
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const t = (k: string) => tr(k, lang);
 
