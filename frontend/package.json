@@ -8,7 +8,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "check:figures": "node scripts/check-figures.mjs"
+    "check:figures": "node scripts/check-figures.mjs",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "verify": "tsc --noEmit && eslint app src && jest"
   },
   "dependencies": {
     "@babel/runtime": "^7.20.6",
@@ -62,9 +66,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "jest": "^30.4.2",
+    "jest-environment-node": "^30.4.1",
+    "ts-jest": "^29.4.12",
     "typescript": "~5.9.3"
   },
   "private": true,

@@ -1,0 +1,36 @@
+# Porte de qualité : types, lint et tests à chaque push et pull request.
+# Un test rouge bloque la fusion — c'est tout l'intérêt.
+name: Vérification
+
+on:
+  push:
+    branches: [main, premium]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installer les dépendances
+        working-directory: frontend
+        run: npm ci
+
+      - name: Types
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: frontend
+        run: npx eslint app src
+
+      - name: Tests
+        working-directory: frontend
+        run: npx jest --ci
