@@ -78,7 +78,9 @@ describe("convertGoals", () => {
   });
 
   it("préserve un versement mensuel absent", () => {
-    const out = convertGoals({ goals: [{ targetAmount: 100 }] }, "EUR", "USD", rates);
+    const sansVersement: { goals: { targetAmount: number; monthlyContribution?: number }[] } =
+      { goals: [{ targetAmount: 100 }] };
+    const out = convertGoals(sansVersement, "EUR", "USD", rates);
     expect(out.goals[0].monthlyContribution).toBeUndefined();
   });
 });

@@ -14,7 +14,8 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  roots: ["<rootDir>/src", "<rootDir>/__tests__"],
+  // `app` est inclus pour les helpers purs extraits des écrans (app/_budget).
+  roots: ["<rootDir>/src", "<rootDir>/app", "<rootDir>/__tests__"],
   testMatch: ["**/*.test.ts"],
   moduleNameMapper: {
     // Les modules testés touchent parfois au stockage natif : on le remplace
@@ -39,6 +40,6 @@ module.exports = {
     "src/utils/**/*.ts",
     "src/lib/adviceEngine.ts",
     "src/constants/eventTemplates.ts",
-    "src/i18n/translations.ts",
+    "src/i18n/index.ts",
   ],
 };

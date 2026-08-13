@@ -62,8 +62,10 @@ describe("intégrité du catalogue", () => {
 });
 
 describe("cloisonnement par pays", () => {
-  it("ne sert aucune carte française à un profil japonais", () => {
-    const shown = matchAdvice({ country: "JP", age: "26-35" });
+  it("ne sert aucune carte française à un profil hors liste", () => {
+    // "OTHER" = « Autre pays » dans l'app : un Japonais, un Brésilien…
+    // Le type Country ne liste que les pays ayant du contenu dédié.
+    const shown = matchAdvice({ country: "OTHER", age: "26-35" });
     const leaked = shown
       .filter((c) => Array.isArray(c.countries) && c.countries.includes("FR"))
       .map((c) => c.id);
@@ -71,7 +73,7 @@ describe("cloisonnement par pays", () => {
   });
 
   it("sert les cartes universelles à tout le monde", () => {
-    const shown = ids({ country: "JP", age: "26-35" });
+    const shown = ids({ country: "OTHER", age: "26-35" });
     expect(shown.length).toBeGreaterThan(0);
   });
 
@@ -144,7 +146,7 @@ describe("computeBudgetSplit", () => {
   it("produit une répartition qui totalise 100 %", () => {
     for (const p of [
       { age: "18-25", housing: "renter" },
-      { age: "36-50", family: "couple_kids", housing: "owner" },
+      { age: "36-50", family: "couple_with_kids", housing: "owner" },
       { age: "66+", occupation: "retired" },
       {},
     ] as UserProfile[]) {
@@ -164,7 +166,7 @@ describe("computeBudgetSplit", () => {
     const seul = computeBudgetSplit({ age: "36-50", family: "single" });
     const famille = computeBudgetSplit({
       age: "36-50",
-      family: "couple_kids",
+      family: "couple_with_kids",
       children: ["0-6", "7-11"],
     });
     expect(famille.besoins).toBeGreaterThanOrEqual(seul.besoins);
