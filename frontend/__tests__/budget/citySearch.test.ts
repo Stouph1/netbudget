@@ -3,7 +3,7 @@ import {
   filterCountries,
   resolveProfileCity,
   suggestCitiesGlobally,
-} from "./citySearch";
+} from "../../app/_budget/citySearch";
 import { CITIES, COUNTRIES } from "../../src/constants/cities";
 
 describe("filterCountries", () => {

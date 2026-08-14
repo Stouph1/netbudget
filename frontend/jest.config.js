@@ -15,7 +15,11 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   // `app` est inclus pour les helpers purs extraits des écrans (app/_budget).
-  roots: ["<rootDir>/src", "<rootDir>/app", "<rootDir>/__tests__"],
+  // PAS de "<rootDir>/app" : expo-router charge TOUT ce qui se trouve sous
+  // app/, y compris les .test.ts — ils deviennent des routes et l'app plante
+  // au démarrage sur « describe is not defined ». Les tests des modules de
+  // app/_budget vivent donc dans __tests__/budget/.
+  roots: ["<rootDir>/src", "<rootDir>/__tests__"],
   testMatch: ["**/*.test.ts"],
   moduleNameMapper: {
     // Les modules testés touchent parfois au stockage natif : on le remplace

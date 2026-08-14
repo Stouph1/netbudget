@@ -8,9 +8,9 @@ import {
   loanMonthlyPayment,
   monthInputToIso,
   sumAmounts,
-} from "./helpers";
-import { DEFAULT_ITEMS } from "./constants";
-import type { ExpenseItem, Loan } from "./types";
+} from "../../app/_budget/helpers";
+import { DEFAULT_ITEMS } from "../../app/_budget/constants";
+import type { ExpenseItem, Loan } from "../../app/_budget/types";
 import type { RatesPayload } from "../../src/utils/exchangeRates";
 
 // ---------------------------------------------------------------------------
