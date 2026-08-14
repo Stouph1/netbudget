@@ -2573,4 +2573,8 @@ export const en: Catalog = {
   "bdayCard.tn.18.title": "Legal majority at 18 in Tunisia",
   "bdayCard.tn.58.body": "CNSS, the private-sector fund: 60 with 120 months of contributions — a move to 62 has been announced but NOT enacted. CNRPS, the public-service fund: 62 since 2019. Early retirement is possible from 55 (by choice, with 360 months) or from 50 in the case of economic redundancy.",
   "bdayCard.tn.58.title": "Retirement: 60 in the private sector, 62 in the public sector",
+  "ago.now": "just now",
+  "ago.min": "{n} min ago",
+  "ago.hour": "{n} h ago",
+  "ago.day": "{n} d ago",
 };

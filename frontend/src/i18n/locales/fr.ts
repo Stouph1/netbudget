@@ -2627,4 +2627,8 @@ export const fr: Catalog = {
   "bdayCard.tn.18.title": "Majorité civile à 18 ans",
   "bdayCard.tn.58.body": "CNSS (privé) : 60 ans avec 120 mois de cotisations — le passage à 62 ans est annoncé mais PAS promulgué. CNRPS (fonction publique) : 62 ans depuis 2019. Anticipée possible dès 55 ans (convenance, 360 mois) ou 50 ans (licenciement économique).",
   "bdayCard.tn.58.title": "Retraite : 60 ans dans le privé, 62 dans le public",
+  "ago.now": "à l'instant",
+  "ago.min": "il y a {n} min",
+  "ago.hour": "il y a {n} h",
+  "ago.day": "il y a {n} j",
 };

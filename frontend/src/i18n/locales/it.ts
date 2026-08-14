@@ -2573,4 +2573,8 @@ export const it: Catalog = {
   "bdayCard.tn.18.title": "Maggiore età civile a 18 anni in Tunisia",
   "bdayCard.tn.58.body": "CNSS, la cassa del settore privato: 60 anni con 120 mesi di contributi — il passaggio a 62 è annunciato ma NON promulgato. CNRPS, la cassa del pubblico impiego: 62 anni dal 2019. L'anticipata è possibile dai 55 anni (per scelta, con 360 mesi) o dai 50 in caso di licenziamento economico.",
   "bdayCard.tn.58.title": "Pensione: 60 anni nel privato, 62 nel pubblico",
+  "ago.now": "proprio ora",
+  "ago.min": "{n} min fa",
+  "ago.hour": "{n} h fa",
+  "ago.day": "{n} g fa",
 };

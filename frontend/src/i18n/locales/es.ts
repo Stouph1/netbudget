@@ -2573,4 +2573,8 @@ export const es: Catalog = {
   "bdayCard.tn.18.title": "Mayoría de edad civil a los 18 en Túnez",
   "bdayCard.tn.58.body": "CNSS, la caja del sector privado: 60 años con 120 meses de cotizaciones; el paso a los 62 está anunciado pero NO promulgado. CNRPS, la caja de la función pública: 62 años desde 2019. La anticipada es posible desde los 55 (por conveniencia, con 360 meses) o desde los 50 en caso de despido económico.",
   "bdayCard.tn.58.title": "Jubilación: 60 años en el sector privado, 62 en el público",
+  "ago.now": "ahora mismo",
+  "ago.min": "hace {n} min",
+  "ago.hour": "hace {n} h",
+  "ago.day": "hace {n} d",
 };

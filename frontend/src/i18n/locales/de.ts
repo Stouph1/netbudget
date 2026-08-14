@@ -2573,4 +2573,8 @@ export const de: Catalog = {
   "bdayCard.tn.18.title": "Volljährigkeit mit 18 in Tunesien",
   "bdayCard.tn.58.body": "CNSS, die Kasse der Privatwirtschaft: 60 Jahre bei 120 Beitragsmonaten — die Anhebung auf 62 ist angekündigt, aber NICHT verkündet. CNRPS, die Kasse des öffentlichen Dienstes: 62 Jahre seit 2019. Frührente ist ab 55 möglich (auf eigenen Wunsch, mit 360 Monaten) oder ab 50 bei betriebsbedingter Kündigung.",
   "bdayCard.tn.58.title": "Rente: 60 in der Privatwirtschaft, 62 im öffentlichen Dienst",
+  "ago.now": "gerade eben",
+  "ago.min": "vor {n} Min.",
+  "ago.hour": "vor {n} Std.",
+  "ago.day": "vor {n} T.",
 };

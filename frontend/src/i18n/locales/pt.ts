@@ -2573,4 +2573,8 @@ export const pt: Catalog = {
   "bdayCard.tn.18.title": "Maioridade civil aos 18 na Tunísia",
   "bdayCard.tn.58.body": "CNSS, a caixa do setor privado: 60 anos com 120 meses de contribuições — a passagem aos 62 foi anunciada mas NÃO promulgada. CNRPS, a caixa da função pública: 62 anos desde 2019. A antecipada é possível a partir dos 55 (por conveniência, com 360 meses) ou dos 50 em caso de despedimento económico.",
   "bdayCard.tn.58.title": "Reforma: 60 anos no setor privado, 62 no público",
+  "ago.now": "agora mesmo",
+  "ago.min": "há {n} min",
+  "ago.hour": "há {n} h",
+  "ago.day": "há {n} d",
 };
