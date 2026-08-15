@@ -3,6 +3,7 @@
 // Le service_role key NE DOIT JAMAIS être ici (server-only).
 
 import { createClient } from "@supabase/supabase-js";
+import { Platform } from "react-native";
 import "react-native-url-polyfill/auto";
 import { secureSessionStorage } from "./secureStorage";
 
@@ -26,7 +27,12 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     // code_verifier généré localement (défense contre le détournement de
     // deep link, les custom schemes n'étant pas vérifiables sur Android).
     flowType: "pkce",
-    // Pas de redirect URL handling sur mobile — on gère via deep links côté natif.
-    detectSessionInUrl: false,
+    // Sur MOBILE : pas de lecture d'URL, on gère via deep links côté natif.
+    //
+    // Sur WEB : indispensable. Après un retour de Google, la session arrive
+    // dans l'URL de callback ; sans cette option Supabase l'ignore et
+    // l'utilisateur revient sur l'app toujours déconnecté, sans le moindre
+    // message. C'était le cas ici.
+    detectSessionInUrl: Platform.OS === "web",
   },
 });

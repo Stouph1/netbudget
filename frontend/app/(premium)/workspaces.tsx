@@ -16,7 +16,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Share,
-  Alert,
   Dimensions,
   Keyboard,
   Modal,
@@ -135,7 +134,7 @@ export default function WorkspacesScreen() {
     async (id: string | null, name?: string | null, kind?: WorkspaceKind | null) => {
       await setScope(id, name, kind);
       // Feedback rapide
-      Alert.alert(
+      notify(
         t(id ? "ws.switched.space.title" : "ws.switched.personal.title"),
         t(id ? "ws.switched.space.msg" : "ws.switched.personal.msg"),
       );
@@ -407,14 +406,14 @@ function CreateModal({
 
   async function submit() {
     if (!name.trim()) {
-      Alert.alert(t("ws.err.nameMissing.title"), t("ws.err.nameMissing.msg"));
+      notify(t("ws.err.nameMissing.title"), t("ws.err.nameMissing.msg"));
       return;
     }
     setBusy(true);
     const result = await createWorkspace(name.trim(), kind, description);
     setBusy(false);
     if (!result.ok || !result.workspace) {
-      Alert.alert(t("common.error"), result.error ?? t("ws.err.createFailed"));
+      notify(t("common.error"), result.error ?? t("ws.err.createFailed"));
       return;
     }
     onCreated(result.workspace);
@@ -523,17 +522,17 @@ function JoinModal({
 
   async function submit() {
     if (!token.trim()) {
-      Alert.alert(t("ws.err.codeMissing.title"), t("ws.err.codeMissing.msg"));
+      notify(t("ws.err.codeMissing.title"), t("ws.err.codeMissing.msg"));
       return;
     }
     setBusy(true);
     const result = await acceptInvite(token.trim());
     setBusy(false);
     if (!result.ok) {
-      Alert.alert(t("ws.err.joinFailed"), result.error ?? t("common.unknownError"));
+      notify(t("ws.err.joinFailed"), result.error ?? t("common.unknownError"));
       return;
     }
-    Alert.alert(t("ws.joined.title"), t("ws.joined.msg"));
+    notify(t("ws.joined.title"), t("ws.joined.msg"));
     onJoined();
   }
 
@@ -627,9 +626,9 @@ function WorkspaceDetailModal({
     if (result.ok) {
       setPhotoUrl(result.url);
     } else if (result.reason === "permission") {
-      Alert.alert(t("common.photos"), t("common.photosPermission"));
+      notify(t("common.photos"), t("common.photosPermission"));
     } else if (result.reason === "error") {
-      Alert.alert(
+      notify(
         t("common.uploadFailed"),
         result.message ?? t("common.unknownError"),
       );
@@ -681,7 +680,7 @@ function WorkspaceDetailModal({
     const result = await createInvite(workspace.id);
     setBusy(false);
     if (!result.ok || !result.invite) {
-      Alert.alert(t("common.error"), inviteErrorLabel(result.error));
+      notify(t("common.error"), inviteErrorLabel(result.error));
       return;
     }
     setPendingToken(result.invite.token);

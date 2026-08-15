@@ -5,7 +5,6 @@ import * as Crypto from "expo-crypto";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Dimensions,
   Keyboard,
   Modal,
@@ -21,7 +20,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLang } from "../../../src/contexts/LangContext";
-import { confirmDialog } from "../../../src/utils/notify";
+import { confirmDialog, notify } from "../../../src/utils/notify";
 import type { SavingsGoal } from "../../../src/types/premium";
 
 const MIDNIGHT = "#0F172A";
@@ -124,7 +123,7 @@ export default function GoalEditor({
 
   function submit() {
     if (!label.trim()) {
-      Alert.alert(
+      notify(
         t("goals.err.nameMissing.title"),
         t("goals.err.nameMissing.msg"),
       );
@@ -132,7 +131,7 @@ export default function GoalEditor({
     }
     const targetNum = parseAmount(target);
     if (targetNum <= 0) {
-      Alert.alert(t("goals.err.target.title"), t("goals.err.target.msg"));
+      notify(t("goals.err.target.title"), t("goals.err.target.msg"));
       return;
     }
     const now = new Date().toISOString();

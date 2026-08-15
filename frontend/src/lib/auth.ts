@@ -19,7 +19,12 @@ export type AuthResult =
   | { ok: true; userId: string }
   | {
       ok: false;
-      reason: "cancelled" | "unavailable" | "error";
+      /**
+       * `redirecting` : le navigateur part chez le fournisseur, la page
+       * courante va disparaître. Ce n'est ni un succès ni une erreur — l'UI ne
+       * doit rien afficher.
+       */
+      reason: "cancelled" | "unavailable" | "error" | "redirecting";
       message?: string;
       /** Clé i18n d'un message actionnable, quand la cause est identifiée. */
       messageKey?: string;
@@ -122,6 +127,29 @@ export async function signInWithApple(): Promise<AuthResult> {
 // (il faut un development build : `eas build --profile development`).
 // Le require est dynamique pour ne pas crasher Expo Go au chargement.
 export async function signInWithGoogle(): Promise<AuthResult> {
+  // WEB : le module natif n'existe pas dans un navigateur. On passe par le
+  // flux OAuth de Supabase, qui redirige vers Google puis revient sur l'app
+  // avec la session dans l'URL (d'où `detectSessionInUrl` côté web).
+  //
+  // Sans cette branche, l'appel échouait silencieusement et le bouton semblait
+  // mort — l'erreur partait dans un Alert.alert, lui-même inopérant sur web.
+  if (Platform.OS === "web") {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        // Retour sur la page d'où l'on vient, quel que soit le port de dev.
+        redirectTo:
+          typeof window !== "undefined" ? window.location.origin : undefined,
+        // Laisse choisir le compte au lieu de reprendre le dernier utilisé —
+        // sinon impossible de tester avec deux comptes.
+        queryParams: { prompt: "select_account" },
+      },
+    });
+    if (error) return { ok: false, reason: "error", message: error.message };
+    // À partir d'ici le navigateur quitte la page ; il n'y a pas de suite.
+    return { ok: false, reason: "redirecting" };
+  }
+
   let GoogleSignin: {
     configure: (opts: { webClientId?: string; iosClientId?: string }) => void;
     hasPlayServices: () => Promise<boolean>;

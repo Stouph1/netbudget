@@ -6,7 +6,6 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -20,6 +19,7 @@ import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { useLang } from "../../src/contexts/LangContext";
 import { useCurrency } from "../../src/contexts/CurrencyContext";
 import { useSession } from "../../src/contexts/SessionContext";
+import { notify } from "../../src/utils/notify";
 import type { Lang } from "../../src/i18n/translations";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { loadS1, saveS1 } from "../../src/lib/premiumStore";
@@ -199,7 +199,7 @@ export default function S1Epargne() {
       if (!user?.id) return;
       const result = await saveS1(user.id, next, workspaceId, currency);
       if (!result.ok) {
-        Alert.alert(
+        notify(
           t("goals.sync.title"),
           tp("goals.sync.msg", {
             error: result.error ?? t("common.unknownError"),

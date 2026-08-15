@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
-  Alert,
   Keyboard,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -358,7 +357,7 @@ export default function Index() {
       if (effective !== next) {
         // L'utilisateur a refusé la permission système → on remet à OFF et on l'informe.
         setMonthlyReminder(false);
-        Alert.alert(
+        notify(
           t("settings.notifications.title"),
           t("settings.notifications.denied"),
         );
@@ -1028,7 +1027,7 @@ export default function Index() {
         dialogTitle,
       });
     } else {
-      Alert.alert(t("doc.ready.title"), interpolate(t("doc.ready.msg"), { uri }));
+      notify(t("doc.ready.title"), interpolate(t("doc.ready.msg"), { uri }));
     }
   }
 
@@ -1036,7 +1035,7 @@ export default function Index() {
     try {
       await shareGeneratedPdf(generatePdfHtml(buildPdfData()), "Mon budget NETbudget");
     } catch {
-      Alert.alert(t("err.pdf.title"), t("err.pdf.msg"));
+      notify(t("err.pdf.title"), t("err.pdf.msg"));
     }
   }
 

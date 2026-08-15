@@ -14,7 +14,6 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Platform,
   ScrollView,
@@ -152,9 +151,9 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     if (result.ok) {
       setAvatarUrl(result.url);
     } else if (result.reason === "permission") {
-      Alert.alert(t("common.photos"), t("common.photosPermission"));
+      notify(t("common.photos"), t("common.photosPermission"));
     } else if (result.reason === "error") {
-      Alert.alert(
+      notify(
         t("common.uploadFailed"),
         result.message ?? t("common.unknownError"),
       );
@@ -183,7 +182,7 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     const result = await signInWithApple();
     setBusyAuth(false);
     if (!result.ok && result.reason !== "cancelled") {
-      Alert.alert(t("home.err.signin"), result.message ?? result.reason);
+      notify(t("home.err.signin"), result.message ?? result.reason);
       return;
     }
     if (result.ok) await afterSignIn(result.userId);
@@ -193,11 +192,14 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     if (!requireConsent()) return;
     setBusyAuth(true);
     const result = await signInWithGoogle();
+    // Sur le web, la page part chez Google : on laisse l'indicateur tourner
+    // plutôt que de faire clignoter le bouton avant que l'écran disparaisse.
+    if (!result.ok && result.reason === "redirecting") return;
     setBusyAuth(false);
     if (!result.ok && result.reason !== "cancelled") {
       // Quand la cause est identifiée (config OAuth, Play Services), on dit
       // quoi faire plutôt que d'afficher « DEVELOPER_ERROR ».
-      Alert.alert(
+      notify(
         t("home.err.signinGoogle"),
         result.messageKey
           ? t(result.messageKey)

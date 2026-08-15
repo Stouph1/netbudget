@@ -11,7 +11,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -55,6 +54,7 @@ import type {
   UserProfile,
 } from "../../src/types/advice";
 import { markAdviceSeen } from "../../src/utils/notificationScheduler";
+import { notify } from "../../src/utils/notify";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -492,7 +492,7 @@ export default function AdviceScreen() {
       if (!user?.id) return;
       const result = await saveAdviceProfile(user.id, next, workspaceId);
       if (!result.ok) {
-        Alert.alert(
+        notify(
           t("coach.sync.title"),
           tp("coach.sync.body", {
             error: result.error ?? t("coach.sync.unknownError"),
