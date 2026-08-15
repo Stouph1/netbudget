@@ -40,6 +40,12 @@ import {
   saveEvents,
   type EventProject,
 } from "../lib/premiumStore";
+import {
+  canCreateEvent,
+  isEventTypeLocked,
+  type Tier,
+} from "../lib/entitlements";
+import { loadTier, TIER_BEFORE_BILLING } from "../lib/tier";
 import type { UserProfile } from "../types/advice";
 import { scheduleEventNotifications } from "../utils/eventNotify";
 import { notify } from "../utils/notify";
@@ -116,6 +122,10 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   // Taux de change : les barèmes sourcés sont en euros, l'affichage suit la
   // devise de l'utilisateur.
   const [rates, setRates] = useState<RatesPayload | null>(null);
+  // Formule active — à ne pas confondre avec `tier`, la GAMME de l'événement.
+  // Tant que la facturation n'est pas branchée, loadTier() renvoie « family » :
+  // rien n'est bloqué, mais les règles sont déjà en place.
+  const [plan, setPlan] = useState<Tier>(TIER_BEFORE_BILLING);
 
   useFocusEffect(
     useCallback(() => {
@@ -146,6 +156,11 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
           if (!cancelled) setRates(r);
         })
         .catch(() => {});
+      loadTier()
+        .then((p) => {
+          if (!cancelled) setPlan(p);
+        })
+        .catch(() => {});
       return () => {
         cancelled = true;
       };
@@ -153,6 +168,23 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   );
 
   const tpl = type ? templateFor(type) : undefined;
+
+  // Le quota se vérifie AVANT d'ouvrir l'assistant : laisser quelqu'un
+  // remplir un formulaire complet pour lui refuser à la validation est la
+  // pire façon d'annoncer une limite.
+  const startCreating = useCallback(() => {
+    const verdict = canCreateEvent(plan, (list ?? []).length, "travel");
+    if (verdict.allowed || verdict.reason === "typeLocked") {
+      setCreating(true);
+      return;
+    }
+    notify(
+      t("events.plan.title"),
+      verdict.reason === "needsSubscription"
+        ? t("events.plan.subscribe")
+        : t("events.plan.quota"),
+    );
+  }, [plan, list, t]);
 
   const days = Math.max(0, parseInt(stayLength, 10) || 0);
   const travelers = Math.max(1, parseInt(guests, 10) || 1);
@@ -169,6 +201,20 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
 
   async function create() {
     if (!user?.id || !tpl) return;
+    // Dernier garde-fou : entre l'ouverture de l'assistant et la validation,
+    // un autre appareil du même espace a pu créer un événement.
+    const verdict = canCreateEvent(plan, (list ?? []).length, tpl.type);
+    if (!verdict.allowed) {
+      notify(
+        t("events.plan.title"),
+        verdict.reason === "needsSubscription"
+          ? t("events.plan.subscribe")
+          : verdict.reason === "typeLocked"
+            ? tp("events.plan.type", { type: t(tpl.labelKey) })
+            : t("events.plan.quota"),
+      );
+      return;
+    }
     const iso = parseFutureDate(dateStr);
     if (!iso) {
       notify(t("events.err.date.title"), t("events.err.date.body"));
@@ -255,7 +301,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     return (
       <View style={styles.center}>
         <Text style={{ fontSize: 34 }}>🗓️</Text>
-        <Text style={styles.emptyTitle}>{t("events.locked.title")}</Text>
+        <Text style={styles.emptyTitle}>{t("events.plan.title")}</Text>
         <Text style={styles.emptyBody}>{t("events.locked.body")}</Text>
       </View>
     );
@@ -365,18 +411,43 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
           </Text>
           {!tpl ? (
             <View style={styles.typeGrid}>
-              {EVENT_TEMPLATES.map((tpl0) => (
-                <TouchableOpacity
-                  key={tpl0.type}
-                  style={styles.typeCard}
-                  activeOpacity={0.85}
-                  onPress={() => setType(tpl0.type)}
-                >
-                  <Text style={{ fontSize: 26 }}>{tpl0.emoji}</Text>
-                  <Text style={styles.typeLabel}>{t(tpl0.labelKey)}</Text>
-                  <Text style={styles.typeTagline}>{t(tpl0.taglineKey)}</Text>
-                </TouchableOpacity>
-              ))}
+              {EVENT_TEMPLATES.map((tpl0) => {
+                // Un type indisponible reste VISIBLE mais marqué : le cacher
+                // priverait l'utilisateur de la raison de monter de formule.
+                const locked = isEventTypeLocked(plan, tpl0.type);
+                return (
+                  <TouchableOpacity
+                    key={tpl0.type}
+                    style={[styles.typeCard, locked && styles.typeCardLocked]}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: locked }}
+                    accessibilityLabel={
+                      locked
+                        ? `${t(tpl0.labelKey)} — ${t("events.plan.badge")}`
+                        : t(tpl0.labelKey)
+                    }
+                    onPress={() => {
+                      if (locked) {
+                        notify(
+                          t("events.plan.title"),
+                          tp("events.plan.type", { type: t(tpl0.labelKey) }),
+                        );
+                        return;
+                      }
+                      setType(tpl0.type);
+                    }}
+                  >
+                    <Text style={{ fontSize: 26, opacity: locked ? 0.5 : 1 }}>
+                      {tpl0.emoji}
+                    </Text>
+                    <Text style={styles.typeLabel}>{t(tpl0.labelKey)}</Text>
+                    <Text style={styles.typeTagline}>
+                      {locked ? t("events.plan.badge") : t(tpl0.taglineKey)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           ) : (
             <>
@@ -584,7 +655,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       ) : (
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => setCreating(true)}
+          onPress={startCreating}
           activeOpacity={0.85}
         >
           <Feather name="plus" size={18} color="#000" />
@@ -730,6 +801,9 @@ const styles = StyleSheet.create({
   estimateTitle: { color: GOLD, fontSize: 13, fontWeight: "700" },
   estimateLine: { color: TEXT_2, fontSize: 12.5, lineHeight: 18 },
   estimateHint: { color: TEXT_3, fontSize: 11, lineHeight: 15, marginTop: 4 },
+  // Type indisponible sur la formule : atténué mais lisible, sinon on ne
+  // comprend pas ce qu'on gagnerait à monter de formule.
+  typeCardLocked: { opacity: 0.55, borderStyle: "dashed" },
   primaryBtn: {
     flexDirection: "row",
     alignItems: "center",
