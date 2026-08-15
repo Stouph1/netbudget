@@ -172,6 +172,28 @@ export default function SettingsScreen({
             testID="settings-notifications-toggle"
           />
         </View>
+
+        {/* Réglages fins : catégories, fréquence, heure, et surtout l'aperçu
+            de ce qui est réellement programmé. */}
+        <TouchableOpacity
+          onPress={() => router.push("/notifications")}
+          style={styles.toggleRow}
+          accessibilityRole="button"
+          accessibilityLabel={t("settings.notifications.personalize")}
+          testID="settings-notifications-personalize"
+          activeOpacity={0.7}
+        >
+          <Feather name="sliders" size={20} color={TEXT_3} style={{ marginRight: 12 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>
+              {t("settings.notifications.personalize")}
+            </Text>
+            <Text style={styles.infoRowText}>
+              {t("settings.notifications.personalizeDesc")}
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={TEXT_3} />
+        </TouchableOpacity>
       </Section>
 
       <Section title={t("settings.danger.title")}>

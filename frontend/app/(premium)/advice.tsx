@@ -54,6 +54,7 @@ import type {
   TaxBracket,
   UserProfile,
 } from "../../src/types/advice";
+import { markAdviceSeen } from "../../src/utils/notificationScheduler";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -449,6 +450,18 @@ export default function AdviceScreen() {
     // pour les associations.
     return allAdviceGrouped(matchingProfile(profile, workspaceKind));
   }, [profile, workspaceKind, mode]);
+
+  // Ce que l'utilisateur a réellement sous les yeux est marqué « vu » : les
+  // notifications « tu as peut-être droit à ça » ne proposeront donc jamais un
+  // conseil déjà lu. On ne marque QUE les groupes dépliés — tout marquer à
+  // l'ouverture de l'écran viderait la source de la notification la plus utile
+  // de l'app alors que rien n'aurait été lu.
+  useEffect(() => {
+    const shown = grouped
+      .filter((g) => expandedGroups.has(g.group.key))
+      .flatMap((g) => g.cards.map((c) => c.id));
+    if (shown.length) void markAdviceSeen(shown);
+  }, [grouped, expandedGroups]);
 
   const completeness = profileCompleteness(profile, cfg);
   // Questions non répondues, formulées comme des bénéfices concrets — c'est ce

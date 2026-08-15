@@ -75,6 +75,12 @@ export type NotifContext = {
   alreadySent: Record<string, string>;
   /** Conseils à fort enjeu qui correspondent au profil et jamais montrés. */
   unseenRights: { id: string; titleKey: string; priority: number }[];
+  /**
+   * Mêmes conseils, mais dont la fenêtre est SAISONNIÈRE (déclaration
+   * d'impôts, rentrée, fin d'année). Séparés parce qu'ils se périment : passé
+   * le mois, l'information ne vaut plus rien avant un an.
+   */
+  seasonalRights?: { id: string; titleKey: string; priority: number }[];
   /** Objectifs d'épargne en cours. */
   goals: { id: string; label: string; current: number; target: number }[];
   /** Événements à venir avec leur prochain jalon non fait. */
@@ -135,7 +141,26 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     });
   }
 
-  // --- 2. ÉVÉNEMENTS ------------------------------------------------------
+  // --- 2. FENÊTRE SAISONNIÈRE QUI SE FERME --------------------------------
+  // Score au-dessus des jalons d'événement : une échéance fiscale ou une aide
+  // de rentrée ne se rattrape pas le mois suivant. On envoie vite — le lendemain
+  // — parce que la valeur de l'information décroît chaque jour.
+  const topSeasonal = [...(ctx.seasonalRights ?? [])].sort(
+    (a, b) => b.priority - a.priority,
+  )[0];
+  if (topSeasonal) {
+    push({
+      id: `seasonal-${topSeasonal.id}`,
+      category: "seasonal",
+      titleKey: "notif.seasonal.title",
+      bodyKey: topSeasonal.titleKey,
+      score: 92,
+      at: atHour(new Date(now.getTime() + DAY_MS), prefs.hour),
+      route: "/(premium)/advice",
+    });
+  }
+
+  // --- 3. ÉVÉNEMENTS ------------------------------------------------------
   // Un jalon raté coûte cher (lieu déjà réservé par d'autres, billets plus
   // chers). Score élevé car l'information est périssable.
   for (const ev of ctx.events) {
@@ -168,7 +193,7 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     }
   }
 
-  // --- 3. OBJECTIFS : on célèbre les paliers ------------------------------
+  // --- 4. OBJECTIFS : on célèbre les paliers ------------------------------
   // Franchir 25/50/75/100 % est un vrai moment. C'est la seule notification
   // qui n'apporte pas d'information neuve, et elle se justifie parce qu'elle
   // renforce un comportement que l'utilisateur a choisi.
@@ -190,7 +215,7 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     }
   }
 
-  // --- 4. PRÊTS : les caps qui font plaisir -------------------------------
+  // --- 5. PRÊTS : les caps qui font plaisir -------------------------------
   for (const l of ctx.loans) {
     if (l.remainingMonths > 0 && l.remainingMonths % 12 === 0) {
       push({
@@ -205,7 +230,7 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     }
   }
 
-  // --- 5. BUDGET DU MOIS non rempli ---------------------------------------
+  // --- 6. BUDGET DU MOIS non rempli ---------------------------------------
   // Seulement si le mois est déjà bien entamé : relancer le 2 du mois est du
   // bruit, relancer le 10 est un service.
   if (!ctx.budgetFilledThisMonth && now.getDate() >= 8) {
@@ -219,18 +244,19 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     });
   }
 
-  // --- 6. REPRISE APRÈS ABSENCE -------------------------------------------
+  // --- 7. REPRISE APRÈS ABSENCE -------------------------------------------
   // Jamais de reproche, jamais de « on ne te voit plus » : une RAISON de
   // revenir. Et seulement s'il y a réellement quelque chose de neuf.
   if (ctx.lastOpenedAt) {
     const away = daysBetween(ctx.lastOpenedAt, now);
-    if (away >= 21 && ctx.unseenRights.length >= 3) {
+    const fresh = ctx.unseenRights.length + (ctx.seasonalRights?.length ?? 0);
+    if (away >= 21 && fresh >= 3) {
       push({
         id: `comeback-${now.getFullYear()}-${now.getMonth()}`,
         category: "comeback",
         titleKey: "notif.comeback.title",
         bodyKey: "notif.comeback.body",
-        params: { n: ctx.unseenRights.length },
+        params: { n: fresh },
         score: 50,
         at: atHour(new Date(now.getTime() + DAY_MS), prefs.hour),
         route: "/(premium)/advice",

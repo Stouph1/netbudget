@@ -55,6 +55,66 @@ describe("droits non réclamés", () => {
   });
 });
 
+describe("fenêtres saisonnières", () => {
+  const impots = { id: "fr-ir-declaration", titleKey: "adv.fr-ir.title", priority: 70 };
+
+  it("passe devant un jalon d'événement — la fenêtre se ferme", () => {
+    const out = buildCandidates(
+      baseCtx({
+        seasonalRights: [impots],
+        events: [
+          {
+            id: "e1",
+            name: "Mariage",
+            emoji: "💍",
+            dateIso: "2027-06-20",
+            fundedRatio: 1,
+            nextMilestoneAt: new Date("2026-09-01T09:00:00Z"),
+          },
+        ],
+      }),
+    );
+    expect(out[0].category).toBe("seasonal");
+  });
+
+  it("part dès le lendemain, pas dans deux jours", () => {
+    const out = buildCandidates(baseCtx({ seasonalRights: [impots] }));
+    expect(Math.round((out[0].at.getTime() - NOW.getTime()) / 86_400_000)).toBe(1);
+  });
+
+  it("n'en envoie qu'une à la fois", () => {
+    const out = buildCandidates(
+      baseCtx({
+        seasonalRights: [impots, { id: "b", titleKey: "t", priority: 90 }],
+      }),
+    );
+    expect(out.filter((c) => c.category === "seasonal")).toHaveLength(1);
+  });
+
+  it("respecte la catégorie désactivée", () => {
+    const prefs: NotifPrefs = { ...DEFAULT_NOTIF_PREFS, seasonal: false };
+    const out = buildCandidates(baseCtx({ prefs, seasonalRights: [impots] }));
+    expect(out.filter((c) => c.category === "seasonal")).toEqual([]);
+  });
+
+  it("compte dans la nouveauté qui autorise une reprise de contact", () => {
+    // Deux permanents + un saisonnier = 3 : assez de neuf pour justifier
+    // une relance après une longue absence.
+    const out = buildCandidates(
+      baseCtx({
+        lastOpenedAt: new Date("2026-07-01T10:00:00Z"),
+        unseenRights: [
+          { id: "a", titleKey: "t", priority: 50 },
+          { id: "b", titleKey: "t", priority: 40 },
+        ],
+        seasonalRights: [impots],
+      }),
+    );
+    const comeback = out.find((c) => c.category === "comeback");
+    expect(comeback?.params?.n).toBe(3);
+  });
+});
+
 describe("événements", () => {
   const ev = {
     id: "e1",
