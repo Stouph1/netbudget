@@ -17,7 +17,34 @@ import { supabase } from "./supabase";
 
 export type AuthResult =
   | { ok: true; userId: string }
-  | { ok: false; reason: "cancelled" | "unavailable" | "error"; message?: string };
+  | {
+      ok: false;
+      reason: "cancelled" | "unavailable" | "error";
+      message?: string;
+      /** Clé i18n d'un message actionnable, quand la cause est identifiée. */
+      messageKey?: string;
+    };
+
+/**
+ * Traduit les codes d'erreur de Google Sign-In en causes réelles.
+ *
+ * Sans ça, l'app affiche « DEVELOPER_ERROR » ou un code numérique : ni
+ * l'utilisateur ni le développeur ne savent quoi faire. Ces trois cas couvrent
+ * la quasi-totalité des échecs en production.
+ */
+function googleErrorKey(code: string): string | undefined {
+  // 10 / DEVELOPER_ERROR : l'empreinte SHA-1 de la signature du build n'est pas
+  // déclarée dans Google Cloud Console, ou le client OAuth ne correspond pas au
+  // nom de package. C'est TOUJOURS une erreur de configuration, jamais de
+  // l'utilisateur — et elle ne se voit qu'en build signé.
+  if (code === "10" || code === "DEVELOPER_ERROR") return "home.err.google.config";
+  // 2 / PLAY_SERVICES_NOT_AVAILABLE : appareil Android sans services Google.
+  if (code === "2" || code === "PLAY_SERVICES_NOT_AVAILABLE")
+    return "home.err.google.playServices";
+  // 8 / IN_PROGRESS : un appui répété pendant que la fenêtre s'ouvre.
+  if (code === "8" || code === "IN_PROGRESS") return "home.err.google.inProgress";
+  return undefined;
+}
 
 // Apple Sign In natif iOS.
 // Apple ne donne nom/email qu'à la PREMIÈRE connexion ; on les capture ici
@@ -144,11 +171,19 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     return { ok: true, userId: data.user.id };
   } catch (e: unknown) {
     const err = e as { code?: string | number; message?: string };
+    const code = String(err.code ?? "");
     // 12501 / SIGN_IN_CANCELLED — annulation utilisateur
-    if (String(err.code) === "12501" || String(err.code) === "SIGN_IN_CANCELLED") {
+    if (code === "12501" || code === "SIGN_IN_CANCELLED") {
       return { ok: false, reason: "cancelled" };
     }
-    return { ok: false, reason: "error", message: err.message };
+    return {
+      ok: false,
+      reason: "error",
+      messageKey: googleErrorKey(code),
+      // Le détail technique reste disponible : c'est ce qui permet de
+      // diagnostiquer un cas non répertorié sans reproduire soi-même.
+      message: err.message ?? code,
+    };
   }
 }
 

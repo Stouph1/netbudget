@@ -14,6 +14,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
 import {
   buildEventItems,
   buildEventMilestones,
@@ -292,8 +297,18 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
           const monthly = monthlyNeeded(ev);
           const attention = eventNeedsAttention(ev);
           return (
-            <TouchableOpacity
+            // La suppression se fait depuis la fiche, mais elle se VOIT ici :
+            // au retour, la liste rechargée démonte la carte et l'animation de
+            // sortie se joue, pendant que les suivantes remontent à leur place.
+            // Sans ça, l'événement disparaît d'un coup et on doute d'avoir
+            // supprimé le bon.
+            <Animated.View
               key={ev.id}
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(220)}
+              layout={LinearTransition.duration(260)}
+            >
+            <TouchableOpacity
               style={styles.card}
               activeOpacity={0.85}
               onPress={() =>
@@ -338,6 +353,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                   : ` · ${t("events.card.fullyFunded")}`}
               </Text>
             </TouchableOpacity>
+            </Animated.View>
           );
         })
       )}

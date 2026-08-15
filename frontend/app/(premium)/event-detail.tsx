@@ -73,6 +73,9 @@ export default function EventDetail() {
   const [draftPaidBy, setDraftPaidBy] = useState("");
   const [savedDraft, setSavedDraft] = useState<string | null>(null);
   const [placeLabel, setPlaceLabel] = useState<string | null>(null);
+  // Suppression en cours : bloque un second appui pendant l'aller-retour
+  // serveur, qui supprimerait un deuxième événement une fois de retour.
+  const [deleting, setDeleting] = useState(false);
   const [quoteLabel, setQuoteLabel] = useState("");
   const [quotePrice, setQuotePrice] = useState("");
   const [quoteSource, setQuoteSource] = useState("");
@@ -145,11 +148,20 @@ export default function EventDetail() {
       t("event.delete.title"),
       tp("event.delete.body", { name: ev.name }),
       t("event.delete.confirm"),
-      () => {
+      async () => {
         const nextAll = all.filter((e) => e.id !== ev.id);
         setAll(nextAll);
-        void saveEvents(user.id, nextAll, workspaceId, currency);
         void cancelEventNotifications(ev.id);
+        // ATTENDRE l'enregistrement avant de revenir. La liste recharge dès
+        // qu'elle reprend le focus et PRÉFÈRE la version serveur au cache :
+        // repartir trop tôt la faisait relire l'ancienne liste, et
+        // l'événement supprimé réapparaissait.
+        setDeleting(true);
+        try {
+          await saveEvents(user.id, nextAll, workspaceId, currency);
+        } finally {
+          setDeleting(false);
+        }
         router.back();
       },
     );
@@ -278,8 +290,14 @@ export default function EventDetail() {
           </TouchableOpacity>
           <TouchableOpacity
               accessibilityRole="button"
+              accessibilityState={{ disabled: deleting, busy: deleting }}
+              disabled={deleting}
               accessibilityLabel={t("event.a11y.delete")} onPress={remove} hitSlop={10}>
-            <Feather name="trash-2" size={18} color={TEXT_3} />
+            {deleting ? (
+              <ActivityIndicator size="small" color={TEXT_3} />
+            ) : (
+              <Feather name="trash-2" size={18} color={TEXT_3} />
+            )}
           </TouchableOpacity>
         </View>
       </View>

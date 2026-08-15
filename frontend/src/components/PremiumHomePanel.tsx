@@ -11,7 +11,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -30,7 +30,11 @@ import { useCurrency } from "../contexts/CurrencyContext";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
-import { recordConsent } from "../lib/profile";
+import {
+  loadConsentAccepted,
+  recordConsent,
+  saveConsentAccepted,
+} from "../lib/profile";
 import { confirmDialog, notify } from "../utils/notify";
 import { openExternal } from "../utils/openExternal";
 import { pickAndUploadAvatar } from "../lib/photos";
@@ -86,7 +90,25 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
   const [busyAvatar, setBusyAvatar] = useState(false);
   const [busyAuth, setBusyAuth] = useState(false);
   // RGPD : la case doit être cochée AVANT toute création de compte.
-  const [consentOk, setConsentOk] = useState(false);
+  // Le consentement est un CHOIX de l'utilisateur, pas un état d'écran. Il
+  // vivait en mémoire : partir vers l'écran e-mail, revenir, ou simplement
+  // relancer l'app décochait la case et il fallait tout recommencer.
+  // L'horodatage légal reste posé côté serveur par recordConsent() au moment
+  // de la création du compte — persister la case ne change que la friction.
+  const [consentOk, setConsentOkState] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    loadConsentAccepted().then((v) => {
+      if (alive) setConsentOkState(v);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const setConsentOk = useCallback((next: boolean) => {
+    setConsentOkState(next);
+    void saveConsentAccepted(next);
+  }, []);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useFocusEffect(
@@ -173,7 +195,14 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     const result = await signInWithGoogle();
     setBusyAuth(false);
     if (!result.ok && result.reason !== "cancelled") {
-      Alert.alert(t("home.err.signinGoogle"), result.message ?? result.reason);
+      // Quand la cause est identifiée (config OAuth, Play Services), on dit
+      // quoi faire plutôt que d'afficher « DEVELOPER_ERROR ».
+      Alert.alert(
+        t("home.err.signinGoogle"),
+        result.messageKey
+          ? t(result.messageKey)
+          : (result.message ?? result.reason),
+      );
       return;
     }
     if (result.ok) await afterSignIn(result.userId);

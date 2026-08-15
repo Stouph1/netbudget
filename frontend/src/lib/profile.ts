@@ -1,6 +1,7 @@
 // Lecture/écriture des infos de base du profil (username, avatar).
 // La table profiles est créée par la migration 001, username par la 006.
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "./supabase";
 
 export type ProfileBasics = {
@@ -99,6 +100,29 @@ export async function loadProfileDetails(
 
 // Enregistre l'acceptation RGPD (horodatée) — preuve de consentement.
 // Appelé une fois après la première connexion (la case était obligatoire).
+// Mémorisation LOCALE de la case « j'accepte » cochée sur l'écran de connexion.
+//
+// Elle n'a pas de valeur juridique — c'est `recordConsent()` ci-dessous qui
+// horodate le consentement côté serveur au moment où le compte est créé. Elle
+// évite seulement de faire recocher la case à chaque retour sur l'écran, ce qui
+// décourageait les gens avant même l'inscription.
+const CONSENT_KEY = "netbudget:consentAccepted";
+
+export async function loadConsentAccepted(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(CONSENT_KEY)) === "1";
+  } catch {
+    return false; // dans le doute, on redemande : jamais l'inverse
+  }
+}
+
+export async function saveConsentAccepted(accepted: boolean): Promise<void> {
+  try {
+    if (accepted) await AsyncStorage.setItem(CONSENT_KEY, "1");
+    else await AsyncStorage.removeItem(CONSENT_KEY);
+  } catch {}
+}
+
 export async function recordConsent(userId: string): Promise<void> {
   await supabase
     .from("profiles")
