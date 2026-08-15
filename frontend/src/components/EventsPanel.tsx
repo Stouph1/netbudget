@@ -4,7 +4,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -30,12 +30,20 @@ import { useCurrency } from "../contexts/CurrencyContext";
 import { useActiveScope } from "../contexts/ScopeContext";
 import { useSession } from "../contexts/SessionContext";
 import {
+  loadAdviceProfile,
   loadEvents,
   saveEvents,
   type EventProject,
 } from "../lib/premiumStore";
+import type { UserProfile } from "../types/advice";
 import { scheduleEventNotifications } from "../utils/eventNotify";
 import { notify } from "../utils/notify";
+import { getRates, type RatesPayload } from "../utils/exchangeRates";
+import {
+  applyTripToItems,
+  dominantDestination,
+  toDisplayCurrency,
+} from "../utils/travelEstimate";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -95,7 +103,14 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   const [styleKey, setStyleKey] = useState<string | null>(null);
   const [destInput, setDestInput] = useState("");
   const [destinations, setDestinations] = useState<string[]>([]);
+  const [stayLength, setStayLength] = useState("");
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // Profil : sert le pays de DÉPART (sans lui, aucun prix de billet) et les
+  // animaux du foyer (garde à prévoir pendant l'absence).
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  // Taux de change : les barèmes sourcés sont en euros, l'affichage suit la
+  // devise de l'utilisateur.
+  const [rates, setRates] = useState<RatesPayload | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -110,7 +125,42 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     }, [user?.id, workspaceId]),
   );
 
+  // Le pays de départ vient du profil PERSO : on voyage depuis chez soi, pas
+  // depuis l'espace partagé dans lequel on planifie.
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+      let cancelled = false;
+      loadAdviceProfile(user.id, null)
+        .then((p) => {
+          if (!cancelled) setProfile(p);
+        })
+        .catch(() => {});
+      getRates()
+        .then((r) => {
+          if (!cancelled) setRates(r);
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+      };
+    }, [user?.id]),
+  );
+
   const tpl = type ? templateFor(type) : undefined;
+
+  const days = Math.max(0, parseInt(stayLength, 10) || 0);
+  const travelers = Math.max(1, parseInt(guests, 10) || 1);
+
+  // Estimation recalculée à chaque frappe : l'utilisateur voit le budget se
+  // former pendant qu'il saisit, au lieu de le découvrir après validation.
+  const trip = useMemo(
+    () =>
+      tpl?.asksDestinations && destinations.length
+        ? dominantDestination(destinations, profile?.country)
+        : null,
+    [tpl?.asksDestinations, destinations, profile?.country],
+  );
 
   async function create() {
     if (!user?.id || !tpl) return;
@@ -137,7 +187,28 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       tier,
       style: styleKey ?? undefined,
       destinations: destinations.length ? destinations : undefined,
-      items: buildEventItems(tpl, tier, g, styleKey ?? undefined),
+      // Le barème par gamme donne le point de départ ; l'estimation le
+      // corrige avec la distance réelle, le coût de la vie sur place et la
+      // garde des animaux. Destination non reconnue = barème inchangé.
+      items: toDisplayCurrency(
+        applyTripToItems({
+          items: buildEventItems(tpl, tier, g, styleKey ?? undefined),
+          estimate: trip,
+          origin: profile?.country,
+          travelers: g ?? travelers,
+          days: days || undefined,
+          pets: profile?.hasPets ? profile.pets : [],
+        }),
+        currency,
+        await getRates(),
+      ).map((it, idx) => ({
+        id: `it-${idx}`,
+        label: it.label,
+        emoji: it.emoji,
+        estimated: it.estimated,
+        actual: null,
+        done: false,
+      })),
       milestones: buildEventMilestones(tpl),
       quotes: [],
       saved: 0,
@@ -156,6 +227,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     setStyleKey(null);
     setDestinations([]);
     setDestInput("");
+    setStayLength("");
     router.push({ pathname: "/(premium)/event-detail", params: { id: ev.id } } as never);
   }
 
@@ -355,6 +427,70 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                   ) : (
                     <Text style={styles.hint}>{t("events.form.destHint")}</Text>
                   )}
+
+                  {/* Durée : sans elle, impossible de chiffrer la garde des
+                      animaux. Facultative — le reste du budget s'estime
+                      quand même. */}
+                  <TextInput
+                    style={styles.input}
+                    value={stayLength}
+                    onChangeText={setStayLength}
+                    placeholder={t("events.form.stayPlaceholder")}
+                    placeholderTextColor={TEXT_3}
+                    keyboardType="number-pad"
+                    maxLength={3}
+                    accessibilityLabel={t("events.form.stayPlaceholder")}
+                  />
+
+                  {/* Ce qui a été compris de la destination, en clair. Un budget
+                      qui change tout seul sans explication ressemble à un bug. */}
+                  {trip ? (
+                    <View style={styles.estimateBox}>
+                      <Text style={styles.estimateTitle}>
+                        {trip.km > 0
+                          ? tp("events.est.route", {
+                              place: trip.matched,
+                              km: trip.km.toLocaleString(lang),
+                            })
+                          : tp("events.est.place", { place: trip.matched })}
+                      </Text>
+                      {trip.flightPerPerson > 0 ? (
+                        <Text style={styles.estimateLine}>
+                          {tp("events.est.flight", {
+                            // Le barème est en euros : on l'affiche dans la
+                            // devise de l'utilisateur, pas avec son symbole.
+                            amount: fmt(
+                              toDisplayCurrency(
+                                [{ estimated: trip.flightPerPerson }],
+                                currency,
+                                rates,
+                              )[0].estimated,
+                            ),
+                          })}
+                        </Text>
+                      ) : (
+                        <Text style={styles.estimateLine}>
+                          {t("events.est.noOrigin")}
+                        </Text>
+                      )}
+                      <Text style={styles.estimateLine}>
+                        {tp("events.est.cost", {
+                          pct: Math.round(trip.costIndex * 100),
+                        })}
+                      </Text>
+                      {trip.groundAlternative ? (
+                        <Text style={styles.estimateLine}>
+                          {t("events.est.ground")}
+                        </Text>
+                      ) : null}
+                      {profile?.hasPets && profile.pets?.length && days > 0 ? (
+                        <Text style={styles.estimateLine}>
+                          {tp("events.est.pets", { days })}
+                        </Text>
+                      ) : null}
+                      <Text style={styles.estimateHint}>{t("events.est.hint")}</Text>
+                    </View>
+                  ) : null}
                 </>
               ) : null}
               {tpl.asksGuests ? (
@@ -567,6 +703,17 @@ const styles = StyleSheet.create({
   chipTextActive: { color: "#000", fontWeight: "700" },
   styleQuestion: { color: TEXT_2, fontSize: 13, fontWeight: "700", marginTop: 4 },
   hint: { color: TEXT_3, fontSize: 11.5, lineHeight: 16 },
+  estimateBox: {
+    backgroundColor: "rgba(74,222,128,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.25)",
+    borderRadius: 12,
+    padding: 12,
+    gap: 3,
+  },
+  estimateTitle: { color: GOLD, fontSize: 13, fontWeight: "700" },
+  estimateLine: { color: TEXT_2, fontSize: 12.5, lineHeight: 18 },
+  estimateHint: { color: TEXT_3, fontSize: 11, lineHeight: 15, marginTop: 4 },
   primaryBtn: {
     flexDirection: "row",
     alignItems: "center",
