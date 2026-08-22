@@ -61,11 +61,16 @@ export const GET: APIRoute = () => {
   // sans que personne ne s'en aperçoive.
   const lastmod = new Date().toISOString().slice(0, 10);
 
+  // Comme pour la canonique : `trailingSlash: false` côté hébergeur, donc on
+  // déclare les URL réellement servies. Un sitemap plein de redirections fait
+  // perdre du budget d'exploration.
+  const serve = (p: string) => (p === "/" ? "/" : p.replace(/\/+$/, ""));
+
   const urls = paths
     .map((p) => {
       const { priority, changefreq } = weight(p);
       return `  <url>
-    <loc>${SITE}${p}</loc>
+    <loc>${SITE}${serve(p)}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>

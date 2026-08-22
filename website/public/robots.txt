@@ -8,7 +8,7 @@ Allow: /
 
 # La page de remerciement n'a d'intérêt qu'après avoir écrit ; indexée, elle
 # ferait entrer des visiteurs par une page qui ne raconte rien.
-Disallow: /merci/
-Disallow: /en/thank-you/
+Disallow: /merci
+Disallow: /en/thank-you
 
 Sitemap: https://netbudget.app/sitemap.xml
