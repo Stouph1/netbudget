@@ -1,5 +1,5 @@
 -- ============================================================================
--- 015 — Chiffrement de bout en bout
+-- 016 — Chiffrement de bout en bout
 --
 -- À COLLER DANS SUPABASE : tableau de bord → SQL Editor → Run.
 -- Sans risque : deux colonnes ajoutées, aucune donnée touchée. Les comptes
@@ -83,5 +83,5 @@ begin
     raise exception 'vault_fingerprint absente : la migration a echoue';
   end if;
 
-  raise notice 'Migration 015 appliquee. Les donnees existantes restent en crypto_version 0 (clair) et seront chiffrees a leur prochaine ecriture.';
+  raise notice 'Migration 016 appliquee. Les donnees existantes restent en crypto_version 0 (clair) et seront chiffrees a leur prochaine ecriture.';
 end $$;
