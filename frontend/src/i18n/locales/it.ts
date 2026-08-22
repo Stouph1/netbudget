@@ -815,6 +815,7 @@ export const it: Catalog = {
   "home.signin.footnote": "Gratis durante lo sviluppo. Nessun dato viene condiviso senza il tuo consenso.",
   "home.err.signin": "Accesso",
   "home.err.signinGoogle": "Accesso con Google",
+  "home.err.google.needsBuild": "Su questo dispositivo l'accesso con Google richiede una versione compilata dell'app: in Expo Go non può funzionare. Per ora usa Apple o l'e-mail.",
   "home.err.google.config": "L'accesso con Google non è ancora configurato in questa versione. Nel frattempo usa l'e-mail — ci stiamo lavorando.",
   "home.err.google.playServices": "Questo dispositivo non ha i servizi Google Play. Accedi con l'e-mail.",
   "home.err.google.inProgress": "Un accesso è già in corso. Attendi un istante.",

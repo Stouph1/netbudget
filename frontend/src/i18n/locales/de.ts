@@ -815,6 +815,7 @@ export const de: Catalog = {
   "home.signin.footnote": "Während der Entwicklung kostenlos. Ohne deine Zustimmung werden keine Daten geteilt.",
   "home.err.signin": "Anmeldung",
   "home.err.signinGoogle": "Google-Anmeldung",
+  "home.err.google.needsBuild": "Auf diesem Gerät braucht die Google-Anmeldung eine kompilierte Version der App — in Expo Go funktioniert sie nicht. Nutze vorerst Apple oder die E-Mail.",
   "home.err.google.config": "Die Google-Anmeldung ist in dieser Version noch nicht eingerichtet. Nutze so lange die E-Mail — wir arbeiten daran.",
   "home.err.google.playServices": "Auf diesem Gerät fehlen die Google-Play-Dienste. Melde dich per E-Mail an.",
   "home.err.google.inProgress": "Eine Anmeldung läuft bereits. Einen Moment bitte.",

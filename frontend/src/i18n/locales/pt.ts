@@ -815,6 +815,7 @@ export const pt: Catalog = {
   "home.signin.footnote": "Gratuito durante o desenvolvimento. Nenhum dado é partilhado sem o teu consentimento.",
   "home.err.signin": "Início de sessão",
   "home.err.signinGoogle": "Início de sessão com o Google",
+  "home.err.google.needsBuild": "Neste dispositivo, o início de sessão com Google exige uma versão compilada da app — não funciona no Expo Go. Usa a Apple ou o e-mail por agora.",
   "home.err.google.config": "O início de sessão com Google ainda não está configurado nesta versão. Usa o e-mail entretanto — estamos a corrigir.",
   "home.err.google.playServices": "Este dispositivo não tem os serviços Google Play. Entra com o teu e-mail.",
   "home.err.google.inProgress": "Já está a decorrer um início de sessão. Aguarda um momento.",

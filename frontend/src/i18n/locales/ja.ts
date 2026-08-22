@@ -815,6 +815,7 @@ export const ja: Catalog = {
   "home.signin.footnote": "開発期間中は無料です。あなたの同意なしにデータが共有されることはありません。",
   "home.err.signin": "ログイン",
   "home.err.signinGoogle": "Google ログイン",
+  "home.err.google.needsBuild": "この端末では、Googleログインにコンパイル済みのビルドが必要です。Expo Go では動作しません。当面は Apple またはメールをご利用ください。",
   "home.err.google.config": "このバージョンではGoogleログインがまだ設定されていません。当面はメールをご利用ください。対応中です。",
   "home.err.google.playServices": "この端末にはGoogle Playサービスがありません。メールでログインしてください。",
   "home.err.google.inProgress": "すでにログイン処理中です。少しお待ちください。",

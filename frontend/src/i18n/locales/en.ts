@@ -815,6 +815,7 @@ export const en: Catalog = {
   "home.signin.footnote": "Free while in development. No data is shared without your consent.",
   "home.err.signin": "Sign-in",
   "home.err.signinGoogle": "Google sign-in",
+  "home.err.google.needsBuild": "On this device, Google sign-in needs a compiled build of the app — it cannot work inside Expo Go. Use Apple or email for now.",
   "home.err.google.config": "Google sign-in isn't set up yet for this build. Use email in the meantime — we're fixing it.",
   "home.err.google.playServices": "This device doesn't have Google Play services. Sign in with email instead.",
   "home.err.google.inProgress": "A sign-in is already under way. Give it a moment.",

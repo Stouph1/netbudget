@@ -870,6 +870,7 @@ export const fr: Catalog = {
   "home.signin.footnote": "Gratuit pendant le développement. Aucune donnée n’est partagée sans ton accord.",
   "home.err.signin": "Connexion",
   "home.err.signinGoogle": "Connexion Google",
+  "home.err.google.needsBuild": "Sur cet appareil, la connexion Google demande une version compilée de l'app — elle ne peut pas fonctionner dans Expo Go. Utilise Apple ou l'e-mail pour l'instant.",
   "home.err.google.config": "La connexion Google n'est pas encore configurée pour cette version de l'app. Utilise l'e-mail en attendant — on corrige ça.",
   "home.err.google.playServices": "Cet appareil n'a pas les services Google Play. Connecte-toi par e-mail.",
   "home.err.google.inProgress": "Une connexion est déjà en cours. Patiente un instant.",

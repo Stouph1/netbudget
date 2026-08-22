@@ -11,7 +11,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
-import { Platform } from "react-native";
+import { NativeModules, Platform, TurboModuleRegistry } from "react-native";
 import * as Linking from "expo-linking";
 import { supabase } from "./supabase";
 
@@ -29,6 +29,29 @@ export type AuthResult =
       /** Clé i18n d'un message actionnable, quand la cause est identifiée. */
       messageKey?: string;
     };
+
+/**
+ * Le module natif de Google Sign-In est-il réellement embarqué ?
+ *
+ * `TurboModuleRegistry.get()` — sans « Enforcing » — renvoie null au lieu de
+ * lever quand le module manque. C'est la seule façon de poser la question sans
+ * déclencher l'erreur qu'on cherche justement à éviter.
+ *
+ * Faux dans Expo Go et sur le web : le module doit être compilé dans le
+ * binaire, ce qui suppose un development build.
+ */
+export function isGoogleSignInAvailable(): boolean {
+  if (Platform.OS === "web") return false;
+  try {
+    return (
+      TurboModuleRegistry.get("RNGoogleSignin") != null ||
+      // Repli pour l'ancienne architecture, où le module vit dans NativeModules.
+      (NativeModules as Record<string, unknown>).RNGoogleSignin != null
+    );
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Traduit les codes d'erreur de Google Sign-In en causes réelles.
@@ -150,6 +173,19 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     return { ok: false, reason: "redirecting" };
   }
 
+  // Le try/catch autour du require ne suffisait PAS : sur la nouvelle
+  // architecture, charger le module appelle `TurboModuleRegistry.getEnforcing`,
+  // dont l'échec traverse le pont natif et n'est pas rattrapable en JS. Dans
+  // Expo Go, l'app affichait donc un écran rouge au lieu d'un message.
+  // On vérifie donc la présence du module SANS le charger.
+  if (!isGoogleSignInAvailable()) {
+    return {
+      ok: false,
+      reason: "unavailable",
+      messageKey: "home.err.google.needsBuild",
+    };
+  }
+
   let GoogleSignin: {
     configure: (opts: { webClientId?: string; iosClientId?: string }) => void;
     hasPlayServices: () => Promise<boolean>;
@@ -162,8 +198,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     return {
       ok: false,
       reason: "unavailable",
-      message:
-        "Google Sign-In nécessite un development build (indisponible dans Expo Go / web).",
+      messageKey: "home.err.google.needsBuild",
     };
   }
 
