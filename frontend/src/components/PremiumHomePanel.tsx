@@ -28,7 +28,12 @@ import { useLang } from "../contexts/LangContext";
 import { useCurrency } from "../contexts/CurrencyContext";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
-import { signInWithApple, signInWithGoogle, signOut } from "../lib/auth";
+import {
+  hasPasswordIdentity,
+  signInWithApple,
+  signInWithGoogle,
+  signOut,
+} from "../lib/auth";
 import {
   loadConsentAccepted,
   recordConsent,
@@ -109,6 +114,19 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     void saveConsentAccepted(next);
   }, []);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // Un compte Apple ou Google n'a pas de mot de passe NetBudget : la tuile
+  // de changement ne doit pas apparaître pour lui.
+  const [hasPassword, setHasPassword] = useState(false);
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    hasPasswordIdentity().then((v) => {
+      if (alive) setHasPassword(v);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -480,6 +498,16 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           label={t("home.tile.events")}
           onPress={() => router.push("/(premium)/events" as never)}
         />
+        {/* Mot de passe : affiché SEULEMENT pour les comptes qui en ont un.
+            Quelqu'un connecté via Apple ou Google n'a pas de mot de passe
+            NetBudget — lui proposer d'en changer serait incompréhensible. */}
+        {hasPassword ? (
+          <Tile
+            icon="lock"
+            label={t("home.tile.password")}
+            onPress={() => router.push("/change-password" as never)}
+          />
+        ) : null}
       </View>
       {__DEV__ && onDevReplayBirthday ? (
         <TouchableOpacity

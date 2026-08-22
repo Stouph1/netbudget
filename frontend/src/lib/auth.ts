@@ -324,6 +324,118 @@ export async function signInWithEmailMagicLink(
   }
 }
 
+// ============================================================================
+// Mot de passe : oubli, réinitialisation, changement
+//
+// Sans ces trois fonctions, un utilisateur qui oublie son mot de passe est
+// définitivement dehors — il n'a aucun recours dans l'app, et nous n'avons
+// aucun moyen propre de l'aider (nous ne connaissons pas son mot de passe, et
+// c'est heureux).
+// ============================================================================
+
+/** Où le lien de l'e-mail doit ramener, selon la plateforme. */
+function recoveryRedirect(): string {
+  // Web : la page courante, où `detectSessionInUrl` récupérera le jeton.
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    return `${window.location.origin}/reset-password`;
+  }
+  // Mobile : deep link construit depuis le scheme d'app.json.
+  return Linking.createURL("/reset-password");
+}
+
+/**
+ * Envoie le lien de réinitialisation.
+ *
+ * Renvoie `ok` même quand l'adresse est inconnue : dire « ce compte n'existe
+ * pas » permettrait à n'importe qui de tester des adresses pour savoir qui est
+ * inscrit. Supabase ne le révèle pas non plus, et on ne le contredit pas.
+ */
+export async function sendPasswordReset(
+  email: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      { redirectTo: recoveryRedirect() },
+    );
+    // Une erreur de limitation de débit doit remonter : elle est actionnable
+    // (« réessaie dans une minute »), contrairement à « adresse inconnue ».
+    if (error && /rate|limit|seconds/i.test(error.message)) {
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: (e as { message?: string }).message };
+  }
+}
+
+/**
+ * Définit un nouveau mot de passe.
+ *
+ * Deux usages, même appel côté Supabase :
+ *  - après un lien de récupération, la session temporaire l'autorise ;
+ *  - depuis les réglages, la session normale suffit.
+ */
+export async function updatePassword(
+  newPassword: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: (e as { message?: string }).message };
+  }
+}
+
+/**
+ * Change le mot de passe en vérifiant d'abord l'actuel.
+ *
+ * Supabase n'exige pas l'ancien mot de passe : une session suffit. C'est trop
+ * permissif — un téléphone déverrouillé laissé sur une table permettrait de
+ * changer le mot de passe et de verrouiller le propriétaire dehors. On le
+ * revérifie donc explicitement.
+ */
+export async function changePasswordWithCurrent(
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ ok: boolean; error?: string; wrongCurrent?: boolean }> {
+  const { data: userData } = await supabase.auth.getUser();
+  const email = userData.user?.email;
+  if (!email) return { ok: false, error: "no-session" };
+
+  const check = await supabase.auth.signInWithPassword({
+    email,
+    password: currentPassword,
+  });
+  if (check.error) return { ok: false, wrongCurrent: true };
+
+  return updatePassword(newPassword);
+}
+
+/**
+ * Le compte a-t-il un mot de passe NetBudget ?
+ *
+ * Faux pour un compte créé via Apple ou Google : l'authentification appartient
+ * au fournisseur, il n'y a rien à changer de notre côté. On lit les identités
+ * liées plutôt que le seul `provider`, car un compte peut en cumuler plusieurs.
+ */
+export async function hasPasswordIdentity(): Promise<boolean> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    const identities = data.user?.identities ?? [];
+    return identities.some((i) => i.provider === "email");
+  } catch {
+    return false;
+  }
+}
+
+/** Une session de récupération est-elle active (retour du lien e-mail) ? */
+export async function hasRecoverySession(): Promise<boolean> {
+  const { data } = await supabase.auth.getSession();
+  return data.session != null;
+}
+
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }

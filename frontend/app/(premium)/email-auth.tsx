@@ -19,7 +19,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLang } from "../../src/contexts/LangContext";
-import { signInWithEmail, signUpWithEmail } from "../../src/lib/auth";
+import {
+  sendPasswordReset,
+  signInWithEmail,
+  signUpWithEmail,
+} from "../../src/lib/auth";
 import { recordConsent } from "../../src/lib/profile";
 import { notify } from "../../src/utils/notify";
 import { loadProfileBasics } from "../../src/lib/profile";
@@ -52,6 +56,25 @@ export default function EmailAuth() {
     } else {
       router.back();
     }
+  }
+
+  // On confirme l'envoi sans jamais dire si l'adresse est connue : révéler
+  // « ce compte n'existe pas » permettrait de tester des adresses pour savoir
+  // qui est inscrit sur l'app.
+  async function forgotPassword() {
+    const mail = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+      notify(t("auth.forgot.needEmail.title"), t("auth.forgot.needEmail.body"));
+      return;
+    }
+    setBusy(true);
+    const result = await sendPasswordReset(mail);
+    setBusy(false);
+    if (!result.ok) {
+      notify(t("auth.forgot.failed.title"), result.error ?? t("auth.error.unknown"));
+      return;
+    }
+    notify(t("auth.forgot.sent.title"), tp("auth.forgot.sent.body", { email: mail }));
   }
 
   async function submit() {
@@ -201,6 +224,21 @@ export default function EmailAuth() {
             )}
           </TouchableOpacity>
 
+          {/* Mot de passe oublié — uniquement en connexion : le proposer à
+              l'inscription n'a aucun sens et sème le doute. */}
+          {!isSignup ? (
+            <TouchableOpacity
+              onPress={forgotPassword}
+              disabled={busy}
+              style={styles.forgotBtn}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t("auth.forgot.link")}
+            >
+              <Text style={styles.forgotText}>{t("auth.forgot.link")}</Text>
+            </TouchableOpacity>
+          ) : null}
+
           <Text style={styles.footnote}>
             {isSignup ? t("auth.footnote.signup") : t("auth.footnote.signin")}
           </Text>
@@ -220,6 +258,8 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: { color: TEXT_1, fontSize: 18, fontWeight: "600" },
+  forgotBtn: { alignSelf: "center", paddingVertical: 14, paddingHorizontal: 8 },
+  forgotText: { color: GOLD, fontSize: 13.5, fontWeight: "600" },
 
   switchRow: {
     flexDirection: "row",
