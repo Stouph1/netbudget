@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
+import LinksHub from "../components/LinksHub.astro";
 import Stats from "../components/Stats.astro";
 import Screens from "../components/Screens.astro";
 import Features from "../components/Features.astro";
@@ -9,7 +10,6 @@ import Reviews from "../components/Reviews.astro";
 import Privacy from "../components/Privacy.astro";
 import Maker from "../components/Maker.astro";
 import Scripture from "../components/Scripture.astro";
-import Faq from "../components/Faq.astro";
 import FinalCTA from "../components/FinalCTA.astro";
 
 const locale = "fr" as const;
@@ -17,6 +17,7 @@ const locale = "fr" as const;
 
 <Layout locale={locale}>
   <Hero locale={locale} />
+  <LinksHub locale={locale} />
   <Stats locale={locale} />
   <Screens locale={locale} />
   <Features locale={locale} />
@@ -24,7 +25,6 @@ const locale = "fr" as const;
   <Reviews locale={locale} />
   <Privacy locale={locale} />
   <Maker locale={locale} />
-  <Faq locale={locale} compact={true} />
   <FinalCTA locale={locale} />
   <Scripture locale={locale} />
 </Layout>

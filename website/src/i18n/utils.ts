@@ -20,20 +20,11 @@ export function useTranslations(locale: Locale) {
   };
 }
 
-// Génère un chemin localisé. Pour la langue par défaut (fr) on retourne le
-// chemin nu.
-//
-// SANS slash final : `vercel.json` déclare `trailingSlash: false`, donc chaque
-// lien interne écrit `/faq/` provoquait une redirection 308 avant d'arriver sur
-// `/faq`. C'est invisible à l'usage, mais ça gaspille du budget d'exploration
-// et ça dilue les signaux entre deux adresses pour une seule page.
-//
-// La racine reste `/` : c'est la seule adresse où le slash est l'adresse.
+// Génère un chemin localisé. Pour la langue par défaut (fr) on retourne le chemin nu.
 export function localizedPath(locale: Locale, path: string): string {
-  const withSlash = path.startsWith("/") ? path : `/${path}`;
-  const clean = withSlash.replace(/\/+$/, "");
-  if (locale === DEFAULT_LOCALE) return clean === "" ? "/" : clean;
-  return `/${locale}${clean}`;
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  if (locale === DEFAULT_LOCALE) return clean === "/" ? "/" : clean;
+  return clean === "/" ? `/${locale}/` : `/${locale}${clean}`;
 }
 
 export function isRtl(locale: Locale): boolean {

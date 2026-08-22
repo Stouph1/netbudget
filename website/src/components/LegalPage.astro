@@ -9,17 +9,7 @@ interface Props {
 
 const { locale, kind, updated } = Astro.props;
 const t = useTranslations(locale);
-
-// Le nombre de sections était figé en dur, ce qui plafonnait la politique de
-// confidentialité à cinq paragraphes — bien trop peu pour décrire honnêtement
-// ce qui part de l'appareil. On énumère donc tant qu'un titre existe : ajouter
-// une section, c'est ajouter ses deux clés de traduction, sans toucher au code.
-const sections: string[] = [];
-for (let i = 1; i <= 30; i++) {
-  const key = `page.${kind}.section${i}.title`;
-  if (t(key) === key) break;
-  sections.push(`section${i}`);
-}
+const sections = ["section1", "section2", "section3", "section4", kind === "privacy" ? "section5" : ""].filter(Boolean);
 ---
 
 <section class="container-app pb-24 pt-10">
