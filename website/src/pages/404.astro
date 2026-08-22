@@ -1,0 +1,372 @@
+---
+// Page 404 avec un jeu : garder la balle en l'air avec une raquette.
+//
+// POURQUOI UN JEU ICI. Une 404 est un cul-de-sac : la personne cherchait
+// quelque chose et ne l'a pas trouvé. Deux réactions possibles — repartir
+// agacée, ou sourire. Le jeu ne répare pas l'erreur, il change le souvenir.
+//
+// TROIS CONTRAINTES que je me suis données :
+//  - les vraies portes de sortie restent AU-DESSUS du jeu. Un jeu qui retient
+//    quelqu'un qui veut partir est une nuisance, pas une attention.
+//  - le jeu ne démarre qu'au clic. Une animation qui part seule consomme de la
+//    batterie et distrait de la seule chose utile : les liens.
+//  - il se met en pause dès que l'onglet passe en arrière-plan.
+//
+// La balle est le logo : elle a un sens ici, ce n'est pas un jeu collé au
+// hasard sur une page d'erreur.
+import Layout from "../layouts/Layout.astro";
+import { useTranslations, localizedPath, getLocaleFromUrl } from "../i18n/utils";
+
+// Une 404 est servie pour n'importe quelle URL : on déduit la langue du chemin
+// demandé plutôt que de figer le français.
+const locale = getLocaleFromUrl(Astro.url);
+const t = useTranslations(locale);
+---
+
+<Layout
+  locale={locale}
+  title={`${t("nf.title")} — NETbudget`}
+  description={t("nf.desc")}
+  pageKind="page"
+  noindex={true}
+  hideStickyCta={true}
+>
+  <section class="container-app py-16 md:py-24">
+    <div class="mx-auto max-w-2xl text-center">
+      <p
+        class="font-display text-[88px] font-black leading-none tracking-tighter text-mint-500/25 md:text-[120px]"
+      >
+        404
+      </p>
+      <h1 class="heading-2 mt-2 text-balance">{t("nf.title")}</h1>
+      <p class="body-lg mx-auto mt-4 max-w-lg text-balance">{t("nf.desc")}</p>
+
+      <!-- Les sorties d'abord. C'est ce que la personne est venue chercher. -->
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a
+          href={localizedPath(locale, "/")}
+          class="rounded-xl bg-mint-500 px-5 py-3 text-sm font-bold text-ink-900 transition hover:bg-mint-400"
+        >
+          {t("nf.home")}
+        </a>
+        <a
+          href={localizedPath(locale, "/faq/")}
+          class="rounded-xl border border-white/12 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-text-1 transition hover:border-mint-500/40"
+        >
+          {t("nf.faq")}
+        </a>
+        <a
+          href={localizedPath(locale, "/privacy/")}
+          class="rounded-xl border border-white/12 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-text-1 transition hover:border-mint-500/40"
+        >
+          {t("footer.privacy")}
+        </a>
+      </div>
+    </div>
+
+    <!-- Le jeu, ensuite, et clairement présenté comme un bonus. -->
+    <div class="mx-auto mt-14 max-w-xl">
+      <div class="flex items-end justify-between gap-4">
+        <div>
+          <p class="eyebrow">{t("nf.game.eyebrow")}</p>
+          <p class="mt-1 text-sm text-text-2">{t("nf.game.hint")}</p>
+        </div>
+        <div class="shrink-0 text-right">
+          <p class="text-xs uppercase tracking-[0.16em] text-text-3">{t("nf.game.score")}</p>
+          <p
+            id="g-score"
+            class="font-display text-3xl font-black leading-none text-mint-400 tabular-nums"
+          >
+            0
+          </p>
+        </div>
+      </div>
+
+      <div
+        id="g-wrap"
+        class="relative mt-4 overflow-hidden rounded-2xl border border-white/10 bg-ink-800/60"
+      >
+        <canvas
+          id="g-canvas"
+          class="block h-[300px] w-full touch-none"
+          role="img"
+          aria-label={t("nf.game.a11y")}></canvas>
+
+        <!-- Écran d'accueil et de fin, superposés au canevas -->
+        <div
+          id="g-overlay"
+          class="absolute inset-0 grid place-items-center bg-ink-900/70 backdrop-blur-sm"
+        >
+          <div class="px-6 text-center">
+            <p
+              id="g-msg"
+              class="text-base font-semibold text-text-1"
+              data-over={t("nf.game.over")}
+            >
+              {t("nf.game.start")}
+            </p>
+            <p id="g-best" class="mt-1 text-xs text-text-3" data-best={t("nf.game.best")}></p>
+            <button
+              id="g-btn"
+              type="button"
+              class="mt-4 rounded-xl bg-mint-500 px-5 py-2.5 text-sm font-bold text-ink-900 transition hover:bg-mint-400"
+              data-again={t("nf.game.again")}
+            >
+              {t("nf.game.play")}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-3 text-center text-xs text-text-3">{t("nf.game.footnote")}</p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Jeu de raquette. Volontairement court et sans dépendance : une page
+  // d'erreur ne doit pas télécharger un moteur de jeu.
+  const canvas = document.getElementById("g-canvas") as HTMLCanvasElement | null;
+  const overlay = document.getElementById("g-overlay");
+  const btn = document.getElementById("g-btn");
+  const msgEl = document.getElementById("g-msg");
+  const bestEl = document.getElementById("g-best");
+  const scoreEl = document.getElementById("g-score");
+
+  if (canvas && overlay && btn && msgEl && bestEl && scoreEl) {
+    const ctx = canvas.getContext("2d")!;
+    const BEST_KEY = "netbudget:404:best";
+
+    // Textes lus depuis le DOM : la page est traduite côté serveur, le script
+    // ne doit pas réintroduire du français en dur.
+    const T = {
+      start: msgEl.textContent ?? "",
+      over: msgEl.dataset.over ?? "",
+      again: btn.dataset.again ?? btn.textContent ?? "",
+      play: btn.textContent ?? "",
+      best: bestEl.dataset.best ?? "",
+    };
+
+    let W = 0;
+    let H = 0;
+    let dpr = 1;
+
+    const logo = new Image();
+    let logoReady = false;
+    logo.onload = () => {
+      logoReady = true;
+    };
+    logo.src = "/logo.png";
+
+    const state = {
+      running: false,
+      score: 0,
+      ballX: 0,
+      ballY: 0,
+      vx: 0,
+      vy: 0,
+      r: 17,
+      padX: 0,
+      padW: 96,
+      padH: 12,
+      raf: 0,
+    };
+
+    function resize() {
+      // Rendu à la densité réelle de l'écran : sans ça, le cercle bave.
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      W = rect.width;
+      H = rect.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // La raquette rétrécit sur petit écran, sinon elle couvre tout.
+      state.padW = Math.max(64, Math.min(110, W * 0.24));
+      state.padX = Math.min(state.padX, W - state.padW);
+      if (!state.running) draw();
+    }
+
+    function reset() {
+      state.score = 0;
+      scoreEl.textContent = "0";
+      state.r = Math.max(13, Math.min(19, W * 0.035));
+      state.ballX = W / 2;
+      state.ballY = H * 0.3;
+      // Départ légèrement de biais, jamais parfaitement vertical : un aller-
+      // retour strictement droit n'a aucun intérêt.
+      state.vx = (Math.random() > 0.5 ? 1 : -1) * (W * 0.0032 + Math.random() * W * 0.0016);
+      state.vy = H * 0.006;
+      state.padX = (W - state.padW) / 2;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Ligne de sol : sans repère, on ne sait pas où la balle se perd.
+      ctx.strokeStyle = "rgba(255,255,255,0.07)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, H - 4);
+      ctx.lineTo(W, H - 4);
+      ctx.stroke();
+
+      // Raquette
+      const py = H - state.padH - 10;
+      ctx.fillStyle = "#10B981";
+      const r = state.padH / 2;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(state.padX, py, state.padW, state.padH, r);
+        ctx.fill();
+      } else {
+        // Safari < 16 ne connaît pas roundRect : un rectangle net vaut mieux
+        // qu'une raquette absente.
+        ctx.fillRect(state.padX, py, state.padW, state.padH);
+      }
+
+      // Balle : le logo, ou un disque si l'image n'est pas encore chargée.
+      if (logoReady) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(state.ballX, state.ballY, state.r, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(
+          logo,
+          state.ballX - state.r,
+          state.ballY - state.r,
+          state.r * 2,
+          state.r * 2,
+        );
+        ctx.restore();
+      } else {
+        ctx.fillStyle = "#6EE7B7";
+        ctx.beginPath();
+        ctx.arc(state.ballX, state.ballY, state.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function gameOver() {
+      state.running = false;
+      cancelAnimationFrame(state.raf);
+      let best = 0;
+      try {
+        best = parseInt(localStorage.getItem(BEST_KEY) ?? "0", 10) || 0;
+        if (state.score > best) {
+          best = state.score;
+          localStorage.setItem(BEST_KEY, String(best));
+        }
+      } catch {
+        // Navigation privée : on joue sans mémoire, ce n'est pas grave.
+      }
+      msgEl.textContent = T.over;
+      bestEl.textContent = best > 0 ? `${T.best} ${best}` : "";
+      btn.textContent = T.again;
+      overlay.classList.remove("hidden");
+    }
+
+    function step() {
+      if (!state.running) return;
+
+      state.ballX += state.vx;
+      state.ballY += state.vy;
+      // Gravité douce : le jeu doit rester jouable au doigt sur un téléphone.
+      state.vy += H * 0.00035;
+
+      // Murs latéraux
+      if (state.ballX - state.r < 0) {
+        state.ballX = state.r;
+        state.vx = Math.abs(state.vx);
+      } else if (state.ballX + state.r > W) {
+        state.ballX = W - state.r;
+        state.vx = -Math.abs(state.vx);
+      }
+
+      // Plafond
+      if (state.ballY - state.r < 0) {
+        state.ballY = state.r;
+        state.vy = Math.abs(state.vy);
+      }
+
+      // Raquette
+      const py = H - state.padH - 10;
+      if (
+        state.vy > 0 &&
+        state.ballY + state.r >= py &&
+        state.ballY + state.r <= py + state.padH + Math.abs(state.vy) &&
+        state.ballX >= state.padX - state.r &&
+        state.ballX <= state.padX + state.padW + state.r
+      ) {
+        state.ballY = py - state.r;
+        state.vy = -Math.abs(state.vy) * 1.015;
+        // L'angle dépend du point d'impact : c'est ce qui rend le jeu pilotable
+        // au lieu de subir la balle.
+        const hit = (state.ballX - (state.padX + state.padW / 2)) / (state.padW / 2);
+        state.vx += hit * W * 0.0022;
+        // Vitesse horizontale bornée, sinon la balle devient intraçable.
+        const max = W * 0.011;
+        state.vx = Math.max(-max, Math.min(max, state.vx));
+        state.score += 1;
+        scoreEl.textContent = String(state.score);
+      }
+
+      if (state.ballY - state.r > H) {
+        gameOver();
+        return;
+      }
+
+      draw();
+      state.raf = requestAnimationFrame(step);
+    }
+
+    function start() {
+      reset();
+      overlay.classList.add("hidden");
+      state.running = true;
+      state.raf = requestAnimationFrame(step);
+    }
+
+    function movePad(clientX: number) {
+      const rect = canvas.getBoundingClientRect();
+      state.padX = Math.max(
+        0,
+        Math.min(W - state.padW, clientX - rect.left - state.padW / 2),
+      );
+      if (!state.running) draw();
+    }
+
+    btn.addEventListener("click", start);
+    canvas.addEventListener("pointermove", (e) => movePad(e.clientX), { passive: true });
+    canvas.addEventListener(
+      "touchmove",
+      (e) => {
+        // La page ne doit pas défiler pendant qu'on joue au doigt.
+        e.preventDefault();
+        if (e.touches[0]) movePad(e.touches[0].clientX);
+      },
+      { passive: false },
+    );
+
+    // Clavier : le jeu doit être jouable sans souris ni écran tactile.
+    window.addEventListener("keydown", (e) => {
+      if (!state.running) return;
+      const stepPx = W * 0.06;
+      if (e.key === "ArrowLeft") {
+        state.padX = Math.max(0, state.padX - stepPx);
+      } else if (e.key === "ArrowRight") {
+        state.padX = Math.min(W - state.padW, state.padX + stepPx);
+      }
+    });
+
+    // Onglet en arrière-plan : on arrête tout. Faire tourner une boucle
+    // d'animation invisible ne sert qu'à vider la batterie.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && state.running) gameOver();
+    });
+
+    window.addEventListener("resize", resize);
+    resize();
+  }
+</script>

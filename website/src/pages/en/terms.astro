@@ -1,10 +1,34 @@
 ---
+// Page légale. Le fil d'Ariane sert autant à l'écran qu'aux résultats de
+// recherche, où le balisage BreadcrumbList remplace l'URL brute par un chemin
+// lisible sous le titre.
 import Layout from "../../layouts/Layout.astro";
 import LegalPage from "../../components/LegalPage.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import { useTranslations } from "../../i18n/utils";
 
 const locale = "en" as const;
+const t = useTranslations(locale);
+
+const crumbSchema = {
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: t("breadcrumb.home"), item: "https://netbudget.app/en/" },
+    { "@type": "ListItem", position: 2, name: t("page.terms.title"), item: "https://netbudget.app/en/terms/" },
+  ],
+};
 ---
 
-<Layout locale={locale} pageKind="page">
-  <LegalPage locale={locale} kind="terms" updated="2026-05-28" />
+<Layout
+  locale={locale}
+  title={`${t("page.terms.title")} — NETbudget`}
+  description={t("page.terms.desc")}
+  pageKind="page"
+  schema={crumbSchema}
+  hideStickyCta={true}
+>
+  <div class="container-app pt-8">
+    <Breadcrumb locale={locale} items={[{ label: t("page.terms.title") }]} />
+  </div>
+  <LegalPage locale={locale} kind="terms" updated="2026-08-22" />
 </Layout>
