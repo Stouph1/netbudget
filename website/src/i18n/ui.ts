@@ -18,6 +18,10 @@ const fr: Catalog = {
   "nav.whatsnew": "Nouveautés",
   "nav.reviews": "Avis",
   "nav.privacy": "Confidentialité",
+  "nav.privacyPromise": "Vie privée",
+  "nav.faq": "FAQ",
+  "nav.legal": "Légal",
+  "nav.label": "Navigation principale",
   "nav.download": "Télécharger",
 
   // Hero
@@ -367,6 +371,10 @@ const en: Catalog = {
   "nav.whatsnew": "What's new",
   "nav.reviews": "Reviews",
   "nav.privacy": "Privacy",
+  "nav.privacyPromise": "Privacy",
+  "nav.faq": "FAQ",
+  "nav.legal": "Legal",
+  "nav.label": "Main navigation",
   "nav.download": "Download",
 
   // Hero
