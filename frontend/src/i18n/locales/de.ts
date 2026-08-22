@@ -2245,6 +2245,12 @@ export const de: Catalog = {
   "adv.mix.epargne.tmi": "Spielraum und Steuervorteile nutzen (PEA + PER + Lebensversicherung kombiniert).",
   "adv.mix.reminder.personalized": "Das ist ein Richtwert auf Basis deines Profils, keine absolute Regel. Passe ihn an deinen realen Monat an.",
   "adv.mix.reminder.generic": "Vervollständige dein Profil unter Einstellungen → Personalisierte Tipps, um eine auf deine Lage zugeschnittene Aufteilung zu erhalten.",
+  "adv.mix.benchmark": "Richtwert",
+  "adv.mix.detail": "Im Detail",
+  "adv.mix.generic.intro": "Eine solide Grundaufteilung, die für fast alle passt: die Hälfte für das Notwendige, ein Drittel für Vergnügen, der Rest für die Zukunft.",
+  "adv.mix.label.besoins": "Bedarf",
+  "adv.mix.label.envies": "Wünsche",
+  "adv.mix.label.epargne": "Sparen",
   // ---- Handicap, transmission, mix budgétaire ----
   "adv.mix.apprenti.name": "Der Lehrling",
   "adv.mix.apprenti.tagline": "Die Grundlagen lernen",

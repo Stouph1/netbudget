@@ -2245,6 +2245,12 @@ export const en: Catalog = {
   "adv.mix.epargne.tmi": "capacity and tax relief worth using (PEA + PER + life insurance combined).",
   "adv.mix.reminder.personalized": "This is a benchmark based on your profile, not an absolute rule. Adjust it to your real month.",
   "adv.mix.reminder.generic": "Fill in your profile under Settings → Personalised advice to get a split tailored to your situation.",
+  "adv.mix.benchmark": "Benchmark",
+  "adv.mix.detail": "In detail",
+  "adv.mix.generic.intro": "A sound default that works for almost everyone: half for the essentials, a third for enjoyment, the rest for the future.",
+  "adv.mix.label.besoins": "Needs",
+  "adv.mix.label.envies": "Wants",
+  "adv.mix.label.epargne": "Savings",
   // ---- Handicap, transmission, mix budgétaire ----
   "adv.mix.apprenti.name": "The Apprentice",
   "adv.mix.apprenti.tagline": "Learning the basics",

@@ -2245,6 +2245,12 @@ export const ja: Catalog = {
   "adv.mix.epargne.tmi": "余力と節税を活かせます（PEA・PER・生命保険の組み合わせ）。",
   "adv.mix.reminder.personalized": "これはプロフィールに基づく目安であり、絶対のルールではありません。毎月の実情に合わせて調整してください。",
   "adv.mix.reminder.generic": "設定 → パーソナライズされたアドバイス でプロフィールを入力すると、状況に合った配分が表示されます。",
+  "adv.mix.benchmark": "目安",
+  "adv.mix.detail": "詳しく",
+  "adv.mix.generic.intro": "ほぼ誰にでも当てはまる健全な基準です。半分を必需品に、3分の1を楽しみに、残りを将来に。",
+  "adv.mix.label.besoins": "必需",
+  "adv.mix.label.envies": "娯楽",
+  "adv.mix.label.epargne": "貯蓄",
   // ---- Handicap, transmission, mix budgétaire ----
   "adv.mix.apprenti.name": "見習い",
   "adv.mix.apprenti.tagline": "基本を身につける",

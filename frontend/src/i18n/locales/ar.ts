@@ -2245,6 +2245,12 @@ export const ar: Catalog = {
   "adv.mix.epargne.tmi": "قدرة وميزة ضريبية تستحق الاستغلال (PEA وPER والتأمين على الحياة مجتمعة).",
   "adv.mix.reminder.personalized": "هذا مرجع مبني على ملفك، وليس قاعدة مطلقة. عدّله حسب واقع شهرك.",
   "adv.mix.reminder.generic": "أكمل ملفك في الإعدادات ← النصائح المخصّصة لتحصل على توزيع مناسب لوضعك.",
+  "adv.mix.benchmark": "مرجع",
+  "adv.mix.detail": "بالتفصيل",
+  "adv.mix.generic.intro": "أساس سليم يصلح للجميع تقريبًا: نصف للضروريات، وثلث للترفيه، والباقي للمستقبل.",
+  "adv.mix.label.besoins": "الاحتياجات",
+  "adv.mix.label.envies": "الرغبات",
+  "adv.mix.label.epargne": "الادخار",
   // ---- Handicap, transmission, mix budgétaire ----
   "adv.mix.apprenti.name": "المتدرّب",
   "adv.mix.apprenti.tagline": "تعلّم الأساسيات",

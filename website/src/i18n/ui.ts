@@ -121,11 +121,11 @@ const fr: Catalog = {
 
   // Privacy
   "privacy.eyebrow": "Vie privée par défaut",
-  "privacy.title": "Tes données restent sur ton téléphone",
+  "privacy.title": "Sans compte, tes données restent sur ton téléphone",
   "privacy.text":
-    "NETbudget fonctionne entièrement hors ligne. Il n'y a pas de compte à créer, pas de serveur qui stocke tes finances, pas de tracking. La seule connexion réseau est utilisée pour récupérer les taux de change (un appel toutes les 6 heures).",
+    "NETbudget fonctionne entièrement hors ligne : aucun compte à créer, aucune de tes finances sur un serveur, aucun traceur. La seule connexion sert à récupérer les taux de change. Si tu prends un abonnement, la synchronisation devient possible — et tu choisis alors ce que tu enregistres.",
   "privacy.point1": "Aucun compte requis",
-  "privacy.point2": "Aucune donnée envoyée",
+  "privacy.point2": "Rien n'est envoyé sans compte",
   "privacy.point3": "Aucune publicité, aucun tracker",
   "privacy.point4": "Code source consultable sur demande",
 
@@ -165,22 +165,52 @@ const fr: Catalog = {
   // Privacy page
   "page.privacy.title": "Politique de confidentialité",
   "page.privacy.intro":
-    "NETbudget est conçu pour respecter ta vie privée. Cette page décrit comment l'application traite tes données.",
-  "page.privacy.section1.title": "Quelles données sont collectées ?",
+    "Cette page décrit exactement ce que NETbudget fait de tes données. Elle distingue deux usages très différents : l'application sans compte, où rien ne quitte ton téléphone, et l'abonnement, où certaines données sont synchronisées pour te suivre d'un appareil à l'autre et pour partager un budget. Nous préférons être précis que rassurants.",
+
+  "page.privacy.section1.title": "Sans compte : rien ne quitte ton téléphone",
   "page.privacy.section1.body":
-    "NETbudget ne collecte aucune donnée personnelle. Tes revenus, dépenses et configurations sont stockés uniquement sur ton appareil via le mécanisme de stockage local du système (AsyncStorage). Aucune information n'est transmise à un serveur sous notre contrôle.",
-  "page.privacy.section2.title": "Connexions réseau",
+    "Le budget, les revenus, les dépenses, les prêts, la devise, la langue et la ville choisie sont enregistrés dans le stockage local de ton appareil. Aucun compte n'est nécessaire, et dans cet usage aucune de ces informations n'est transmise à un serveur. Les notifications sont programmées par ton téléphone lui-même : aucun jeton de notification n'est créé, donc rien ne transite par un service d'envoi tiers.",
+
+  "page.privacy.section2.title": "Avec un compte : ce qui est synchronisé",
   "page.privacy.section2.body":
-    "Une seule connexion réseau est effectuée : la récupération des taux de change via le service public open.er-api.com, avec un cache local de 6 heures. Cette requête ne contient ni identifiant ni donnée personnelle. Tu peux utiliser l'application entièrement hors ligne en désactivant simplement l'onglet Convertisseur.",
-  "page.privacy.section3.title": "Permissions",
+    "Créer un compte est facultatif et sert à retrouver tes données sur plusieurs appareils, à partager un budget et à recevoir des conseils adaptés à ta situation. Sont alors enregistrés sur nos serveurs : ton adresse e-mail (ou l'identifiant fourni par Apple ou Google), ton pseudo, éventuellement tes prénom et nom, ta date de naissance, ton pays, ta région et ta ville, ta situation professionnelle, ta photo de profil si tu en ajoutes une, la date de ton acceptation de cette politique, ainsi que tes objectifs d'épargne, tes budgets d'événement, ton historique mensuel et le profil qui sert à personnaliser les conseils — âge, situation familiale, logement, tranche d'imposition, présence d'enfants ou d'animaux. Tu choisis ce que tu renseignes : les champs laissés vides ne sont pas déduits.",
+
+  "page.privacy.section3.title": "État réel du chiffrement",
   "page.privacy.section3.body":
-    "L'application ne demande aucune permission système particulière. Aucun accès à tes contacts, à ta géolocalisation, à ton calendrier ou à tes photos n'est demandé.",
-  "page.privacy.section4.title": "Suppression des données",
+    "Nous voulons être exacts sur ce point, car il est trop souvent exagéré. Les échanges entre l'application et nos serveurs sont chiffrés en transit (HTTPS), et ton jeton de session est conservé dans le trousseau sécurisé du système. En revanche, le chiffrement de bout en bout — celui qui empêcherait techniquement quiconque, nous y compris, de lire tes données — n'est PAS encore en service. Tant que cette page n'indique pas le contraire, considère que les données synchronisées sont lisibles par l'administrateur de la base. Elles sont protégées par des règles d'accès qui interdisent à un utilisateur de voir celles d'un autre, mais ce n'est pas la même garantie.",
+
+  "page.privacy.section4.title": "Budgets partagés",
   "page.privacy.section4.body":
-    "Tu peux supprimer toutes tes données à tout moment depuis l'onglet Réglages, bouton « Réinitialiser toutes les données ». La désinstallation de l'application supprime également toutes les données stockées localement.",
-  "page.privacy.section5.title": "Contact",
+    "Si tu crées un espace partagé ou rejoins celui de quelqu'un, les membres de cet espace voient le budget, les objectifs et les événements qui y vivent, ainsi que ton pseudo et ta photo de profil. Ils ne voient jamais ton espace personnel. Une invitation est un code à usage unique valable quatorze jours ; aucune adresse e-mail n'est requise pour inviter quelqu'un. Quitter un espace cesse immédiatement ton accès à son contenu.",
+
+  "page.privacy.section5.title": "Connexions réseau",
   "page.privacy.section5.body":
-    "Pour toute question concernant cette politique, contacte stephane.pizeuil@gmail.com.",
+    "Sans compte, l'application contacte deux services, sans jamais transmettre d'identifiant : open.er-api.com pour les taux de change, avec un cache local, et itunes.apple.com pour savoir si une mise à jour est disponible. Avec un compte, elle communique avec Supabase, qui héberge la base de données, l'authentification et le stockage des photos. Si tu choisis Apple ou Google pour te connecter, ce fournisseur est sollicité au moment de la connexion. Les nombreux liens vers les sites officiels cités dans les conseils ne sont ouverts que si tu les touches, et dans ton navigateur.",
+
+  "page.privacy.section6.title": "Sous-traitants",
+  "page.privacy.section6.body":
+    "Supabase héberge les données de compte. Apple et Google interviennent uniquement si tu utilises leur méthode de connexion, et pour la facturation de l'abonnement lorsqu'il sera disponible. open.er-api.com fournit les taux de change. Aucun autre tiers ne reçoit tes données : il n'y a ni publicité, ni mesure d'audience, ni traceur, ni revente. Nous ne vendons pas de données, et ce n'est pas notre modèle économique — l'application se finance par l'abonnement.",
+
+  "page.privacy.section7.title": "Permissions demandées",
+  "page.privacy.section7.body":
+    "Les notifications, pour les rappels que tu choisis d'activer, et que tu peux désactiver catégorie par catégorie. L'accès aux images, uniquement au moment où tu ajoutes une photo de profil ; nous ne parcourons jamais ta galerie. Le retour vibrant. L'appareil photo, le microphone et la géolocalisation sont explicitement bloqués : l'application ne peut pas y accéder, même par erreur.",
+
+  "page.privacy.section8.title": "Durée de conservation",
+  "page.privacy.section8.body":
+    "Les données locales restent sur ton appareil jusqu'à ce que tu les effaces ou désinstalles l'application. Les données de compte sont conservées tant que le compte existe. La suppression du compte les efface immédiatement et définitivement, sans période de rétention de notre côté. L'historique de budget est limité aux vingt-quatre derniers mois.",
+
+  "page.privacy.section9.title": "Tes droits",
+  "page.privacy.section9.body":
+    "Le règlement général sur la protection des données te donne le droit d'accéder à tes données, de les corriger, de les effacer, de t'opposer à leur traitement et d'en obtenir une copie. La suppression est directement accessible depuis les réglages de l'application, bouton « Supprimer mon compte » : elle est immédiate et irréversible. Pour toute autre demande, écris-nous et nous répondrons sous trente jours. Tu peux aussi saisir la CNIL si notre réponse ne te satisfait pas.",
+
+  "page.privacy.section10.title": "Mineurs",
+  "page.privacy.section10.body":
+    "L'application peut être utilisée sans compte à tout âge. La création d'un compte est réservée aux personnes de quinze ans ou plus, âge du consentement numérique en France. Nous ne cherchons pas à collecter de données concernant des enfants ; si un compte a été créé pour un mineur plus jeune, écris-nous et nous le supprimerons.",
+
+  "page.privacy.section11.title": "Modifications et contact",
+  "page.privacy.section11.body":
+    "Toute évolution de cette politique sera publiée ici, avec sa date. Un changement qui élargirait l'usage de tes données te sera signalé dans l'application avant d'entrer en vigueur. Pour toute question : contact@netbudget.app.",
+
   "page.privacy.updated": "Dernière mise à jour",
 
   // Terms page
@@ -314,11 +344,11 @@ const en: Catalog = {
 
   // Privacy
   "privacy.eyebrow": "Privacy by default",
-  "privacy.title": "Your data stays on your phone",
+  "privacy.title": "Without an account, your data stays on your phone",
   "privacy.text":
-    "NETbudget runs entirely offline. No account to create, no server storing your finances, no tracking. The only network call is for currency rates (one request every 6 hours).",
+    "NETbudget works entirely offline: no account to create, none of your finances on a server, no trackers. The only connection fetches exchange rates. If you subscribe, syncing becomes possible — and you decide what gets stored.",
   "privacy.point1": "No account required",
-  "privacy.point2": "No data sent anywhere",
+  "privacy.point2": "Nothing sent without an account",
   "privacy.point3": "No ads, no trackers",
   "privacy.point4": "Source code available on request",
 
@@ -358,22 +388,52 @@ const en: Catalog = {
   // Privacy page
   "page.privacy.title": "Privacy policy",
   "page.privacy.intro":
-    "NETbudget is designed to respect your privacy. This page describes how the app handles your data.",
-  "page.privacy.section1.title": "What data is collected?",
+    "This page describes exactly what NETbudget does with your data. It separates two very different situations: the app without an account, where nothing leaves your phone, and the subscription, where some data is synchronised so it follows you across devices and can be shared. We would rather be precise than reassuring.",
+
+  "page.privacy.section1.title": "Without an account: nothing leaves your phone",
   "page.privacy.section1.body":
-    "NETbudget does not collect any personal data. Your income, expenses and settings are stored only on your device through the system's local storage (AsyncStorage). No information is transmitted to a server under our control.",
-  "page.privacy.section2.title": "Network connections",
+    "Your budget, income, expenses, loans, currency, language and chosen city are stored on your device. No account is needed, and in this mode none of it is sent to a server. Notifications are scheduled by your phone itself: no notification token is created, so nothing passes through a third-party delivery service.",
+
+  "page.privacy.section2.title": "With an account: what gets synchronised",
   "page.privacy.section2.body":
-    "Only one network call is made: fetching currency rates via the public service open.er-api.com, with a 6-hour local cache. This request contains no identifier and no personal data. You can use the app fully offline by simply ignoring the Converter tab.",
-  "page.privacy.section3.title": "Permissions",
+    "Creating an account is optional. It lets you find your data on several devices, share a budget, and receive advice matched to your situation. We then store on our servers: your email address (or the identifier provided by Apple or Google), your username, optionally your first and last name, your date of birth, your country, region and city, your occupation, your profile picture if you add one, the date you accepted this policy, along with your savings goals, event budgets, monthly history, and the profile used to tailor advice — age, family situation, housing, tax band, children or pets. You choose what you fill in: blank fields are not inferred.",
+
+  "page.privacy.section3.title": "Where encryption actually stands",
   "page.privacy.section3.body":
-    "The app does not request any specific system permission. No access to your contacts, location, calendar or photos is requested.",
-  "page.privacy.section4.title": "Data deletion",
+    "We want to be exact here, because this is routinely overstated. Traffic between the app and our servers is encrypted in transit (HTTPS), and your session token is kept in the operating system's secure keystore. However, end-to-end encryption — the kind that would make it technically impossible for anyone, including us, to read your data — is NOT yet in place. Until this page says otherwise, assume synchronised data is readable by a database administrator. It is protected by access rules that stop one user from seeing another's, but that is not the same guarantee.",
+
+  "page.privacy.section4.title": "Shared budgets",
   "page.privacy.section4.body":
-    "You can delete all your data at any time from the Settings tab, via the \"Reset all data\" button. Uninstalling the app also removes all locally stored data.",
-  "page.privacy.section5.title": "Contact",
+    "If you create a shared space or join someone else's, the members of that space can see the budget, goals and events that live in it, along with your username and profile picture. They never see your personal space. An invitation is a single-use code valid for fourteen days; no email address is required to invite someone. Leaving a space ends your access to its contents immediately.",
+
+  "page.privacy.section5.title": "Network connections",
   "page.privacy.section5.body":
-    "For any question regarding this policy, please contact stephane.pizeuil@gmail.com.",
+    "Without an account, the app contacts two services and never sends an identifier: open.er-api.com for exchange rates, with a local cache, and itunes.apple.com to check whether an update is available. With an account, it talks to Supabase, which hosts the database, authentication and photo storage. If you sign in with Apple or Google, that provider is contacted at sign-in time. The many links to official websites quoted in the advice are only opened if you tap them, and in your browser.",
+
+  "page.privacy.section6.title": "Processors",
+  "page.privacy.section6.body":
+    "Supabase hosts account data. Apple and Google are involved only if you use their sign-in method, and for subscription billing once it is available. open.er-api.com supplies exchange rates. No other third party receives your data: there is no advertising, no analytics, no tracker, no resale. We do not sell data, and it is not our business model — the app is funded by subscriptions.",
+
+  "page.privacy.section7.title": "Permissions requested",
+  "page.privacy.section7.body":
+    "Notifications, for the reminders you choose to switch on, which you can disable category by category. Access to images, only at the moment you add a profile picture; we never browse your gallery. Vibration. Camera, microphone and location are explicitly blocked: the app cannot reach them, not even by mistake.",
+
+  "page.privacy.section8.title": "How long data is kept",
+  "page.privacy.section8.body":
+    "Local data stays on your device until you erase it or uninstall the app. Account data is kept for as long as the account exists. Deleting your account erases it immediately and permanently, with no retention period on our side. Budget history is limited to the last twenty-four months.",
+
+  "page.privacy.section9.title": "Your rights",
+  "page.privacy.section9.body":
+    "The General Data Protection Regulation gives you the right to access your data, correct it, erase it, object to its processing and obtain a copy. Deletion is available directly in the app's settings, under « Delete my account »: it is immediate and irreversible. For anything else, write to us and we will reply within thirty days. You may also complain to your national data protection authority if our answer does not satisfy you.",
+
+  "page.privacy.section10.title": "Minors",
+  "page.privacy.section10.body":
+    "The app can be used without an account at any age. Creating an account is restricted to people aged fifteen or over, the age of digital consent in France. We do not seek to collect data about children; if an account was created for a younger minor, write to us and we will delete it.",
+
+  "page.privacy.section11.title": "Changes and contact",
+  "page.privacy.section11.body":
+    "Any change to this policy will be published here with its date. A change that would broaden how your data is used will be flagged in the app before it takes effect. Any questions: contact@netbudget.app.",
+
   "page.privacy.updated": "Last updated",
 
   // Terms page

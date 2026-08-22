@@ -2245,6 +2245,12 @@ export const es: Catalog = {
   "adv.mix.epargne.tmi": "capacidad y desgravación que conviene aprovechar (PEA + PER + seguro de vida combinados).",
   "adv.mix.reminder.personalized": "Es una referencia basada en tu perfil, no una regla absoluta. Adáptala a tu realidad mensual.",
   "adv.mix.reminder.generic": "Completa tu perfil en Ajustes → Consejos personalizados para recibir un reparto adaptado a tu situación.",
+  "adv.mix.benchmark": "Referencia",
+  "adv.mix.detail": "En detalle",
+  "adv.mix.generic.intro": "Una base sólida por defecto, válida para casi todo el mundo: la mitad para lo imprescindible, un tercio para el disfrute, el resto para el futuro.",
+  "adv.mix.label.besoins": "Necesidades",
+  "adv.mix.label.envies": "Caprichos",
+  "adv.mix.label.epargne": "Ahorro",
   // ---- Handicap, transmission, mix budgétaire ----
   "adv.mix.apprenti.name": "El Aprendiz",
   "adv.mix.apprenti.tagline": "Aprender lo básico",
