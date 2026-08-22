@@ -19,11 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLang } from "../../src/contexts/LangContext";
-import {
-  sendPasswordReset,
-  signInWithEmail,
-  signUpWithEmail,
-} from "../../src/lib/auth";
+import { signInWithEmail, signUpWithEmail } from "../../src/lib/auth";
 import { recordConsent } from "../../src/lib/profile";
 import { notify } from "../../src/utils/notify";
 import { loadProfileBasics } from "../../src/lib/profile";
@@ -58,23 +54,14 @@ export default function EmailAuth() {
     }
   }
 
-  // On confirme l'envoi sans jamais dire si l'adresse est connue : révéler
-  // « ce compte n'existe pas » permettrait de tester des adresses pour savoir
-  // qui est inscrit sur l'app.
-  async function forgotPassword() {
+  // Page dédiée plutôt qu'un envoi depuis ici : l'adresse peut être vide ou
+  // fausse, et l'utilisateur a besoin d'un écran qui explique la suite.
+  // On emporte ce qui est déjà tapé pour ne pas le faire retaper.
+  function forgotPassword() {
     const mail = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      notify(t("auth.forgot.needEmail.title"), t("auth.forgot.needEmail.body"));
-      return;
-    }
-    setBusy(true);
-    const result = await sendPasswordReset(mail);
-    setBusy(false);
-    if (!result.ok) {
-      notify(t("auth.forgot.failed.title"), result.error ?? t("auth.error.unknown"));
-      return;
-    }
-    notify(t("auth.forgot.sent.title"), tp("auth.forgot.sent.body", { email: mail }));
+    router.push(
+      (mail ? `/forgot-password?email=${encodeURIComponent(mail)}` : "/forgot-password") as never,
+    );
   }
 
   async function submit() {

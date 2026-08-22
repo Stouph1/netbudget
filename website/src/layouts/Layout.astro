@@ -2,6 +2,7 @@
 import "../styles/globals.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
+import StickyCta from "../components/StickyCta.astro";
 import { useTranslations, isRtl, type Locale } from "../i18n/utils";
 
 interface Props {
@@ -9,15 +10,96 @@ interface Props {
   title?: string;
   description?: string;
   pageKind?: "home" | "page";
+  /** Image de partage propre à la page. Sans elle, on retombe sur celle de l'accueil. */
+  ogImage?: string;
+  /** Données structurées supplémentaires (FAQ, fil d'Ariane…). */
+  schema?: unknown;
+  /** Retire la page de l'index — pages sans intérêt d'entrée (remerciement, 404). */
+  noindex?: boolean;
+  /** Masque la barre d'action mobile : inutile sur une page légale ou d'erreur. */
+  hideStickyCta?: boolean;
 }
 
-const { locale, title, description, pageKind = "home" } = Astro.props;
+const {
+  locale,
+  title,
+  description,
+  pageKind = "home",
+  ogImage,
+  schema,
+  noindex = false,
+  hideStickyCta = false,
+} = Astro.props;
+
 const t = useTranslations(locale);
 const dir = isRtl(locale) ? "rtl" : "ltr";
 
-const pageTitle = title ?? `NETbudget — ${t("hero.title")}`;
+const SITE = "https://netbudget.app";
+
+// L'accroche est découpée en trois morceaux dans le catalogue (pour styliser
+// l'accent à l'écran) : les recoller tous, sinon le titre anglais s'arrête sur
+// « Know what you really » et ne veut rien dire.
+const pageTitle =
+  title ??
+  `NETbudget — ${t("hero.title")} ${t("hero.title.accent")}${t("hero.title.suffix")}`.replace(
+    /\s+/g,
+    " ",
+  ).replace(/\s\./, ".").trim();
 const pageDesc = description ?? t("hero.subtitle");
-const ogImage = "/og-image.png";
+
+// Canonique : indispensable dès qu'une page est atteignable par plusieurs
+// chemins (avec ou sans slash final, avec des paramètres de campagne). Sans
+// elle, les moteurs répartissent l'autorité entre des doublons.
+const canonical = new URL(Astro.url.pathname, SITE).href.replace(/([^/])$/, "$1/");
+
+const shareImage = new URL(
+  ogImage ?? (locale === "en" ? "/og-image-en.png" : "/og-image.png"),
+  SITE,
+).href;
+
+// L'application elle-même, décrite pour les moteurs. `SoftwareApplication` et
+// non `LocalBusiness` : NETbudget n'a ni adresse, ni horaires, ni zone de
+// chalandise — un balisage de commerce local sur une app serait ignoré au
+// mieux, considéré comme trompeur au pire.
+const appSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "NETbudget",
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "iOS, Android",
+  url: SITE,
+  inLanguage: ["fr", "en", "es", "pt", "de", "it", "ar", "ja"],
+  description: pageDesc,
+  image: shareImage,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "EUR",
+    description:
+      locale === "en"
+        ? "Free, no account required. Optional subscription for syncing and shared budgets."
+        : "Gratuit, sans compte. Abonnement facultatif pour la synchronisation et les budgets partagés.",
+  },
+  author: {
+    "@type": "Person",
+    name: "Stéphane Pizeuil",
+    url: "https://www.linkedin.com/in/stephane-p-aa6122186/",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "NETbudget",
+    url: SITE,
+    logo: new URL("/logo.png", SITE).href,
+    sameAs: ["https://www.instagram.com/netbudget.app"],
+  },
+};
+
+// Un seul bloc JSON-LD : plusieurs balises séparées sont valides, mais un
+// @graph est plus lisible et évite les entités dupliquées.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": schema ? [appSchema, schema] : [appSchema],
+};
 ---
 
 <!doctype html>
@@ -27,29 +109,50 @@ const ogImage = "/og-image.png";
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0A0A0C" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+
     <title>{pageTitle}</title>
     <meta name="description" content={pageDesc} />
+    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex, follow" /> : null}
+
+    <meta property="og:site_name" content="NETbudget" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDesc} />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={shareImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    {/* Décrit l'aperçu aux lecteurs d'écran des réseaux qui l'exposent. */}
+    <meta property="og:image:alt" content={pageTitle} />
+    <meta property="og:locale" content={locale === "en" ? "en_GB" : "fr_FR"} />
+    <meta property="og:locale:alternate" content={locale === "en" ? "fr_FR" : "en_GB"} />
+
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="alternate" hreflang="x-default" href="https://netbudget.app/" />
-    <link rel="alternate" hreflang="fr" href="https://netbudget.app/" />
-    <link rel="alternate" hreflang="en" href="https://netbudget.app/en/" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDesc} />
+    <meta name="twitter:image" content={shareImage} />
+
+    <link rel="alternate" hreflang="x-default" href={`${SITE}/`} />
+    <link rel="alternate" hreflang="fr" href={`${SITE}/`} />
+    <link rel="alternate" hreflang="en" href={`${SITE}/en/`} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body class="font-sans">
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-mint-500 focus:px-3 focus:py-2 focus:text-ink-900"
     >
-      Skip to content
+      {t("a11y.skipToContent")}
     </a>
     <Nav locale={locale} pageKind={pageKind} />
     <main id="main">
       <slot />
     </main>
     <Footer locale={locale} />
+    {hideStickyCta ? null : <StickyCta locale={locale} />}
 
     <script>
       // Reveal-on-scroll : ajoute la classe "reveal-visible" aux éléments .reveal

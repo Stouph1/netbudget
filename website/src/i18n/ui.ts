@@ -163,6 +163,73 @@ const fr: Catalog = {
   "footer.lang": "Langue",
 
   // Privacy page
+  // --- Accessibilité ---------------------------------------------------
+  "a11y.skipToContent": "Aller au contenu",
+
+  // --- Fil d'Ariane ----------------------------------------------------
+  "breadcrumb.home": "Accueil",
+  "breadcrumb.label": "Vous êtes ici",
+
+  // --- Barre d'action mobile -------------------------------------------
+  "sticky.title": "Sache ce qu'il te reste vraiment",
+  "sticky.sub": "Gratuit, sans compte",
+  "sticky.cta": "Télécharger",
+
+  // --- Titres et descriptions de pages ---------------------------------
+  "page.faq.title": "Questions fréquentes",
+  "page.faq.desc": "Combien ça coûte, où vont tes données, dans quels pays ça marche : les réponses aux questions qu'on nous pose vraiment.",
+  "page.privacy.desc": "Ce que NETbudget fait de tes données, précisément. Sans compte, rien ne quitte ton téléphone ; avec un compte, tu choisis ce que tu enregistres.",
+  "page.terms.desc": "Les conditions d'utilisation de NETbudget : ce que l'application fait, ce qu'elle ne promet pas, et tes droits.",
+  "page.thanks.title": "Merci",
+  "page.thanks.desc": "Ton message est parti.",
+  "page.thanks.h1": "Message reçu",
+  "page.thanks.body": "Merci d'avoir écrit. C'est une personne qui lit, pas un robot — et ça change la qualité de la réponse.",
+  "page.thanks.delay": "Réponse sous 48 heures en semaine.",
+  "page.thanks.follow": "En attendant, les nouveautés sont publiées sur",
+
+  // --- Page 404 --------------------------------------------------------
+  "nf.title": "Cette page n'existe pas",
+  "nf.desc": "Le lien est peut-être ancien, ou l'adresse comporte une faute. Rien n'est cassé de ton côté.",
+  "nf.home": "Retour à l'accueil",
+  "nf.faq": "Questions fréquentes",
+  "nf.game.eyebrow": "Puisque tu es là",
+  "nf.game.hint": "Garde le logo en l'air. Doigt, souris ou flèches du clavier.",
+  "nf.game.score": "Score",
+  "nf.game.start": "Un petit jeu, le temps de te remettre",
+  "nf.game.play": "Jouer",
+  "nf.game.again": "Rejouer",
+  "nf.game.over": "Perdu",
+  "nf.game.best": "Meilleur score :",
+  "nf.game.a11y": "Jeu : garder le logo NETbudget en l'air avec une raquette.",
+  "nf.game.footnote": "Le score reste sur ton appareil. Évidemment.",
+
+  // --- FAQ -------------------------------------------------------------
+  "faq.eyebrow": "Questions fréquentes",
+  "faq.title": "Ce qu'on nous demande le plus",
+  "faq.intro": "Des réponses courtes et franches, y compris quand la réponse ne nous arrange pas.",
+  "faq.seeAll": "Voir toutes les questions",
+
+  "faq.free.q": "C'est vraiment gratuit ?",
+  "faq.free.a": "Oui. Le budget complet — revenus, dépenses, prêts, reste à vivre, règle 50/30/20, convertisseur — est gratuit et sans limite de temps. Un abonnement facultatif ajoute la synchronisation entre appareils, les budgets partagés et les conseils personnalisés. Aucune publicité, à aucun moment.",
+  "faq.account.q": "Faut-il créer un compte ?",
+  "faq.account.a": "Non, et c'est un choix de conception. Tu peux installer l'app et t'en servir sans jamais donner d'adresse e-mail. Le compte ne devient utile que si tu veux retrouver tes données sur un autre appareil ou partager un budget avec quelqu'un.",
+  "faq.data.q": "Où sont stockées mes données financières ?",
+  "faq.data.a": "Sans compte, uniquement dans la mémoire de ton téléphone : rien n'est envoyé. Avec un compte, ce que tu choisis d'enregistrer est synchronisé sur nos serveurs. La page de confidentialité détaille précisément quoi, et dit aussi ce qui n'est pas encore chiffré de bout en bout.",
+  "faq.offline.q": "Est-ce que ça marche sans internet ?",
+  "faq.offline.a": "Entièrement, sauf deux choses : les taux de change du convertisseur, qui ont besoin d'être récupérés une fois puis restent en cache, et la synchronisation si tu as un compte. Le calcul de ton budget, lui, ne dépend d'aucun serveur.",
+  "faq.countries.q": "Ça fonctionne dans mon pays ?",
+  "faq.countries.a": "Le budget et le convertisseur fonctionnent partout, dans huit langues et avec les principales devises. Les conseils, eux, dépendent de la législation : la France est couverte en profondeur, la Belgique, la Suisse, le Luxembourg, le Canada, l'Espagne, le Portugal, l'Italie, l'Allemagne, le Royaume-Uni et plusieurs pays d'Afrique le sont partiellement.",
+  "faq.bank.q": "Pourquoi ne pas connecter mon compte bancaire ?",
+  "faq.bank.a": "Parce que ce serait contradictoire. Connecter une banque implique de faire transiter l'historique de tes transactions par un intermédiaire, et donc d'abandonner exactement ce qui fait l'intérêt de l'app. L'import d'un relevé au format CSV est prévu : même gain de temps, sans donner d'accès permanent.",
+  "faq.shared.q": "Peut-on gérer un budget à deux ?",
+  "faq.shared.a": "Oui, avec un espace partagé : chaque membre voit le budget commun, les objectifs et les événements, tout en gardant son espace personnel invisible aux autres. L'invitation se fait par un code à usage unique, sans avoir à donner l'adresse e-mail de l'autre personne.",
+  "faq.advice.q": "D'où viennent les conseils ?",
+  "faq.advice.a": "De sources officielles uniquement — administrations, textes de loi, organismes publics — et chaque conseil affiche ses références et sa date de vérification. Aucun chiffre n'est estimé au jugé. Quand une information n'est pas confirmable, elle est signalée comme telle plutôt que présentée comme sûre.",
+  "faq.android.q": "Et sur Android ?",
+  "faq.android.a": "L'application est développée pour les deux plateformes depuis le début. La version iOS est publiée en premier ; la version Android suit.",
+  "faq.cancel.q": "Comment résilier l'abonnement ?",
+  "faq.cancel.a": "Depuis les réglages de ton téléphone, dans la gestion des abonnements — nous n'avons pas la main dessus, et c'est mieux ainsi : personne ne peut te retenir. La résiliation prend effet à la fin de la période déjà payée, et tes données restent accessibles en version gratuite.",
+
   "page.privacy.title": "Politique de confidentialité",
   "page.privacy.intro":
     "Cette page décrit exactement ce que NETbudget fait de tes données. Elle distingue deux usages très différents : l'application sans compte, où rien ne quitte ton téléphone, et l'abonnement, où certaines données sont synchronisées pour te suivre d'un appareil à l'autre et pour partager un budget. Nous préférons être précis que rassurants.",
@@ -386,6 +453,73 @@ const en: Catalog = {
   "footer.lang": "Language",
 
   // Privacy page
+  // --- Accessibility ----------------------------------------------------
+  "a11y.skipToContent": "Skip to content",
+
+  // --- Breadcrumb -------------------------------------------------------
+  "breadcrumb.home": "Home",
+  "breadcrumb.label": "You are here",
+
+  // --- Mobile action bar ------------------------------------------------
+  "sticky.title": "Know what you really have left",
+  "sticky.sub": "Free, no account",
+  "sticky.cta": "Download",
+
+  // --- Page titles and descriptions -------------------------------------
+  "page.faq.title": "Frequently asked questions",
+  "page.faq.desc": "What it costs, where your data goes, which countries are covered: answers to the questions people actually ask.",
+  "page.privacy.desc": "Exactly what NETbudget does with your data. Without an account nothing leaves your phone; with one, you choose what gets stored.",
+  "page.terms.desc": "NETbudget's terms of use: what the app does, what it does not promise, and your rights.",
+  "page.thanks.title": "Thank you",
+  "page.thanks.desc": "Your message has been sent.",
+  "page.thanks.h1": "Message received",
+  "page.thanks.body": "Thanks for writing. A person reads these, not a bot — and it shows in the answer.",
+  "page.thanks.delay": "Reply within 48 hours on weekdays.",
+  "page.thanks.follow": "In the meantime, updates are posted on",
+
+  // --- 404 page ---------------------------------------------------------
+  "nf.title": "This page does not exist",
+  "nf.desc": "The link may be old, or the address has a typo. Nothing is broken on your side.",
+  "nf.home": "Back to home",
+  "nf.faq": "Frequently asked questions",
+  "nf.game.eyebrow": "Since you are here",
+  "nf.game.hint": "Keep the logo in the air. Finger, mouse or arrow keys.",
+  "nf.game.score": "Score",
+  "nf.game.start": "A small game, while you are here",
+  "nf.game.play": "Play",
+  "nf.game.again": "Play again",
+  "nf.game.over": "Missed",
+  "nf.game.best": "Best score:",
+  "nf.game.a11y": "Game: keep the NETbudget logo in the air with a paddle.",
+  "nf.game.footnote": "The score stays on your device. Obviously.",
+
+  // --- FAQ --------------------------------------------------------------
+  "faq.eyebrow": "Frequently asked questions",
+  "faq.title": "What people ask us most",
+  "faq.intro": "Short, straight answers — including when the answer is not in our favour.",
+  "faq.seeAll": "See all questions",
+
+  "faq.free.q": "Is it really free?",
+  "faq.free.a": "Yes. The full budget — income, expenses, loans, disposable income, the 50/30/20 rule, the converter — is free with no time limit. An optional subscription adds syncing across devices, shared budgets and tailored advice. No advertising, ever.",
+  "faq.account.q": "Do I need an account?",
+  "faq.account.a": "No, and that is a design choice. You can install the app and use it without ever giving an email address. An account only becomes useful if you want your data on another device or want to share a budget with someone.",
+  "faq.data.q": "Where is my financial data stored?",
+  "faq.data.a": "Without an account, only in your phone's storage: nothing is sent. With an account, whatever you choose to save is synchronised to our servers. The privacy page spells out exactly what, and also says what is not yet end-to-end encrypted.",
+  "faq.offline.q": "Does it work without internet?",
+  "faq.offline.a": "Entirely, apart from two things: the converter's exchange rates, which need fetching once and are then cached, and syncing if you have an account. Your budget calculation itself depends on no server.",
+  "faq.countries.q": "Does it work in my country?",
+  "faq.countries.a": "The budget and converter work everywhere, in eight languages and with the major currencies. The advice depends on local law: France is covered in depth, while Belgium, Switzerland, Luxembourg, Canada, Spain, Portugal, Italy, Germany, the United Kingdom and several African countries are covered in part.",
+  "faq.bank.q": "Why not connect my bank account?",
+  "faq.bank.a": "Because it would be self-defeating. Connecting a bank means routing your transaction history through an intermediary, giving up the very thing that makes the app worth using. Importing a statement as a CSV file is planned: the same time saved, without granting permanent access.",
+  "faq.shared.q": "Can two people manage one budget?",
+  "faq.shared.a": "Yes, through a shared space: each member sees the shared budget, goals and events, while their personal space stays invisible to the others. Invitations use a single-use code, so you never have to hand over someone else's email address.",
+  "faq.advice.q": "Where does the advice come from?",
+  "faq.advice.a": "From official sources only — government bodies, legislation, public agencies — and every piece of advice shows its references and the date it was checked. No figure is guessed. When something cannot be confirmed, it is flagged as such rather than presented as certain.",
+  "faq.android.q": "What about Android?",
+  "faq.android.a": "The app is built for both platforms from the start. The iOS version ships first; Android follows.",
+  "faq.cancel.q": "How do I cancel the subscription?",
+  "faq.cancel.a": "From your phone's settings, under subscription management — we have no control over it, and that is better: nobody can hold you back. Cancelling takes effect at the end of the period you already paid for, and your data stays accessible on the free tier.",
+
   "page.privacy.title": "Privacy policy",
   "page.privacy.intro":
     "This page describes exactly what NETbudget does with your data. It separates two very different situations: the app without an account, where nothing leaves your phone, and the subscription, where some data is synchronised so it follows you across devices and can be shared. We would rather be precise than reassuring.",
