@@ -283,19 +283,60 @@ const fr: Catalog = {
   // Terms page
   "page.terms.title": "Conditions d'utilisation",
   "page.terms.intro":
-    "En utilisant NETbudget, tu acceptes les conditions suivantes. Lis-les attentivement.",
-  "page.terms.section1.title": "Objet de l'application",
+    "Ce texte décrit ce que NETbudget fait, ce qu'il ne promet pas, et ce à quoi tu t'engages en l'utilisant. Il est écrit pour être lu, pas pour se protéger derrière du jargon.",
+
+  "page.terms.section1.title": "Ce qu'est NETbudget",
   "page.terms.section1.body":
-    "NETbudget est un outil d'estimation budgétaire personnel. Les calculs proposés (charges sociales, indice du coût de la vie, conseils 50/30/20) sont fournis à titre informatif et indicatif. Ils ne remplacent en aucun cas l'avis d'un professionnel (conseiller financier, expert-comptable, fiscaliste).",
-  "page.terms.section2.title": "Limitation de responsabilité",
+    "Un outil d'estimation budgétaire personnel. Il calcule ton reste à vivre, applique la règle 50/30/20 et rassemble des informations issues de sources publiques. Ce n'est ni une banque, ni un établissement de paiement, ni un conseiller en investissement : NETbudget ne détient pas d'argent, n'exécute aucune opération et ne gère aucun placement.",
+
+  "page.terms.section2.title": "Ce que valent les chiffres affichés",
   "page.terms.section2.body":
-    "L'éditeur ne saurait être tenu responsable des décisions financières prises sur la base des informations affichées. Les taux de charges par statut sont des estimations issues de sources publiques (service-public.fr, urssaf.fr) ; ton bulletin de paie réel peut différer.",
-  "page.terms.section3.title": "Propriété intellectuelle",
+    "Des estimations, jamais des engagements. Les taux de charges, les indices de coût de la vie, les prix de billets d'avion ou les barèmes d'aides proviennent de sources publiques citées dans l'application, avec leur date de vérification. Une législation change, un barème est revalorisé, un devis réel diffère d'une estimation. Ton bulletin de paie, ton avis d'imposition et les décisions de ton administration font foi, pas l'application.",
+
+  "page.terms.section3.title": "Ce que tu ne dois pas en attendre",
   "page.terms.section3.body":
-    "Le nom NETbudget, le logo, l'interface et le code source restent la propriété de l'éditeur. La règle 50/30/20 est issue des travaux d'Elizabeth Warren et Amelia Warren Tyagi, librement disponibles dans leurs ouvrages.",
-  "page.terms.section4.title": "Évolution des conditions",
+    "Un conseil professionnel. Les informations affichées ne remplacent ni un conseiller financier, ni un expert-comptable, ni un notaire, ni un travailleur social. Les décisions que tu prends après avoir lu l'application restent les tiennes, et l'éditeur ne peut en être tenu responsable. Pour un engagement important — crédit immobilier, placement, succession — fais vérifier par un professionnel.",
+
+  "page.terms.section4.title": "Ton compte",
   "page.terms.section4.body":
-    "Ces conditions peuvent être mises à jour. La date de dernière mise à jour est indiquée en bas de page. L'utilisation continue de l'application après mise à jour vaut acceptation.",
+    "Le compte est facultatif : l'application fonctionne sans. Si tu en crées un, tu es responsable de la confidentialité de ton mot de passe et des activités menées depuis ton compte. Il est réservé aux personnes de quinze ans ou plus. Nous pouvons suspendre un compte utilisé pour nuire à autrui, contourner la facturation ou attaquer le service — jamais pour un usage normal, même intensif.",
+
+  "page.terms.section5.title": "Abonnement et paliers",
+  "page.terms.section5.body":
+    "L'application est utilisable gratuitement et sans limite de temps : budget, prêts, reste à vivre, règle 50/30/20 et convertisseur. Un abonnement facultatif ouvre la synchronisation entre appareils, les conseils personnalisés et les budgets d'événement. La formule Solo suit un événement à la fois et n'inclut pas le budget mariage, qui se prépare à plusieurs et appartient aux formules Duo et Famille. Les limites exactes de chaque formule sont indiquées dans l'application avant tout paiement.",
+
+  "page.terms.section6.title": "Paiement, renouvellement, résiliation",
+  "page.terms.section6.body":
+    "Les abonnements sont vendus et encaissés par l'App Store d'Apple ou le Play Store de Google, jamais par nous — nous ne voyons donc aucune donnée bancaire. Ils se renouvellent automatiquement à échéance, sauf résiliation au moins vingt-quatre heures avant. La résiliation se fait depuis les réglages de ton téléphone, dans la gestion des abonnements : nous n'avons pas la main dessus, et c'est mieux ainsi — personne ne peut te retenir ni te faire passer par un service client. Elle prend effet à la fin de la période déjà payée, sans frais, et tes données restent accessibles en version gratuite.",
+
+  "page.terms.section7.title": "Remboursement et droit de rétractation",
+  "page.terms.section7.body":
+    "Les remboursements sont traités par la boutique qui a encaissé le paiement, selon ses propres règles : Apple et Google disposent chacun d'un formulaire de demande. Nous n'avons techniquement pas la possibilité de rembourser à leur place, mais écris-nous et nous appuierons ta demande. Pour un achat effectué dans l'Union européenne, le droit de rétractation de quatorze jours s'applique dans les conditions prévues par la boutique concernée.",
+
+  "page.terms.section8.title": "Codes promotionnels",
+  "page.terms.section8.body":
+    "Un code de réduction s'applique à la période indiquée au moment de son utilisation, puis l'abonnement se poursuit au tarif normal. Un code n'est ni cumulable avec un autre, ni échangeable contre de l'argent, ni transférable. Un code obtenu ou utilisé de manière frauduleuse peut être annulé.",
+
+  "page.terms.section9.title": "Budgets partagés",
+  "page.terms.section9.body":
+    "Dans un espace partagé, tu rends volontairement visibles aux autres membres le budget, les objectifs et les événements de cet espace, ainsi que ton pseudo et ta photo de profil. N'y place que ce que tu acceptes de partager. Le propriétaire d'un espace peut le supprimer, ce qui en efface le contenu pour tous ses membres. Ton espace personnel n'est jamais visible par qui que ce soit.",
+
+  "page.terms.section10.title": "Disponibilité du service",
+  "page.terms.section10.body":
+    "L'application fonctionne hors ligne pour l'essentiel, ce qui la rend peu sensible aux pannes. La synchronisation, elle, dépend de serveurs et peut être interrompue pour maintenance ou incident. Aucune garantie de disponibilité continue n'est donnée. Des fonctionnalités peuvent évoluer ou disparaître ; si l'une d'elles justifiait ton abonnement, tu peux résilier comme indiqué plus haut.",
+
+  "page.terms.section11.title": "Propriété intellectuelle",
+  "page.terms.section11.body":
+    "Le nom NETbudget, le logo, l'interface et le code source appartiennent à l'éditeur. Tes données, elles, t'appartiennent : nous ne revendiquons aucun droit dessus et ne les exploitons pas à d'autres fins que de faire fonctionner l'application. La règle 50/30/20 est issue des travaux d'Elizabeth Warren et Amelia Warren Tyagi, publiés dans leurs ouvrages.",
+
+  "page.terms.section12.title": "Droit applicable et litiges",
+  "page.terms.section12.body":
+    "Ces conditions sont soumises au droit français. En cas de désaccord, écris-nous d'abord : la plupart des problèmes se règlent en quelques messages. Si aucune solution n'est trouvée, tu peux saisir un médiateur de la consommation ou les tribunaux compétents. Rien ici ne restreint les droits que la loi de ton pays de résidence te garantit en tant que consommateur.",
+
+  "page.terms.section13.title": "Évolution des conditions",
+  "page.terms.section13.body":
+    "Ce texte peut être modifié ; la date de dernière mise à jour figure en bas de page. Un changement significatif — notamment sur la facturation — sera signalé dans l'application avant son entrée en vigueur. Poursuivre l'utilisation après cette date vaut acceptation. Une question : contact@netbudget.app.",
+
   "page.terms.updated": "Dernière mise à jour",
 
   // Back to home
@@ -573,19 +614,60 @@ const en: Catalog = {
   // Terms page
   "page.terms.title": "Terms of use",
   "page.terms.intro":
-    "By using NETbudget, you agree to the following terms. Please read them carefully.",
-  "page.terms.section1.title": "Purpose of the app",
+    "This text sets out what NETbudget does, what it does not promise, and what you agree to by using it. It is written to be read, not to hide behind jargon.",
+
+  "page.terms.section1.title": "What NETbudget is",
   "page.terms.section1.body":
-    "NETbudget is a personal budgeting estimation tool. The calculations provided (social charges, cost-of-living index, 50/30/20 advice) are informational and indicative. They do not replace the advice of a professional (financial advisor, accountant, tax expert).",
-  "page.terms.section2.title": "Liability",
+    "A personal budgeting estimation tool. It works out your disposable income, applies the 50/30/20 rule and gathers information from public sources. It is not a bank, a payment institution or an investment adviser: NETbudget holds no money, executes no transaction and manages no investment.",
+
+  "page.terms.section2.title": "What the figures are worth",
   "page.terms.section2.body":
-    "The publisher cannot be held responsible for financial decisions made based on the information displayed. Contribution rates per status are estimates derived from public sources (service-public.fr, urssaf.fr); your actual payslip may differ.",
-  "page.terms.section3.title": "Intellectual property",
+    "Estimates, never commitments. Contribution rates, cost-of-living indices, flight prices and benefit amounts come from public sources cited in the app, with the date they were checked. Legislation changes, thresholds are revised, a real quote differs from an estimate. Your payslip, your tax assessment and your authorities' decisions are what count — not the app.",
+
+  "page.terms.section3.title": "What you should not expect from it",
   "page.terms.section3.body":
-    "The NETbudget name, logo, interface and source code remain the property of the publisher. The 50/30/20 rule is derived from the work of Elizabeth Warren and Amelia Warren Tyagi, freely available in their books.",
-  "page.terms.section4.title": "Changes to these terms",
+    "Professional advice. The information shown replaces neither a financial adviser, nor an accountant, nor a solicitor, nor a social worker. The decisions you make after reading the app remain yours, and the publisher cannot be held responsible for them. For anything significant — a mortgage, an investment, an inheritance — have it checked by a professional.",
+
+  "page.terms.section4.title": "Your account",
   "page.terms.section4.body":
-    "These terms may be updated. The last update date is shown at the bottom of the page. Continued use of the app after an update constitutes acceptance.",
+    "An account is optional: the app works without one. If you create one, you are responsible for keeping your password confidential and for activity carried out from your account. It is restricted to people aged fifteen or over. We may suspend an account used to harm others, circumvent billing or attack the service — never for normal use, however heavy.",
+
+  "page.terms.section5.title": "Subscription and plans",
+  "page.terms.section5.body":
+    "The app is usable free of charge with no time limit: budget, loans, disposable income, the 50/30/20 rule and the converter. An optional subscription unlocks syncing across devices, tailored advice and event budgets. The Solo plan tracks one event at a time and does not include the wedding budget, which is planned together and belongs to the Duo and Family plans. Each plan's exact limits are shown in the app before any payment.",
+
+  "page.terms.section6.title": "Payment, renewal, cancellation",
+  "page.terms.section6.body":
+    "Subscriptions are sold and charged by Apple's App Store or Google's Play Store, never by us — so we never see any payment details. They renew automatically at the end of each period unless cancelled at least twenty-four hours beforehand. Cancellation happens in your phone's settings, under subscription management: we have no control over it, and that is better — nobody can hold you back or route you through a retention agent. It takes effect at the end of the period you already paid for, at no cost, and your data stays accessible on the free tier.",
+
+  "page.terms.section7.title": "Refunds and right of withdrawal",
+  "page.terms.section7.body":
+    "Refunds are handled by whichever store took the payment, under its own rules: Apple and Google each provide a request form. We are technically unable to refund on their behalf, but write to us and we will support your request. For a purchase made in the European Union, the fourteen-day right of withdrawal applies under the conditions set by the store concerned.",
+
+  "page.terms.section8.title": "Promotional codes",
+  "page.terms.section8.body":
+    "A discount code applies to the period stated when it is used, after which the subscription continues at the standard price. A code cannot be combined with another, exchanged for money, or transferred. A code obtained or used fraudulently may be cancelled.",
+
+  "page.terms.section9.title": "Shared budgets",
+  "page.terms.section9.body":
+    "In a shared space, you deliberately make that space's budget, goals and events visible to its other members, along with your username and profile picture. Only put there what you are willing to share. A space's owner can delete it, which erases its contents for every member. Your personal space is never visible to anyone.",
+
+  "page.terms.section10.title": "Service availability",
+  "page.terms.section10.body":
+    "The app works offline for the most part, which makes it largely immune to outages. Syncing, however, depends on servers and may be interrupted for maintenance or incidents. No guarantee of continuous availability is given. Features may change or be withdrawn; if one of them was the reason for your subscription, you can cancel as described above.",
+
+  "page.terms.section11.title": "Intellectual property",
+  "page.terms.section11.body":
+    "The NETbudget name, logo, interface and source code belong to the publisher. Your data belongs to you: we claim no rights over it and use it for nothing other than running the app. The 50/30/20 rule comes from the work of Elizabeth Warren and Amelia Warren Tyagi, published in their books.",
+
+  "page.terms.section12.title": "Governing law and disputes",
+  "page.terms.section12.body":
+    "These terms are governed by French law. If something goes wrong, write to us first: most problems are settled in a few messages. If no solution is found, you may refer the matter to a consumer mediator or to the competent courts. Nothing here restricts the rights that the law of your country of residence guarantees you as a consumer.",
+
+  "page.terms.section13.title": "Changes to these terms",
+  "page.terms.section13.body":
+    "This text may be amended; the date it was last updated appears at the bottom of the page. A significant change — particularly to billing — will be flagged in the app before it takes effect. Continuing to use the app after that date constitutes acceptance. Any questions: contact@netbudget.app.",
+
   "page.terms.updated": "Last updated",
 
   // Back to home
