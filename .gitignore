@@ -99,5 +99,10 @@ marketing/**/narration-raw.wav
 marketing/**/*-OLD*
 
 # Local working notes
-docs/
+# On exclut le CONTENU de docs/ et non le dossier lui-meme : git ne redescend
+# jamais dans un repertoire exclu, donc une exception a l'interieur serait
+# ignoree en silence.
+docs/*
+# Exception : les documents remis aux testeurs vivent avec le projet.
+!docs/testeurs/
 design-system/
