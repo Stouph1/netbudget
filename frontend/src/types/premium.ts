@@ -2,8 +2,9 @@
 //
 // Storage model : tout est encapsulé dans des blobs `encrypted_payloads`
 // côté Supabase, une entrée par payload_key (voir premiumStore.ts).
-// L'encryption client-side (libsodium) sera branchée en Phase 5 ;
-// pour l'instant on stocke en JSON clair (stub) pour dev-velocity.
+// Le contenu est chiffré côté client (XSalsa20-Poly1305, clé dérivée de la
+// phrase de récupération) dès que l'utilisateur active le chiffrement — voir
+// src/lib/crypto/. Avant activation, il part en clair, marqué crypto_version 0.
 //
 // Simplification 2026-07-13 : sections Comptes et Patrimoine retirées du MVP
 // (peu de valeur perçue). L'info "où est l'argent" sera dérivée du profil

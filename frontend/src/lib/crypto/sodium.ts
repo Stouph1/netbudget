@@ -1,63 +1,93 @@
-// Accès à libsodium, derrière une surface minuscule.
+// Primitives cryptographiques, derrière une surface minuscule.
 //
-// POURQUOI CETTE COUCHE plutôt que d'importer libsodium partout :
+// POURQUOI TWEETNACL ET NON LIBSODIUM. J'ai d'abord pris `libsodium-wrappers`,
+// la version WebAssembly. Les tests passaient — Node accepte les modules ES —
+// mais l'APPLICATION ne se compilait plus : ce paquet utilise `import.meta`,
+// que le bundler de React Native ne sait pas transformer. Un chiffrement qui
+// empêche l'app de démarrer ne chiffre rien.
 //
-// 1. `libsodium-wrappers` est une bibliothèque WebAssembly qui doit être
-//    INITIALISÉE avant tout appel. Oublier un `await ready()` ne provoque pas
-//    une erreur claire mais un plantage dans le module WASM. En passant par ce
-//    module, l'oubli est impossible ailleurs.
+// tweetnacl est du JavaScript pur, audité, sans WebAssembly et sans module
+// natif. Il fonctionne donc partout où l'app fonctionne : navigateur, Expo Go,
+// build compilé, et tests. C'est la leçon déjà apprise avec Google Sign-In —
+// une dépendance qui ne marche que dans un environnement se paie plus tard.
 //
-// 2. On n'expose que les quatre opérations dont l'app a besoin. Une surface
-//    réduite est une surface qu'on peut relire — et sur du chiffrement, ce qui
-//    n'est pas relu n'est pas sûr.
-//
-// 3. Le choix WebAssembly plutôt qu'un module natif est délibéré : il fonctionne
-//    dans le navigateur, dans Expo Go et dans un build compilé. Un module natif
-//    aurait rendu le chiffrement intestable hors build signé — exactement le
-//    piège dans lequel Google Sign-In nous a fait tomber.
+// LA SURFACE EST VOLONTAIREMENT ÉTROITE : quatre opérations. Sur du
+// chiffrement, ce qui n'est pas relu n'est pas sûr.
 
-import _sodium from "libsodium-wrappers";
+import nacl from "tweetnacl";
 
-let readyPromise: Promise<void> | null = null;
-
-/** Longueur du nonce de `crypto_secretbox`, en octets. */
-export const NONCE_BYTES = 24;
+/** Longueur du nonce de secretbox, en octets. */
+export const NONCE_BYTES = nacl.secretbox.nonceLength;
 
 /**
- * Chiffrement authentifié symétrique.
+ * Octets aléatoires de qualité cryptographique.
  *
- * `crypto_secretbox` = XSalsa20 pour le chiffre, Poly1305 pour
- * l'authentification. Authentifié veut dire qu'un octet modifié dans la base
- * fait échouer le déchiffrement au lieu de renvoyer des données corrompues :
- * sur des montants, c'est la différence entre une erreur et un budget faux.
+ * Trois sources tentées dans l'ordre, et AUCUN repli sur Math.random : un
+ * générateur prévisible ne produirait pas une erreur mais un chiffrement
+ * cassable, sans que rien ne le signale. Mieux vaut échouer bruyamment.
  */
-export const sodium = {
-  /** Idempotent : on peut l'appeler à chaque opération sans coût. */
-  async ready(): Promise<void> {
-    if (!readyPromise) {
-      readyPromise = _sodium.ready.then(() => undefined);
+function secureRandom(length: number): Uint8Array {
+  // expo-crypto : source native, disponible jusque dans Expo Go où
+  // globalThis.crypto est absent.
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Crypto = require("expo-crypto") as {
+      getRandomBytes?: (n: number) => Uint8Array;
+    };
+    if (typeof Crypto.getRandomBytes === "function") {
+      return Crypto.getRandomBytes(length);
     }
-    return readyPromise;
+  } catch {
+    // Module absent (tests Node) : on passe à la source suivante.
+  }
+
+  const webCrypto = (globalThis as { crypto?: Crypto }).crypto;
+  if (webCrypto?.getRandomValues) {
+    return webCrypto.getRandomValues(new Uint8Array(length));
+  }
+
+  throw new Error("aucune-source-aleatoire-sure");
+}
+
+export const sodium = {
+  /**
+   * Conservé pour ne rien changer aux appelants.
+   *
+   * tweetnacl n'a rien à initialiser, contrairement à un module WebAssembly.
+   * Garder ce point d'entrée permet de revenir à une implémentation qui, elle,
+   * demanderait une initialisation, sans toucher au reste du code.
+   */
+  async ready(): Promise<void> {
+    return;
   },
 
-  /** Octets aléatoires issus du générateur du système d'exploitation. */
   randombytes(length: number): Uint8Array {
-    return _sodium.randombytes_buf(length);
+    return secureRandom(length);
   },
 
   /**
-   * BLAKE2b avec clé de personnalisation.
+   * Dérivation par hachage, séparée par contexte.
    *
-   * Le `context` sépare les usages : deux dérivations du même secret avec des
-   * contextes différents donnent des clés indépendantes. Sans lui, réutiliser
-   * le secret ailleurs exposerait les deux usages d'un coup.
+   * SHA-512 tronqué à la longueur demandée. Le `context` est préfixé pour que
+   * deux dérivations du même secret avec des contextes différents donnent des
+   * résultats indépendants : sans lui, réutiliser le secret ailleurs
+   * exposerait les deux usages d'un coup.
+   *
+   * Pas d'étirement de mot de passe, et c'est voulu : les entrées ici sont
+   * déjà aléatoires (128 bits pour une phrase, 256 pour une clé). Argon2 sert
+   * à compenser la faiblesse d'un mot de passe humain, pas à renforcer du
+   * hasard.
    */
   hash(outLength: number, input: Uint8Array, context: string): Uint8Array {
-    // La clé de BLAKE2b doit faire au moins 16 octets : on étale le contexte
-    // sur 32 octets plutôt que de passer une chaîne de longueur arbitraire.
-    const key = new Uint8Array(32);
-    key.set(new TextEncoder().encode(context).slice(0, 32));
-    return _sodium.crypto_generichash(outLength, input, key);
+    if (outLength > 64) throw new Error("hash-trop-long");
+    const prefix = new TextEncoder().encode(context);
+    const buf = new Uint8Array(prefix.length + 1 + input.length);
+    buf.set(prefix, 0);
+    // Séparateur explicite : sans lui, ("ab", "c") et ("a", "bc") donneraient
+    // le même haché — une confusion de domaines classique.
+    buf[prefix.length] = 0x1f;
+    buf.set(input, prefix.length + 1);
+    return nacl.hash(buf).subarray(0, outLength);
   },
 
   /** Chiffre et authentifie. Le nonce est renvoyé : il n'est pas secret. */
@@ -65,19 +95,19 @@ export const sodium = {
     // Un nonce ALÉATOIRE par message. Le réutiliser avec la même clé casse la
     // confidentialité de XSalsa20 — c'est l'erreur classique, et elle est
     // silencieuse. 24 octets rendent la collision aléatoire hors de portée.
-    const nonce = _sodium.randombytes_buf(NONCE_BYTES);
-    const ciphertext = _sodium.crypto_secretbox_easy(plaintext, nonce, key);
-    return { ciphertext, nonce };
+    const nonce = secureRandom(NONCE_BYTES);
+    return { ciphertext: nacl.secretbox(plaintext, nonce, key), nonce };
   },
 
   /**
    * Déchiffre et vérifie l'authenticité.
    * Renvoie null si la clé est fausse ou le contenu altéré — jamais des
-   * données douteuses.
+   * données douteuses. Sur des montants, une valeur fausse est pire qu'une
+   * valeur absente.
    */
   open(ciphertext: Uint8Array, nonce: Uint8Array, key: Uint8Array): Uint8Array | null {
     try {
-      return _sodium.crypto_secretbox_open_easy(ciphertext, nonce, key);
+      return nacl.secretbox.open(ciphertext, nonce, key);
     } catch {
       return null;
     }

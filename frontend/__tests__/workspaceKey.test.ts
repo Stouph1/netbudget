@@ -21,7 +21,7 @@ import {
 import { decryptPayload, encryptPayload } from "../src/lib/crypto/payload";
 
 const PHRASE_A =
-  "excess valley fire october wire reward barely nothing winter hunt fetch helmet";
+  "legend window pudding dash broccoli offer plate vehicle aspect sand come rich";
 
 // Deux clés personnelles distinctes, comme deux membres réels.
 async function twoMembers() {

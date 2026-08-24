@@ -35,7 +35,7 @@ import {
 // Générée avec notre propre encodage — attention, une phrase valide au sens de
 // BIP-39 ne l'est PAS ici, la somme de contrôle utilise BLAKE2b.
 const PHRASE =
-  "excess valley fire october wire reward barely nothing winter hunt fetch helmet";
+  "legend window pudding dash broccoli offer plate vehicle aspect sand come rich";
 
 describe("génération de la phrase", () => {
   it("produit douze mots valides", async () => {
@@ -58,20 +58,20 @@ describe("validation de la phrase", () => {
   it("pardonne majuscules, espaces multiples et espaces insécables", () => {
     // Ce sont les trois dégâts classiques d'un copier-coller ou d'une
     // correction automatique. Refuser la phrase ici serait cruel.
-    const sale = "  Excess   VALLEY fire october wire reward barely nothing winter hunt fetch\u00a0helmet ";
+    const sale = "  Legend   WINDOW pudding dash broccoli offer plate vehicle aspect sand come\u00a0rich ";
     const out = checkPhrase(sale);
     expect(out.ok).toBe(true);
     expect(out.ok && out.phrase).toBe(PHRASE);
   });
 
   it("distingue un mauvais nombre de mots", () => {
-    const out = checkPhrase("excess valley fire");
+    const out = checkPhrase("legend window pudding");
     expect(out).toEqual({ ok: false, reason: "wordCount" });
   });
 
   it("nomme les mots inconnus au lieu d'un refus opaque", () => {
     const out = checkPhrase(
-      "zzzz valley fire october wire reward barely nothing winter hunt fetch helmet",
+      "zzzz window pudding dash broccoli offer plate vehicle aspect sand come rich",
     );
     expect(out.ok).toBe(false);
     expect(out.ok === false && out.reason).toBe("unknownWord");
@@ -255,7 +255,7 @@ describe("affichage de la phrase", () => {
   it("numérote les mots à partir de 1", () => {
     const words = phraseWords(PHRASE);
     expect(words).toHaveLength(PHRASE_WORDS);
-    expect(words[0]).toEqual({ index: 1, word: "excess" });
+    expect(words[0]).toEqual({ index: 1, word: "legend" });
     expect(words[11].index).toBe(12);
   });
 });
