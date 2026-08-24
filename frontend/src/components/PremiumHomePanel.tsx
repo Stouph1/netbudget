@@ -514,32 +514,35 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
         ) : null}
       </View>
 
-      {/* Chiffrement : la tuile change de libellé ET de destination selon
-          l'état. Un intitulé unique obligerait l'utilisateur à ouvrir l'écran
-          pour savoir s'il a quelque chose à faire. */}
-      {vault.status !== "noAccount" ? (
+      {/* Chiffrement : aucune tuile quand tout va bien. Le chiffrement est le
+          comportement par défaut, pas une fonctionnalité à exhiber — l'annoncer
+          en permanence donnerait à penser qu'il y a un risque, donc un doute.
+          On ne montre quelque chose que s'il y a une ACTION à faire. */}
+      {vault.status === "locked" || vault.status === "wrongKey" ? (
         <View style={styles.tilesRow}>
           <Tile
-            icon={vault.status === "unlocked" ? "shield" : "alert-circle"}
-            label={t(
-              vault.status === "unlocked"
-                ? "home.tile.vaultOn"
-                : vault.status === "notSetUp"
-                  ? "home.tile.vaultOff"
-                  : "home.tile.vaultLocked",
-            )}
-            onPress={() =>
-              router.push(
-                (vault.status === "notSetUp"
-                  ? "/vault-setup"
-                  : vault.status === "unlocked"
-                    ? "/vault-status"
-                    : "/vault-unlock") as never,
-              )
-            }
+            icon="alert-circle"
+            label={t("home.tile.vaultLocked")}
+            onPress={() => router.push("/vault-unlock" as never)}
           />
         </View>
       ) : null}
+      {/* Sauvegarde de la clé : un simple lien, sous les tuiles. Pas une carte,
+          pas un encadré, pas de pictogramme d'alerte. Qui ne le cherche pas ne
+          le voit pas, et c'est l'intention : le chiffrement fonctionne déjà. */}
+      {vault.status === "unlocked" ? (
+        <TouchableOpacity
+          onPress={() => router.push("/vault-backup" as never)}
+          style={styles.vaultLinkRow}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t("home.vaultBackup")}
+        >
+          <Feather name="key" size={13} color={TEXT_3} />
+          <Text style={styles.vaultLinkText}>{t("home.vaultBackup")}</Text>
+        </TouchableOpacity>
+      ) : null}
+
       {__DEV__ && onDevReplayBirthday ? (
         <TouchableOpacity
           onPress={onDevReplayBirthday}
@@ -1070,6 +1073,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
   },
+  vaultLinkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    paddingVertical: 12,
+    marginBottom: 4,
+  },
+  vaultLinkText: { color: TEXT_3, fontSize: 12.5, fontWeight: "600" },
   historyDemoBtn: {
     color: TEXT_3,
     fontSize: 10,

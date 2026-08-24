@@ -119,9 +119,8 @@ describe("migration à la lecture", () => {
 });
 
 describe("message affiché", () => {
-  it("parle quand il y a quelque chose à faire", () => {
+  it("parle seulement quand il y a une action à faire", () => {
     expect(vaultMessageKey({ status: "locked" })).toBe("vault.locked.message");
-    expect(vaultMessageKey({ status: "notSetUp" })).toBe("vault.notSetUp.message");
     expect(vaultMessageKey({ status: "wrongKey", expected: FP, found: OTHER })).toBe(
       "vault.wrongKey.message",
     );
@@ -130,5 +129,11 @@ describe("message affiché", () => {
   it("se taît quand tout va bien", () => {
     expect(vaultMessageKey({ status: "unlocked" })).toBeNull();
     expect(vaultMessageKey({ status: "noAccount" })).toBeNull();
+  });
+
+  it("ne dit rien pendant l'activation automatique", () => {
+    // notSetUp ne dure que le temps du premier appel reseau : annoncer une
+    // protection absente pendant une seconde inquiete sans rien permettre.
+    expect(vaultMessageKey({ status: "notSetUp" })).toBeNull();
   });
 });

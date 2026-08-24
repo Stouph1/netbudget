@@ -25,6 +25,17 @@ import { KEY_BYTES } from "./vaultKey";
 /** Une clé par utilisateur : deux comptes sur le même téléphone ne se mélangent pas. */
 const storeKey = (userId: string) => `netbudget.vaultKey.${userId}`;
 
+/**
+ * La PHRASE est stockée à côté de la clé.
+ *
+ * Pourquoi les deux : la clé est un haché non inversible de la phrase. Sans
+ * garder la phrase, on ne pourrait plus jamais la réafficher — donc plus jamais
+ * proposer à l'utilisateur de sauvegarder son accès. La phrase et la clé
+ * ouvrent exactement les mêmes données : les protéger au même endroit n'affaiblit
+ * rien.
+ */
+const storePhrase = (userId: string) => `netbudget.vaultPhrase.${userId}`;
+
 const persistent = Platform.OS === "ios" || Platform.OS === "android";
 
 /**
@@ -35,6 +46,26 @@ const persistent = Platform.OS === "ios" || Platform.OS === "android";
  * aucun contexte React persistant.
  */
 let memoryKey: { userId: string; key: Uint8Array } | null = null;
+
+/** Range la phrase à côté de la clé, pour pouvoir la réafficher plus tard. */
+export async function rememberPhrase(userId: string, phrase: string): Promise<void> {
+  if (!persistent) return;
+  try {
+    await SecureStore.setItemAsync(storePhrase(userId), phrase, {
+      keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
+    });
+  } catch {}
+}
+
+/** Phrase de cet appareil, ou null. Utilisée par l'écran de sauvegarde. */
+export async function loadPhrase(userId: string): Promise<string | null> {
+  if (!persistent) return null;
+  try {
+    return await SecureStore.getItemAsync(storePhrase(userId));
+  } catch {
+    return null;
+  }
+}
 
 /** La clé est-elle disponible tout de suite, sans redemander la phrase ? */
 export function hasKeyInMemory(userId: string): boolean {
@@ -89,6 +120,7 @@ export async function forgetKey(userId: string): Promise<void> {
   if (!persistent) return;
   try {
     await SecureStore.deleteItemAsync(storeKey(userId));
+    await SecureStore.deleteItemAsync(storePhrase(userId));
   } catch {}
 }
 

@@ -97,15 +97,20 @@ export function needsMigration(state: VaultState, wasPlaintext: boolean): boolea
   return wasPlaintext && shouldEncrypt(state);
 }
 
-/** Message à afficher, sous forme de clé i18n. Null quand il n'y a rien à dire. */
+/**
+ * Message à afficher, sous forme de clé i18n. Null quand il n'y a rien à dire.
+ *
+ * `notSetUp` ne dit RIEN, volontairement : depuis que le chiffrement s'active
+ * tout seul, cet état ne dure que le temps du premier appel réseau. Y afficher
+ * un message reviendrait à annoncer une protection absente pendant une seconde,
+ * ce qui inquiète sans rien permettre.
+ */
 export function vaultMessageKey(state: VaultState): string | null {
   switch (state.status) {
     case "locked":
       return "vault.locked.message";
     case "wrongKey":
       return "vault.wrongKey.message";
-    case "notSetUp":
-      return "vault.notSetUp.message";
     default:
       return null;
   }

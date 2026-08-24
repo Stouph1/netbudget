@@ -11,8 +11,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "../contexts/SessionContext";
-import { currentKey } from "../lib/crypto/vault";
-import { readVaultState } from "../lib/crypto/vault";
+import { currentKey, ensureVault, readVaultState } from "../lib/crypto/vault";
 import { publishVaultSession } from "../lib/crypto/vaultSession";
 import type { VaultState } from "../lib/crypto/vaultState";
 
@@ -28,6 +27,11 @@ export function useVault(): VaultInfo {
 
   const refresh = useCallback(async () => {
     const userId = user?.id ?? null;
+
+    // Le chiffrement s'active tout seul, sans écran ni question. Un compte
+    // connecté est un compte chiffré : c'est le défaut, pas une option.
+    if (userId) await ensureVault(userId);
+
     const next = await readVaultState(userId);
     const key = next.status === "unlocked" ? await currentKey(userId) : null;
     // On publie AVANT de mettre à jour le rendu : un écran qui réagit au

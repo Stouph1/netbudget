@@ -6,7 +6,7 @@
 // ce fichier court exprès : ce qui est cousu ne se teste que par l'usage.
 
 import { supabase } from "../supabase";
-import { forgetKey, loadKey, rememberKey } from "./keystore";
+import { forgetKey, loadKey, loadPhrase, rememberKey, rememberPhrase } from "./keystore";
 import { generatePhrase, keyFingerprint, keyFromPhrase } from "./vaultKey";
 import { vaultState, type VaultState } from "./vaultState";
 
@@ -70,10 +70,40 @@ export async function setUpVault(userId: string): Promise<SetupResult> {
     }
 
     await rememberKey(userId, key);
+    // La phrase est rangée à côté de la clé : c'est ce qui permettra de la
+    // réafficher plus tard, si l'utilisateur veut sauvegarder son accès.
+    await rememberPhrase(userId, phrase);
     return { ok: true, phrase, fingerprint };
   } catch (e: unknown) {
     return { ok: false, error: (e as { message?: string }).message ?? "unknown" };
   }
+}
+
+/**
+ * Active le chiffrement si ce n'est pas déjà fait, sans rien demander.
+ *
+ * LE CHOIX DE CONCEPTION : le chiffrement n'est pas une option qu'on propose,
+ * c'est le comportement par défaut. Demander l'autorisation de protéger les
+ * données de quelqu'un est une question sans bonne réponse — la plupart des
+ * gens répondront « plus tard » et resteront moins protégés sans l'avoir voulu.
+ *
+ * Silencieux jusque dans l'échec : si le réseau manque, on n'affiche rien et on
+ * réessaie au prochain lancement. Les données partent alors en clair, comme
+ * avant, ce qui reste un comportement valide et lisible.
+ *
+ * Renvoie true si le coffre est actif à la sortie.
+ */
+export async function ensureVault(userId: string): Promise<boolean> {
+  const state = await readVaultState(userId);
+  if (state.status === "unlocked") return true;
+
+  // `locked` ou `wrongKey` : le compte est déjà chiffré et la clé de cet
+  // appareil ne convient pas. Ce n'est pas à cette fonction de le résoudre —
+  // il faut la phrase, donc l'utilisateur.
+  if (state.status !== "notSetUp") return false;
+
+  const result = await setUpVault(userId);
+  return result.ok;
 }
 
 export type UnlockResult =
@@ -120,6 +150,11 @@ export async function unlockVault(
  */
 export async function lockVault(userId: string): Promise<void> {
   await forgetKey(userId);
+}
+
+/** Phrase de cet appareil, pour l'écran de sauvegarde. Null s'il n'y en a pas. */
+export async function backupPhrase(userId: string): Promise<string | null> {
+  return loadPhrase(userId);
 }
 
 /** Clé prête à l'emploi, ou null s'il faut déverrouiller. */
