@@ -48,7 +48,7 @@ import {
 import { loadTier, TIER_BEFORE_BILLING } from "../lib/tier";
 import type { UserProfile } from "../types/advice";
 import { scheduleEventNotifications } from "../utils/eventNotify";
-import { notify } from "../utils/notify";
+import { confirmDialog, notify } from "../utils/notify";
 import { getRates, type RatesPayload } from "../utils/exchangeRates";
 import {
   applyTripToItems,
@@ -178,11 +178,17 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       setCreating(true);
       return;
     }
-    notify(
+    // On ne se contente pas de refuser : on emmène là où le blocage se lève.
+    // Un refus sans issue est une impasse, et l'utilisateur ne cherchera pas
+    // l'écran des formules de lui-même.
+    confirmDialog(
       t("events.plan.title"),
       verdict.reason === "needsSubscription"
         ? t("events.plan.subscribe")
         : t("events.plan.quota"),
+      t("plan.choose.cta"),
+      () => router.push("/plans" as never),
+      { cancelLabel: t("btn.cancel") },
     );
   }, [plan, list, t]);
 
@@ -205,13 +211,16 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     // un autre appareil du même espace a pu créer un événement.
     const verdict = canCreateEvent(plan, (list ?? []).length, tpl.type);
     if (!verdict.allowed) {
-      notify(
+      confirmDialog(
         t("events.plan.title"),
         verdict.reason === "needsSubscription"
           ? t("events.plan.subscribe")
           : verdict.reason === "typeLocked"
             ? tp("events.plan.type", { type: t(tpl.labelKey) })
             : t("events.plan.quota"),
+        t("plan.choose.cta"),
+        () => router.push("/plans" as never),
+        { cancelLabel: t("btn.cancel") },
       );
       return;
     }
@@ -429,9 +438,12 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                     }
                     onPress={() => {
                       if (locked) {
-                        notify(
+                        confirmDialog(
                           t("events.plan.title"),
                           tp("events.plan.type", { type: t(tpl0.labelKey) }),
+                          t("plan.choose.cta"),
+                          () => router.push("/plans" as never),
+                          { cancelLabel: t("btn.cancel") },
                         );
                         return;
                       }

@@ -527,6 +527,14 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           />
         </View>
       ) : null}
+      <View style={styles.tilesRow}>
+        <Tile
+          icon="star"
+          label={t("plan.title")}
+          onPress={() => router.push("/plans" as never)}
+        />
+      </View>
+
       {/* Sauvegarde de la clé : un simple lien, sous les tuiles. Pas une carte,
           pas un encadré, pas de pictogramme d'alerte. Qui ne le cherche pas ne
           le voit pas, et c'est l'intention : le chiffrement fonctionne déjà. */}
