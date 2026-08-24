@@ -10,6 +10,8 @@
 // empêcher l'app de démarrer. Au pire, on planifie moins de notifications.
 
 import { matchAdvice } from "../lib/adviceEngine";
+import { periodFromProductId } from "../lib/billing/plans";
+import { supabase } from "../lib/supabase";
 import {
   loadBudgetHistory,
   loadEvents,
@@ -32,6 +34,7 @@ import {
 } from "./notificationContext";
 import { getSeenAdviceIds } from "./notificationScheduler";
 import type { SyncInput } from "./notificationScheduler";
+import type { NotifContext } from "./notificationEngine";
 import { loadState } from "./storage";
 
 /** Prêt tel qu'il dort dans AsyncStorage — champs texte, tous optionnels. */
@@ -78,6 +81,47 @@ export function parseStoredLoans(raw: unknown[]): LoanInput[] {
   return out;
 }
 
+/**
+ * Abonnement en cours, pour les avis de prélèvement.
+ *
+ * On lit la table plutôt que `my_tier()` : la fonction ne renvoie que le
+ * palier, or il faut ici la DATE et la périodicité. Une résiliation déjà
+ * demandée fait renvoyer null — il n'y aura pas de prélèvement, donc rien à
+ * annoncer.
+ */
+async function loadSubscription(
+  userId: string,
+): Promise<NotifContext["subscription"] | undefined> {
+  try {
+    const { data } = await supabase
+      .from("subscriptions")
+      .select("status, expires_at, product_id")
+      .eq("user_id", userId)
+      .in("status", ["trial", "active"])
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!data?.expires_at) return undefined;
+    const renewsAt = new Date(data.expires_at as string);
+    if (Number.isNaN(renewsAt.getTime())) return undefined;
+
+    const period = periodFromProductId(String(data.product_id ?? "")) ?? "monthly";
+    return {
+      isTrial: data.status === "trial",
+      renewsAt,
+      // `status` vaut 'cancelled' quand la résiliation est prise en compte, et
+      // la requête ci-dessus l'exclut déjà. Le champ reste pour la lisibilité
+      // du contexte côté moteur.
+      cancelled: false,
+      period,
+    };
+  } catch {
+    // Hors ligne : mieux vaut ne pas annoncer un prélèvement qu'en inventer un.
+    return undefined;
+  }
+}
+
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn();
@@ -107,7 +151,7 @@ export async function buildSyncInput(opts: BuildSyncInputOptions): Promise<SyncI
   const now = opts.now ?? new Date();
   const { userId, workspaceId = null, displayCurrency, profile } = opts;
 
-  const [goals, events, history, state, seen] = await Promise.all([
+  const [goals, events, history, state, seen, subscription] = await Promise.all([
     userId
       ? safe<SavingsGoal[]>(
           async () => (await loadS1(userId, workspaceId, displayCurrency)).goals ?? [],
@@ -126,6 +170,9 @@ export async function buildSyncInput(opts: BuildSyncInputOptions): Promise<SyncI
     ),
     safe(() => loadState(), null),
     safe(() => getSeenAdviceIds(), [] as string[]),
+    userId
+      ? safe(() => loadSubscription(userId), undefined)
+      : Promise.resolve(undefined),
   ]);
 
   // `matchAdvice` filtre déjà par pays, profil ET mois : les cartes
@@ -142,5 +189,6 @@ export async function buildSyncInput(opts: BuildSyncInputOptions): Promise<SyncI
     events: toNotifEvents(events, now),
     loans: toNotifLoans(parseStoredLoans(state?.loans ?? []), now),
     budgetFilledThisMonth: isBudgetFilledThisMonth(history, now),
+    subscription,
   };
 }

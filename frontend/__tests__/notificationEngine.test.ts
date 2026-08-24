@@ -330,3 +330,77 @@ describe("ordre de valeur", () => {
     expect([...scores].sort((a, b) => b - a)).toEqual(scores);
   });
 });
+
+describe("argent qui va partir", () => {
+  const inDays = (n: number) => new Date(NOW.getTime() + n * 86_400_000);
+
+  const withSub = (over: Partial<NonNullable<NotifContext["subscription"]>>) =>
+    baseCtx({
+      subscription: {
+        isTrial: false,
+        renewsAt: inDays(60),
+        cancelled: false,
+        period: "yearly",
+        ...over,
+      },
+    });
+
+  it("prévient deux jours avant la fin d'un essai", () => {
+    const out = buildCandidates(withSub({ isTrial: true, renewsAt: inDays(7) }));
+    const c = out.find((x) => x.category === "billing")!;
+    expect(c).toBeDefined();
+    // Deux jours avant l'échéance : assez pour décider sans se presser.
+    expect(Math.round((inDays(7).getTime() - c.at.getTime()) / 86_400_000)).toBe(2);
+  });
+
+  it("prévient un mois avant une reconduction annuelle", () => {
+    const out = buildCandidates(withSub({ renewsAt: inDays(60) }));
+    const c = out.find((x) => x.category === "billing")!;
+    expect(c).toBeDefined();
+    expect(Math.round((inDays(60).getTime() - c.at.getTime()) / 86_400_000)).toBe(30);
+  });
+
+  it("n'annonce PAS de reconduction sur un abonnement mensuel", () => {
+    // La fenêtre d'un mois n'a aucun sens sur un cycle de trente jours : ce
+    // serait une notification par mois, donc du bruit.
+    const out = buildCandidates(withSub({ period: "monthly", renewsAt: inDays(20) }));
+    expect(out.filter((c) => c.category === "billing")).toEqual([]);
+  });
+
+  it("se tait quand la résiliation est déjà demandée", () => {
+    // Il n'y aura pas de prélèvement : annoncer un débit inquiéterait pour rien.
+    const out = buildCandidates(withSub({ cancelled: true, renewsAt: inDays(60) }));
+    expect(out.filter((c) => c.category === "billing")).toEqual([]);
+  });
+
+  it("passe avant tout le reste", () => {
+    const ctx = withSub({ isTrial: true, renewsAt: inDays(7) });
+    ctx.unseenRights = [{ id: "r", titleKey: "t", priority: 99 }];
+    expect(buildCandidates(ctx)[0].category).toBe("billing");
+  });
+
+  it("SURVIT au plafond hebdomadaire", () => {
+    // Le test le plus important du bloc : supprimer un avis de prélèvement au
+    // nom de l'anti-spam ferait exactement le dommage que le plafond cherche à
+    // éviter.
+    const ctx = withSub({ isTrial: true, renewsAt: inDays(7) });
+    ctx.prefs = { ...DEFAULT_NOTIF_PREFS, maxPerWeek: 1 };
+    ctx.unseenRights = [{ id: "r", titleKey: "t", priority: 99 }];
+    ctx.budgetFilledThisMonth = false;
+    ctx.now = new Date("2026-08-12T10:00:00Z");
+    ctx.goals = [{ id: "g", label: "A", current: 900, target: 1000 }];
+
+    const planned = planNotifications(ctx);
+    expect(planned.some((c) => c.category === "billing")).toBe(true);
+  });
+
+  it("respecte quand même une désactivation explicite", () => {
+    const ctx = withSub({ isTrial: true, renewsAt: inDays(7) });
+    ctx.prefs = { ...DEFAULT_NOTIF_PREFS, billing: false };
+    expect(buildCandidates(ctx).filter((c) => c.category === "billing")).toEqual([]);
+  });
+
+  it("ne dit rien sans abonnement", () => {
+    expect(buildCandidates(baseCtx()).filter((c) => c.category === "billing")).toEqual([]);
+  });
+});

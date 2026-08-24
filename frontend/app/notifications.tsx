@@ -49,6 +49,9 @@ const BORDER = "rgba(255,255,255,0.08)";
 // Ordre d'affichage : du plus utile au plus accessoire. Ce n'est pas cosmétique
 // — la première ligne est celle qu'on lit, et c'est celle qu'il faut garder.
 const CATEGORIES: { key: NotifCategory; icon: keyof typeof Feather.glyphMap }[] = [
+  // La facturation en tête : c'est la seule catégorie qui annonce un débit, et
+  // la seule qu'on déconseille explicitement de couper.
+  { key: "billing", icon: "credit-card" },
   { key: "rights", icon: "award" },
   { key: "event", icon: "calendar" },
   { key: "goal", icon: "target" },

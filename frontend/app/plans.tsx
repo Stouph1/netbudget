@@ -204,6 +204,11 @@ export default function Plans() {
                   </View>
                 ) : null}
 
+                <View style={s.trialChip}>
+                  <Feather name="gift" size={11} color={GOLD} />
+                  <Text style={s.trialChipText}>{t("plan.trial.badge")}</Text>
+                </View>
+
                 <Text style={s.cardTitle}>{t(`plan.${tier}.name`)}</Text>
                 <Text style={s.cardFor}>
                   {members
@@ -256,6 +261,17 @@ export default function Plans() {
                     );
                   })}
                 </View>
+
+                {/* Mention obligatoire : durée de l'essai, montant débité
+                    ensuite, renouvellement automatique, comment arrêter. Elle
+                    doit être lisible AVANT de confirmer, pas après — c'est
+                    autant une règle de l'App Store qu'une obligation
+                    consommateur. */}
+                {offer ? (
+                  <Text style={s.trialTerms}>
+                    {tp("plan.trial.terms", { price: offer.priceLabel })}
+                  </Text>
+                ) : null}
 
                 {available ? (
                   <TouchableOpacity
@@ -355,6 +371,20 @@ const s = StyleSheet.create({
   cardFor: { color: TEXT_3, fontSize: 12.5, marginTop: 3 },
   price: { color: TEXT_1, fontSize: 26, fontWeight: "800", marginTop: 12 },
   priceNote: { color: TEXT_3, fontSize: 12, marginTop: 2 },
+  trialChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.3)",
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    marginBottom: 9,
+  },
+  trialChipText: { color: GOLD, fontSize: 10.5, fontWeight: "800" },
+  trialTerms: { color: TEXT_3, fontSize: 11, lineHeight: 16, marginTop: 16 },
   features: { marginTop: 16, gap: 9 },
   featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
   featureText: { flex: 1, color: TEXT_2, fontSize: 13.5, lineHeight: 19 },

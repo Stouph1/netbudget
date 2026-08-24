@@ -19,7 +19,8 @@ export type NotifCategory =
   | "event" // jalon d'un budget d'événement
   | "loan" // étape d'un prêt
   | "seasonal" // fenêtre courte : impôts, soldes, rentrée, fêtes
-  | "comeback"; // reprise après une absence
+  | "comeback" // reprise après une absence
+  | "billing"; // fin d'essai, reconduction — de l'argent va partir
 
 export type NotifCandidate = {
   id: string;
@@ -46,6 +47,15 @@ export type NotifPrefs = {
   loan: boolean;
   seasonal: boolean;
   comeback: boolean;
+  /**
+   * Fin d'essai et reconduction.
+   *
+   * Activée par défaut, et volontairement traitée à part partout : c'est la
+   * seule catégorie qui annonce un DÉBIT. La couper revient à demander à être
+   * prélevé sans prévenir — l'écran de réglages le dit, et le plafond
+   * hebdomadaire ne s'y applique pas.
+   */
+  billing: boolean;
   /** Plafond hebdomadaire, toutes catégories confondues. */
   maxPerWeek: number;
   /** Heure d'envoi (0-23). */
@@ -60,6 +70,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   loan: true,
   seasonal: true,
   comeback: true,
+  billing: true,
   // 3 par semaine : au-delà, le taux d'ouverture s'effondre et l'utilisateur
   // coupe TOUT — on perd alors même les rappels utiles.
   maxPerWeek: 3,
@@ -96,6 +107,23 @@ export type NotifContext = {
   loans: { id: string; name: string; remainingMonths: number; remainingPrincipal: number }[];
   /** Le budget du mois a-t-il été renseigné ? */
   budgetFilledThisMonth: boolean;
+  /**
+   * Abonnement en cours, quand il y en a un.
+   *
+   * `renewsAt` est la date à laquelle la boutique prélèvera. `trialEndsAt` est
+   * renseignée pendant une période d'essai — c'est la même date, mais le
+   * message n'est pas le même : « ton essai se termine » se comprend, « ton
+   * abonnement se renouvelle » alarme quelqu'un qui n'a encore rien payé.
+   */
+  subscription?: {
+    isTrial: boolean;
+    /** Fin d'essai ou date de reconduction, selon `isTrial`. */
+    renewsAt: Date;
+    /** Résiliation déjà demandée : il n'y aura pas de prélèvement. */
+    cancelled: boolean;
+    /** Périodicité, pour n'annoncer la reconduction que sur l'annuel. */
+    period: "monthly" | "yearly";
+  };
 };
 
 const DAY_MS = 86_400_000;
@@ -123,6 +151,56 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     if (c.at.getTime() <= now.getTime()) return; // pas dans le passé
     out.push(c);
   };
+
+  // --- 0. ARGENT QUI VA PARTIR -------------------------------------------
+  //
+  // En tête, et avec les scores les plus élevés de tout le moteur. C'est la
+  // seule catégorie qui annonce un DÉBIT : un utilisateur prélevé sans
+  // avertissement demande un remboursement et laisse un avis à une étoile, et
+  // il a raison. Toutes les autres notifications peuvent attendre, pas
+  // celle-ci.
+  //
+  // Rien n'est envoyé si la résiliation est déjà demandée : il n'y aura pas de
+  // prélèvement, donc rien à annoncer.
+  const sub = ctx.subscription;
+  if (sub && !sub.cancelled) {
+    const daysLeft = daysBetween(now, sub.renewsAt);
+
+    if (sub.isTrial) {
+      // Deux jours : assez pour décider et résilier sans se presser, assez
+      // près pour que ce soit encore d'actualité. La veille serait déloyal.
+      const at = atHour(new Date(sub.renewsAt.getTime() - 2 * DAY_MS), prefs.hour);
+      if (daysLeft > 0) {
+        push({
+          id: `billing-trial-${sub.renewsAt.toISOString().slice(0, 10)}`,
+          category: "billing",
+          titleKey: "notif.billing.trial.title",
+          bodyKey: "notif.billing.trial.body",
+          params: { days: 2 },
+          score: 100,
+          at,
+          route: "/plans",
+        });
+      }
+    } else if (sub.period === "yearly") {
+      // Un mois d'avance sur l'annuel : c'est le délai que la loi française
+      // impose au prestataire pour une reconduction tacite. Sur le mensuel,
+      // cette fenêtre n'a aucun sens — on n'envoie rien plutôt que d'ajouter
+      // une notification par mois.
+      const at = atHour(new Date(sub.renewsAt.getTime() - 30 * DAY_MS), prefs.hour);
+      if (daysLeft > 0) {
+        push({
+          id: `billing-renew-${sub.renewsAt.toISOString().slice(0, 10)}`,
+          category: "billing",
+          titleKey: "notif.billing.renew.title",
+          bodyKey: "notif.billing.renew.body",
+          score: 98,
+          at,
+          route: "/plans",
+        });
+      }
+    }
+  }
 
   // --- 1. DROITS NON RÉCLAMÉS -------------------------------------------
   // C'est la notification qui justifie l'app à elle seule : de l'argent que
@@ -283,6 +361,14 @@ export function applyBudgetLimits(
   const weekCount = new Map<string, number>();
 
   for (const c of candidates) {
+    // La facturation échappe au plafond ET au « une par jour ». Supprimer un
+    // avis de prélèvement au nom de l'anti-spam, c'est faire exactement le
+    // dommage que le plafond cherche à éviter : perdre la confiance.
+    if (c.category === "billing") {
+      kept.push(c);
+      continue;
+    }
+
     const dayKey = c.at.toISOString().slice(0, 10);
     if (usedDays.has(dayKey)) continue;
 
