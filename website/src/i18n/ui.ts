@@ -236,7 +236,7 @@ const fr: Catalog = {
   "faq.account.q": "Faut-il créer un compte ?",
   "faq.account.a": "Non, et c'est un choix de conception. Tu peux installer l'app et t'en servir sans jamais donner d'adresse e-mail. Le compte ne devient utile que si tu veux retrouver tes données sur un autre appareil ou partager un budget avec quelqu'un.",
   "faq.data.q": "Où sont stockées mes données financières ?",
-  "faq.data.a": "Sans compte, uniquement dans la mémoire de ton téléphone : rien n'est envoyé. Avec un compte, ce que tu choisis d'enregistrer est synchronisé sur nos serveurs. La page de confidentialité détaille précisément quoi, et dit aussi ce qui n'est pas encore chiffré de bout en bout.",
+  "faq.data.a": "Sans compte, uniquement dans la mémoire de ton téléphone : rien n'est envoyé. Avec un compte, ce que tu choisis d'enregistrer est synchronisé, et chiffré de bout en bout par défaut : la clé reste sur ton téléphone, nous ne pouvons pas lire tes données. Douze mots, consultables depuis ton profil, permettent de retrouver cet accès sur un autre appareil.",
   "faq.offline.q": "Est-ce que ça marche sans internet ?",
   "faq.offline.a": "Entièrement, sauf deux choses : les taux de change du convertisseur, qui ont besoin d'être récupérés une fois puis restent en cache, et la synchronisation si tu as un compte. Le calcul de ton budget, lui, ne dépend d'aucun serveur.",
   "faq.countries.q": "Ça fonctionne dans mon pays ?",
@@ -266,7 +266,7 @@ const fr: Catalog = {
 
   "page.privacy.section3.title": "Chiffrement de bout en bout",
   "page.privacy.section3.body":
-    "Tu peux activer le chiffrement de bout en bout depuis ton profil. Une clé est alors créée sur ton téléphone et ne le quitte jamais : tes données partent chiffrées, et nous ne pouvons plus les lire — ni les rendre à qui nous les demanderait. Douze mots, affichés une seule fois, permettent de retrouver cette clé sur un autre appareil. Nous ne les connaissons pas. En conséquence, si tu perds à la fois ta phrase et ton téléphone, tes données synchronisées sont définitivement inaccessibles : c'est la contrepartie inévitable de cette garantie, et nous préférons l'écrire que la découvrir avec toi. Dans un espace partagé, l'espace possède sa propre clé, dont chaque membre garde une copie chiffrée avec la sienne. Tant que tu n'as pas activé le chiffrement, tes données restent protégées par des règles d'accès qui interdisent à un utilisateur de voir celles d'un autre, mais l'administrateur de la base pourrait techniquement les lire. Les échanges avec nos serveurs sont chiffrés en transit dans tous les cas, et ton jeton de session est conservé dans le trousseau sécurisé du système.",
+    "Il est actif par défaut, dès la création du compte, et ne se désactive pas. Une clé est créée sur ton téléphone et ne le quitte jamais : tes données partent chiffrées, nous ne pouvons pas les lire, et nous ne pouvons pas les remettre à qui nous les demanderait. Tu n'as rien à configurer. Douze mots, consultables à tout moment depuis ton profil, permettent de retrouver cet accès sur un autre appareil ; nous ne les connaissons pas. En conséquence, changer de téléphone sans les avoir conservés rend les données synchronisées inaccessibles — ton budget reste intact sur l'appareil d'origine. C'est la contrepartie inévitable d'un chiffrement que nous ne pouvons pas contourner, et nous préférons l'écrire plutôt que de le laisser découvrir. Dans un espace partagé, l'espace possède sa propre clé, dont chaque membre garde une copie chiffrée avec la sienne. Les échanges avec nos serveurs sont chiffrés en transit, et ton jeton de session est conservé dans le trousseau sécurisé du système.",
 
   "page.privacy.section4.title": "Budgets partagés",
   "page.privacy.section4.body":
@@ -589,7 +589,7 @@ const en: Catalog = {
   "faq.account.q": "Do I need an account?",
   "faq.account.a": "No, and that is a design choice. You can install the app and use it without ever giving an email address. An account only becomes useful if you want your data on another device or want to share a budget with someone.",
   "faq.data.q": "Where is my financial data stored?",
-  "faq.data.a": "Without an account, only in your phone's storage: nothing is sent. With an account, whatever you choose to save is synchronised to our servers. The privacy page spells out exactly what, and also says what is not yet end-to-end encrypted.",
+  "faq.data.a": "Without an account, only in your phone's storage: nothing is sent. With an account, whatever you choose to save is synchronised, and end-to-end encrypted by default: the key stays on your phone, so we cannot read your data. Twelve words, viewable from your profile, let you recover that access on another device.",
   "faq.offline.q": "Does it work without internet?",
   "faq.offline.a": "Entirely, apart from two things: the converter's exchange rates, which need fetching once and are then cached, and syncing if you have an account. Your budget calculation itself depends on no server.",
   "faq.countries.q": "Does it work in my country?",
@@ -619,7 +619,7 @@ const en: Catalog = {
 
   "page.privacy.section3.title": "End-to-end encryption",
   "page.privacy.section3.body":
-    "You can turn on end-to-end encryption from your profile. A key is then created on your phone and never leaves it: your data goes out encrypted, and we can no longer read it — nor hand it to anyone who asks. Twelve words, shown once, let you recover that key on another device. We do not know them. As a result, if you lose both your phrase and your phone, your synced data is permanently inaccessible: that is the unavoidable price of the guarantee, and we would rather write it down than discover it with you. In a shared space, the space has its own key, and each member keeps a copy encrypted with theirs. Until you turn encryption on, your data stays protected by access rules that stop one user from seeing another's, but a database administrator could technically read it. Traffic to our servers is encrypted in transit in every case, and your session token is kept in the operating system's secure keystore.",
+    "It is on by default, from the moment the account is created, and cannot be switched off. A key is created on your phone and never leaves it: your data goes out encrypted, we cannot read it, and we cannot hand it to anyone who asks. There is nothing for you to configure. Twelve words, viewable at any time from your profile, let you recover that access on another device; we do not know them. As a result, changing phone without having kept them makes your synced data inaccessible — your budget stays intact on the original device. That is the unavoidable price of encryption we cannot bypass, and we would rather write it down than let you discover it. In a shared space, the space has its own key, and each member keeps a copy encrypted with theirs. Traffic to our servers is encrypted in transit, and your session token is kept in the operating system's secure keystore.",
 
   "page.privacy.section4.title": "Shared budgets",
   "page.privacy.section4.body":
