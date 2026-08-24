@@ -1,22 +1,31 @@
-// Store Premium : lit/écrit les payloads dans `encrypted_payloads` côté Supabase
-// avec un cache local AsyncStorage pour l'offline.
+// Store Premium : lit et écrit les payloads dans `encrypted_payloads` côté
+// Supabase, avec un cache local AsyncStorage pour le hors ligne.
 //
-// ⚠️ AVERTISSEMENT — LE CONTENU N'EST PAS CHIFFRÉ AUJOURD'HUI.
+// LE CONTENU EST CHIFFRÉ quand l'utilisateur a activé le chiffrement de bout en
+// bout : XSalsa20-Poly1305, clé dérivée de sa phrase de récupération, jamais
+// transmise. Le serveur ne voit que des octets et un nonce.
 //
-// Le nom de la table (`encrypted_payloads`) et les colonnes ciphertext/nonce
-// décrivent l'architecture CIBLE, pas l'état actuel :
-//    cible      : payload = JSON → libsodium XChaCha20-Poly1305 → bytea
-//    actuel     : payload = JSON → UTF-8 → bytea  (EN CLAIR côté serveur)
+// TROIS ÉTATS COEXISTENT, et il faut les connaître pour lire ce fichier :
 //
-// Conséquence : quiconque a accès à la base (dashboard, backup, fuite de la
-// clé service_role) lit les budgets en clair. La protection repose donc
-// entièrement sur les policies RLS — ne jamais les affaiblir.
+//   sans compte        les données ne passent pas ici du tout, tout reste sur
+//                      l'appareil (AsyncStorage, géré par l'écran Budget).
 //
-// À FAIRE avant le lancement Premium (Phase 5) : brancher libsodium
-// (dépendance déjà présente) avec une clé en expo-secure-store et un nonce
-// aléatoire de 24 octets par écriture, puis migrer les blobs existants via la
-// colonne `version`. Tant que ce n'est pas fait, l'UI ne doit PAS promettre
-// un chiffrement (textes corrigés le 2026-08-07).
+//   compte sans phrase le contenu part en clair, exactement comme avant. On
+//                      n'impose pas le chiffrement : quelqu'un qui ne note pas
+//                      sa phrase perdrait l'accès à ses propres données.
+//                      `crypto_version` = 0.
+//
+//   compte chiffré     tout part chiffré, `crypto_version` = 1. Les anciennes
+//                      lignes en clair sont converties la première fois qu'on
+//                      les relit.
+//
+// LA RÈGLE À NE PAS ENFREINDRE : quand un compte est chiffré mais que la clé
+// n'est pas sur l'appareil, `writePayload` REFUSE. Écrire en clair « en
+// attendant » remettrait les données à nu sans que personne ne le voie.
+//
+// Les policies RLS restent la deuxième ligne de défense — ne jamais les
+// affaiblir sous prétexte que le contenu est chiffré : les métadonnées
+// (qui possède quoi, quand) ne le sont pas.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { UserProfile } from "../types/advice";
@@ -25,28 +34,37 @@ import { supabase } from "./supabase";
 import type { CurrencyCode } from "../utils/currency";
 import { getRates } from "../utils/exchangeRates";
 import { convertEvents, convertGoals } from "../utils/convertData";
+import { sodium } from "./crypto/sodium";
+import { keyForUser, stateForUser } from "./crypto/vaultSession";
+import { canWrite, needsMigration, shouldEncrypt } from "./crypto/vaultState";
 
 const CACHE_KEY_PREFIX = "netbudget:premium:cache:";
 
 // ============================================================================
-// PAS DE CHIFFREMENT — encodage UTF-8 seulement (voir l'avertissement en tête).
-// REMPLACER en Phase 5 par libsodium XChaCha20-Poly1305.
+// CHIFFREMENT
+//
+// Deux formats coexistent en base, et c'est voulu :
+//
+//   crypto_version 0 — JSON en clair. Ce sont les données écrites avant le
+//                      chiffrement. Elles doivent rester lisibles : sans ça, la
+//                      mise à jour de l'app effacerait l'historique de tous les
+//                      comptes déjà créés. Elles sont converties au format
+//                      chiffré la première fois qu'on les relit avec une clé.
+//
+//   crypto_version 1 — XSalsa20-Poly1305, clé dérivée de la phrase de
+//                      récupération de l'utilisateur.
+//
+// LA RÈGLE À NE PAS ENFREINDRE : quand un compte est chiffré mais que la clé
+// n'est pas sur l'appareil, on n'écrit RIEN. Écrire en clair « en attendant »
+// remettrait les données à nu sans que personne ne le voie, et la lecture
+// suivante les accepterait sans broncher puisque le format 0 reste valide.
 // ============================================================================
 
-// Nonce fictif tant qu'on n'a pas libsodium — vrai nonce = 24 bytes random.
-const STUB_NONCE = new Uint8Array(24);
+const CRYPTO_PLAINTEXT = 0;
+const CRYPTO_SECRETBOX = 1;
 
-function encryptStub(plaintext: string): { ciphertext: Uint8Array; nonce: Uint8Array } {
-  // Phase 3 : on encode juste en UTF-8. Phase 5 : chiffrement authentifié.
-  return {
-    ciphertext: new TextEncoder().encode(plaintext),
-    nonce: STUB_NONCE,
-  };
-}
-
-function decryptStub(ciphertext: Uint8Array): string {
-  return new TextDecoder().decode(ciphertext);
-}
+/** Nonce des lignes en clair : la colonne est NOT NULL, il faut y mettre quelque chose. */
+const EMPTY_NONCE = new Uint8Array(24);
 
 // ============================================================================
 // Cache local — pour affichage instantané au boot, sync differ derrière
@@ -108,14 +126,14 @@ async function readPayload<T>(
   fallback: T,
   workspaceId: string | null = null,
 ): Promise<T> {
-  // 1. Try local cache first (offline OK)
+  // 1. Cache local d'abord : l'app s'affiche instantanément et fonctionne
+  //    hors ligne.
   const cached = await readCache<T>(payloadKey, workspaceId);
 
-  // 2. Try Supabase in parallel
   try {
     let query = supabase
       .from("encrypted_payloads")
-      .select("ciphertext")
+      .select("ciphertext, nonce, crypto_version")
       .eq("payload_key", payloadKey);
 
     if (workspaceId) {
@@ -126,26 +144,55 @@ async function readPayload<T>(
     }
 
     const { data, error } = await query.maybeSingle();
+    if (error || !data) return cached ?? fallback;
 
-    if (error) return cached ?? fallback;
-    if (!data) return cached ?? fallback;
+    const bytes = toBytes(data.ciphertext as unknown);
+    const version = (data.crypto_version as number | null) ?? CRYPTO_PLAINTEXT;
 
-    const raw = data.ciphertext as unknown;
-    const bytes =
-      typeof raw === "string"
-        ? raw.startsWith("\\x")
-          ? hexToU8(raw.slice(2))
-          : base64ToU8(raw)
-        : (raw as Uint8Array);
+    // --- Données en clair (écrites avant le chiffrement) ------------------
+    if (version === CRYPTO_PLAINTEXT) {
+      const parsed = JSON.parse(new TextDecoder().decode(bytes)) as T;
+      await writeCache(payloadKey, workspaceId, parsed);
 
-    const plaintext = decryptStub(bytes);
-    const parsed = JSON.parse(plaintext) as T;
+      // Conversion opportuniste : on ne lance PAS de traitement massif, chaque
+      // donnée se chiffre la première fois qu'on y touche. Sans await : la
+      // lecture ne doit pas attendre une réécriture, et si elle échoue la
+      // donnée reste lisible en clair et sera reprise plus tard.
+      if (needsMigration(stateForUser(userId), true)) {
+        void writePayload(payloadKey, userId, parsed, workspaceId);
+      }
+      return parsed;
+    }
 
+    // --- Données chiffrées ------------------------------------------------
+    if (version !== CRYPTO_SECRETBOX) {
+      // Écrit par une version plus récente de l'app : on ne devine pas le
+      // format, on garde ce qu'on a en cache.
+      return cached ?? fallback;
+    }
+
+    const key = keyForUser(userId);
+    if (!key) return cached ?? fallback; // coffre verrouillé : l'UI le signale
+
+    await sodium.ready();
+    const opened = sodium.open(bytes, toBytes(data.nonce as unknown), key);
+    // Poly1305 a rejeté : mauvaise clé, ou octets altérés. On ne renvoie
+    // JAMAIS de données douteuses — sur des montants, une donnée fausse est
+    // pire qu'une donnée absente.
+    if (!opened) return cached ?? fallback;
+
+    const parsed = JSON.parse(new TextDecoder().decode(opened)) as T;
     await writeCache(payloadKey, workspaceId, parsed);
     return parsed;
   } catch {
     return cached ?? fallback;
   }
+}
+
+/** Colonne bytea : Supabase la renvoie en hexadécimal `\x…`, en base64, ou brute. */
+function toBytes(raw: unknown): Uint8Array {
+  if (typeof raw !== "string") return raw as Uint8Array;
+  return raw.startsWith("\\x") ? hexToU8(raw.slice(2)) : base64ToU8(raw);
 }
 
 function hexToU8(hex: string): Uint8Array {
@@ -162,28 +209,54 @@ async function writePayload<T>(
   data: T,
   workspaceId: string | null = null,
 ): Promise<{ ok: boolean; error?: string }> {
-  // 1. Cache immédiatement (UI-first)
+  const state = stateForUser(userId);
+
+  // Coffre verrouillé : on REFUSE, et bruyamment. Écrire en clair remettrait
+  // les données à nu, et la lecture suivante l'accepterait sans rien signaler
+  // puisque le format en clair reste valide. Le cache local n'est pas écrit non
+  // plus : il servirait de source à une synchro ultérieure et propagerait la
+  // même erreur.
+  if (!canWrite(state)) {
+    return { ok: false, error: "vault-locked" };
+  }
+
+  // Cache immédiat : l'interface répond sans attendre le réseau.
   await writeCache(payloadKey, workspaceId, data);
 
-  // 2. Encrypt + push vers Supabase
   try {
-    const plaintext = JSON.stringify(data);
-    const { ciphertext, nonce } = encryptStub(plaintext);
+    const plaintext = new TextEncoder().encode(JSON.stringify(data));
+    const key = shouldEncrypt(state) ? keyForUser(userId) : null;
 
-    // Upsert avec unique constraint sur (user_id, coalesce(workspace_id, sentinel), payload_key)
-    // Pour perso, workspace_id = NULL. Pour partagé, workspace_id = uuid.
-    // La contrainte unique DB (index encrypted_payloads_scope_key_idx) gère les deux cas.
-    const payload = {
-      user_id: userId,
-      workspace_id: workspaceId,
-      payload_key: payloadKey,
-      ciphertext: u8ToBase64(ciphertext),
-      nonce: u8ToBase64(nonce),
-      updated_at: new Date().toISOString(),
-    };
+    let payload: Record<string, unknown>;
+    if (key) {
+      await sodium.ready();
+      const { ciphertext, nonce } = sodium.seal(plaintext, key);
+      payload = {
+        user_id: userId,
+        workspace_id: workspaceId,
+        payload_key: payloadKey,
+        ciphertext: u8ToBase64(ciphertext),
+        nonce: u8ToBase64(nonce),
+        crypto_version: CRYPTO_SECRETBOX,
+        updated_at: new Date().toISOString(),
+      };
+    } else {
+      // Chiffrement pas encore activé par l'utilisateur : on continue comme
+      // avant. Le lui imposer sans son accord lui ferait perdre l'accès à ses
+      // propres données s'il ne note pas sa phrase.
+      payload = {
+        user_id: userId,
+        workspace_id: workspaceId,
+        payload_key: payloadKey,
+        ciphertext: u8ToBase64(plaintext),
+        nonce: u8ToBase64(EMPTY_NONCE),
+        crypto_version: CRYPTO_PLAINTEXT,
+        updated_at: new Date().toISOString(),
+      };
+    }
 
-    // Sur upsert Supabase, il faut spécifier onConflict correspondant à un index unique.
-    // Comme l'index utilise coalesce, on gère manuellement : select puis update ou insert.
+    // L'index unique utilise coalesce : l'upsert de Supabase ne sait pas s'en
+    // servir. On fait donc select puis update ou insert à la main.
     let query = supabase
       .from("encrypted_payloads")
       .select("id")

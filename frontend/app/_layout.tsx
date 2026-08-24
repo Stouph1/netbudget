@@ -8,11 +8,16 @@ import { ScopeProvider } from "../src/contexts/ScopeContext";
 import { SessionProvider } from "../src/contexts/SessionContext";
 import { useNotificationRouting } from "../src/hooks/useNotificationRouting";
 import { usePersonalNotifications } from "../src/hooks/usePersonalNotifications";
+import { useVault } from "../src/hooks/useVault";
 
 // Effets qui doivent vivre aussi longtemps que l'app, quel que soit l'écran
 // affiché. Monté DANS les providers pour accéder à la langue, la session et le
 // scope ; ne rend rien.
 function AppEffects() {
+  // L'ordre compte : le coffre publie son état pour la couche de stockage, qui
+  // le lit de façon synchrone. Sans ce hook monté, aucune écriture cloud ne
+  // serait chiffrée.
+  useVault();
   usePersonalNotifications();
   useNotificationRouting();
   return null;

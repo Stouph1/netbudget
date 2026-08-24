@@ -28,6 +28,7 @@ import { useLang } from "../contexts/LangContext";
 import { useCurrency } from "../contexts/CurrencyContext";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
+import { useVault } from "../hooks/useVault";
 import {
   hasPasswordIdentity,
   signInWithApple,
@@ -114,6 +115,9 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
     void saveConsentAccepted(next);
   }, []);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // État du coffre : la tuile doit dire la vérité (activé, à activer,
+  // verrouillé), pas afficher un libellé fixe.
+  const { state: vault } = useVault();
   // Un compte Apple ou Google n'a pas de mot de passe NetBudget : la tuile
   // de changement ne doit pas apparaître pour lui.
   const [hasPassword, setHasPassword] = useState(false);
@@ -509,6 +513,33 @@ export default function PremiumHomePanel({ onGoBudget, onDevReplayBirthday }: Pr
           />
         ) : null}
       </View>
+
+      {/* Chiffrement : la tuile change de libellé ET de destination selon
+          l'état. Un intitulé unique obligerait l'utilisateur à ouvrir l'écran
+          pour savoir s'il a quelque chose à faire. */}
+      {vault.status !== "noAccount" ? (
+        <View style={styles.tilesRow}>
+          <Tile
+            icon={vault.status === "unlocked" ? "shield" : "alert-circle"}
+            label={t(
+              vault.status === "unlocked"
+                ? "home.tile.vaultOn"
+                : vault.status === "notSetUp"
+                  ? "home.tile.vaultOff"
+                  : "home.tile.vaultLocked",
+            )}
+            onPress={() =>
+              router.push(
+                (vault.status === "notSetUp"
+                  ? "/vault-setup"
+                  : vault.status === "unlocked"
+                    ? "/vault-status"
+                    : "/vault-unlock") as never,
+              )
+            }
+          />
+        </View>
+      ) : null}
       {__DEV__ && onDevReplayBirthday ? (
         <TouchableOpacity
           onPress={onDevReplayBirthday}
