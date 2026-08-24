@@ -45,7 +45,7 @@ import {
   isEventTypeLocked,
   type Tier,
 } from "../lib/entitlements";
-import { loadTier, TIER_BEFORE_BILLING } from "../lib/tier";
+import { loadTier } from "../lib/tier";
 import type { UserProfile } from "../types/advice";
 import { scheduleEventNotifications } from "../utils/eventNotify";
 import { confirmDialog, notify } from "../utils/notify";
@@ -123,9 +123,10 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   // devise de l'utilisateur.
   const [rates, setRates] = useState<RatesPayload | null>(null);
   // Formule active — à ne pas confondre avec `tier`, la GAMME de l'événement.
-  // Tant que la facturation n'est pas branchée, loadTier() renvoie « family » :
-  // rien n'est bloqué, mais les règles sont déjà en place.
-  const [plan, setPlan] = useState<Tier>(TIER_BEFORE_BILLING);
+  // Le départ à « free » est volontairement RESTRICTIF : entre le montage et la
+  // réponse du serveur, mieux vaut proposer une formule à quelqu'un qui l'a
+  // déjà que de laisser créer un événement à quelqu'un qui n'y a pas droit.
+  const [plan, setPlan] = useState<Tier>("free");
 
   useFocusEffect(
     useCallback(() => {

@@ -62,6 +62,22 @@ export function limitsFor(tier: Tier): Limits {
   return LIMITS[tier];
 }
 
+const VALID_TIERS: readonly Tier[] = ["free", "solo", "duo", "family"];
+
+/**
+ * Valide une valeur venue du serveur, du cache ou d'un webhook.
+ *
+ * Renvoie null sur tout ce qui n'est pas exactement un palier connu. Deviner —
+ * accepter « FAMILY », « premium » ou une chaîne avec un espace — accorderait
+ * des droits sur une valeur non reconnue, ce qui est le plus court chemin vers
+ * l'abonnement gratuit. Ici, on refuse.
+ */
+export function parseTier(raw: unknown): Tier | null {
+  return typeof raw === "string" && (VALID_TIERS as readonly string[]).includes(raw)
+    ? (raw as Tier)
+    : null;
+}
+
 /** Palier minimal qui débloque un type d'événement, s'il en existe un. */
 export function tierUnlocking(type: string): Tier | null {
   const order: Tier[] = ["free", "solo", "duo", "family"];

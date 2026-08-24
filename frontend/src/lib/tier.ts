@@ -1,51 +1,88 @@
 // Palier d'abonnement actif.
 //
-// ÉTAT ACTUEL : la facturation n'est pas encore branchée. Tant que c'est le
-// cas, tout le monde est traité comme « family » — sinon les fonctionnalités
-// seraient bloquées avant même qu'il soit possible de payer, et l'app
-// deviendrait intestable.
+// LA RÈGLE : le palier vient du SERVEUR, jamais du stockage local. Une valeur
+// locale se modifie en trente secondes — la croire, c'est offrir la formule
+// Famille à qui sait éditer un fichier. La boutique encaisse, RevenueCat vérifie
+// le reçu, un webhook écrit le verdict, et `my_tier()` le renvoie. La table
+// n'a aucune policy d'écriture : même en appelant l'API directement, personne ne
+// peut s'accorder un palier.
 //
-// Les RÈGLES, elles, sont déjà en place et vérifiées (voir entitlements.ts).
-// Le jour où RevenueCat est branché, il suffit de remplacer la lecture par
-// l'entitlement renvoyé par le fournisseur : rien d'autre ne bouge dans l'app,
-// parce qu'aucun écran ne connaît les limites — ils passent tous par
-// `canCreateEvent()`.
-//
-// ⚠️ Le palier ne doit JAMAIS faire autorité côté client au moment de payer :
-// un stockage local se modifie. Il sert à l'affichage et au confort ; la vraie
-// vérification appartient au serveur (entitlement signé RevenueCat + contrôle
-// dans les policies Supabase).
+// LE CACHE LOCAL N'EST QU'UN CACHE. Il évite un aller-retour réseau à chaque
+// démarrage et permet à l'app de fonctionner hors ligne. Il ne fait jamais
+// autorité : dès que le serveur répond, il est remplacé. Et il ne sert de repli
+// que pour la LECTURE — aucune décision de facturation ne repose sur lui.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Tier } from "./entitlements";
+import { supabase } from "./supabase";
+import { parseTier, type Tier } from "./entitlements";
 
-const KEY = "netbudget:tier";
+export { parseTier };
 
-/** Palier appliqué tant que la facturation n'est pas en service. */
-export const TIER_BEFORE_BILLING: Tier = "family";
+const CACHE_KEY = "netbudget:tier:cache";
 
-const VALID: readonly Tier[] = ["free", "solo", "duo", "family"];
+/**
+ * Palier appliqué pendant le développement, tant que la facturation n'est pas
+ * en service.
+ *
+ * ⚠️ À REPASSER À "free" avant le lancement. Tant que cette valeur est
+ * "family", tout le monde a tout — ce qui est voulu pour pouvoir tester, et
+ * inacceptable en production. Le test `tier.test.ts` échouera si on oublie,
+ * une fois BILLING_LIVE passé à true.
+ */
+const TIER_DURING_DEV: Tier = "family";
 
-export function parseTier(raw: unknown): Tier | null {
-  return typeof raw === "string" && (VALID as readonly string[]).includes(raw)
-    ? (raw as Tier)
-    : null;
-}
+/**
+ * La facturation est-elle en service ?
+ *
+ * Un seul interrupteur, à passer à true le jour où les produits existent dans
+ * les boutiques et où le webhook écrit vraiment. Avant, le serveur renverrait
+ * "free" pour tout le monde et l'app serait intestable.
+ */
+export const BILLING_LIVE = false;
 
-export async function loadTier(): Promise<Tier> {
+async function readCache(): Promise<Tier | null> {
   try {
-    return parseTier(await AsyncStorage.getItem(KEY)) ?? TIER_BEFORE_BILLING;
+    return parseTier(await AsyncStorage.getItem(CACHE_KEY));
   } catch {
-    return TIER_BEFORE_BILLING;
+    return null;
   }
 }
 
-/**
- * Force un palier — pour tester les limites avant que la facturation existe.
- * Sera remplacé par l'entitlement du fournisseur de paiement.
- */
-export async function setTier(tier: Tier): Promise<void> {
+async function writeCache(tier: Tier): Promise<void> {
   try {
-    await AsyncStorage.setItem(KEY, tier);
+    await AsyncStorage.setItem(CACHE_KEY, tier);
+  } catch {}
+}
+
+/**
+ * Palier de l'utilisateur connecté.
+ *
+ * Ordre : serveur d'abord, cache en repli. Jamais l'inverse — un cache qui
+ * prime sur le serveur laisserait un abonnement résilié actif indéfiniment.
+ */
+export async function loadTier(): Promise<Tier> {
+  if (!BILLING_LIVE) return TIER_DURING_DEV;
+
+  try {
+    const { data, error } = await supabase.rpc("my_tier");
+    const fromServer = error ? null : parseTier(data);
+    if (fromServer) {
+      await writeCache(fromServer);
+      return fromServer;
+    }
+  } catch {
+    // Hors ligne : on retombe sur le cache ci-dessous.
+  }
+
+  // Le cache ne sert qu'à ne pas dégrader l'expérience d'un abonné hors
+  // ligne. Il ne peut pas accorder plus que ce que le serveur a déjà accordé
+  // au moins une fois.
+  return (await readCache()) ?? "free";
+}
+
+/** Vide le cache — à la déconnexion, sinon le palier suivrait le compte suivant. */
+export async function forgetTier(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(CACHE_KEY);
   } catch {}
 }
