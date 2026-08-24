@@ -542,6 +542,8 @@ export const ar: Catalog = {
   "plan.forOne": "لك وحدك",
   "plan.forMembers": "حتى {n} أشخاص",
   "plan.perMonth": "أي {amount} شهريًا",
+  "plan.saving": "توفّر {amount} في السنة",
+  "plan.savePercent": "−{pct} ٪",
   "plan.choose": "اختيار",
   "plan.feature.sync": "بياناتك على جميع أجهزتك",
   "plan.feature.advice": "نصائح تلائم وضعك، من مصادر رسمية",

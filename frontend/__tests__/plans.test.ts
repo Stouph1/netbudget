@@ -11,7 +11,9 @@
 
 import { limitsFor } from "../src/lib/entitlements";
 import {
+  annualSaving,
   HIGHLIGHTED_TIER,
+  monthlyEquivalent,
   periodFromProductId,
   planFeatureKeys,
   planMembers,
@@ -96,5 +98,42 @@ describe("mise en avant", () => {
   it("ne met en avant qu'une seule formule", () => {
     // Deux formules mises en avant, c'est aucune : le regard ne choisit plus.
     expect(SELLABLE_TIERS).toContain(HIGHLIGHTED_TIER);
+  });
+});
+
+describe("économie annuelle", () => {
+  const eur = (priceAmount: number) => ({ priceAmount, currency: "EUR" });
+
+  it("calcule l'économie réelle sur les prix de la boutique", () => {
+    // 4,99 x 12 = 59,88 contre 39,99 : 19,89 d'économie, soit 33 %.
+    const saving = annualSaving(eur(4.99), eur(39.99))!;
+    expect(saving.amount).toBeCloseTo(19.89, 2);
+    expect(saving.percent).toBe(33);
+    expect(saving.currency).toBe("EUR");
+  });
+
+  it("n'annonce RIEN quand l'annuel n'est pas avantageux", () => {
+    // Afficher « 0 % » ou un chiffre négatif comme un avantage serait une
+    // annonce trompeuse. On préfère ne rien dire.
+    expect(annualSaving(eur(4.99), eur(59.88))).toBeNull();
+    expect(annualSaving(eur(4.99), eur(70))).toBeNull();
+  });
+
+  it("refuse de comparer deux devises différentes", () => {
+    // Arrive quand la boutique n'a pas fini de répondre pour l'une des offres.
+    expect(
+      annualSaving({ priceAmount: 4.99, currency: "EUR" }, { priceAmount: 39.99, currency: "USD" }),
+    ).toBeNull();
+  });
+
+  it("ne dit rien tant qu'un prix manque", () => {
+    expect(annualSaving(undefined, eur(39.99))).toBeNull();
+    expect(annualSaving(eur(4.99), undefined)).toBeNull();
+    expect(annualSaving(eur(0), eur(39.99))).toBeNull();
+  });
+
+  it("donne l'équivalent mensuel de l'annuel", () => {
+    expect(monthlyEquivalent(39.99)).toBeCloseTo(3.33, 2);
+    expect(monthlyEquivalent(94.99)).toBeCloseTo(7.92, 2);
   });
 });

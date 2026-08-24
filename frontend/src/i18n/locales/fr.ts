@@ -597,6 +597,8 @@ export const fr: Catalog = {
   "plan.forOne": "Pour toi seul",
   "plan.forMembers": "Jusqu'à {n} personnes",
   "plan.perMonth": "soit {amount} par mois",
+  "plan.saving": "Tu économises {amount} sur l'année",
+  "plan.savePercent": "−{pct} %",
   "plan.choose": "Choisir",
   "plan.feature.sync": "Tes données sur tous tes appareils",
   "plan.feature.advice": "Conseils adaptés à ta situation, sources officielles",

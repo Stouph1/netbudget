@@ -542,6 +542,8 @@ export const ja: Catalog = {
   "plan.forOne": "おひとりで",
   "plan.forMembers": "最大 {n} 人",
   "plan.perMonth": "月あたり {amount}",
+  "plan.saving": "年間 {amount} お得です",
+  "plan.savePercent": "−{pct}%",
   "plan.choose": "選ぶ",
   "plan.feature.sync": "すべての端末でデータを共有",
   "plan.feature.advice": "公的な情報源に基づく、状況に合った助言",

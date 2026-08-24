@@ -29,8 +29,16 @@ export type Offering = {
   period: Period;
   /** Prix prêt à afficher, dans la devise et le format du pays. */
   priceLabel: string;
-  /** Prix mensuel équivalent, pour comparer l'annuel au mensuel. */
-  monthlyEquivalentLabel?: string;
+  /**
+   * Montant numérique et devise, tels que la boutique les donne.
+   *
+   * Nécessaires pour CALCULER l'économie annuelle au lieu de l'écrire en dur.
+   * Un pourcentage figé dans le code deviendrait faux à la première grille
+   * tarifaire régionale — et afficher une remise qui n'est pas celle débitée
+   * est une pratique commerciale trompeuse, sanctionnée en Europe.
+   */
+  priceAmount: number;
+  currency: string;
 };
 
 export type PurchaseResult =

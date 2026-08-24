@@ -31,7 +31,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLang } from "../src/contexts/LangContext";
 import {
+  annualSaving,
   HIGHLIGHTED_TIER,
+  monthlyEquivalent,
   planFeatureKeys,
   planMembers,
   PRODUCT_IDS,
@@ -50,12 +52,19 @@ const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function Plans() {
-  const { t, tp } = useLang();
+  const { t, tp, lang } = useLang();
   const [period, setPeriod] = useState<Period>("yearly");
   const [offerings, setOfferings] = useState<Offering[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   const available = billing().isAvailable();
+
+  // Le badge de la bascule annuelle s'appuie sur la formule mise en avant : un
+  // pourcentage par formule encombrerait, et ils sont très proches.
+  const headlineSaving = annualSaving(
+    offerings?.find((o) => o.productId === PRODUCT_IDS[HIGHLIGHTED_TIER].monthly),
+    offerings?.find((o) => o.productId === PRODUCT_IDS[HIGHLIGHTED_TIER].yearly),
+  );
 
   useEffect(() => {
     let alive = true;
@@ -74,6 +83,23 @@ export default function Plans() {
 
   function priceFor(productId: string): Offering | undefined {
     return offerings?.find((o) => o.productId === productId);
+  }
+
+  /**
+   * Formate un montant dans la devise de la BOUTIQUE, pas dans celle choisie
+   * dans l'app : c'est dans cette devise que le client sera débité, et afficher
+   * l'autre créerait un écart entre l'annonce et le relevé bancaire.
+   */
+  function money(amount: number, currency: string): string {
+    try {
+      return new Intl.NumberFormat(lang, {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2,
+      }).format(amount);
+    } catch {
+      return `${amount.toFixed(2)} ${currency}`;
+    }
   }
 
   async function buy(productId: string) {
@@ -144,6 +170,11 @@ export default function Plans() {
                 <Text style={[s.periodText, active && s.periodTextActive]}>
                   {t(p === "yearly" ? "plan.period.yearly" : "plan.period.monthly")}
                 </Text>
+                {p === "yearly" && headlineSaving ? (
+                  <Text style={s.periodBadge}>
+                    {tp("plan.savePercent", { pct: headlineSaving.percent })}
+                  </Text>
+                ) : null}
               </TouchableOpacity>
             );
           })}
@@ -155,6 +186,13 @@ export default function Plans() {
           SELLABLE_TIERS.map((tier) => {
             const productId = PRODUCT_IDS[tier][period];
             const offer = priceFor(productId);
+            // L'économie se calcule sur les deux prix réels de la boutique.
+            // Null quand il n'y en a pas : on n'affiche alors rien, plutôt
+            // qu'un « 0 % » ou un chiffre négatif présenté comme un avantage.
+            const saving = annualSaving(
+              priceFor(PRODUCT_IDS[tier].monthly),
+              priceFor(PRODUCT_IDS[tier].yearly),
+            );
             const highlighted = tier === HIGHLIGHTED_TIER;
             const members = planMembers(tier);
 
@@ -177,10 +215,26 @@ export default function Plans() {
                 {offer ? (
                   <>
                     <Text style={s.price}>{offer.priceLabel}</Text>
-                    {offer.monthlyEquivalentLabel ? (
-                      <Text style={s.priceNote}>
-                        {tp("plan.perMonth", { amount: offer.monthlyEquivalentLabel })}
-                      </Text>
+                    {period === "yearly" ? (
+                      <>
+                        {/* L'équivalent mensuel se compare directement au
+                            tarif mensuel : c'est le chiffre qui parle. */}
+                        <Text style={s.priceNote}>
+                          {tp("plan.perMonth", {
+                            amount: money(
+                              monthlyEquivalent(offer.priceAmount),
+                              offer.currency,
+                            ),
+                          })}
+                        </Text>
+                        {saving ? (
+                          <Text style={s.saving}>
+                            {tp("plan.saving", {
+                              amount: money(saving.amount, saving.currency),
+                            })}
+                          </Text>
+                        ) : null}
+                      </>
                     ) : null}
                   </>
                 ) : null}
@@ -270,6 +324,8 @@ const s = StyleSheet.create({
   periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: "center" },
   periodBtnActive: { backgroundColor: "rgba(74,222,128,0.14)" },
   periodText: { color: TEXT_2, fontSize: 13.5, fontWeight: "600" },
+  periodBadge: { color: GOLD, fontSize: 10.5, fontWeight: "800", marginTop: 2 },
+  saving: { color: GOLD, fontSize: 12.5, fontWeight: "700", marginTop: 4 },
   periodTextActive: { color: GOLD },
   card: {
     backgroundColor: SURFACE,

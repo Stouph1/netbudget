@@ -1,70 +1,69 @@
 -- ============================================================================
--- 018 — Abonnements
+-- 018 — Abonnements  (VERSION CORRIGÉE)
 --
 -- À COLLER DANS SUPABASE : SQL Editor → New query → colle TOUT → Run.
+-- Rejouable sans risque, même après la tentative précédente qui a échoué.
 --
--- LA RÈGLE QUI JUSTIFIE CETTE MIGRATION : le palier d'abonnement ne doit JAMAIS
--- être décidé par l'application. Un stockage local se modifie en trente
--- secondes ; croire le client sur ce point, c'est offrir la formule Famille à
--- qui sait éditer un fichier.
+-- CE QUI N'ALLAIT PAS DANS LA PREMIÈRE VERSION : elle créait une table
+-- `subscriptions` avec `create table if not exists`. Or cette table existe
+-- DEPUIS LA MIGRATION 001. La création a donc été ignorée en silence, la
+-- colonne `tier` n'a jamais été ajoutée, et la fonction qui la lit a échoué.
 --
--- C'est donc la boutique qui décide, RevenueCat qui vérifie le reçu, et cette
--- table qui conserve le verdict. L'application ne fait que LIRE.
+-- C'est le piège de `if not exists` : il protège d'une erreur, mais il masque
+-- aussi le fait que la table n'a pas la forme attendue. On ajoute donc des
+-- colonnes à la table réelle au lieu d'en inventer une seconde.
+--
+-- LA RÈGLE INCHANGÉE : le palier d'abonnement n'est JAMAIS décidé par
+-- l'application. La boutique encaisse, RevenueCat vérifie le reçu, le serveur
+-- écrit, l'app lit.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 1. Le palier de chaque utilisateur
--- ----------------------------------------------------------------------------
-create table if not exists public.subscriptions (
-  user_id      uuid primary key references auth.users(id) on delete cascade,
-
-  -- Palier accordé. Contrainte explicite : une valeur fantaisiste écrite par
-  -- erreur donnerait des droits imprévus au lieu d'échouer.
-  tier         text not null default 'free'
-    check (tier in ('free', 'solo', 'duo', 'family')),
-
-  -- Fin de la période payée. L'accès est accordé jusque-là MÊME après une
-  -- résiliation : c'est ce que le client a payé, et le lui retirer avant terme
-  -- serait un litige.
-  expires_at   timestamptz,
-
-  -- Résiliation demandée mais période en cours. Sert à ne pas relancer
-  -- quelqu'un qui vient de partir, et à ne pas le traiter comme un impayé.
-  cancelled    boolean not null default false,
-
-  -- Identifiant RevenueCat, pour rapprocher un incident d'un client.
-  provider_id  text,
-  store        text check (store in ('app_store', 'play_store', 'promotional')),
-
-  updated_at   timestamptz not null default now()
-);
-
-comment on table public.subscriptions is
-  'Palier d''abonnement, ecrit UNIQUEMENT par le webhook RevenueCat. L''app lit, n''ecrit jamais.';
-
-alter table public.subscriptions enable row level security;
-
--- ----------------------------------------------------------------------------
--- 2. Lecture seule pour l'utilisateur, aucune écriture
+-- 1. Le palier, ajouté à la table existante
 --
--- Il n'y a VOLONTAIREMENT aucune policy INSERT, UPDATE ou DELETE. Sans policy,
--- RLS refuse par défaut : même en appelant l'API directement, personne ne peut
--- s'accorder un palier. Seul le webhook écrit, via la clé de service qui
--- contourne RLS et ne quitte jamais le serveur.
+-- La table de la migration 001 porte déjà `platform`, `product_id`, `status`,
+-- `expires_at` et l'identifiant de transaction. Il ne manquait que le palier
+-- accordé. On pourrait le déduire de `product_id`, mais l'écrire explicitement
+-- évite qu'un changement d'identifiant de produit casse les droits de tout le
+-- monde.
 -- ----------------------------------------------------------------------------
-drop policy if exists "subs select own" on public.subscriptions;
-create policy "subs select own"
-  on public.subscriptions for select to authenticated
-  using (auth.uid() = user_id);
+alter table public.subscriptions
+  add column if not exists tier text;
+
+alter table public.subscriptions
+  drop constraint if exists subscriptions_tier_check;
+
+alter table public.subscriptions
+  add constraint subscriptions_tier_check
+  check (tier is null or tier in ('solo', 'duo', 'family'));
+
+comment on column public.subscriptions.tier is
+  'Palier accorde. NULL sur les lignes anterieures. Ecrit uniquement par le webhook de facturation.';
+
+-- `platform` n'acceptait que apple/google/stripe. Les offres promotionnelles
+-- accordées depuis la console du fournisseur n'ont aucune de ces origines.
+alter table public.subscriptions
+  drop constraint if exists subscriptions_platform_check;
+
+alter table public.subscriptions
+  add constraint subscriptions_platform_check
+  check (platform in ('apple', 'google', 'stripe', 'promotional'));
 
 -- ----------------------------------------------------------------------------
--- 3. Le palier effectif, calculé côté serveur
+-- 2. Le palier effectif, calculé côté serveur
 --
--- Pourquoi une fonction plutôt qu'une lecture directe de la colonne : un
--- abonnement expiré doit rendre 'free' sans qu'on ait besoin d'une tâche
--- planifiée pour nettoyer la table. La date fait foi à la lecture, ce qui évite
--- une classe entière de bugs — celle où un abonnement reste actif parce qu'un
--- traitement nocturne a échoué.
+-- POURQUOI UNE FONCTION et non une simple lecture : un abonnement expiré doit
+-- rendre 'free' sans dépendre d'une tâche de nettoyage nocturne — celle qui
+-- échoue un soir et laisse des abonnements actifs toute une semaine. La date
+-- fait foi au moment de la lecture.
+--
+-- `in_grace` est traité comme actif : c'est la période pendant laquelle la
+-- boutique retente un prélèvement échoué. Couper l'accès à ce moment-là
+-- punirait quelqu'un dont la carte vient d'expirer, et qui va probablement
+-- payer.
+--
+-- Quand plusieurs lignes existent — abonnement changé, ou deux plateformes —
+-- on garde la PLUS GÉNÉREUSE. Retirer un droit déjà payé serait un litige.
 -- ----------------------------------------------------------------------------
 create or replace function public.my_tier()
 returns text
@@ -78,8 +77,16 @@ as $$
       select s.tier
       from public.subscriptions s
       where s.user_id = auth.uid()
-        -- Pas de date de fin : abonnement perpétuel (code promotionnel).
+        and s.tier is not null
+        and s.status in ('trial', 'active', 'in_grace')
+        -- Sans date de fin : abonnement perpétuel (offre promotionnelle).
         and (s.expires_at is null or s.expires_at > now())
+      order by case s.tier
+                 when 'family' then 3
+                 when 'duo'    then 2
+                 when 'solo'   then 1
+                 else 0
+               end desc
       limit 1
     ),
     'free'
@@ -90,16 +97,28 @@ revoke all on function public.my_tier() from public, anon;
 grant execute on function public.my_tier() to authenticated;
 
 comment on function public.my_tier() is
-  'Palier effectif de l''appelant. Renvoie free si l''abonnement a expire, sans dependre d''une tache de nettoyage.';
+  'Palier effectif de l''appelant. Renvoie free si expire, sans dependre d''une tache de nettoyage. Garde le palier le plus genereux si plusieurs lignes existent.';
 
 -- ----------------------------------------------------------------------------
--- 4. Trace des événements reçus
+-- 3. Aucune écriture depuis le client
 --
--- POURQUOI GARDER CETTE TRACE. Les webhooks arrivent en double, dans le
--- désordre, et parfois en retard de plusieurs heures. Sans journal, un
--- « pourquoi ce client n'a-t-il pas son abonnement » est impossible à instruire.
--- Et l'identifiant d'événement rend le traitement IDEMPOTENT : rejouer deux
--- fois le même message ne double pas une période.
+-- La policy de lecture existe déjà depuis la 001. On vérifie surtout qu'aucune
+-- policy d'écriture n'a été ajoutée entre-temps : sans policy, RLS refuse par
+-- défaut, et c'est exactement ce qu'on veut. Seul le webhook écrit, avec la clé
+-- de service qui ne quitte jamais le serveur.
+-- ----------------------------------------------------------------------------
+drop policy if exists "subscriptions insert own" on public.subscriptions;
+drop policy if exists "subscriptions update own" on public.subscriptions;
+drop policy if exists "subscriptions delete own" on public.subscriptions;
+
+-- ----------------------------------------------------------------------------
+-- 4. Journal des événements reçus
+--
+-- POURQUOI LE GARDER. Les webhooks arrivent en double, dans le désordre, et
+-- parfois en retard de plusieurs heures. Sans journal, « pourquoi ce client
+-- n'a-t-il pas son abonnement » est impossible à instruire. Et l'identifiant
+-- d'événement en clé primaire rend le traitement IDEMPOTENT : rejouer deux fois
+-- le même message ne prolonge pas une période.
 -- ----------------------------------------------------------------------------
 create table if not exists public.subscription_events (
   event_id    text primary key,
@@ -113,7 +132,7 @@ comment on table public.subscription_events is
   'Journal des webhooks de facturation. event_id en cle primaire : rejouer un message ne double pas une periode.';
 
 alter table public.subscription_events enable row level security;
--- Aucune policy : ce journal n'est lisible que par le serveur.
+-- Aucune policy, volontairement : ce journal n'est lisible que par le serveur.
 
 create index if not exists subscription_events_user_idx
   on public.subscription_events (user_id, received_at desc);
@@ -126,10 +145,11 @@ notify pgrst, 'reload schema';
 do $$
 begin
   if not exists (
-    select 1 from information_schema.tables
+    select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'subscriptions'
+      and column_name = 'tier'
   ) then
-    raise exception 'subscriptions absente : la migration a echoue';
+    raise exception 'subscriptions.tier absente : la migration a echoue';
   end if;
 
   if not exists (
@@ -139,10 +159,15 @@ begin
     raise exception 'my_tier() absente : la migration a echoue';
   end if;
 
-  raise notice 'Migration 018 appliquee. Tous les comptes sont en free jusqu''a ce que le webhook ecrive.';
+  raise notice 'Migration 018 appliquee. my_tier() renvoie free pour tout le monde jusqu''a ce que le webhook ecrive.';
 end $$;
 
--- Doit montrer UNE seule policy, en SELECT : aucune ecriture possible cote client.
-select tablename, policyname, cmd
+-- Doit renvoyer 'free' : aucun abonnement n'existe encore.
+select public.my_tier() as mon_palier;
+
+-- Doit montrer UNIQUEMENT des policies SELECT. Une ligne INSERT, UPDATE ou
+-- DELETE ici serait une faille : n'importe qui s'accorderait la formule Famille.
+select policyname, cmd
 from pg_policies
-where schemaname = 'public' and tablename = 'subscriptions';
+where schemaname = 'public' and tablename = 'subscriptions'
+order by cmd;
