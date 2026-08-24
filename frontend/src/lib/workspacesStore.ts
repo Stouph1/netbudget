@@ -12,6 +12,18 @@ import type {
   WorkspaceMember,
 } from "../types/workspaces";
 import { supabase } from "./supabase";
+import { bytesToBase64, base64ToBytes } from "./crypto/payload";
+import { keyForUser } from "./crypto/vaultSession";
+import {
+  generateWorkspaceKey,
+  openFromInvite,
+  sealForInvite,
+} from "./crypto/workspaceKey";
+import {
+  forgetWorkspaceKey,
+  loadWorkspaceKey,
+  storeWorkspaceKey,
+} from "./crypto/workspaceVault";
 
 // ============================================================================
 // Workspaces CRUD
@@ -46,7 +58,25 @@ export async function createWorkspace(
     .select()
     .single();
   if (error) return { ok: false, error: error.message };
-  return { ok: true, workspace: data as Workspace };
+
+  const workspace = data as Workspace;
+
+  // Espace chiffré si — et seulement si — son créateur a activé le chiffrement.
+  // Le lui imposer sinon reviendrait à créer un espace que personne ne peut
+  // lire, faute de clé personnelle pour ranger la copie.
+  if (keyForUser(userData.user.id)) {
+    const wsKey = await generateWorkspaceKey();
+    const stored = await storeWorkspaceKey(userData.user.id, workspace.id, wsKey);
+    if (stored.ok) {
+      // Le drapeau vient APRÈS le dépôt de la clé. Dans l'autre sens, un échec
+      // de dépôt laisserait un espace marqué chiffré dont personne n'aurait la
+      // clé : plus aucune écriture possible, et rien pour l'expliquer.
+      await supabase.from("workspaces").update({ encrypted: true }).eq("id", workspace.id);
+      workspace.encrypted = true;
+    }
+  }
+
+  return { ok: true, workspace };
 }
 
 export async function updateWorkspaceDescription(
@@ -146,6 +176,17 @@ export async function leaveWorkspace(
     .eq("workspace_id", workspaceId)
     .eq("user_id", userData.user.id);
   if (error) return { ok: false, error: error.message };
+
+  // Quitter un espace, c'est jeter sa copie de la clé. Sans ça, la clé
+  // resterait en base et en mémoire : l'accès survivrait au départ, ce qui
+  // n'est pas ce que l'utilisateur croit avoir fait.
+  await supabase
+    .from("workspace_keys")
+    .delete()
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userData.user.id);
+  forgetWorkspaceKey(userData.user.id, workspaceId);
+
   return { ok: true };
 }
 
@@ -181,6 +222,19 @@ export async function createInvite(
   if (!userData.user?.id) return { ok: false, error: "unauthenticated" };
   const token = genInviteToken();
   const note = email?.trim().toLowerCase() || null;
+
+  // La clé de l'espace voyage AVEC l'invitation, emballée par une clé dérivée
+  // du code. C'est ce qui permet à l'invité de lire immédiatement, sans
+  // attendre qu'un membre déjà présent rouvre l'application.
+  let sealedKey: string | null = null;
+  let sealedNonce: string | null = null;
+  const wsKey = await loadWorkspaceKey(userData.user.id, workspaceId);
+  if (wsKey) {
+    const sealed = await sealForInvite(wsKey, token);
+    sealedKey = bytesToBase64(sealed.ciphertext);
+    sealedNonce = bytesToBase64(sealed.nonce);
+  }
+
   const { data, error } = await supabase
     .from("workspace_invites")
     .insert({
@@ -189,6 +243,8 @@ export async function createInvite(
       email: note,
       token,
       status: "pending",
+      sealed_key: sealedKey,
+      sealed_nonce: sealedNonce,
     })
     .select()
     .single();
@@ -252,7 +308,56 @@ export async function acceptInvite(
           : raw;
     return { ok: false, error: code };
   }
-  return { ok: true, workspaceId: (data as string) ?? undefined };
+
+  const workspaceId = (data as string) ?? undefined;
+
+  // L'adhésion est faite. On récupère maintenant la clé de l'espace depuis
+  // l'invitation, en l'ouvrant avec le code que l'utilisateur vient de saisir.
+  //
+  // Un échec ici n'annule PAS l'adhésion : la personne est bien membre, elle
+  // verra simplement l'espace comme verrouillé. Revenir en arrière serait pire
+  // — elle aurait consommé son code pour rien.
+  if (workspaceId) {
+    await claimWorkspaceKey(workspaceId, token);
+  }
+
+  return { ok: true, workspaceId };
+}
+
+/**
+ * Ouvre la clé d'espace déposée dans l'invitation et en range sa propre copie.
+ *
+ * Silencieux à dessein : appelé juste après l'adhésion, il ne doit jamais faire
+ * échouer celle-ci. Les cas d'échec — espace non chiffré, coffre personnel
+ * verrouillé, invitation sans clé — se traduisent tous par un espace affiché
+ * comme verrouillé, ce que l'interface sait expliquer.
+ */
+async function claimWorkspaceKey(workspaceId: string, token: string): Promise<void> {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId || !keyForUser(userId)) return;
+
+    const { data } = await supabase
+      .from("workspace_invites")
+      .select("sealed_key, sealed_nonce")
+      .eq("token", token)
+      .maybeSingle();
+    if (!data?.sealed_key || !data?.sealed_nonce) return; // espace non chiffré
+
+    const wsKey = await openFromInvite(
+      {
+        ciphertext: base64ToBytes(String(data.sealed_key)),
+        nonce: base64ToBytes(String(data.sealed_nonce)),
+      },
+      token,
+    );
+    if (!wsKey) return;
+
+    await storeWorkspaceKey(userId, workspaceId, wsKey);
+  } catch {
+    // Voir le commentaire ci-dessus : jamais bloquant.
+  }
 }
 
 export async function listMyPendingInvites(): Promise<WorkspaceInvite[]> {

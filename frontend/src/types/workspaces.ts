@@ -18,6 +18,14 @@ export type Workspace = {
   kind: WorkspaceKind;
   description?: string | null;
   photo_url?: string | null;
+  /**
+   * Le contenu de l'espace est chiffré avec une clé d'espace.
+   *
+   * Absent sur les espaces créés avant le chiffrement : ils restent en clair
+   * jusqu'à ce qu'ils soient convertis. L'interface doit donc traiter
+   * `undefined` comme `false`, et non comme « on ne sait pas ».
+   */
+  encrypted?: boolean;
   created_at: string;
   updated_at: string;
 };

@@ -37,6 +37,7 @@ import { convertEvents, convertGoals } from "../utils/convertData";
 import { sodium } from "./crypto/sodium";
 import { keyForUser, stateForUser } from "./crypto/vaultSession";
 import { canWrite, needsMigration, shouldEncrypt } from "./crypto/vaultState";
+import { isWorkspaceEncrypted, loadWorkspaceKey } from "./crypto/workspaceVault";
 
 const CACHE_KEY_PREFIX = "netbudget:premium:cache:";
 
@@ -62,6 +63,24 @@ const CACHE_KEY_PREFIX = "netbudget:premium:cache:";
 
 const CRYPTO_PLAINTEXT = 0;
 const CRYPTO_SECRETBOX = 1;
+
+/**
+ * Quelle clé chiffre CETTE donnée.
+ *
+ * Espace personnel : la clé dérivée de la phrase de l'utilisateur.
+ * Espace partagé   : la clé de l'espace, dont chaque membre garde une copie.
+ *
+ * Utiliser la clé personnelle sur une donnée partagée serait la rendre
+ * illisible aux autres membres — la lecture n'échouerait qu'après coup, chez
+ * eux, sans que l'auteur s'en aperçoive.
+ */
+async function resolveKey(
+  userId: string,
+  workspaceId: string | null,
+): Promise<Uint8Array | null> {
+  if (!workspaceId) return keyForUser(userId);
+  return loadWorkspaceKey(userId, workspaceId);
+}
 
 /** Nonce des lignes en clair : la colonne est NOT NULL, il faut y mettre quelque chose. */
 const EMPTY_NONCE = new Uint8Array(24);
@@ -171,7 +190,7 @@ async function readPayload<T>(
       return cached ?? fallback;
     }
 
-    const key = keyForUser(userId);
+    const key = await resolveKey(userId, workspaceId);
     if (!key) return cached ?? fallback; // coffre verrouillé : l'UI le signale
 
     await sodium.ready();
@@ -220,12 +239,21 @@ async function writePayload<T>(
     return { ok: false, error: "vault-locked" };
   }
 
+  // Espace partagé chiffré dont on n'a pas la clé : même règle que pour le
+  // coffre personnel verrouillé, on refuse. Écrire en clair dans un espace
+  // déclaré chiffré le remettrait à nu pour tous ses membres.
+  if (workspaceId && (await isWorkspaceEncrypted(workspaceId))) {
+    if (!(await loadWorkspaceKey(userId, workspaceId))) {
+      return { ok: false, error: "workspace-key-missing" };
+    }
+  }
+
   // Cache immédiat : l'interface répond sans attendre le réseau.
   await writeCache(payloadKey, workspaceId, data);
 
   try {
     const plaintext = new TextEncoder().encode(JSON.stringify(data));
-    const key = shouldEncrypt(state) ? keyForUser(userId) : null;
+    const key = shouldEncrypt(state) ? await resolveKey(userId, workspaceId) : null;
 
     let payload: Record<string, unknown>;
     if (key) {
