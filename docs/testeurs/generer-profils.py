@@ -21,6 +21,7 @@ Usage :
     marketing/promo-video/.venv/bin/python docs/testeurs/generer-profils.py
 """
 
+import json
 import os
 from datetime import date
 
@@ -46,6 +47,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 LOGO = os.path.join(ROOT, "website", "public", "logo.png")
 
+# Le contrat vient du MÊME fichier que celui affiché dans l'application.
+# Il vit sous frontend/ parce que Metro ne résout pas les imports hors de son
+# dossier — pas parce que c'est sa place naturelle. Le PDF vient donc le
+# chercher là plutôt que d'en garder une copie : deux copies finissent
+# toujours par diverger, et un contrat signé qui diffère de celui approuvé à
+# l'écran ne vaut rien.
+CONTRAT = os.path.join(ROOT, "frontend", "src", "data", "testerContract.json")
+
+with open(CONTRAT, encoding="utf-8") as fh:
+    CONTRAT_DATA = json.load(fh)
+
 MINT = colors.HexColor("#0E9F6E")
 INK = colors.HexColor("#111827")
 GREY = colors.HexColor("#6B7280")
@@ -53,6 +65,8 @@ LIGHT = colors.HexColor("#E5E7EB")
 PALE = colors.HexColor("#F3F4F6")
 
 VERSION = "2.0.0"
+# Version du TEXTE du contrat, distincte de celle de l'app.
+# C'est elle qui est enregistrée avec chaque approbation.
 CONTACT = "contact@netbudget.app"
 
 base = getSampleStyleSheet()
@@ -214,7 +228,7 @@ def contrat(story, profil):
     header(
         story,
         f"Testeur NETbudget — profil {p['nom']}",
-        f"Version {VERSION} · session de test fermée · document à signer avant de commencer",
+        f"Version {VERSION} · session de test fermée · à approuver dans l'application",
     )
 
     # Ce qui est déjà rempli évite quatre questions par testeur.
@@ -240,65 +254,12 @@ def contrat(story, profil):
     story.append(Spacer(1, 6))
     story.append(Paragraph(p["resume"], S["body"]))
 
-    story.append(Paragraph("Comment ta formule est activée", S["h2"]))
-    story.append(Paragraph(
-        "Tu n'as rien à payer et rien à acheter. La formule "
-        f"<b>{p['nom']}</b> est activée à la main sur ton compte, une fois que "
-        "tu t'es inscrit. C'est aussi ce qui explique que l'écran des formules "
-        "n'affiche pas encore de prix pendant cette session : les produits ne "
-        "sont pas en vente.",
-        S["body"]))
-    story.append(Paragraph(
-        "<b>Cette formule sera retirée à la fin de la session.</b> Ce n'est pas "
-        "un abonnement offert : c'est un accès de test. Tu retrouveras la "
-        "version gratuite, sans perdre aucune de tes données.",
-        S["body"]))
-
-    story.append(Paragraph("Ce que tu acceptes de faire", S["h2"]))
-    story.append(Paragraph(
-        "Utiliser l'application avec tes vraies habitudes plutôt qu'en cherchant "
-        "à bien faire. Suivre la liste de vérifications des pages suivantes, et "
-        "signaler ce qui ne va pas — y compris ce qui te semble anodin ou de "
-        "mauvaise foi. Un retour tiède ne sert à rien : c'est ce qui t'agace "
-        "qu'on a besoin d'entendre.",
-        S["body"]))
-
-    story.append(Paragraph("Confidentialité", S["h2"]))
-    story.append(Paragraph(
-        "L'application n'est pas publique. Jusqu'à sa sortie, tu t'engages à ne "
-        "pas diffuser de captures d'écran, de vidéos ni de description détaillée "
-        "des fonctionnalités en dehors du cercle de test. En parler autour de toi "
-        "en termes généraux ne pose aucun problème.",
-        S["body"]))
-
-    story.append(Paragraph("Tes données", S["h2"]))
-    story.append(Paragraph(
-        "Si tu crées un compte, tes données sont synchronisées et chiffrées de "
-        "bout en bout : la clé reste sur ton appareil et nous ne pouvons pas les "
-        "lire. Utilise quand même des montants approchants plutôt que tes "
-        "chiffres exacts — c'est une version de test, un défaut est toujours "
-        "possible. Tu peux supprimer ton compte à tout moment depuis "
-        "l'application, ce qui efface définitivement les données associées.",
-        S["body"]))
-    story.append(Paragraph(
-        "Tes retours écrits sont conservés pour améliorer l'application ; ils ne "
-        "sont jamais publiés avec ton nom sans ton accord explicite.",
-        S["body"]))
-
-    story.append(Paragraph("Ce que nous te devons", S["h2"]))
-    story.append(bullets([
-        "Te répondre sous 48 heures en semaine.",
-        "Te dire ce qui a été corrigé grâce à toi, et ce qui ne le sera pas — avec la raison.",
-        "Ne jamais utiliser tes données financières à d'autres fins que de faire fonctionner l'application.",
-        "Te prévenir avant tout changement qui élargirait l'usage de tes données.",
-    ]))
-
-    story.append(Paragraph("Ce que ce document n'est pas", S["h2"]))
-    story.append(Paragraph(
-        "Un contrat de travail ni une promesse de rémunération. La participation "
-        "est bénévole et tu peux l'interrompre quand tu veux, sans avoir à te "
-        "justifier — il suffit de nous écrire.",
-        S["body"]))
+    for sec in CONTRAT_DATA["sections"]:
+        story.append(Paragraph(sec["title"], S["h2"]))
+        for para in sec.get("body", []):
+            story.append(Paragraph(para.replace("{formule}", p["nom"]), S["body"]))
+        if sec.get("bullets"):
+            story.append(bullets([b.replace("{formule}", p["nom"]) for b in sec["bullets"]]))
 
     story.append(Spacer(1, 12))
     story.append(HRFlowable(width="100%", thickness=0.6, color=LIGHT, spaceAfter=10))
@@ -328,9 +289,16 @@ def contrat(story, profil):
 
     story.append(Spacer(1, 8))
     story.append(Paragraph(
+        "<b>La session se déroule entièrement à distance : tu n'as rien à "
+        "imprimer.</b> Ce document est ta copie. L'approbation se fait dans "
+        "l'application, à sa première ouverture — le texte affiché est "
+        "exactement celui-ci, et ton nom y remplace la signature. Le bloc "
+        "ci-dessus n'est là que si tu préfères garder une trace papier.",
+        S["small"]))
+    story.append(Paragraph(
         "Une question sur ce document : " + CONTACT + ". Ce texte est une charte "
         "de bonne conduite entre nous ; pour lui donner une portée contractuelle "
-        "plus large, fais-le relire par un juriste avant signature.",
+        "plus large, fais-le relire par un juriste.",
         S["small"]))
 
 

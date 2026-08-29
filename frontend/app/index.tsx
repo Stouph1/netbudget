@@ -37,7 +37,9 @@ import BirthdayCelebration from "../src/components/BirthdayCelebration";
 import { TierUnlock } from "../src/components/TierUnlock";
 import { useTierUnlock } from "../src/hooks/useTierUnlock";
 import { useIsTester } from "../src/hooks/useIsTester";
-import { limitsFor } from "../src/lib/entitlements";
+import { useTesterConsent } from "../src/hooks/useTesterConsent";
+import { TesterConsent } from "../src/components/TesterConsent";
+import { limitsFor, type Tier } from "../src/lib/entitlements";
 import { loadTier } from "../src/lib/tier";
 import { useTourRunner } from "../src/hooks/useTourRunner";
 import { useWhatsNew } from "../src/hooks/useWhatsNew";
@@ -387,6 +389,12 @@ export default function Index() {
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
   const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [premiumProfile, setPremiumProfile] = useState<UserProfile | null>(null);
+  // Prénom du profil, pour ne pas faire ressaisir au testeur ce qu'on sait
+  // déjà. Il reste modifiable : c'est son nom complet qu'on lui demande.
+  const [premiumProfileName, setPremiumProfileName] = useState<string | null>(null);
+  // Palier réel, utilisé par l'écran d'approbation pour nommer la formule
+  // testée dans le texte du contrat.
+  const [testerTier, setTesterTier] = useState<Tier>("free");
   // Ville libre saisie dans le profil (« Rouen »), à faire correspondre au
   // référentiel de villes pour l'indice de coût de la vie.
   const [profileCity, setProfileCity] = useState<string | null>(null);
@@ -398,14 +406,20 @@ export default function Index() {
   const [bdayOpen, setBdayOpen] = useState(false);
   const tierUnlock = useTierUnlock();
   const isTester = useIsTester();
+  // L'approbation du contrat passe AVANT tout le reste : avant la fête, avant
+  // les nouveautés, avant la visite. Un testeur qui commence à utiliser l'app
+  // avant d'avoir approuvé, c'est un test mené sans accord.
+  const consent = useTesterConsent({ isTester });
   // Ordre de priorité entre les trois plein-écrans possibles au lancement :
   // la fête d'abord (elle répond à « mon paiement a-t-il marché ? »), les
   // nouveautés ensuite, la visite guidée en dernier.
-  const whatsNew = useWhatsNew({ blocked: tierUnlock.visible || bdayOpen });
+  const whatsNew = useWhatsNew({
+    blocked: consent.needed || tierUnlock.visible || bdayOpen,
+  });
   // La visite attend que la fête de déverrouillage soit passée : deux
   // plein-écrans empilés, c'est quelqu'un qui ferme les deux sans lire.
   const tour = useTourRunner({
-    blocked: tierUnlock.visible || bdayOpen || whatsNew.visible,
+    blocked: consent.needed || tierUnlock.visible || bdayOpen || whatsNew.visible,
     // La visite ouvre elle-même l'onglet dont elle parle.
     onNavigate: (next) => {
       if ((TAB_ORDER as string[]).includes(next)) setTab(next as Tab);
@@ -463,7 +477,10 @@ export default function Index() {
     // On coupe AUSSI la notification programmée, pas seulement l'écran : une
     // fête qui ne s'ouvre pas mais dont on reçoit l'annonce la veille est un
     // rappel de ce qu'on n'a pas.
-    const birthdaysOpen = limitsFor(await loadTier()).birthdays;
+    const tier = await loadTier();
+    setTesterTier(tier);
+    setPremiumProfileName(details.first_name ?? null);
+    const birthdaysOpen = limitsFor(tier).birthdays;
     const year = new Date().getFullYear();
     let opened = false;
     if (birthdaysOpen && details.birthdate) {
@@ -1363,6 +1380,15 @@ export default function Index() {
           onClose={() => void tierUnlock.dismiss()}
         />
       ) : null}
+
+      <TesterConsent
+        visible={consent.needed}
+        tier={testerTier}
+        defaultName={premiumProfileName}
+        busy={consent.busy}
+        onAccept={(name) => void consent.submit(name, true)}
+        onDecline={() => void consent.submit("", false)}
+      />
 
       <WhatsNewSheet
         visible={whatsNew.visible}

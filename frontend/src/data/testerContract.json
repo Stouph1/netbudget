@@ -1,0 +1,68 @@
+{
+  "version": "2026-08-29",
+  "note": "SOURCE UNIQUE du contrat de test. Ce fichier vit dans le bundle de l'app parce que Metro ne resout pas les imports hors du dossier frontend/. Le generateur PDF (docs/testeurs/generer-profils.py) vient le lire ICI. Ne jamais recopier ce texte ailleurs : un contrat approuve a l'ecran qui differe du PDF signe ne vaut rien, et personne ne s'en apercevrait avant qu'il y ait un desaccord. Modifier le texte impose de changer `version` — les approbations deja enregistrees restent attachees a la version qu'elles ont reellement lue.",
+  "placeholders": {
+    "formule": "Nom de la formule testee : Gratuit, Solo, Duo ou Famille."
+  },
+  "sections": [
+    {
+      "id": "activation",
+      "title": "Comment ta formule est activée",
+      "body": [
+        "Tu n'as rien à payer et rien à acheter. La formule {formule} est activée à la main sur ton compte, une fois que tu t'es inscrit. C'est aussi ce qui explique que l'écran des formules n'affiche pas encore de prix pendant cette session : les produits ne sont pas en vente.",
+        "Cette formule sera retirée à la fin de la session. Ce n'est pas un abonnement offert : c'est un accès de test. Tu retrouveras la version gratuite, sans perdre aucune de tes données."
+      ]
+    },
+    {
+      "id": "engagement",
+      "title": "Ce que tu acceptes de faire",
+      "body": [
+        "Utiliser l'application avec tes vraies habitudes plutôt qu'en cherchant à bien faire. Suivre la liste de vérifications qui t'a été remise, et signaler ce qui ne va pas — y compris ce qui te semble anodin ou de mauvaise foi. Un retour tiède ne sert à rien : c'est ce qui t'agace qu'on a besoin d'entendre."
+      ]
+    },
+    {
+      "id": "confidentialite",
+      "title": "Confidentialité",
+      "body": [
+        "L'application n'est pas publique. Jusqu'à sa sortie, tu t'engages à ne pas diffuser de captures d'écran, de vidéos ni de description détaillée des fonctionnalités en dehors du cercle de test. En parler autour de toi en termes généraux ne pose aucun problème."
+      ]
+    },
+    {
+      "id": "donnees",
+      "title": "Tes données",
+      "body": [
+        "Si tu crées un compte, tes données sont synchronisées et chiffrées de bout en bout : la clé reste sur ton appareil et nous ne pouvons pas les lire. Utilise quand même des montants approchants plutôt que tes chiffres exacts — c'est une version de test, un défaut est toujours possible. Tu peux supprimer ton compte à tout moment depuis l'application, ce qui efface définitivement les données associées.",
+        "Tes retours écrits sont conservés pour améliorer l'application ; ils ne sont jamais publiés avec ton nom sans ton accord explicite."
+      ]
+    },
+    {
+      "id": "nos-engagements",
+      "title": "Ce que nous te devons",
+      "bullets": [
+        "Te répondre sous 48 heures en semaine.",
+        "Te dire ce qui a été corrigé grâce à toi, et ce qui ne le sera pas — avec la raison.",
+        "Ne jamais utiliser tes données financières à d'autres fins que de faire fonctionner l'application.",
+        "Te prévenir avant tout changement qui élargirait l'usage de tes données."
+      ]
+    },
+    {
+      "id": "portee",
+      "title": "Ce que ce document n'est pas",
+      "body": [
+        "Un contrat de travail ni une promesse de rémunération. La participation est bénévole et tu peux l'interrompre quand tu veux, sans avoir à te justifier — il suffit de nous écrire à contact@netbudget.app."
+      ]
+    }
+  ],
+  "approbation": {
+    "titre": "Avant de commencer",
+    "intro": "Cette session de test se déroule entièrement à distance. Lis ce document en entier, puis approuve-le ici : c'est l'équivalent de la signature, et ça nous évite un aller-retour de papier.",
+    "cases": [
+      "J'ai lu ce document en entier et je l'approuve.",
+      "J'ai compris que la formule de test me sera retirée à la fin de la session."
+    ],
+    "champNom": "Ton nom et prénom",
+    "boutonAccepter": "Lu et approuvé",
+    "boutonRefuser": "Je ne souhaite pas participer",
+    "mentionTrace": "En approuvant, tu enregistres ton nom, la date et la version de ce texte. Rien d'autre."
+  }
+}
