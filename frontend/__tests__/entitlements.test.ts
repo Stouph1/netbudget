@@ -7,6 +7,7 @@
 import {
   canCreateEvent,
   canCreateGoal,
+  canCreateSharedGoal,
   canJoinWorkspace,
   canSeeScheduleYear,
   isEventTypeLocked,
@@ -194,5 +195,28 @@ describe("conseils personnalisés", () => {
     for (const tier of ["solo", "duo", "family"] as const) {
       expect(limitsFor(tier).advice).toBe(true);
     }
+  });
+});
+
+describe("objectif dans un espace partagé", () => {
+  it("laisse écrire dès la première formule payante", () => {
+    for (const tier of ["solo", "duo", "family"] as const) {
+      expect(canCreateSharedGoal(tier).allowed).toBe(true);
+    }
+  });
+
+  it("interdit à l'invité gratuit d'en créer", () => {
+    // Sans ça, un seul abonnement Duo ferait vivre six personnes en écriture
+    // et plus personne n'aurait de raison de prendre Famille.
+    const d = canCreateSharedGoal("free");
+    expect(d.allowed).toBe(false);
+    expect(!d.allowed && d.reason).toBe("needsSubscription");
+  });
+
+  it("ignore le quota personnel — l'espace n'est pas le sien", () => {
+    // Solo est limité à trois objectifs chez lui ; dans l'espace de
+    // quelqu'un d'autre, ce compte n'a aucun sens.
+    expect(canCreateGoal("solo", 3).allowed).toBe(false);
+    expect(canCreateSharedGoal("solo").allowed).toBe(true);
   });
 });

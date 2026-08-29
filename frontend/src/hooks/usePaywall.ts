@@ -13,6 +13,7 @@ import { useSession } from "../contexts/SessionContext";
 import {
   canCreateEvent,
   canCreateGoal,
+  canCreateSharedGoal,
   limitsFor,
   type Tier,
 } from "../lib/entitlements";
@@ -27,8 +28,14 @@ export type Gate =
   | { feature: "sync" }
   /** Créer un événement d'un type donné, en tenant compte du quota. */
   | { feature: "event"; type: string; currentCount: number }
-  /** Créer un objectif d'épargne de plus. */
-  | { feature: "goal"; currentCount: number };
+  /**
+   * Créer un objectif d'épargne de plus.
+   *
+   * `shared` change la règle du tout au tout : dans un espace partagé, on ne
+   * compte pas — on demande simplement un abonnement. Voir
+   * canCreateSharedGoal().
+   */
+  | { feature: "goal"; currentCount: number; shared?: boolean };
 
 export function usePaywall() {
   const { user } = useSession();
@@ -77,7 +84,9 @@ export function usePaywall() {
         case "event":
           return canCreateEvent(tier, gate.currentCount, gate.type).allowed;
         case "goal":
-          return canCreateGoal(tier, gate.currentCount).allowed;
+          return gate.shared
+            ? canCreateSharedGoal(tier).allowed
+            : canCreateGoal(tier, gate.currentCount).allowed;
       }
     },
     [tier],
@@ -92,6 +101,15 @@ export function usePaywall() {
       if (allows(gate)) return true;
 
       if (gate.feature === "goal") {
+        if (gate.shared) {
+          // Dans un espace partagé, l'invité gratuit LIT tout et n'écrit rien.
+          // Le message le dit sans le rendre coupable d'avoir été invité.
+          setReason({
+            kind: "needsSubscription",
+            featureKey: "paywall.feature.sharedGoal",
+          });
+          return false;
+        }
         const verdict = canCreateGoal(tier, gate.currentCount);
         // Deux refus, deux réponses : sans abonnement on propose de s'abonner,
         // avec Solo on a atteint SON quota — la formule au-dessus n'en a pas.

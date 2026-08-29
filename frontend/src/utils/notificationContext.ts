@@ -136,6 +136,9 @@ export function toNotifLoans(loans: LoanInput[], now: Date): NotifContext["loans
       name: l.name,
       remainingMonths: p.remainingMonths,
       remainingPrincipal: Math.round(p.remainingPrincipal),
+      // Sur le CAPITAL emprunté, pas sur le total remboursé intérêts compris :
+      // c'est la dette qui recule, et c'est ce dont on est fier.
+      repaidPercent: l.principal > 0 ? (p.repaidPrincipal / l.principal) * 100 : 0,
     });
   }
   return out;

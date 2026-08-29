@@ -104,7 +104,22 @@ export type NotifContext = {
     fundedRatio: number;
   }[];
   /** Prêts en cours. */
-  loans: { id: string; name: string; remainingMonths: number; remainingPrincipal: number }[];
+  loans: {
+    id: string;
+    name: string;
+    remainingMonths: number;
+    remainingPrincipal: number;
+    /**
+     * Part du CAPITAL déjà remboursée, en pourcentage.
+     *
+     * Distincte de l'avancement dans le temps, et c'est tout l'intérêt : sur
+     * un prêt amortissable, à mi-parcours dans le temps on a remboursé bien
+     * moins de la moitié du capital, parce que les premières années paient
+     * surtout des intérêts. Annoncer « 50 % du capital remboursé » est donc un
+     * vrai cap, pas la moitié du calendrier.
+     */
+    repaidPercent: number;
+  }[];
   /** Le budget du mois a-t-il été renseigné ? */
   budgetFilledThisMonth: boolean;
   /**
@@ -283,7 +298,33 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   }
 
   // --- 5. PRÊTS : les caps qui font plaisir -------------------------------
+  //
+  // Deux caps différents, et ils ne disent pas la même chose :
+  //   - le CAPITAL remboursé (25/50/75 %) : un cap qu'on a franchi ;
+  //   - les ANNÉES restantes (multiples de 12) : un compte à rebours.
+  //
+  // Le premier est le seul dont on puisse être fier, et c'est aussi le plus
+  // difficile à obtenir ailleurs : un relevé bancaire ne le donne jamais.
   for (const l of ctx.loans) {
+    const step = [75, 50, 25].find((m) => l.repaidPercent >= m);
+    if (step) {
+      push({
+        id: `loan-${l.id}-repaid-${step}`,
+        category: "loan",
+        titleKey: "notif.loan.repaid.title",
+        bodyKey: "notif.loan.repaid.body",
+        params: { name: l.name, pct: step },
+        // Au-dessus du compte à rebours des années : c'est une bonne
+        // nouvelle, l'autre n'est qu'une échéance.
+        score: 65,
+        at: atHour(new Date(now.getTime() + DAY_MS), prefs.hour),
+        // Ouvre l'onglet Budget, d'où part l'échéancier — l'écran qui
+        // explique POURQUOI le cap arrive maintenant et non à la moitié du
+        // calendrier.
+        route: "/?tab=budget",
+      });
+    }
+
     if (l.remainingMonths > 0 && l.remainingMonths % 12 === 0) {
       push({
         id: `loan-${l.id}-${l.remainingMonths}`,

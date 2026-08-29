@@ -282,8 +282,8 @@ describe("plafonds anti-harcèlement", () => {
         { id: "g3", label: "C", current: 300, target: 1000 },
       ],
       loans: [
-        { id: "l1", name: "Immo", remainingMonths: 24, remainingPrincipal: 100_000 },
-        { id: "l2", name: "Auto", remainingMonths: 12, remainingPrincipal: 5000 },
+        { id: "l1", name: "Immo", remainingMonths: 24, remainingPrincipal: 100_000, repaidPercent: 0 },
+        { id: "l2", name: "Auto", remainingMonths: 12, remainingPrincipal: 5000, repaidPercent: 0 },
       ],
     });
 
@@ -323,7 +323,7 @@ describe("ordre de valeur", () => {
       baseCtx({
         unseenRights: [{ id: "r", titleKey: "t", priority: 99 }],
         goals: [{ id: "g", label: "A", current: 300, target: 1000 }],
-        loans: [{ id: "l", name: "X", remainingMonths: 24, remainingPrincipal: 1000 }],
+        loans: [{ id: "l", name: "X", remainingMonths: 24, remainingPrincipal: 1000, repaidPercent: 0 }],
       }),
     );
     const scores = out.map((c) => c.score);
@@ -404,5 +404,66 @@ describe("argent qui va partir", () => {
 
   it("ne dit rien sans abonnement", () => {
     expect(buildCandidates(baseCtx()).filter((c) => c.category === "billing")).toEqual([]);
+  });
+});
+
+describe("prêts : le capital remboursé", () => {
+  const loan = (repaidPercent: number, remainingMonths = 137) => ({
+    id: "l1",
+    name: "Maison",
+    remainingMonths,
+    remainingPrincipal: 100_000,
+    repaidPercent,
+  });
+
+  it("annonce le cap franchi, pas le suivant", () => {
+    const out = buildCandidates(baseCtx({ loans: [loan(52)] }));
+    const c = out.find((x) => x.id.includes("repaid"));
+    expect(c?.params?.pct).toBe(50);
+  });
+
+  it("ne dit rien avant le premier quart", () => {
+    // 24 % n'est pas un cap. Féliciter pour un cap non franchi décrédibilise
+    // toutes les notifications suivantes.
+    const out = buildCandidates(baseCtx({ loans: [loan(24)] }));
+    expect(out.find((x) => x.id.includes("repaid"))).toBeUndefined();
+  });
+
+  it("passe au cap supérieur quand il est atteint", () => {
+    for (const [pct, expected] of [
+      [25, 25],
+      [49.9, 25],
+      [50, 50],
+      [74, 50],
+      [75, 75],
+      [99, 75],
+    ] as const) {
+      const out = buildCandidates(baseCtx({ loans: [loan(pct)] }));
+      expect(out.find((x) => x.id.includes("repaid"))?.params?.pct).toBe(expected);
+    }
+  });
+
+  it("ne répète jamais un cap déjà annoncé", () => {
+    const out = buildCandidates(
+      baseCtx({ loans: [loan(52)], alreadySent: { "loan-l1-repaid-50": "2026-01-01" } }),
+    );
+    expect(out.find((x) => x.id.includes("repaid"))).toBeUndefined();
+  });
+
+  it("passe AVANT le compte à rebours des années", () => {
+    // Un cap franchi est une bonne nouvelle ; les années restantes ne sont
+    // qu'une échéance. Les deux peuvent tomber le même jour.
+    const out = buildCandidates(baseCtx({ loans: [loan(52, 24)] }));
+    const repaid = out.findIndex((x) => x.id.includes("repaid"));
+    const years = out.findIndex((x) => x.id === "loan-l1-24");
+    expect(repaid).toBeGreaterThanOrEqual(0);
+    expect(years).toBeGreaterThanOrEqual(0);
+    expect(repaid).toBeLessThan(years);
+  });
+
+  it("se tait si l'utilisateur a coupé la catégorie", () => {
+    const ctx = baseCtx({ loans: [loan(52)] });
+    const out = buildCandidates({ ...ctx, prefs: { ...ctx.prefs, loan: false } });
+    expect(out.find((x) => x.id.includes("repaid"))).toBeUndefined();
   });
 });

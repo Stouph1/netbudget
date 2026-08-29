@@ -226,7 +226,11 @@ export default function S1Epargne() {
   // d'objectifs que tu auras eus dans ta vie ».
   const activeGoalCount = payload.goals.filter((g) => !g.extraP).length;
 
-  const goalsLeft = remainingGoals(paywall.tier, activeGoalCount);
+  // Le quota personnel ne vaut que pour l'espace perso. Dans un espace
+  // partagé, l'espace appartient à celui qui l'a créé — afficher « encore 2
+  // objectifs » y serait faux.
+  const goalsLeft =
+    workspaceId === null ? remainingGoals(paywall.tier, activeGoalCount) : null;
 
   const upsertGoal = useCallback(
     (g: SavingsGoal) => {
@@ -334,6 +338,17 @@ export default function S1Epargne() {
                   n: goalsLeft,
                 })}
           </Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {workspaceId !== null && paywall.tier === "free" ? (
+        <TouchableOpacity
+          style={styles.quotaRow}
+          onPress={() => router.push("/plans" as never)}
+          activeOpacity={0.7}
+        >
+          <Feather name="eye" size={12} color={TEXT_3} />
+          <Text style={styles.quotaText}>{t("goals.shared.readOnly")}</Text>
         </TouchableOpacity>
       ) : null}
 

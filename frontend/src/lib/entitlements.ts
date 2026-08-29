@@ -207,6 +207,26 @@ export function canCreateGoal(tier: Tier, currentGoalCount: number): Denial {
   };
 }
 
+/**
+ * Peut-on créer un objectif dans un espace PARTAGÉ ?
+ *
+ * Règle différente de l'espace perso, et volontairement :
+ *
+ *   - REJOINDRE l'espace et TOUT y lire est ouvert à l'invité sans
+ *     abonnement. C'est ce qui rend l'invitation utile pour celui qui a payé,
+ *     et ça donne à l'invité une raison quotidienne d'ouvrir l'app.
+ *   - CRÉER un objectif commun demande un abonnement. Sans ça, un seul
+ *     abonnement Duo suffirait à faire vivre six personnes en écriture, et
+ *     plus personne n'aurait de raison de prendre Famille.
+ *
+ * Le quota personnel ne s'applique PAS ici : l'espace appartient à celui qui
+ * l'a créé, et son quota est déjà celui de sa formule.
+ */
+export function canCreateSharedGoal(tier: Tier): Denial {
+  if (tier !== "free") return { allowed: true };
+  return { allowed: false, reason: "needsSubscription", upgradeTo: "solo" };
+}
+
 /** Objectifs restants avant la limite. `null` = illimité. */
 export function remainingGoals(
   tier: Tier,
