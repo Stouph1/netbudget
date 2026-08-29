@@ -630,7 +630,7 @@ export const fr: Catalog = {
   "coach.paywall.body": "Ton profil est enregistré. L'abonnement affiche les conseils qui correspondent à ta situation, chacun avec sa source officielle.",
   "schedule.locked.title": "Vois les années qui viennent",
   "schedule.locked.body": "L'année en cours reste visible. L'abonnement ouvre tout l'échéancier : mois par mois, jusqu'à la dernière mensualité, et ce que le crédit coûte au total.",
-  "schedule.locked.more": "et {n} autres années",
+  "schedule.locked.count": "{n} années restent à découvrir, mois par mois, jusqu'à la dernière mensualité.",
   "goals.quota.full": "Tous tes objectifs sont utilisés — en créer d'autres",
   "goals.quota.left": "Encore {n} objectifs",
   "goals.quota.leftOne": "Encore 1 objectif",

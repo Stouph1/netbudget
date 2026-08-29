@@ -18,7 +18,7 @@
 // d'achat lui-même. Cacher la sortie fait hésiter à entrer.
 
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -54,6 +54,10 @@ const BORDER = "rgba(255,255,255,0.08)";
 
 export default function Plans() {
   const { t, tp, lang } = useLang();
+  // Formule demandée depuis une carte d'offre. Validée : un paramètre d'URL
+  // n'est pas une source de confiance.
+  const { tier: tierParam } = useLocalSearchParams<{ tier?: string }>();
+  const askedTier = SELLABLE_TIERS.find((x) => x === tierParam) ?? null;
   const [period, setPeriod] = useState<Period>("yearly");
   const [offerings, setOfferings] = useState<Offering[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -210,7 +214,11 @@ export default function Plans() {
               priceFor(PRODUCT_IDS[tier].monthly),
               priceFor(PRODUCT_IDS[tier].yearly),
             );
-            const highlighted = tier === HIGHLIGHTED_TIER;
+            // Si l'utilisateur arrive depuis une carte précise, c'est CELLE-LÀ
+            // qu'on met en avant. Le renvoyer sur « la plus populaire » après
+            // qu'il a choisi la sienne lui fait refaire le choix, et on en perd
+            // une partie entre les deux écrans.
+            const highlighted = tier === (askedTier ?? HIGHLIGHTED_TIER);
             const members = planMembers(tier);
 
             return (

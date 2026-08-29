@@ -30,21 +30,14 @@ import {
   View,
 } from "react-native";
 import { useLang } from "../contexts/LangContext";
-import {
-  HIGHLIGHTED_TIER,
-  planFeatureKeys,
-  planMembers,
-  SELLABLE_TIERS,
-} from "../lib/billing/plans";
 import type { Tier } from "../lib/entitlements";
+import { PlanCards } from "./PlanCards";
 
 const MIDNIGHT = "#0F172A";
-const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
 const GOLD = "#4ADE80";
-const BORDER = "rgba(255,255,255,0.08)";
 
 export type PaywallReason =
   /** Aucun abonnement : la fonctionnalité entière est fermée. */
@@ -102,40 +95,21 @@ export function PaywallSheet({
 
           <Text style={s.sub}>{t(reason.featureKey)}</Text>
 
-          {/* La liste occupe la place restante ; l'essai et le bouton
-              restent toujours visibles dessous. Une hauteur figée coupait la
-              troisième formule en plein titre — ça ne se lit pas comme « fais
-              défiler », ça se lit comme « c'est cassé ». */}
           <View style={s.listWrap}>
-            <ScrollView showsVerticalScrollIndicator contentContainerStyle={{ paddingBottom: 18 }}>
-            {SELLABLE_TIERS.map((tier) => {
-              const members = planMembers(tier);
-              const best = tier === HIGHLIGHTED_TIER;
-              return (
-                <View key={tier} style={[s.card, best && s.cardBest]}>
-                  <View style={s.cardHead}>
-                    <Text style={s.cardTitle}>{t(`plan.${tier}.name`)}</Text>
-                    {best ? (
-                      <View style={s.badge}>
-                        <Text style={s.badgeText}>{t("plan.popular")}</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <Text style={s.cardFor}>
-                    {members ? tp("plan.forMembers", { n: members }) : t("plan.forOne")}
-                  </Text>
-                  {planFeatureKeys(tier)
-                    .filter((k) => k !== "plan.feature.noWedding")
-                    .slice(0, 3)
-                    .map((k) => (
-                      <View key={k} style={s.featureRow}>
-                        <Feather name="check" size={13} color={GOLD} />
-                        <Text style={s.featureText}>{t(k)}</Text>
-                      </View>
-                    ))}
-                </View>
-              );
-            })}
+            <ScrollView
+              showsVerticalScrollIndicator
+              contentContainerStyle={{ paddingBottom: 20 }}
+            >
+              {/* Taper une carte emmène droit à l'achat de CETTE formule.
+                  Un écran de vente où les cartes ne sont pas cliquables oblige
+                  à choisir deux fois, et on en perd la moitié entre les deux. */}
+              <PlanCards
+                suggested={reason.kind === "locked" ? reason.requires : null}
+                onPick={(tier) => {
+                  onClose();
+                  router.push({ pathname: "/plans", params: { tier } } as never);
+                }}
+              />
             </ScrollView>
 
             {/* Dégradé sur le bord bas : une carte à demi masquée par un
@@ -203,33 +177,6 @@ const s = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   title: { flex: 1, color: TEXT_1, fontSize: 19, fontWeight: "800", lineHeight: 25 },
   sub: { color: TEXT_2, fontSize: 14, lineHeight: 20, marginTop: 8, marginBottom: 16 },
-  card: {
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-  },
-  cardBest: { borderColor: "rgba(74,222,128,0.45)" },
-  cardHead: { flexDirection: "row", alignItems: "center", gap: 8 },
-  cardTitle: { color: TEXT_1, fontSize: 16, fontWeight: "800" },
-  badge: {
-    backgroundColor: "rgba(74,222,128,0.14)",
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    color: GOLD,
-    fontSize: 9.5,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-  },
-  cardFor: { color: TEXT_3, fontSize: 12, marginTop: 2, marginBottom: 9 },
-  featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 8, marginBottom: 5 },
-  featureText: { flex: 1, color: TEXT_2, fontSize: 12.5, lineHeight: 17 },
   trial: { color: TEXT_3, fontSize: 11.5, lineHeight: 16, marginTop: 6, marginBottom: 12 },
   cta: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 15, alignItems: "center" },
   ctaText: { color: "#000", fontSize: 15, fontWeight: "800" },

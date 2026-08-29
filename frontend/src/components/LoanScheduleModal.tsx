@@ -6,6 +6,8 @@
 // en avant — l'utilisateur se repère immédiatement.
 
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   Modal,
@@ -17,8 +19,8 @@ import {
   View,
 } from "react-native";
 import { useLang } from "../contexts/LangContext";
-import { LockedOverlay } from "./LockedOverlay";
 import { usePaywall } from "../hooks/usePaywall";
+import { PlanCards } from "./PlanCards";
 import { canSeeScheduleYear } from "../lib/entitlements";
 import {
   amortizationSchedule,
@@ -347,15 +349,43 @@ export default function LoanScheduleModal({
                     donne envie de rien, personne ne sait ce qu'il rate. */}
                 {hasLocked ? (
                   <View style={styles.lockedBlock}>
-                    {schedule
-                      .slice(firstLockedIndex)
-                      .map((y) => renderYear(y, true))}
-                    <LockedOverlay
-                      titleKey="schedule.locked.title"
-                      bodyKey="schedule.locked.body"
-                      icon="trending-down"
-                      minHeight={210}
-                    />
+                    {/* Deux années en aperçu, masquées par un DÉGRADÉ et non
+                        par un flou.
+                        Le flou natif posé sur une liste qui défile coûte très
+                        cher : le défilement saccadait, et un écran qui rame se
+                        lit comme un bug, pas comme une offre. Un dégradé ne
+                        coûte rien et raconte la même chose — la suite existe,
+                        elle s'efface. */}
+                    <View style={styles.teaser} pointerEvents="none">
+                      {schedule
+                        .slice(firstLockedIndex, firstLockedIndex + 2)
+                        .map((y) => renderYear(y, true))}
+                      <LinearGradient
+                        colors={["rgba(15,23,42,0)", MIDNIGHT, MIDNIGHT]}
+                        style={StyleSheet.absoluteFill}
+                      />
+                    </View>
+
+                    <View style={styles.lockedCard}>
+                      <Text style={styles.lockedTitle}>{t("schedule.locked.title")}</Text>
+                      <Text style={styles.lockedBody}>
+                        {tp("schedule.locked.count", {
+                          n: schedule.length - firstLockedIndex,
+                        })}
+                      </Text>
+
+                      {/* Taper une carte FERME d'abord la feuille.
+                          Naviguer depuis une modale ouverte laisse la modale
+                          au-dessus : l'écran paraît figé, et c'est exactement
+                          ce qu'on prenait pour un bug. */}
+                      <PlanCards
+                        featuresPerCard={2}
+                        onPick={(tier) => {
+                          onClose();
+                          router.push({ pathname: "/plans", params: { tier } } as never);
+                        }}
+                      />
+                    </View>
                   </View>
                 ) : null}
 
@@ -372,13 +402,29 @@ export default function LoanScheduleModal({
 const styles = StyleSheet.create({
   // `position: relative` explicite : le voile est en absolu par-dessus, et
   // doit se caler sur ce bloc-ci, pas sur la feuille entière.
-  lockedBlock: { position: "relative" },
-  lockedMore: {
-    color: "#8193AC",
-    fontSize: 12,
+  lockedBlock: { marginTop: 4 },
+  // Hauteur bornée : l'aperçu doit se deviner, pas se lire.
+  teaser: { height: 96, overflow: "hidden" },
+  lockedCard: {
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.28)",
+    borderRadius: 18,
+    padding: 14,
+    marginTop: -6,
+    gap: 4,
+  },
+  lockedTitle: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
     textAlign: "center",
-    marginTop: 14,
-    marginBottom: 4,
+  },
+  lockedBody: {
+    color: "#94A3B8",
+    fontSize: 12.5,
+    lineHeight: 18,
+    textAlign: "center",
+    marginBottom: 10,
   },
   backdrop: {
     flex: 1,

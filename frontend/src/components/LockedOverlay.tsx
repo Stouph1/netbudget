@@ -28,6 +28,7 @@ import {
   View,
 } from "react-native";
 import { useLang } from "../contexts/LangContext";
+import { PlanCards } from "./PlanCards";
 
 const GOLD = "#4ADE80";
 const TEXT_1 = "#FFFFFF";
@@ -40,6 +41,7 @@ export function LockedOverlay({
   /** Hauteur minimale du voile — au moins la place de la carte. */
   minHeight = 180,
   align = "center",
+  cards = false,
   onPress,
 }: {
   titleKey: string;
@@ -56,6 +58,15 @@ export function LockedOverlay({
    * regard est déjà.
    */
   align?: "center" | "top";
+  /**
+   * Afficher les trois formules dans le voile plutôt qu'un simple bouton.
+   *
+   * À réserver aux zones qui ont la place. Un bouton seul demande de choisir
+   * une deuxième fois sur l'écran suivant, et on en perd une partie entre les
+   * deux ; trois cartes tassées dans un petit voile sont illisibles. La bonne
+   * réponse dépend de la place, donc elle est décidée par l'appelant.
+   */
+  cards?: boolean;
   /** Par défaut, envoie vers les formules. */
   onPress?: () => void;
 }) {
@@ -88,14 +99,26 @@ export function LockedOverlay({
           </View>
           <Text style={styles.title}>{t(titleKey)}</Text>
           <Text style={styles.body}>{t(bodyKey)}</Text>
-          <TouchableOpacity
-            style={styles.cta}
-            onPress={onPress ?? (() => router.push("/plans" as never))}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-          >
-            <Text style={styles.ctaText}>{t("plan.choose.cta")}</Text>
-          </TouchableOpacity>
+
+          {cards ? (
+            <View style={{ alignSelf: "stretch" }}>
+              <PlanCards
+                featuresPerCard={2}
+                onPick={(tier) =>
+                  router.push({ pathname: "/plans", params: { tier } } as never)
+                }
+              />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.cta}
+              onPress={onPress ?? (() => router.push("/plans" as never))}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
+              <Text style={styles.ctaText}>{t("plan.choose.cta")}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -112,7 +135,7 @@ const styles = StyleSheet.create({
   },
   top: { justifyContent: "flex-start", paddingTop: 26 },
   card: {
-    maxWidth: 340,
+    maxWidth: 360,
     width: "100%",
     alignItems: "center",
     backgroundColor: "rgba(26,34,56,0.96)",

@@ -575,7 +575,7 @@ export const ja: Catalog = {
   "coach.paywall.body": "プロフィールは保存済みです。ご登録いただくと、あなたの状況に合ったアドバイスを出典つきでご覧いただけます。",
   "schedule.locked.title": "これからの年を見通す",
   "schedule.locked.body": "今年の分はそのままご覧いただけます。ご登録いただくと、返済予定表のすべて——最後の一回まで月ごとに、そして利息を含めた総額——が開きます。",
-  "schedule.locked.more": "ほか{n}年分",
+  "schedule.locked.count": "残り{n}年分を、最後の一回まで月ごとにご覧いただけます。",
   "goals.quota.full": "目標の枠がすべて埋まりました — さらに作る",
   "goals.quota.left": "あと{n}件の目標",
   "goals.quota.leftOne": "あと1件の目標",

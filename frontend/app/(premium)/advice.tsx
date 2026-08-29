@@ -1116,6 +1116,7 @@ export default function AdviceScreen() {
             titleKey="coach.paywall.title"
             bodyKey="coach.paywall.body"
             icon="award"
+            cards
           />
         </View>
       ) : null}

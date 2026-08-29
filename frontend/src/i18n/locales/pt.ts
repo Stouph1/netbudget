@@ -575,7 +575,7 @@ export const pt: Catalog = {
   "coach.paywall.body": "O teu perfil está guardado. A subscrição mostra os conselhos que correspondem à tua situação, cada um com a sua fonte oficial.",
   "schedule.locked.title": "Vê os anos que vêm",
   "schedule.locked.body": "O ano em curso continua visível. A subscrição abre todo o plano de pagamentos: mês a mês, até à última prestação, e quanto custa o crédito no total.",
-  "schedule.locked.more": "e mais {n} anos",
+  "schedule.locked.count": "Faltam {n} anos por descobrir, mês a mês, até à última prestação.",
   "goals.quota.full": "Todos os teus objetivos estão ocupados — cria mais",
   "goals.quota.left": "Faltam {n} objetivos",
   "goals.quota.leftOne": "Falta 1 objetivo",

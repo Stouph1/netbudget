@@ -575,7 +575,7 @@ export const de: Catalog = {
   "coach.paywall.body": "Dein Profil ist gespeichert. Mit einem Abo siehst du die Tipps, die zu deiner Lage passen — jeder mit seiner offiziellen Quelle.",
   "schedule.locked.title": "Sieh die kommenden Jahre",
   "schedule.locked.body": "Das laufende Jahr bleibt sichtbar. Das Abo öffnet den ganzen Tilgungsplan: Monat für Monat bis zur letzten Rate, und was der Kredit insgesamt kostet.",
-  "schedule.locked.more": "und {n} weitere Jahre",
+  "schedule.locked.count": "{n} weitere Jahre warten — Monat für Monat, bis zur letzten Rate.",
   "goals.quota.full": "Alle deine Ziele sind belegt — weitere anlegen",
   "goals.quota.left": "Noch {n} Ziele",
   "goals.quota.leftOne": "Noch 1 Ziel",
