@@ -555,7 +555,7 @@ export const it: Catalog = {
   "paywall.quota.title": "Il tuo piano è al completo",
   "paywall.locked.title": "Incluso dal piano {tier}",
   "paywall.later": "Più tardi",
-  "paywall.trialOnce": "7 giorni di prova gratuita, una sola volta a persona, qualunque piano tu scelga. Poi il prezzo normale, disdicibile dalle impostazioni del telefono.",
+  "paywall.trialOnce": "7 giorni di prova gratuita, poi il prezzo normale. Disdicibile dalle impostazioni del telefono.",
   "paywall.feature.advice": "I consigli si basano sulla tua situazione e citano le fonti ufficiali. Fanno parte dell'abbonamento.",
   "paywall.feature.sync": "Ritrovare i tuoi dati su un altro dispositivo fa parte dell'abbonamento.",
   "paywall.feature.shared": "Condividere un budget è incluso nei piani Duo e Famiglia.",

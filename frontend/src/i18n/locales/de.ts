@@ -555,7 +555,7 @@ export const de: Catalog = {
   "paywall.quota.title": "Dein Tarif ist ausgeschöpft",
   "paywall.locked.title": "Ab dem Tarif {tier} enthalten",
   "paywall.later": "Später",
-  "paywall.trialOnce": "7 Tage kostenlos testen, einmal pro Person — unabhängig vom gewählten Tarif. Danach der reguläre Preis, kündbar in den Einstellungen deines Telefons.",
+  "paywall.trialOnce": "7 Tage kostenlos testen, danach der reguläre Preis. Kündbar in den Einstellungen deines Telefons.",
   "paywall.feature.advice": "Die Hinweise richten sich nach deiner Lage und nennen ihre amtlichen Quellen. Sie gehören zum Abo.",
   "paywall.feature.sync": "Deine Daten auf einem anderen Gerät wiederzufinden gehört zum Abo.",
   "paywall.feature.shared": "Ein Budget gemeinsam zu führen ist in den Tarifen Duo und Familie enthalten.",

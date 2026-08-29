@@ -555,7 +555,7 @@ export const ja: Catalog = {
   "paywall.quota.title": "プランの上限に達しています",
   "paywall.locked.title": "{tier} プラン以上に含まれます",
   "paywall.later": "あとで",
-  "paywall.trialOnce": "7日間の無料体験は、プランを問わずお一人さま一度きりです。その後は通常価格となり、端末の設定からいつでも解約できます。",
+  "paywall.trialOnce": "7日間の無料体験のあとは通常価格です。端末の設定からいつでも解約できます。",
   "paywall.feature.advice": "助言はあなたの状況に基づき、公的な出典を明示します。サブスクリプションに含まれます。",
   "paywall.feature.sync": "別の端末でデータを引き継ぐ機能はサブスクリプションに含まれます。",
   "paywall.feature.shared": "予算の共有はデュオプランとファミリープランに含まれます。",

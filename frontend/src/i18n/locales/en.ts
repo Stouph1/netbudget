@@ -555,7 +555,7 @@ export const en: Catalog = {
   "paywall.quota.title": "Your plan is full",
   "paywall.locked.title": "Included from the {tier} plan",
   "paywall.later": "Later",
-  "paywall.trialOnce": "7-day free trial, once per person — whichever plan you choose. Then the standard price, cancellable from your phone's settings.",
+  "paywall.trialOnce": "7-day free trial, then the standard price. Cancellable from your phone's settings.",
   "paywall.feature.advice": "The advice is based on your situation and cites its official sources. It is part of the subscription.",
   "paywall.feature.sync": "Finding your data on another device is part of the subscription.",
   "paywall.feature.shared": "Sharing a budget is included in the Duo and Family plans.",

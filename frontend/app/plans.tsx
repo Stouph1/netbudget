@@ -40,7 +40,8 @@ import {
   SELLABLE_TIERS,
   type Period,
 } from "../src/lib/billing/plans";
-import { billing, type Offering } from "../src/lib/billing/provider";
+import { billing, onBillingChange, type Offering } from "../src/lib/billing/provider";
+import { refreshTier } from "../src/lib/tier";
 import { notify } from "../src/utils/notify";
 
 const MIDNIGHT = "#0F172A";
@@ -57,7 +58,8 @@ export default function Plans() {
   const [offerings, setOfferings] = useState<Offering[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
-  const available = billing().isAvailable();
+  // Recalculé à chaque arrivée du fournisseur : voir onBillingChange.
+  const [available, setAvailable] = useState(() => billing().isAvailable());
 
   // Le badge de la bascule annuelle s'appuie sur la formule mise en avant : un
   // pourcentage par formule encombrerait, et ils sont très proches.
@@ -68,16 +70,26 @@ export default function Plans() {
 
   useEffect(() => {
     let alive = true;
-    billing()
-      .listOfferings()
-      .then((o) => {
-        if (alive) setOfferings(o);
-      })
-      .catch(() => {
-        if (alive) setOfferings([]);
-      });
+
+    const load = () => {
+      setAvailable(billing().isAvailable());
+      billing()
+        .listOfferings()
+        .then((o) => {
+          if (alive) setOfferings(o);
+        })
+        .catch(() => {
+          if (alive) setOfferings([]);
+        });
+    };
+
+    load();
+    // La boutique se met en service après la session : sans ce réabonnement,
+    // l'écran resterait figé sur l'état d'avant.
+    const off = onBillingChange(load);
     return () => {
       alive = false;
+      off();
     };
   }, []);
 
@@ -108,6 +120,10 @@ export default function Plans() {
     setBusy(null);
 
     if (result.ok) {
+      // Le serveur fait autorité : on attend qu'il ait vu l'achat avant de
+      // rendre la main, sinon l'utilisateur revient sur un écran qui le croit
+      // encore non abonné.
+      void refreshTier();
       notify(t("plan.bought.title"), t("plan.bought.body"), () => router.back());
       return;
     }
@@ -127,6 +143,7 @@ export default function Plans() {
   async function restore() {
     setBusy("restore");
     const result = await billing().restore();
+    if (result.ok) void refreshTier();
     setBusy(null);
     notify(
       t(result.ok ? "plan.restore.done.title" : "plan.restore.none.title"),

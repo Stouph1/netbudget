@@ -81,13 +81,29 @@ export const unavailableBilling: BillingProvider = {
 };
 
 let provider: BillingProvider = unavailableBilling;
+const listeners = new Set<() => void>();
 
 /**
- * Remplace l'implémentation. Un seul appel au démarrage suffira, le jour où le
- * SDK est installé — rien d'autre dans l'app ne bougera.
+ * Remplace l'implémentation, et PRÉVIENT les écrans ouverts.
+ *
+ * La notification n'est pas un détail : la mise en service de la boutique est
+ * asynchrone (elle attend la session). Un écran des formules affiché pendant ce
+ * temps a déjà conclu « pas de boutique » et resterait sans bouton d'achat
+ * jusqu'à ce qu'on en sorte — un client prêt à payer, devant un écran qui ne
+ * vend rien.
  */
 export function setBillingProvider(next: BillingProvider): void {
+  if (provider === next) return;
   provider = next;
+  for (const notify of listeners) notify();
+}
+
+/** S'abonner aux changements de fournisseur. Renvoie la fonction de désabonnement. */
+export function onBillingChange(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function billing(): BillingProvider {

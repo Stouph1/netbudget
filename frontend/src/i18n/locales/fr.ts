@@ -610,7 +610,7 @@ export const fr: Catalog = {
   "paywall.quota.title": "Ta formule est au complet",
   "paywall.locked.title": "Inclus à partir de la formule {tier}",
   "paywall.later": "Plus tard",
-  "paywall.trialOnce": "7 jours d'essai gratuit, une seule fois par personne — quelle que soit la formule choisie. Ensuite le tarif normal, résiliable depuis les réglages de ton téléphone.",
+  "paywall.trialOnce": "7 jours d'essai gratuit, puis le tarif normal. Résiliable depuis les réglages de ton téléphone.",
   "paywall.feature.advice": "Les conseils s'appuient sur ta situation et citent leurs sources officielles. Ils font partie de l'abonnement.",
   "paywall.feature.sync": "Retrouver tes données sur un autre appareil fait partie de l'abonnement.",
   "paywall.feature.shared": "Partager un budget à plusieurs est inclus dans les formules Duo et Famille.",

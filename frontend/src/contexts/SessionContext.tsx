@@ -18,6 +18,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "../lib/supabase";
+import { syncBilling } from "../lib/billing/start";
 
 type SessionContextValue = {
   session: Session | null;
@@ -45,6 +46,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  // La facturation doit connaître le compte AVANT tout achat : RevenueCat
+  // rattache la transaction à l'`appUserID`. S'il est anonyme, le webhook
+  // reçoit un paiement qu'il ne sait relier à personne — le client paie et
+  // rien ne se débloque.
+  const userId = session?.user?.id ?? null;
+  useEffect(() => {
+    void syncBilling(userId);
+  }, [userId]);
 
   const value = useMemo<SessionContextValue>(
     () => ({ session, user: session?.user ?? null, loading }),

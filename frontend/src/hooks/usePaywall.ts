@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { PaywallReason } from "../components/PaywallSheet";
 import { useSession } from "../contexts/SessionContext";
 import { canCreateEvent, limitsFor, type Tier } from "../lib/entitlements";
-import { loadTier } from "../lib/tier";
+import { loadTier, onTierChange } from "../lib/tier";
 
 export type Gate =
   /** Conseils personnalisés : n'importe quelle formule payante. */
@@ -42,8 +42,14 @@ export function usePaywall() {
       .catch(() => {
         if (alive) setLoading(false);
       });
+    // Un achat qui vient d'aboutir doit ouvrir l'accès SANS relancer l'app.
+    const off = onTierChange((next) => {
+      if (alive) setTier(next);
+    });
+
     return () => {
       alive = false;
+      off();
     };
   }, [user?.id]);
 

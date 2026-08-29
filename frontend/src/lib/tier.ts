@@ -36,11 +36,20 @@ const TIER_DURING_DEV: Tier = "free";
 /**
  * La facturation est-elle en service ?
  *
- * Un seul interrupteur, à passer à true le jour où les produits existent dans
- * les boutiques et où le webhook écrit vraiment. Avant, le serveur renverrait
- * "free" pour tout le monde et l'app serait intestable.
+ * Déduite de la présence d'une clé RevenueCat, PAS d'un booléen à basculer à la
+ * main. Un interrupteur manuel se retrouve un jour à `true` sans clé — l'app
+ * demande alors son palier à un serveur que rien n'alimente, et tous les
+ * abonnés deviennent gratuits — ou à `false` avec les clés en place, et les
+ * abonnés paient sans rien recevoir. Ici les deux ne peuvent pas se
+ * désynchroniser : poser la clé suffit à mettre la facturation en service.
+ *
+ * On regarde les deux plateformes, pas seulement celle qui exécute : un abonné
+ * qui ouvre la version web doit retrouver son palier, alors qu'aucun achat n'y
+ * est possible.
  */
-export const BILLING_LIVE = false;
+export const BILLING_LIVE =
+  Boolean(process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY) ||
+  Boolean(process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY);
 
 async function readCache(): Promise<Tier | null> {
   try {
@@ -82,9 +91,47 @@ export async function loadTier(): Promise<Tier> {
   return (await readCache()) ?? "free";
 }
 
+const listeners = new Set<(tier: Tier) => void>();
+
+/** S'abonner aux changements de palier. Renvoie la fonction de désabonnement. */
+export function onTierChange(listener: (tier: Tier) => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/**
+ * Redemande le palier au serveur après un achat, en insistant un peu.
+ *
+ * POURQUOI DES TENTATIVES RÉPÉTÉES. Entre le moment où la boutique encaisse et
+ * celui où notre webhook a écrit le verdict, il s'écoule de une à quelques
+ * secondes. Interroger le serveur une seule fois juste après l'achat renvoie
+ * donc souvent « free » : le client vient de payer et voit son abonnement
+ * refusé. C'est la pire seconde possible de toute l'application.
+ *
+ * On s'arrête dès qu'un palier payant apparaît, ou après la dernière tentative.
+ * Si le webhook a vraiment échoué, `restore()` reste la porte de sortie, et
+ * elle est déjà à l'écran.
+ */
+export async function refreshTier(attempts = 5): Promise<Tier> {
+  let tier: Tier = "free";
+  for (let i = 0; i < attempts; i++) {
+    tier = await loadTier();
+    if (tier !== "free") break;
+    // Attente croissante : 1s, 2s, 3s, 4s. Inutile de marteler le serveur.
+    if (i < attempts - 1) {
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  for (const notify of listeners) notify(tier);
+  return tier;
+}
+
 /** Vide le cache — à la déconnexion, sinon le palier suivrait le compte suivant. */
 export async function forgetTier(): Promise<void> {
   try {
     await AsyncStorage.removeItem(CACHE_KEY);
   } catch {}
+  for (const notify of listeners) notify("free");
 }
