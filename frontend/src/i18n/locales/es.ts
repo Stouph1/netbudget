@@ -611,6 +611,7 @@ export const es: Catalog = {
   "paywall.feature.goalQuota": "Tu plan sigue tres objetivos. Termina uno o elige un plan sin límite.",
   "goals.shared.readOnly": "Sigues este espacio. Suscríbete para añadir tus objetivos",
   "paywall.feature.sharedGoal": "Ves todo de este espacio compartido. Añadir un objetivo común va con la suscripción.",
+  "paywall.feature.birthdays": "Los cumpleaños del hogar —el tuyo, los de tus hijos— van con el plan Familia.",
   "gate.advice.title": "Consejos hechos para tu situación",
   "gate.advice.body": "La app compara tu presupuesto con los baremos oficiales de tu país y te dice qué mirar primero. Cada consejo cita su fuente.",
   "gate.shared.title": "Un presupuesto entre varios",

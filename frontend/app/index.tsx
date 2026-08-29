@@ -36,6 +36,9 @@ import { notify } from "../src/utils/notify";
 import BirthdayCelebration from "../src/components/BirthdayCelebration";
 import { TierUnlock } from "../src/components/TierUnlock";
 import { useTierUnlock } from "../src/hooks/useTierUnlock";
+import { useIsTester } from "../src/hooks/useIsTester";
+import { limitsFor } from "../src/lib/entitlements";
+import { loadTier } from "../src/lib/tier";
 import { useTourRunner } from "../src/hooks/useTourRunner";
 import { useWhatsNew } from "../src/hooks/useWhatsNew";
 import { WhatsNewSheet } from "../src/components/WhatsNewSheet";
@@ -394,6 +397,7 @@ export default function Index() {
   const [bdayCards, setBdayCards] = useState<BirthdayCard[] | null>(null);
   const [bdayOpen, setBdayOpen] = useState(false);
   const tierUnlock = useTierUnlock();
+  const isTester = useIsTester();
   // Ordre de priorité entre les trois plein-écrans possibles au lancement :
   // la fête d'abord (elle répond à « mon paiement a-t-il marché ? »), les
   // nouveautés ensuite, la visite guidée en dernier.
@@ -451,9 +455,18 @@ export default function Index() {
 
     // Anniversaires : le sien + ceux des enfants/animaux suivis.
     // Une célébration par personne et par an ; la sienne est prioritaire.
+    //
+    // RÉSERVÉ À LA FORMULE FAMILLE. C'est la seule fonctionnalité de l'app qui
+    // suive plusieurs personnes d'un même foyer, avec leurs dates et leurs
+    // âges : elle appartient à la formule qui décrit un foyer.
+    //
+    // On coupe AUSSI la notification programmée, pas seulement l'écran : une
+    // fête qui ne s'ouvre pas mais dont on reçoit l'annonce la veille est un
+    // rappel de ce qu'on n'a pas.
+    const birthdaysOpen = limitsFor(await loadTier()).birthdays;
     const year = new Date().getFullYear();
     let opened = false;
-    if (details.birthdate) {
+    if (birthdaysOpen && details.birthdate) {
       scheduleBirthdayNotification(details.birthdate, details.first_name);
       if (isBirthdayToday(details.birthdate)) {
         const yearKey = `netbudget:bday:${year}`;
@@ -471,7 +484,7 @@ export default function Index() {
         }
       }
     }
-    if (!opened && premiumUser?.id) {
+    if (birthdaysOpen && !opened && premiumUser?.id) {
       const celebs = await loadCelebrations(premiumUser.id).catch(() => []);
       for (const c of celebs) {
         if (!isBirthdayToday(c.birthdate)) continue;
@@ -493,6 +506,43 @@ export default function Index() {
       }
     }
   }, [premiumUser?.id, activeWorkspaceId, activeWorkspaceKind, adviceI18n]);
+  /**
+   * Rejoue une fête d'anniversaire, pour la phase de test.
+   *
+   * Elle ne se déclenche autrement qu'un seul jour par an et par personne :
+   * sans ce raccourci, un testeur ne pourrait tout simplement pas la voir, et
+   * on découvrirait ses défauts en production, un 14 mars, chez un client.
+   *
+   * On utilise les VRAIES données quand elles existent — le prénom du profil,
+   * la date de l'enfant — et un jeu de secours sinon. Une fête de test remplie
+   * de « Prénom » ne dirait rien du rendu réel.
+   */
+  const replayBirthday = useCallback(
+    async (kind: "self" | "child" | "pet") => {
+      if (!premiumUser?.id) return;
+      const perso = await loadAdviceProfile(premiumUser.id, null);
+      const details = await loadProfileDetails(premiumUser.id).catch(() => null);
+      const celebs = await loadCelebrations(premiumUser.id).catch(() => []);
+
+      if (kind === "self") {
+        const age = details?.birthdate ? computeAge(new Date(details.birthdate)) : 30;
+        setBdaySource("birthday");
+        setBdayCards(buildBirthdayCards(age, details?.first_name ?? "", perso, adviceI18n));
+      } else if (kind === "child") {
+        const child = celebs.find((c) => c.kind === "child");
+        const age = child ? computeAge(new Date(child.birthdate)) : 8;
+        setBdaySource(`child:${child?.name ?? ""}`);
+        setBdayCards(buildChildBirthdayCards(age, child?.name ?? "", perso, adviceI18n));
+      } else {
+        const pet = celebs.find((c) => c.kind !== "child");
+        setBdaySource(`pet:${pet?.name ?? ""}`);
+        setBdayCards(buildPetBirthdayCards(pet?.name ?? "", pet?.species ?? "other", adviceI18n));
+      }
+      setBdayOpen(true);
+    },
+    [premiumUser?.id, adviceI18n],
+  );
+
   useEffect(() => {
     reloadPremiumProfile();
   }, [reloadPremiumProfile]);
@@ -1227,6 +1277,8 @@ export default function Index() {
             onResetAll={askResetAll}
             onDeleteAccount={askDeleteAccount}
             onReplayTour={() => void tour.replay()}
+            isTester={isTester}
+            onReplayBirthday={(kind) => void replayBirthday(kind)}
           />
         </View>
 

@@ -26,6 +26,8 @@ export type Gate =
   | { feature: "sharedSpace" }
   /** Synchronisation entre appareils. */
   | { feature: "sync" }
+  /** Anniversaires du foyer : fête du jour J et cartes liées à l'âge. */
+  | { feature: "birthdays" }
   /** Créer un événement d'un type donné, en tenant compte du quota. */
   | { feature: "event"; type: string; currentCount: number }
   /**
@@ -77,6 +79,8 @@ export function usePaywall() {
           // Toute formule payante les inclut. `maxEvents !== 0` distingue le
           // palier gratuit sans avoir à l'énumérer ici.
           return limits.maxEvents !== 0;
+        case "birthdays":
+          return limits.birthdays;
         case "sharedSpace":
           // CRÉER un espace. Le rejoindre sur invitation reste ouvert à tous —
           // voir canJoinWorkspace().
@@ -155,7 +159,9 @@ export function usePaywall() {
             ? "paywall.feature.advice"
             : gate.feature === "sharedSpace"
               ? "paywall.feature.shared"
-              : "paywall.feature.sync",
+              : gate.feature === "birthdays"
+                ? "paywall.feature.birthdays"
+                : "paywall.feature.sync",
       });
       return false;
     },

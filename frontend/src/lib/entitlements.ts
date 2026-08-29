@@ -51,6 +51,15 @@ export type Limits = {
   loanScheduleYears: number | null;
   /** Conseils personnalisés et sourcés. */
   advice: boolean;
+  /**
+   * Anniversaires : la fête du jour J et les cartes de conseils liées à l'âge,
+   * pour soi et pour ses enfants.
+   *
+   * Réservé à la formule Famille, et ce n'est pas arbitraire : c'est la seule
+   * fonctionnalité de l'app qui suive plusieurs personnes d'un même foyer, avec
+   * leurs dates et leurs âges. Elle appartient à la formule qui décrit un foyer.
+   */
+  birthdays: boolean;
 };
 
 export const LIMITS: Record<Tier, Limits> = {
@@ -64,6 +73,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: 1,
     loanScheduleYears: 1,
     advice: false,
+    birthdays: false,
   },
   // Solo : un seul événement à la fois, et pas le mariage.
   solo: {
@@ -74,6 +84,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: 3,
     loanScheduleYears: null,
     advice: true,
+    birthdays: false,
   },
   duo: {
     maxEvents: null,
@@ -83,6 +94,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: null,
     loanScheduleYears: null,
     advice: true,
+    birthdays: false,
   },
   family: {
     maxEvents: null,
@@ -92,6 +104,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: null,
     loanScheduleYears: null,
     advice: true,
+    birthdays: true,
   },
 };
 

@@ -53,6 +53,7 @@ import { loadProfileBasics } from "../lib/profile";
 import type { S1Payload } from "../types/premium";
 import { TierBadge } from "./TierBadge";
 import { usePaywall } from "../hooks/usePaywall";
+import { PaywallSheet } from "./PaywallSheet";
 import { useTourTarget } from "./tour/TourContext";
 
 const MIDNIGHT = "#0F172A";
@@ -514,10 +515,16 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           label={t("home.tile.saved")}
           onPress={() => router.push("/(premium)/saved-advice" as never)}
         />
+        {/* La tuile reste VISIBLE hors formule Famille : la masquer
+            empêcherait de découvrir ce qui existe. Elle ouvre la fenêtre des
+            offres au lieu de l'écran. */}
         <Tile
           icon="gift"
           label={t("home.tile.birthdays")}
-          onPress={() => router.push("/(premium)/celebrations" as never)}
+          onPress={() => {
+            if (!paywall.require({ feature: "birthdays" })) return;
+            router.push("/(premium)/celebrations" as never);
+          }}
         />
       </View>
       <View style={styles.tilesRow}>
@@ -577,6 +584,12 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       <ScopeSwitcher
         visible={switcherOpen}
         onClose={() => setSwitcherOpen(false)}
+      />
+
+      <PaywallSheet
+        visible={paywall.visible}
+        reason={paywall.reason}
+        onClose={paywall.close}
       />
     </ScrollView>
   );

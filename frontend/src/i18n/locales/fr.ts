@@ -666,6 +666,7 @@ export const fr: Catalog = {
   "paywall.feature.goalQuota": "Ta formule suit trois objectifs. Termine-en un, ou choisis une formule sans limite.",
   "goals.shared.readOnly": "Tu suis cet espace. Un abonnement pour y ajouter tes objectifs",
   "paywall.feature.sharedGoal": "Tu vois tout de cet espace partagé. Ajouter un objectif commun fait partie de l'abonnement.",
+  "paywall.feature.birthdays": "Les anniversaires du foyer — le tien, ceux de tes enfants — font partie de la formule Famille.",
   "gate.advice.title": "Des conseils faits pour ta situation",
   "gate.advice.body": "L'app compare ton budget aux barèmes officiels de ton pays et te dit quoi regarder en premier. Chaque conseil cite sa source.",
   "gate.shared.title": "Un budget à plusieurs",

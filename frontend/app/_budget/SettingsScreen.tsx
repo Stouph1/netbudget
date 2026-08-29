@@ -32,6 +32,8 @@ export default function SettingsScreen({
   onResetAll,
   onDeleteAccount,
   onReplayTour,
+  isTester,
+  onReplayBirthday,
 }: {
   currency: CurrencyCode;
   lang: Lang;
@@ -49,13 +51,21 @@ export default function SettingsScreen({
   onToggleMonthlyReminder: (next: boolean) => void;
   onResetAll: () => void;
   onDeleteAccount: () => void;
-  /** Remet la visite guidée à zéro. Développement uniquement. */
+  /** Remet la visite guidée à zéro. Développement et phase de test. */
   onReplayTour: () => void;
+  /** Compte marqué testeur côté serveur. Voir la migration 019. */
+  isTester: boolean;
+  /** Rejoue une fête d'anniversaire. Phase de test. */
+  onReplayBirthday: (kind: "self" | "child" | "pet") => void;
 }) {
   // Aperçu de l'écran de déverrouillage, en développement uniquement.
   const [previewTier, setPreviewTier] = React.useState<
     "solo" | "duo" | "family" | null
   >(null);
+
+  // En développement, le panneau est toujours là. En production, il faut être
+  // marqué testeur côté serveur.
+  const showTesterPanel = __DEV__ || isTester;
 
   return (
     <ScrollView
@@ -232,47 +242,71 @@ export default function SettingsScreen({
         </Section>
       ) : null}
 
-      {/* Atelier de développement.
-          `__DEV__` vaut false dans un build de production : ce bloc n'existe
-          pas dans l'app publiée, et il n'y a donc aucun texte à traduire.
-          Il sert à revoir un écran qui, par construction, ne se montre qu'une
-          fois — sans lui, il faudrait vider le stockage à chaque essai. */}
-      {__DEV__ ? (
-        <Section title="Développement">
+      {/* Panneau de test.
+          Ouvert aux comptes marqués testeur CÔTÉ SERVEUR (migration 019), et
+          en développement. Le drapeau ne vient pas d'un réglage local : ce
+          panneau force des états, il serait sinon activable par n'importe qui.
+
+          Les libellés ne sont pas traduits, et c'est délibéré : ce panneau
+          n'existe pas pour les clients, et huit traductions par bouton
+          d'outillage sont huit occasions de se tromper ailleurs. */}
+      {showTesterPanel ? (
+        <Section title="Test">
           <Text style={styles.infoRowText}>
-            {"Rejoue l'écran de déverrouillage. Ne change pas ton abonnement."}
+            {"Ces boutons rejouent des écrans qui ne s'affichent normalement qu'une fois. Ils ne changent ni ton abonnement ni tes données."}
           </Text>
+
           <TouchableOpacity
             onPress={onReplayTour}
             style={styles.toggleRow}
             activeOpacity={0.7}
-            testID="dev-replay-tour"
+            testID="test-replay-tour"
           >
             <Feather name="compass" size={20} color={TEXT_3} style={{ marginRight: 12 }} />
-            <Text style={[styles.toggleLabel, { flex: 1 }]}>
-              {"Rejouer la visite guidée"}
-            </Text>
+            <Text style={[styles.toggleLabel, { flex: 1 }]}>{"Rejouer la visite guidée"}</Text>
             <Feather name="chevron-right" size={18} color={TEXT_3} />
           </TouchableOpacity>
 
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+          <Text style={[styles.infoRowText, { marginTop: 12 }]}>
+            {"Anniversaires — ne s'ouvrent qu'un jour par an et par personne"}
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+            {(
+              [
+                { kind: "self", icon: "user", label: "Le mien" },
+                { kind: "child", icon: "smile", label: "Un enfant" },
+                { kind: "pet", icon: "github", label: "Un animal" },
+              ] as const
+            ).map((b) => (
+              <TouchableOpacity
+                key={b.kind}
+                onPress={() => onReplayBirthday(b.kind)}
+                style={styles.testTile}
+                activeOpacity={0.8}
+                testID={`test-bday-${b.kind}`}
+              >
+                <Feather name={b.icon} size={18} color={GOLD} />
+                <Text style={[styles.infoRowText, { marginTop: 5 }]}>{b.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[styles.infoRowText, { marginTop: 14 }]}>
+            {"Écran de déverrouillage d'abonnement"}
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
             {(["solo", "duo", "family"] as const).map((tier) => (
               <TouchableOpacity
                 key={tier}
                 onPress={() => setPreviewTier(tier)}
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  paddingVertical: 10,
-                  borderRadius: 10,
-                  borderWidth: 1,
-                  borderColor: BORDER,
-                }}
+                style={styles.testTile}
                 activeOpacity={0.8}
-                testID={`dev-unlock-${tier}`}
+                testID={`test-unlock-${tier}`}
               >
                 <TierGlyph tier={tier} size={20} />
-                <Text style={[styles.infoRowText, { marginTop: 5 }]}>{t(`plan.${tier}.name`)}</Text>
+                <Text style={[styles.infoRowText, { marginTop: 5 }]}>
+                  {t(`plan.${tier}.name`)}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>

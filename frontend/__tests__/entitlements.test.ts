@@ -220,3 +220,14 @@ describe("objectif dans un espace partagé", () => {
     expect(canCreateSharedGoal("solo").allowed).toBe(true);
   });
 });
+
+describe("anniversaires du foyer", () => {
+  it("appartiennent à la formule Famille, et à elle seule", () => {
+    // C'est la seule fonctionnalité de l'app qui suive plusieurs personnes
+    // d'un même foyer, avec leurs dates et leurs âges.
+    expect(limitsFor("family").birthdays).toBe(true);
+    for (const tier of ["free", "solo", "duo"] as const) {
+      expect(limitsFor(tier).birthdays).toBe(false);
+    }
+  });
+});

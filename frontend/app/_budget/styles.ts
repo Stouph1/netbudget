@@ -20,6 +20,17 @@ import {
 export const SCREEN_H = Dimensions.get("window").height;
 
 export const styles = StyleSheet.create({
+  // Panneau de test (voir SettingsScreen). Absent de l'app publiée pour tout
+  // compte non marqué testeur.
+  testTile: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+
   safe: { flex: 1, backgroundColor: BG },
   scroll: { flex: 1 },
   scrollContent: {

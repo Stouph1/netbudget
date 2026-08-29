@@ -611,6 +611,7 @@ export const ja: Catalog = {
   "paywall.feature.goalQuota": "このプランでは目標を3件まで追えます。1件を達成するか、上限のないプランをお選びください。",
   "goals.shared.readOnly": "このスペースを閲覧中です。目標の追加はご登録から",
   "paywall.feature.sharedGoal": "この共有スペースの内容はすべてご覧いただけます。共有の目標を追加するにはご登録が必要です。",
+  "paywall.feature.birthdays": "ご家族の誕生日（ご自身やお子さま）はファミリープランに含まれます。",
   "gate.advice.title": "あなたの状況に合わせたアドバイス",
   "gate.advice.body": "お住まいの国の公式な基準と家計を照らし合わせ、まず見直すべきところをお知らせします。すべてのアドバイスに出典を明記しています。",
   "gate.shared.title": "複数人で使う家計",

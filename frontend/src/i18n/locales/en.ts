@@ -611,6 +611,7 @@ export const en: Catalog = {
   "paywall.feature.goalQuota": "Your plan follows three goals. Finish one, or pick a plan with no limit.",
   "goals.shared.readOnly": "You're following this space. Subscribe to add your own goals",
   "paywall.feature.sharedGoal": "You can see everything in this shared space. Adding a shared goal comes with a subscription.",
+  "paywall.feature.birthdays": "Household birthdays — yours, your children's — come with the Family plan.",
   "gate.advice.title": "Advice built for your situation",
   "gate.advice.body": "The app compares your budget with your country's official figures and tells you what to look at first. Every piece of advice cites its source.",
   "gate.shared.title": "One budget, several people",

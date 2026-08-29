@@ -611,6 +611,7 @@ export const de: Catalog = {
   "paywall.feature.goalQuota": "Dein Tarif begleitet drei Ziele. Schließ eines ab oder wähl einen Tarif ohne Grenze.",
   "goals.shared.readOnly": "Du verfolgst diesen Bereich. Mit einem Abo fügst du eigene Ziele hinzu",
   "paywall.feature.sharedGoal": "Du siehst alles in diesem gemeinsamen Bereich. Ein gemeinsames Ziel anzulegen gehört zum Abo.",
+  "paywall.feature.birthdays": "Die Geburtstage im Haushalt — deiner, die deiner Kinder — gehören zum Tarif Familie.",
   "gate.advice.title": "Tipps, die zu deiner Lage passen",
   "gate.advice.body": "Die App vergleicht dein Budget mit den offiziellen Werten deines Landes und zeigt dir, worauf du zuerst schauen solltest. Jeder Tipp nennt seine Quelle.",
   "gate.shared.title": "Ein Budget zu mehreren",
