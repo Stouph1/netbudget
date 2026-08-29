@@ -1,0 +1,55 @@
+NETbudget is a personal budgeting app. The core of the app is free and
+requires no account and no network connection: budget, income, expenses,
+loans with amortisation schedules, disposable income, the 50/30/20 rule and
+the currency converter are all available at no cost, with no time limit and
+nothing hidden behind the subscription.
+
+WHAT THE SUBSCRIPTION UNLOCKS
+1. Sync across devices, end-to-end encrypted. The key is generated on the
+   device and never leaves it.
+2. Personalised guidance based on the user's declared situation (age, family
+   status, housing, country). Every item cites its official public source and
+   the date it was last checked.
+3. Event budgets (travel, wedding, birth, moving...).
+
+The three tiers differ by the number of people and the number of events
+tracked at the same time:
+- Solo: 1 person, 1 event at a time, wedding budget not included
+- Duo: 2 people, unlimited events
+- Family: up to 6 people, unlimited events
+
+HOW TO REACH THE PURCHASE SCREEN
+1. Open the app.
+2. Tap the Profile tab (rightmost icon in the bottom bar).
+3. Sign in with the test account below, or create an account with an email
+   address.
+4. Tap the "Formules" (Plans) tile.
+
+That screen shows the three tiers, a monthly/yearly toggle, the free trial
+length, the amount charged after the trial, the fact that it renews
+automatically, and how to cancel. "Restore purchases" is at the bottom of the
+same screen.
+
+TEST ACCOUNT
+Email: [TO BE COMPLETED]
+Password: [TO BE COMPLETED]
+
+No real financial data is needed. All amounts are free-form; the reviewer can
+type any figures.
+
+ADDITIONAL NOTES
+- The app does not connect to any bank and never asks for banking or card
+  details. All payments go through the App Store.
+- The guidance shown is informational. Each item cites its official sources
+  and states that it does not replace professional advice.
+- No advertising, no analytics, no trackers.
+- A 7-day free trial is configured on every product. It is disclosed inside
+  the app directly above the purchase button, together with the amount
+  charged afterwards and how to stop it.
+- Terms of use and the privacy policy are reachable from the plans screen and
+  at https://netbudget.app
+- The app is available in 8 languages. The interface follows the device
+  language; French and English are the most complete.
+
+If anything is unclear or you cannot reach the purchase screen, please write
+to contact@netbudget.app and we will answer the same day.
