@@ -11,13 +11,13 @@ const ids = (tier: Parameters<typeof stepsFor>[0], seen: Parameters<typeof steps
 
 describe("première visite", () => {
   it("montre les bases sans abonnement", () => {
-    expect(ids("free", null)).toEqual(["budget", "profile", "settings"]);
+    expect(ids("free", null)).toEqual(["income", "remaining", "goals", "advice"]);
   });
 
-  it("reste courte — trois étapes, pas dix", () => {
+  it("reste courte — quatre étapes, pas dix", () => {
     // Au-delà, la visite est passée sans être lue, et on a dépensé le seul
     // moment d'attention disponible.
-    expect(ids("free", null).length).toBeLessThanOrEqual(3);
+    expect(ids("free", null).length).toBeLessThanOrEqual(4);
   });
 
   it("ne montre RIEN qui demande un abonnement", () => {
@@ -28,7 +28,7 @@ describe("première visite", () => {
   });
 
   it("ajoute les événements dès Solo", () => {
-    expect(ids("solo", null)).toEqual(["budget", "profile", "settings", "events"]);
+    expect(ids("solo", null)).toEqual(["income", "remaining", "goals", "advice", "events"]);
   });
 
   it("ajoute l'espace partagé à partir de Duo", () => {
@@ -62,6 +62,14 @@ describe("après une montée de formule", () => {
 });
 
 describe("cohérence du catalogue", () => {
+  it("désigne un vrai élément, jamais une icône d'onglet", () => {
+    // Montrer une icône d'onglet en disant « ici tu trouveras tes revenus »
+    // n'apprend rien : on n'a rien vu. Chaque étape ouvre son écran et
+    // désigne l'élément dont elle parle.
+    expect(TOUR_STEPS.every((s) => !s.target.startsWith("tab:"))).toBe(true);
+    expect(TOUR_STEPS.every((s) => s.tab.length > 0)).toBe(true);
+  });
+
   it("n'a pas deux étapes du même identifiant", () => {
     expect(new Set(TOUR_STEPS.map((s) => s.id)).size).toBe(TOUR_STEPS.length);
   });

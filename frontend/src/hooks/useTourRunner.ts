@@ -29,7 +29,14 @@ async function resetTour(userId: string): Promise<void> {
   } catch {}
 }
 
-export function useTourRunner({ blocked }: { blocked: boolean }) {
+export function useTourRunner({
+  blocked,
+  onNavigate,
+}: {
+  blocked: boolean;
+  /** Ouvre un onglet. La visite s'en sert pour emmener l'utilisateur. */
+  onNavigate: (tab: string) => void;
+}) {
   const { user } = useSession();
   const { start } = useTour();
   const [ran, setRan] = useState(false);
@@ -63,7 +70,10 @@ export function useTourRunner({ blocked }: { blocked: boolean }) {
         if (!alive) return;
         setRan(true);
         if (steps.length === 0) return;
-        start(steps, () => void remember(userId, tier));
+        start(steps, {
+          onNavigate,
+          onDone: () => void remember(userId, tier),
+        });
       })();
     }, SETTLE_MS);
 
@@ -71,6 +81,9 @@ export function useTourRunner({ blocked }: { blocked: boolean }) {
       alive = false;
       clearTimeout(timer);
     };
+    // `onNavigate` est volontairement hors des dépendances : l'appelant le
+    // recrée à chaque rendu, et l'inclure relancerait la visite en boucle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, ran, blocked, start, remember]);
 
   /**

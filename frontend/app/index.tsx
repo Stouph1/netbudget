@@ -402,6 +402,10 @@ export default function Index() {
   // plein-écrans empilés, c'est quelqu'un qui ferme les deux sans lire.
   const tour = useTourRunner({
     blocked: tierUnlock.visible || bdayOpen || whatsNew.visible,
+    // La visite ouvre elle-même l'onglet dont elle parle.
+    onNavigate: (next) => {
+      if ((TAB_ORDER as string[]).includes(next)) setTab(next as Tab);
+    },
   });
   // Source du dépôt pour la fête en cours : "birthday" | "child:Nom" | "pet:Nom"
   const [bdaySource, setBdaySource] = useState("birthday");

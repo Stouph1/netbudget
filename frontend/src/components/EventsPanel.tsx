@@ -42,6 +42,7 @@ import {
 } from "../lib/premiumStore";
 import { PaywallSheet } from "./PaywallSheet";
 import { usePaywall } from "../hooks/usePaywall";
+import { useTourTarget } from "./tour/TourContext";
 import type { UserProfile } from "../types/advice";
 import { scheduleEventNotifications } from "../utils/eventNotify";
 import { notify } from "../utils/notify";
@@ -121,6 +122,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   // Les limites de formule vivent dans un seul endroit (usePaywall) : les
   // recopier ici finirait par laisser passer ce qu'un autre écran refuse.
   const paywall = usePaywall();
+  const tourCreate = useTourTarget("events:create");
 
   useFocusEffect(
     useCallback(() => {
@@ -638,14 +640,19 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={startCreating}
-          activeOpacity={0.85}
-        >
-          <Feather name="plus" size={18} color="#000" />
-          <Text style={styles.primaryBtnText}>{t("events.new")}</Text>
-        </TouchableOpacity>
+        // La vue enveloppe porte la cible de la visite guidée : Android
+        // supprime de l'arbre natif une vue sans style, et measureInWindow ne
+        // renverrait plus rien.
+        <View ref={tourCreate} collapsable={false}>
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={startCreating}
+            activeOpacity={0.85}
+          >
+            <Feather name="plus" size={18} color="#000" />
+            <Text style={styles.primaryBtnText}>{t("events.new")}</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       <ScopeSwitcher visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />

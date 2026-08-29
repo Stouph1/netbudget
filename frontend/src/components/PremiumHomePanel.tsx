@@ -53,6 +53,7 @@ import { loadProfileBasics } from "../lib/profile";
 import type { S1Payload } from "../types/premium";
 import { TierBadge } from "./TierBadge";
 import { usePaywall } from "../hooks/usePaywall";
+import { useTourTarget } from "./tour/TourContext";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -93,6 +94,10 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const paywall = usePaywall();
+  // Cibles de la visite guidée. Voir tourSteps.ts.
+  const tourGoals = useTourTarget("home:goals");
+  const tourAdvice = useTourTarget("home:advice");
+  const tourSpaces = useTourTarget("home:spaces");
   const [busyAvatar, setBusyAvatar] = useState(false);
   const [busyAuth, setBusyAuth] = useState(false);
   // RGPD : la case doit être cochée AVANT toute création de compte.
@@ -481,11 +486,13 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           icon="target"
           label={t("home.tile.goals")}
           onPress={() => router.push("/(premium)/s1-epargne" as never)}
+          tourRef={tourGoals}
         />
         <Tile
           icon="compass"
           label={t("home.tile.coach")}
           onPress={() => router.push("/(premium)/advice" as never)}
+          tourRef={tourAdvice}
         />
       </View>
       <View style={styles.tilesRow}>
@@ -493,6 +500,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           icon="users"
           label={t("home.tile.spaces")}
           onPress={() => router.push("/(premium)/workspaces" as never)}
+          tourRef={tourSpaces}
         />
         <Tile
           icon="pie-chart"
@@ -877,16 +885,24 @@ function Tile({
   icon,
   label,
   onPress,
+  tourRef,
 }: {
   icon: keyof typeof Feather.glyphMap;
   label: string;
   onPress: () => void;
+  /** Cible de la visite guidée, quand cette tuile en est une. */
+  tourRef?: (v: View | null) => void;
 }) {
   return (
-    <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.85}>
-      <Feather name={icon} size={22} color={GOLD} />
-      <Text style={styles.tileLabel}>{label}</Text>
-    </TouchableOpacity>
+    // La vue enveloppe porte la cible : TouchableOpacity n'accepte pas
+    // `collapsable`, et sans lui Android supprime la vue de l'arbre natif —
+    // measureInWindow ne renverrait plus rien.
+    <View style={{ flex: 1 }} ref={tourRef} collapsable={false}>
+      <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.85}>
+        <Feather name={icon} size={22} color={GOLD} />
+        <Text style={styles.tileLabel}>{label}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 

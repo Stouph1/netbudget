@@ -40,6 +40,7 @@ import {
 import { displayItemLabel, loanMonthlyPayment } from "./helpers";
 import { styles } from "./styles";
 import { Field, Section } from "./ui";
+import { useTourTarget } from "../../src/components/tour/TourContext";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
 export default function BudgetScreen({
@@ -162,6 +163,10 @@ export default function BudgetScreen({
   onDeleteItem: (id: string) => void;
   onExportPdf: () => void;
 }) {
+  // Cibles de la visite guidée. Voir tourSteps.ts pour ce qu'elles racontent.
+  const tourSummary = useTourTarget("budget:summary");
+  const tourAddIncome = useTourTarget("budget:addIncome");
+
   return (
     <ScrollView
       style={styles.scroll}
@@ -248,7 +253,12 @@ export default function BudgetScreen({
           <Text style={styles.onboardingTip}>{t("onboarding.tip")}</Text>
         </View>
       ) : (
-        <View style={styles.topSummary} testID="top-summary">
+        <View
+          style={styles.topSummary}
+          testID="top-summary"
+          ref={tourSummary}
+          collapsable={false}
+        >
           <View style={styles.topSummaryRow}>
             <View style={styles.topSummaryBlock}>
               <Text style={styles.topSummaryLabel}>{t("top.netMonthly")}</Text>
@@ -277,15 +287,21 @@ export default function BudgetScreen({
         title={t("section.income.title")}
         subtitle={t("section.income.subtitle")}
         action={
-          <TouchableOpacity
-            onPress={onAddIncome}
-            style={styles.addBtn}
-            testID="add-income-button"
-            activeOpacity={0.85}
-          >
-            <Feather name="plus" size={16} color="#000" />
-            <Text style={styles.addBtnText}>{t("btn.add")}</Text>
-          </TouchableOpacity>
+          // La vue enveloppe porte la cible de la visite guidée :
+          // TouchableOpacity n'accepte pas `collapsable`, et sans lui Android
+          // supprime la vue de l'arbre natif — measureInWindow ne renverrait
+          // plus rien.
+          <View ref={tourAddIncome} collapsable={false}>
+            <TouchableOpacity
+              onPress={onAddIncome}
+              style={styles.addBtn}
+              testID="add-income-button"
+              activeOpacity={0.85}
+            >
+              <Feather name="plus" size={16} color="#000" />
+              <Text style={styles.addBtnText}>{t("btn.add")}</Text>
+            </TouchableOpacity>
+          </View>
         }
       >
         {incomes.length === 0 ? (

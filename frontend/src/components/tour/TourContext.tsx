@@ -25,7 +25,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { View } from "react-native";
+import { Dimensions, type View } from "react-native";
 import type { TourStep } from "../../lib/tourSteps";
 
 export type TargetRect = { x: number; y: number; width: number; height: number };
@@ -33,7 +33,7 @@ export type TargetRect = { x: number; y: number; width: number; height: number }
 type TourValue = {
   /** Enregistre une vue pouvant être mise en lumière. */
   attach: (id: string, view: View | null) => void;
-  start: (steps: TourStep[], onDone: () => void) => void;
+  start: (steps: TourStep[], opts: { onNavigate: (tab: string) => void; onDone: () => void }) => void;
   next: () => void;
   skip: () => void;
   step: TourStep | null;
@@ -41,6 +41,9 @@ type TourValue = {
   index: number;
   total: number;
 };
+
+/** Temps laissé à un écran pour se dessiner avant qu'on mesure dedans. */
+const NAV_SETTLE_MS = 420;
 
 const TourCtx = createContext<TourValue | null>(null);
 
@@ -50,6 +53,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<TargetRect | null>(null);
   const doneRef = useRef<(() => void) | null>(null);
+  const navRef = useRef<((tab: string) => void) | null>(null);
+  const tabRef = useRef<string | null>(null);
 
   const attach = useCallback((id: string, view: View | null) => {
     if (view) targets.current.set(id, view);
@@ -57,42 +62,68 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /** Mesure la cible de l'étape `i`, puis affiche. Passe l'étape si introuvable. */
-  const show = useCallback(
-    (list: TourStep[], i: number) => {
-      if (i >= list.length) {
-        setSteps([]);
-        setRect(null);
-        const done = doneRef.current;
-        doneRef.current = null;
-        done?.();
-        return;
-      }
-      const view = targets.current.get(list[i].target);
-      if (!view) {
-        // Cible absente : on enchaîne au lieu de laisser un voile sur un trou
-        // qui n'existe pas.
-        show(list, i + 1);
-        return;
-      }
-      view.measureInWindow((x, y, width, height) => {
-        if (!width || !height) {
+  const show = useCallback((list: TourStep[], i: number) => {
+    if (i >= list.length) {
+      setSteps([]);
+      setRect(null);
+      tabRef.current = null;
+      const done = doneRef.current;
+      doneRef.current = null;
+      done?.();
+      return;
+    }
+
+    const step = list[i];
+
+    // Changer d'écran si l'étape parle d'ailleurs, puis laisser le temps au
+    // nouvel écran de se poser : mesurer avant qu'il soit dessiné renvoie des
+    // coordonnées de l'écran précédent.
+    const needsNav = step.tab !== tabRef.current;
+    if (needsNav) {
+      tabRef.current = step.tab;
+      navRef.current?.(step.tab);
+    }
+
+    setTimeout(
+      () => {
+        const view = targets.current.get(step.target);
+        if (!view) {
+          // Cible absente : on enchaîne au lieu de laisser un voile sur un
+          // trou qui n'existe pas.
           show(list, i + 1);
           return;
         }
-        setRect({ x, y, width, height });
-        setIndex(i);
-      });
-    },
-    [],
-  );
+        view.measureInWindow((x, y, width, height) => {
+          const { width: W, height: H } = Dimensions.get("window");
+          // Cible hors de l'écran — repliée sous le pli d'une liste, ou d'un
+          // onglet qu'on a quitté. Percer un trou dans le vide donnerait un
+          // voile noir sans explication.
+          const offscreen =
+            !width || !height || y + height < 0 || y > H || x + width < 0 || x > W;
+          if (offscreen) {
+            show(list, i + 1);
+            return;
+          }
+          setRect({ x, y, width, height });
+          setIndex(i);
+        });
+      },
+      needsNav ? NAV_SETTLE_MS : 0,
+    );
+  }, []);
 
   const start = useCallback(
-    (list: TourStep[], onDone: () => void) => {
+    (
+      list: TourStep[],
+      { onNavigate, onDone }: { onNavigate: (tab: string) => void; onDone: () => void },
+    ) => {
       if (list.length === 0) {
         onDone();
         return;
       }
       doneRef.current = onDone;
+      navRef.current = onNavigate;
+      tabRef.current = null;
       setSteps(list);
       setIndex(0);
       show(list, 0);
@@ -105,6 +136,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const skip = useCallback(() => {
     setSteps([]);
     setRect(null);
+    tabRef.current = null;
     const done = doneRef.current;
     doneRef.current = null;
     // Passer la visite compte comme l'avoir vue. La reproposer au lancement

@@ -22,6 +22,15 @@ export type TourStep = {
   id: string;
   /** Identifiant de la cible à mettre en lumière, enregistrée par l'écran. */
   target: string;
+  /**
+   * Onglet à ouvrir avant de montrer l'étape.
+   *
+   * La visite CHANGE D'ÉCRAN toute seule. C'est ce qui la rend utile : montrer
+   * une icône d'onglet en disant « ici tu trouveras tes revenus » n'apprend
+   * rien — on n'a rien vu. Ouvrir l'onglet et désigner le vrai bouton
+   * « Ajouter un revenu », si.
+   */
+  tab: string;
   titleKey: string;
   bodyKey: string;
   /** Palier à partir duquel l'étape a un sens. */
@@ -36,36 +45,49 @@ export type TourStep = {
  */
 export const TOUR_STEPS: readonly TourStep[] = [
   {
-    id: "budget",
-    target: "tab:budget",
-    titleKey: "tour.budget.title",
-    bodyKey: "tour.budget.body",
+    id: "income",
+    tab: "budget",
+    target: "budget:addIncome",
+    titleKey: "tour.income.title",
+    bodyKey: "tour.income.body",
     from: "free",
   },
   {
-    id: "profile",
-    target: "tab:premium",
-    titleKey: "tour.profile.title",
-    bodyKey: "tour.profile.body",
+    id: "remaining",
+    tab: "budget",
+    target: "budget:summary",
+    titleKey: "tour.remaining.title",
+    bodyKey: "tour.remaining.body",
     from: "free",
   },
   {
-    id: "settings",
-    target: "tab:settings",
-    titleKey: "tour.settings.title",
-    bodyKey: "tour.settings.body",
+    id: "goals",
+    tab: "premium",
+    target: "home:goals",
+    titleKey: "tour.goals.title",
+    bodyKey: "tour.goals.body",
+    from: "free",
+  },
+  {
+    id: "advice",
+    tab: "premium",
+    target: "home:advice",
+    titleKey: "tour.advice.title",
+    bodyKey: "tour.advice.body",
     from: "free",
   },
   {
     id: "events",
-    target: "tab:events",
+    tab: "events",
+    target: "events:create",
     titleKey: "tour.events.title",
     bodyKey: "tour.events.body",
     from: "solo",
   },
   {
     id: "shared",
-    target: "tab:premium",
+    tab: "premium",
+    target: "home:spaces",
     titleKey: "tour.shared.title",
     bodyKey: "tour.shared.body",
     from: "duo",
