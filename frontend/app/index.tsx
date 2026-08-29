@@ -37,6 +37,8 @@ import BirthdayCelebration from "../src/components/BirthdayCelebration";
 import { TierUnlock } from "../src/components/TierUnlock";
 import { useTierUnlock } from "../src/hooks/useTierUnlock";
 import { useTourRunner } from "../src/hooks/useTourRunner";
+import { useWhatsNew } from "../src/hooks/useWhatsNew";
+import { WhatsNewSheet } from "../src/components/WhatsNewSheet";
 import { TourOverlay } from "../src/components/tour/TourOverlay";
 import {
   buildBirthdayCards,
@@ -392,9 +394,15 @@ export default function Index() {
   const [bdayCards, setBdayCards] = useState<BirthdayCard[] | null>(null);
   const [bdayOpen, setBdayOpen] = useState(false);
   const tierUnlock = useTierUnlock();
+  // Ordre de priorité entre les trois plein-écrans possibles au lancement :
+  // la fête d'abord (elle répond à « mon paiement a-t-il marché ? »), les
+  // nouveautés ensuite, la visite guidée en dernier.
+  const whatsNew = useWhatsNew({ blocked: tierUnlock.visible || bdayOpen });
   // La visite attend que la fête de déverrouillage soit passée : deux
   // plein-écrans empilés, c'est quelqu'un qui ferme les deux sans lire.
-  const tour = useTourRunner({ blocked: tierUnlock.visible || bdayOpen });
+  const tour = useTourRunner({
+    blocked: tierUnlock.visible || bdayOpen || whatsNew.visible,
+  });
   // Source du dépôt pour la fête en cours : "birthday" | "child:Nom" | "pet:Nom"
   const [bdaySource, setBdaySource] = useState("birthday");
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
@@ -1299,6 +1307,12 @@ export default function Index() {
           onClose={() => void tierUnlock.dismiss()}
         />
       ) : null}
+
+      <WhatsNewSheet
+        visible={whatsNew.visible}
+        version={whatsNew.version}
+        onClose={() => void whatsNew.dismiss()}
+      />
 
       {/* Visite guidée : posée en dernier pour passer au-dessus de la barre
           d'onglets, qui est justement ce qu'elle désigne. */}
