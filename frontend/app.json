@@ -2,7 +2,7 @@
   "expo": {
     "name": "NETbudget",
     "slug": "netbudget",
-    "version": "1.6.3",
+    "version": "2.0.0",
     "runtimeVersion": {
       "policy": "fingerprint"
     },
@@ -34,7 +34,8 @@
       "permissions": [
         "READ_MEDIA_IMAGES",
         "VIBRATE",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "com.android.vending.BILLING"
       ],
       "blockedPermissions": [
         "android.permission.CAMERA",
