@@ -12,6 +12,8 @@ import { interpolate } from "../../src/utils/advice";
 import { BORDER, DANGER, GOLD, TEXT_3 } from "./constants";
 import { styles } from "./styles";
 import { Section } from "./ui";
+import { TierUnlock } from "../../src/components/TierUnlock";
+import { TierGlyph } from "../../src/components/TierBadge";
 import type { Translate } from "./types";
 
 export default function SettingsScreen({
@@ -47,6 +49,11 @@ export default function SettingsScreen({
   onResetAll: () => void;
   onDeleteAccount: () => void;
 }) {
+  // Aperçu de l'écran de déverrouillage, en développement uniquement.
+  const [previewTier, setPreviewTier] = React.useState<
+    "solo" | "duo" | "family" | null
+  >(null);
+
   return (
     <ScrollView
       style={styles.scroll}
@@ -220,6 +227,48 @@ export default function SettingsScreen({
             <Feather name="chevron-right" size={18} color={TEXT_3} />
           </TouchableOpacity>
         </Section>
+      ) : null}
+
+      {/* Atelier de développement.
+          `__DEV__` vaut false dans un build de production : ce bloc n'existe
+          pas dans l'app publiée, et il n'y a donc aucun texte à traduire.
+          Il sert à revoir un écran qui, par construction, ne se montre qu'une
+          fois — sans lui, il faudrait vider le stockage à chaque essai. */}
+      {__DEV__ ? (
+        <Section title="Développement">
+          <Text style={styles.infoRowText}>
+            {"Rejoue l'écran de déverrouillage. Ne change pas ton abonnement."}
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+            {(["solo", "duo", "family"] as const).map((tier) => (
+              <TouchableOpacity
+                key={tier}
+                onPress={() => setPreviewTier(tier)}
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: BORDER,
+                }}
+                activeOpacity={0.8}
+                testID={`dev-unlock-${tier}`}
+              >
+                <TierGlyph tier={tier} size={20} />
+                <Text style={[styles.infoRowText, { marginTop: 5 }]}>{t(`plan.${tier}.name`)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Section>
+      ) : null}
+
+      {previewTier ? (
+        <TierUnlock
+          tier={previewTier}
+          visible
+          onClose={() => setPreviewTier(null)}
+        />
       ) : null}
 
       <Section title={t("settings.danger.title")}>
