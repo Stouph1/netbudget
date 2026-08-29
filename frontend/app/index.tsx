@@ -34,6 +34,8 @@ import { useSession } from "../src/contexts/SessionContext";
 import { deleteAccount } from "../src/lib/auth";
 import { notify } from "../src/utils/notify";
 import BirthdayCelebration from "../src/components/BirthdayCelebration";
+import { TierUnlock } from "../src/components/TierUnlock";
+import { useTierUnlock } from "../src/hooks/useTierUnlock";
 import {
   buildBirthdayCards,
   buildChildBirthdayCards,
@@ -387,6 +389,7 @@ export default function Index() {
   // Anniversaire : cartes de célébration (une fois par an, le jour J)
   const [bdayCards, setBdayCards] = useState<BirthdayCard[] | null>(null);
   const [bdayOpen, setBdayOpen] = useState(false);
+  const tierUnlock = useTierUnlock();
   // Source du dépôt pour la fête en cours : "birthday" | "child:Nom" | "pet:Nom"
   const [bdaySource, setBdaySource] = useState("birthday");
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
@@ -1279,6 +1282,17 @@ export default function Index() {
         }}
         onClose={() => setCurrencyPickerOpen(false)}
       />
+
+      {/* Déverrouillage d'abonnement : une seule fois par palier atteint.
+          Monté ici, sur l'écran d'accueil, parce que c'est là qu'on revient
+          après l'achat — et parce qu'il doit passer AVANT tout le reste. */}
+      {tierUnlock.tier ? (
+        <TierUnlock
+          tier={tierUnlock.tier}
+          visible={tierUnlock.visible}
+          onClose={() => void tierUnlock.dismiss()}
+        />
+      ) : null}
 
       {/* Fête d'anniversaire (jour J, une fois par an) */}
       <BirthdayCelebration
