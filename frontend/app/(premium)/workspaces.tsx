@@ -34,6 +34,7 @@ import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { PremiumGate } from "../../src/components/PremiumGate";
 import { usePaywall } from "../../src/hooks/usePaywall";
+import { PaywallSheet } from "../../src/components/PaywallSheet";
 import type { Lang } from "../../src/i18n/translations";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadWorkspacePhoto } from "../../src/lib/photos";
@@ -168,7 +169,18 @@ export default function WorkspacesScreen() {
     );
   }
 
-  if (!paywall.loading && !paywall.allows({ feature: "sharedSpace" })) {
+  // Deux droits distincts, et les confondre coûterait cher :
+  //
+  //   CRÉER un espace  -> formules Duo et Famille
+  //   REJOINDRE un espace -> tout le monde, abonnement ou non
+  //
+  // C'est l'abonné qui paie pour partager son budget. Opposer un mur à la
+  // personne qu'il vient d'inviter ferait échouer l'achat qu'on a encaissé, et
+  // laisserait DEUX personnes déçues au lieu de zéro.
+  const canCreate = paywall.allows({ feature: "sharedSpace" });
+  const isMemberSomewhere = workspaces.length > 0;
+
+  if (!paywall.loading && !loading && !canCreate && !isMemberSomewhere) {
     return (
       <PremiumGate
         titleKey="gate.shared.title"
@@ -253,11 +265,14 @@ export default function WorkspacesScreen() {
         )}
 
         <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={() => setCreateOpen(true)}
+          style={[styles.primaryBtn, !canCreate && styles.primaryBtnLocked]}
+          onPress={() => {
+            if (!paywall.require({ feature: "sharedSpace" })) return;
+            setCreateOpen(true);
+          }}
           activeOpacity={0.85}
         >
-          <Feather name="plus" size={18} color="#000" />
+          <Feather name={canCreate ? "plus" : "lock"} size={18} color="#000" />
           <Text style={styles.primaryBtnText}>{t("ws.create")}</Text>
         </TouchableOpacity>
 
@@ -270,6 +285,12 @@ export default function WorkspacesScreen() {
           <Text style={styles.secondaryBtnText}>{t("ws.joinWithCode")}</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <PaywallSheet
+        visible={paywall.visible}
+        reason={paywall.reason}
+        onClose={paywall.close}
+      />
 
       <CreateModal
         visible={createOpen}
@@ -978,6 +999,9 @@ function WorkspaceDetailModal({
 // ============================================================================
 
 const styles = StyleSheet.create({
+  // Le bouton reste ENTIER, pas grisé : il est cliquable et raconte pourquoi.
+  // Un bouton mort ne s'explique jamais.
+  primaryBtnLocked: { opacity: 0.75 },
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
   header: {

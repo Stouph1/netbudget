@@ -51,6 +51,8 @@ import {
 } from "../lib/premiumStore";
 import { loadProfileBasics } from "../lib/profile";
 import type { S1Payload } from "../types/premium";
+import { TierBadge } from "./TierBadge";
+import { usePaywall } from "../hooks/usePaywall";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -90,6 +92,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const [history, setHistory] = useState<BudgetHistoryPoint[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const paywall = usePaywall();
   const [busyAvatar, setBusyAvatar] = useState(false);
   const [busyAuth, setBusyAuth] = useState(false);
   // RGPD : la case doit être cochée AVANT toute création de compte.
@@ -396,6 +399,21 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
               </Text>
               <Feather name="edit-2" size={11} color={TEXT_3} />
             </View>
+          </TouchableOpacity>
+
+          {/* La formule active, en un coup d'œil.
+              Sans elle, un utilisateur attribue une limite à un bug, écrit au
+              support, et repart déçu d'un produit qui marchait. Elle mène aux
+              formules : c'est l'endroit où la question se pose. */}
+          <TouchableOpacity
+            onPress={() => router.push("/plans" as never)}
+            activeOpacity={0.8}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={t(`plan.${paywall.tier}.name`)}
+            style={{ marginTop: 4, alignSelf: "flex-start" }}
+          >
+            <TierBadge tier={paywall.tier} label={t(`plan.${paywall.tier}.name`)} size={13} />
           </TouchableOpacity>
           <Text style={styles.profileEmail} numberOfLines={1}>
             {user.email ?? t("home.emailHidden")}

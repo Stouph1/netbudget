@@ -17,8 +17,12 @@ import {
   View,
 } from "react-native";
 import { useLang } from "../contexts/LangContext";
+import { LockedOverlay } from "./LockedOverlay";
+import { usePaywall } from "../hooks/usePaywall";
+import { canSeeScheduleYear } from "../lib/entitlements";
 import {
   amortizationSchedule,
+  type ScheduleYear,
   loanProgress,
   type LoanProgress,
 } from "../utils/loanSchedule";
@@ -61,7 +65,8 @@ export default function LoanScheduleModal({
   const [expanded, setExpanded] = useState<number | null>(null);
 
   // Nom de mois abrégé dans la langue de l'app (« janv. », « Jan », « 1月 »…).
-  const monthShort = (d: Date) => d.toLocaleDateString(lang, { month: "short" });
+  const monthShort = (d: Date) =>
+    d.toLocaleDateString(lang, { month: "short" });
 
   // Durée restante lisible, localisée (l'utilitaire renvoie du français).
   function remainingLabel(p: LoanProgress): string {
@@ -71,12 +76,21 @@ export default function LoanScheduleModal({
     const months = tp("schedule.rem.months", { m });
     if (y === 0) return months;
     const years =
-      y === 1 ? t("schedule.rem.years.one") : tp("schedule.rem.years.many", { y });
+      y === 1
+        ? t("schedule.rem.years.one")
+        : tp("schedule.rem.years.many", { y });
     return m === 0 ? years : tp("schedule.rem.combo", { years, months });
   }
 
   const schedule = useMemo(
-    () => amortizationSchedule(principal, ratePercent, years, startIso, monthlyPayment),
+    () =>
+      amortizationSchedule(
+        principal,
+        ratePercent,
+        years,
+        startIso,
+        monthlyPayment,
+      ),
     [principal, ratePercent, years, startIso, monthlyPayment],
   );
   const progress = useMemo(
@@ -89,8 +103,169 @@ export default function LoanScheduleModal({
     [schedule],
   );
 
+  // Ce qui répond à « où j'en suis » reste NET pour tout le monde : l'année en
+  // cours, et tout le passé — ce sont des échéances déjà payées, les masquer
+  // donnerait le sentiment qu'on retient son propre historique en otage.
+  //
+  // Ce qu'on réserve, c'est la PROJECTION : les vingt ans qui viennent, la
+  // bascule intérêts/capital, le coût total du crédit. C'est aussi ce qui a le
+  // plus de valeur, et ce qu'aucun relevé bancaire ne montre.
+  const paywall = usePaywall();
+  const currentYear =
+    schedule.find((y) => y.current)?.year ?? schedule[0]?.year ?? 0;
+  const firstLockedIndex = schedule.findIndex(
+    (y) => !canSeeScheduleYear(paywall.tier, y.year - currentYear),
+  );
+  const hasLocked = firstLockedIndex >= 0;
+
+  /**
+   * Une ligne d'année de l'échéancier.
+   *
+   * Extraite du rendu pour dessiner les années lisibles et les années
+   * réservées dans DEUX conteneurs distincts : le voile flouté doit couvrir
+   * exactement les secondes, sans déborder sur l'année en cours.
+   */
+  function renderYear(y: ScheduleYear, locked: boolean) {
+    // Une année réservée ne s'ouvre pas : le détail mois par mois se lirait au
+    // travers du flou.
+    const isOpen = expanded === y.year && !locked;
+    const yearTotal = y.principal + y.interest;
+    const capRatio = yearTotal > 0 ? (y.principal / yearTotal) * 100 : 0;
+    return (
+      <View key={y.year}>
+        <TouchableOpacity
+          style={[
+            styles.yearRow,
+            y.past && styles.yearRowPast,
+            y.current && styles.yearRowCurrent,
+          ]}
+          onPress={() =>
+            locked ? undefined : setExpanded(isOpen ? null : y.year)
+          }
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: isOpen }}
+          accessibilityLabel={tp("schedule.a11y.year", {
+            year: y.year,
+            pct: Math.round(capRatio),
+          })}
+        >
+          <Text
+            style={[
+              styles.yearLabel,
+              y.past && styles.mutedText,
+              y.current && { color: GOLD },
+            ]}
+          >
+            {y.year}
+            {y.current ? ` · ${t("schedule.current")}` : ""}
+          </Text>
+
+          <View style={{ flex: 1, gap: 4 }}>
+            {/* Barre capital / intérêts de l'année */}
+            <View style={styles.splitBar}>
+              <View
+                style={{
+                  width: `${capRatio}%`,
+                  backgroundColor: CAPITAL,
+                  opacity: y.past ? 0.4 : 1,
+                }}
+              />
+              <View
+                style={{
+                  width: `${100 - capRatio}%`,
+                  backgroundColor: INTEREST,
+                  opacity: y.past ? 0.4 : 1,
+                }}
+              />
+            </View>
+            <Text style={styles.yearDetail}>
+              {tp("schedule.yearDetail", {
+                capital: format(y.principal),
+                interest: format(y.interest),
+              })}
+            </Text>
+          </View>
+
+          <View style={{ alignItems: "flex-end" }}>
+            <Text style={[styles.yearBalance, y.past && styles.mutedText]}>
+              {format(y.balance)}
+            </Text>
+            <Text style={styles.yearBalanceLabel}>
+              {t("schedule.balanceLabel")}
+            </Text>
+          </View>
+          <Feather
+            name={isOpen ? "chevron-up" : "chevron-down"}
+            size={16}
+            color={TEXT_3}
+          />
+        </TouchableOpacity>
+
+        {isOpen ? (
+          <View style={styles.monthsBox}>
+            <View style={styles.monthHead}>
+              <Text
+                style={[styles.monthCell, styles.monthHeadText, { flex: 1.1 }]}
+              >
+                {t("schedule.col.month")}
+              </Text>
+              <Text style={[styles.monthCell, styles.monthHeadText]}>
+                {t("schedule.col.capital")}
+              </Text>
+              <Text style={[styles.monthCell, styles.monthHeadText]}>
+                {t("schedule.col.interest")}
+              </Text>
+              <Text
+                style={[styles.monthCell, styles.monthHeadText, { flex: 1.2 }]}
+              >
+                {t("schedule.col.balance")}
+              </Text>
+            </View>
+            {y.rows.map((r) => (
+              <View key={r.index} style={styles.monthRow}>
+                <Text
+                  style={[styles.monthCell, styles.monthText, { flex: 1.1 }]}
+                >
+                  {monthShort(r.date)}
+                </Text>
+                <Text
+                  style={[
+                    styles.monthCell,
+                    styles.monthText,
+                    { color: CAPITAL },
+                  ]}
+                >
+                  {format(r.principal)}
+                </Text>
+                <Text
+                  style={[
+                    styles.monthCell,
+                    styles.monthText,
+                    { color: INTEREST },
+                  ]}
+                >
+                  {format(r.interest)}
+                </Text>
+                <Text
+                  style={[styles.monthCell, styles.monthText, { flex: 1.2 }]}
+                >
+                  {format(r.balance)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+      </View>
+    );
+  }
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         <View style={styles.sheet}>
@@ -128,8 +303,12 @@ export default function LoanScheduleModal({
               {/* Synthèse */}
               <View style={styles.summary}>
                 <View style={styles.summaryCell}>
-                  <Text style={styles.summaryLabel}>{t("schedule.monthly")}</Text>
-                  <Text style={styles.summaryValue}>{format(monthlyPayment)}</Text>
+                  <Text style={styles.summaryLabel}>
+                    {t("schedule.monthly")}
+                  </Text>
+                  <Text style={styles.summaryValue}>
+                    {format(monthlyPayment)}
+                  </Text>
                 </View>
                 <View style={styles.summaryCell}>
                   <Text style={styles.summaryLabel}>{t("schedule.cost")}</Text>
@@ -138,7 +317,9 @@ export default function LoanScheduleModal({
                   </Text>
                 </View>
                 <View style={styles.summaryCell}>
-                  <Text style={styles.summaryLabel}>{t("schedule.remaining")}</Text>
+                  <Text style={styles.summaryLabel}>
+                    {t("schedule.remaining")}
+                  </Text>
                   <Text style={styles.summaryValue}>
                     {progress ? remainingLabel(progress) : "—"}
                   </Text>
@@ -157,116 +338,26 @@ export default function LoanScheduleModal({
                 contentContainerStyle={{ paddingBottom: 28 }}
                 showsVerticalScrollIndicator={false}
               >
-                {schedule.map((y) => {
-                  const isOpen = expanded === y.year;
-                  const yearTotal = y.principal + y.interest;
-                  const capRatio = yearTotal > 0 ? (y.principal / yearTotal) * 100 : 0;
-                  return (
-                    <View key={y.year}>
-                      <TouchableOpacity
-                        style={[
-                          styles.yearRow,
-                          y.past && styles.yearRowPast,
-                          y.current && styles.yearRowCurrent,
-                        ]}
-                        onPress={() => setExpanded(isOpen ? null : y.year)}
-                        activeOpacity={0.8}
-                        accessibilityRole="button"
-                        accessibilityState={{ expanded: isOpen }}
-                        accessibilityLabel={tp("schedule.a11y.year", {
-                          year: y.year,
-                          pct: Math.round(capRatio),
-                        })}
-                      >
-                        <Text
-                          style={[
-                            styles.yearLabel,
-                            y.past && styles.mutedText,
-                            y.current && { color: GOLD },
-                          ]}
-                        >
-                          {y.year}
-                          {y.current ? ` · ${t("schedule.current")}` : ""}
-                        </Text>
+                {schedule
+                  .slice(0, hasLocked ? firstLockedIndex : schedule.length)
+                  .map((y) => renderYear(y, false))}
 
-                        <View style={{ flex: 1, gap: 4 }}>
-                          {/* Barre capital / intérêts de l'année */}
-                          <View style={styles.splitBar}>
-                            <View
-                              style={{
-                                width: `${capRatio}%`,
-                                backgroundColor: CAPITAL,
-                                opacity: y.past ? 0.4 : 1,
-                              }}
-                            />
-                            <View
-                              style={{
-                                width: `${100 - capRatio}%`,
-                                backgroundColor: INTEREST,
-                                opacity: y.past ? 0.4 : 1,
-                              }}
-                            />
-                          </View>
-                          <Text style={styles.yearDetail}>
-                            {tp("schedule.yearDetail", {
-                              capital: format(y.principal),
-                              interest: format(y.interest),
-                            })}
-                          </Text>
-                        </View>
-
-                        <View style={{ alignItems: "flex-end" }}>
-                          <Text style={[styles.yearBalance, y.past && styles.mutedText]}>
-                            {format(y.balance)}
-                          </Text>
-                          <Text style={styles.yearBalanceLabel}>
-                            {t("schedule.balanceLabel")}
-                          </Text>
-                        </View>
-                        <Feather
-                          name={isOpen ? "chevron-up" : "chevron-down"}
-                          size={16}
-                          color={TEXT_3}
-                        />
-                      </TouchableOpacity>
-
-                      {isOpen ? (
-                        <View style={styles.monthsBox}>
-                          <View style={styles.monthHead}>
-                            <Text style={[styles.monthCell, styles.monthHeadText, { flex: 1.1 }]}>
-                              {t("schedule.col.month")}
-                            </Text>
-                            <Text style={[styles.monthCell, styles.monthHeadText]}>
-                              {t("schedule.col.capital")}
-                            </Text>
-                            <Text style={[styles.monthCell, styles.monthHeadText]}>
-                              {t("schedule.col.interest")}
-                            </Text>
-                            <Text style={[styles.monthCell, styles.monthHeadText, { flex: 1.2 }]}>
-                              {t("schedule.col.balance")}
-                            </Text>
-                          </View>
-                          {y.rows.map((r) => (
-                            <View key={r.index} style={styles.monthRow}>
-                              <Text style={[styles.monthCell, styles.monthText, { flex: 1.1 }]}>
-                                {monthShort(r.date)}
-                              </Text>
-                              <Text style={[styles.monthCell, styles.monthText, { color: CAPITAL }]}>
-                                {format(r.principal)}
-                              </Text>
-                              <Text style={[styles.monthCell, styles.monthText, { color: INTEREST }]}>
-                                {format(r.interest)}
-                              </Text>
-                              <Text style={[styles.monthCell, styles.monthText, { flex: 1.2 }]}>
-                                {format(r.balance)}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      ) : null}
-                    </View>
-                  );
-                })}
+                {/* La projection réservée : visible, dense, illisible. On la
+                    montre plutôt que de la retirer — une liste tronquée ne
+                    donne envie de rien, personne ne sait ce qu'il rate. */}
+                {hasLocked ? (
+                  <View style={styles.lockedBlock}>
+                    {schedule
+                      .slice(firstLockedIndex)
+                      .map((y) => renderYear(y, true))}
+                    <LockedOverlay
+                      titleKey="schedule.locked.title"
+                      bodyKey="schedule.locked.body"
+                      icon="trending-down"
+                      minHeight={210}
+                    />
+                  </View>
+                ) : null}
 
                 <Text style={styles.footnote}>{t("schedule.footnote")}</Text>
               </ScrollView>
@@ -279,7 +370,14 @@ export default function LoanScheduleModal({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
+  // `position: relative` explicite : le voile est en absolu par-dessus, et
+  // doit se caler sur ce bloc-ci, pas sur la feuille entière.
+  lockedBlock: { position: "relative" },
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
+  },
   sheet: {
     backgroundColor: MIDNIGHT,
     borderTopLeftRadius: 24,
@@ -296,11 +394,26 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.2)",
     marginBottom: 14,
   },
-  header: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 16,
+  },
   title: { color: TEXT_1, fontSize: 18, fontWeight: "700" },
   subtitle: { color: TEXT_3, fontSize: 12.5, marginTop: 2 },
-  empty: { alignItems: "center", gap: 12, paddingVertical: 40, paddingHorizontal: 24 },
-  emptyText: { color: TEXT_2, fontSize: 13.5, lineHeight: 20, textAlign: "center" },
+  empty: {
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+  },
+  emptyText: {
+    color: TEXT_2,
+    fontSize: 13.5,
+    lineHeight: 20,
+    textAlign: "center",
+  },
   summary: {
     flexDirection: "row",
     backgroundColor: SURFACE,
@@ -355,7 +468,12 @@ const styles = StyleSheet.create({
     borderBottomColor: BORDER,
     marginBottom: 4,
   },
-  monthHeadText: { color: TEXT_3, fontSize: 10, fontWeight: "700", textTransform: "uppercase" },
+  monthHeadText: {
+    color: TEXT_3,
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
   monthRow: { flexDirection: "row", paddingVertical: 4 },
   monthCell: { flex: 1, fontSize: 11, textAlign: "right" },
   monthText: { color: TEXT_2, fontVariant: ["tabular-nums"] },

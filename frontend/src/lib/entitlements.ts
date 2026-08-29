@@ -22,10 +22,35 @@ export type Limits = {
    * personnes y ont accès.
    */
   blockedEventTypes: readonly string[];
-  /** Espaces partagés autorisés (0 = fonctionnalité indisponible). */
+  /**
+   * Espaces partagés qu'on peut CRÉER (0 = on ne peut pas en créer).
+   *
+   * Ne dit rien du droit d'en REJOINDRE un : celui-là est ouvert à tous, y
+   * compris sans abonnement. C'est l'abonné qui paie pour partager, pas la
+   * personne qu'il invite — lui opposer un mur ferait échouer l'invitation
+   * qu'il vient d'acheter, et deux personnes en garderaient une mauvaise
+   * impression au lieu d'une.
+   */
   maxWorkspaces: number;
   /** Membres par espace partagé, l'abonné compris. */
   maxMembersPerWorkspace: number;
+  /**
+   * Objectifs d'épargne créables. `null` = sans limite.
+   *
+   * Un seul sans abonnement, et c'est un choix : zéro rendrait la
+   * fonctionnalité invisible, donc invendable. Un objectif suffit à comprendre
+   * ce que ça apporte, et à vouloir le deuxième.
+   */
+  maxGoals: number | null;
+  /**
+   * Années d'échéancier de prêt lisibles. `null` = tout l'échéancier.
+   *
+   * L'année en cours reste NETTE pour tout le monde : c'est celle qui répond à
+   * « où j'en suis ». Ce qu'on réserve, c'est la projection sur vingt ans.
+   */
+  loanScheduleYears: number | null;
+  /** Conseils personnalisés et sourcés. */
+  advice: boolean;
 };
 
 export const LIMITS: Record<Tier, Limits> = {
@@ -36,6 +61,9 @@ export const LIMITS: Record<Tier, Limits> = {
     blockedEventTypes: [],
     maxWorkspaces: 0,
     maxMembersPerWorkspace: 0,
+    maxGoals: 1,
+    loanScheduleYears: 1,
+    advice: false,
   },
   // Solo : un seul événement à la fois, et pas le mariage.
   solo: {
@@ -43,18 +71,27 @@ export const LIMITS: Record<Tier, Limits> = {
     blockedEventTypes: ["wedding"],
     maxWorkspaces: 0,
     maxMembersPerWorkspace: 0,
+    maxGoals: 3,
+    loanScheduleYears: null,
+    advice: true,
   },
   duo: {
     maxEvents: null,
     blockedEventTypes: [],
     maxWorkspaces: 1,
     maxMembersPerWorkspace: 2,
+    maxGoals: null,
+    loanScheduleYears: null,
+    advice: true,
   },
   family: {
     maxEvents: null,
     blockedEventTypes: [],
     maxWorkspaces: 3,
     maxMembersPerWorkspace: 6,
+    maxGoals: null,
+    loanScheduleYears: null,
+    advice: true,
   },
 };
 
@@ -73,7 +110,8 @@ const VALID_TIERS: readonly Tier[] = ["free", "solo", "duo", "family"];
  * l'abonnement gratuit. Ici, on refuse.
  */
 export function parseTier(raw: unknown): Tier | null {
-  return typeof raw === "string" && (VALID_TIERS as readonly string[]).includes(raw)
+  return typeof raw === "string" &&
+    (VALID_TIERS as readonly string[]).includes(raw)
     ? (raw as Tier)
     : null;
 }
@@ -83,7 +121,9 @@ export function tierUnlocking(type: string): Tier | null {
   const order: Tier[] = ["free", "solo", "duo", "family"];
   return (
     order.find(
-      (t) => LIMITS[t].maxEvents !== 0 && !LIMITS[t].blockedEventTypes.includes(type),
+      (t) =>
+        LIMITS[t].maxEvents !== 0 &&
+        !LIMITS[t].blockedEventTypes.includes(type),
     ) ?? null
   );
 }
@@ -93,7 +133,7 @@ export type Denial =
   | {
       allowed: false;
       /** Pourquoi, pour choisir le bon message et la bonne proposition. */
-      reason: "needsSubscription" | "eventLimit" | "typeLocked";
+      reason: "needsSubscription" | "eventLimit" | "typeLocked" | "goalLimit";
       /** Palier à prendre pour lever le blocage. */
       upgradeTo: Tier | null;
     };
@@ -115,7 +155,11 @@ export function canCreateEvent(
     return { allowed: false, reason: "needsSubscription", upgradeTo: "solo" };
   }
   if (limits.blockedEventTypes.includes(type)) {
-    return { allowed: false, reason: "typeLocked", upgradeTo: tierUnlocking(type) };
+    return {
+      allowed: false,
+      reason: "typeLocked",
+      upgradeTo: tierUnlocking(type),
+    };
   }
   if (limits.maxEvents !== null && currentEventCount >= limits.maxEvents) {
     // Volontairement PAS un « upgrade or nothing » : on a un événement de
@@ -137,8 +181,66 @@ export function isEventTypeLocked(tier: Tier, type: string): boolean {
  * Sert à afficher « 1 événement inclus » plutôt qu'à laisser l'utilisateur
  * découvrir la limite au moment où on la lui oppose.
  */
-export function remainingEvents(tier: Tier, currentEventCount: number): number | null {
+export function remainingEvents(
+  tier: Tier,
+  currentEventCount: number,
+): number | null {
   const max = limitsFor(tier).maxEvents;
   if (max === null) return null;
   return Math.max(0, max - currentEventCount);
+}
+
+/**
+ * L'utilisateur peut-il créer un objectif d'épargne de plus ?
+ *
+ * On compte les objectifs ACTIFS. Un objectif atteint puis archivé ne doit pas
+ * continuer d'occuper la place : sinon la limite se transforme en « nombre
+ * d'objectifs que tu auras eus dans ta vie », ce que personne n'achète.
+ */
+export function canCreateGoal(tier: Tier, currentGoalCount: number): Denial {
+  const max = limitsFor(tier).maxGoals;
+  if (max === null || currentGoalCount < max) return { allowed: true };
+  return {
+    allowed: false,
+    reason: tier === "free" ? "needsSubscription" : "goalLimit",
+    upgradeTo: tier === "free" ? "solo" : "duo",
+  };
+}
+
+/** Objectifs restants avant la limite. `null` = illimité. */
+export function remainingGoals(
+  tier: Tier,
+  currentGoalCount: number,
+): number | null {
+  const max = limitsFor(tier).maxGoals;
+  return max === null ? null : Math.max(0, max - currentGoalCount);
+}
+
+/**
+ * Une année de l'échéancier est-elle lisible ?
+ *
+ * `offsetFromCurrentYear` vaut 0 pour l'année en cours, 1 pour la suivante, et
+ * un nombre négatif pour le passé. LE PASSÉ RESTE LISIBLE : ce sont des
+ * échéances déjà payées, et les masquer donnerait le sentiment qu'on retient
+ * en otage l'historique de quelqu'un plutôt qu'on lui propose une projection.
+ */
+export function canSeeScheduleYear(
+  tier: Tier,
+  offsetFromCurrentYear: number,
+): boolean {
+  const years = limitsFor(tier).loanScheduleYears;
+  if (years === null) return true;
+  return offsetFromCurrentYear < years;
+}
+
+/**
+ * Peut-on REJOINDRE un espace partagé ? Toujours oui.
+ *
+ * Écrit comme une fonction et non comme un `true` en dur pour que le jour où
+ * quelqu'un voudra restreindre l'invitation, il tombe sur ce commentaire :
+ * c'est l'abonné qui a payé pour inviter. Bloquer l'invité annulerait l'achat
+ * qu'on vient d'encaisser.
+ */
+export function canJoinWorkspace(): boolean {
+  return true;
 }

@@ -10,7 +10,12 @@
 import { useCallback, useEffect, useState } from "react";
 import type { PaywallReason } from "../components/PaywallSheet";
 import { useSession } from "../contexts/SessionContext";
-import { canCreateEvent, limitsFor, type Tier } from "../lib/entitlements";
+import {
+  canCreateEvent,
+  canCreateGoal,
+  limitsFor,
+  type Tier,
+} from "../lib/entitlements";
 import { loadTier, onTierChange } from "../lib/tier";
 
 export type Gate =
@@ -21,7 +26,9 @@ export type Gate =
   /** Synchronisation entre appareils. */
   | { feature: "sync" }
   /** Créer un événement d'un type donné, en tenant compte du quota. */
-  | { feature: "event"; type: string; currentCount: number };
+  | { feature: "event"; type: string; currentCount: number }
+  /** Créer un objectif d'épargne de plus. */
+  | { feature: "goal"; currentCount: number };
 
 export function usePaywall() {
   const { user } = useSession();
@@ -64,9 +71,13 @@ export function usePaywall() {
           // palier gratuit sans avoir à l'énumérer ici.
           return limits.maxEvents !== 0;
         case "sharedSpace":
+          // CRÉER un espace. Le rejoindre sur invitation reste ouvert à tous —
+          // voir canJoinWorkspace().
           return limits.maxWorkspaces > 0;
         case "event":
           return canCreateEvent(tier, gate.currentCount, gate.type).allowed;
+        case "goal":
+          return canCreateGoal(tier, gate.currentCount).allowed;
       }
     },
     [tier],
@@ -80,6 +91,21 @@ export function usePaywall() {
     (gate: Gate): boolean => {
       if (allows(gate)) return true;
 
+      if (gate.feature === "goal") {
+        const verdict = canCreateGoal(tier, gate.currentCount);
+        // Deux refus, deux réponses : sans abonnement on propose de s'abonner,
+        // avec Solo on a atteint SON quota — la formule au-dessus n'en a pas.
+        setReason(
+          !verdict.allowed && verdict.reason === "goalLimit"
+            ? { kind: "quota", featureKey: "paywall.feature.goalQuota" }
+            : {
+                kind: "needsSubscription",
+                featureKey: "paywall.feature.goals",
+              },
+        );
+        return false;
+      }
+
       if (gate.feature === "event") {
         const verdict = canCreateEvent(tier, gate.currentCount, gate.type);
         if (!verdict.allowed && verdict.reason === "typeLocked") {
@@ -91,10 +117,16 @@ export function usePaywall() {
           return false;
         }
         if (!verdict.allowed && verdict.reason === "eventLimit") {
-          setReason({ kind: "quota", featureKey: "paywall.feature.eventQuota" });
+          setReason({
+            kind: "quota",
+            featureKey: "paywall.feature.eventQuota",
+          });
           return false;
         }
-        setReason({ kind: "needsSubscription", featureKey: "paywall.feature.events" });
+        setReason({
+          kind: "needsSubscription",
+          featureKey: "paywall.feature.events",
+        });
         return false;
       }
 
@@ -114,5 +146,13 @@ export function usePaywall() {
 
   const close = useCallback(() => setReason(null), []);
 
-  return { tier, loading, allows, require, reason, close, visible: reason !== null };
+  return {
+    tier,
+    loading,
+    allows,
+    require,
+    reason,
+    close,
+    visible: reason !== null,
+  };
 }

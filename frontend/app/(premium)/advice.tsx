@@ -23,8 +23,8 @@ import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
-import { PremiumGate } from "../../src/components/PremiumGate";
 import { usePaywall } from "../../src/hooks/usePaywall";
+import { LockedOverlay } from "../../src/components/LockedOverlay";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import {
   allAdviceGrouped,
@@ -390,17 +390,29 @@ function currentWeekSeed(): number {
 export default function AdviceScreen() {
   const { t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
-  // Les conseils font partie de l'abonnement. On garde l'écran ATTEIGNABLE et
-  // on explique ce qu'il contient : le masquer empêcherait de découvrir ce
-  // qu'on gagnerait à s'abonner.
+  // Les conseils font partie de l'abonnement, mais le QUESTIONNAIRE reste
+  // ouvert à tous — et jusqu'au bout.
+  //
+  // C'est délibéré : quelqu'un qui vient de décrire sa situation en douze
+  // questions a investi quelque chose, et il arrive au moment précis où il se
+  // demande « alors, qu'est-ce que ça donne pour moi ? ». C'est là que la
+  // proposition a un sens. La même proposition affichée à l'entrée, avant
+  // qu'il ait rien donné, n'est qu'une porte fermée.
+  //
+  // Son profil est ENREGISTRÉ dans tous les cas : s'il s'abonne un mois plus
+  // tard, ses conseils sont déjà prêts. Lui faire tout ressaisir serait le
+  // punir d'avoir hésité.
   const paywall = usePaywall();
+  const adviceLocked =
+    !paywall.loading && !paywall.allows({ feature: "advice" });
   // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
   // jamais la liste — l'utilisateur continue de remplir naturellement.
   const { onboard } = useLocalSearchParams<{ onboard?: string }>();
   const {
     workspaceId,
     workspaceKind,
-    scopeLabel, scopeLabelIsKey,
+    scopeLabel,
+    scopeLabelIsKey,
     loading: scopeLoading,
   } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
@@ -443,7 +455,8 @@ export default function AdviceScreen() {
       // Onboarding forcé seulement si le minimum du mode n'est pas rempli
       // (asso : rien d'obligatoire → direct sur les conseils).
       setEditing(
-        onboard === "1" || !hasMinimumProfileFor(loaded, modeFor(workspaceKind)),
+        onboard === "1" ||
+          !hasMinimumProfileFor(loaded, modeFor(workspaceKind)),
       );
       setLoading(false);
     })();
@@ -476,8 +489,13 @@ export default function AdviceScreen() {
     const out: string[] = [];
     if (!profile.age) out.push(t("coach.missing.age"));
     if (cfg.askFamily && !profile.family) out.push(t("coach.missing.family"));
-    if (cfg.askHousing && !profile.housing) out.push(t("coach.missing.housing"));
-    if (cfg.askKids === "auto" && hasKids(profile.family) && !profile.children?.length)
+    if (cfg.askHousing && !profile.housing)
+      out.push(t("coach.missing.housing"));
+    if (
+      cfg.askKids === "auto" &&
+      hasKids(profile.family) &&
+      !profile.children?.length
+    )
       out.push(t("coach.missing.children"));
     if (cfg.askSavings && !profile.monthlySavingsCapacity)
       out.push(t("coach.missing.savings"));
@@ -528,7 +546,10 @@ export default function AdviceScreen() {
     const current = profile.pets ?? [];
     const idx = current.findIndex((p) => p.species === species);
     if (idx >= 0) {
-      persist({ ...profile, pets: current.filter((p) => p.species !== species) });
+      persist({
+        ...profile,
+        pets: current.filter((p) => p.species !== species),
+      });
     } else {
       persist({ ...profile, pets: [...current, { species, count: 1 }] });
     }
@@ -540,16 +561,6 @@ export default function AdviceScreen() {
       p.species === species ? { ...p, count: Math.max(1, count) } : p,
     );
     updateField("pets", next);
-  }
-
-  if (!paywall.loading && !paywall.allows({ feature: "advice" })) {
-    return (
-      <PremiumGate
-        titleKey="gate.advice.title"
-        bodyKey="gate.advice.body"
-        icon="award"
-      />
-    );
   }
 
   if (sessionLoading || scopeLoading || loading) {
@@ -605,7 +616,11 @@ export default function AdviceScreen() {
         </View>
 
         <View style={styles.scopeBadge}>
-          <Feather name={workspaceId ? "users" : "user"} size={13} color={GOLD} />
+          <Feather
+            name={workspaceId ? "users" : "user"}
+            size={13}
+            color={GOLD}
+          />
           <Text style={styles.scopeBadgeText}>{resolvedScopeLabel}</Text>
         </View>
 
@@ -658,7 +673,11 @@ export default function AdviceScreen() {
             />
           ) : null}
 
-          {cfg.askCountry || cfg.askHousing || cfg.askTmi || cfg.askSavings || cfg.askPets ? (
+          {cfg.askCountry ||
+          cfg.askHousing ||
+          cfg.askTmi ||
+          cfg.askSavings ||
+          cfg.askPets ? (
             <Text style={styles.optionalHeader}>
               {t("coach.optionalHeader")}
             </Text>
@@ -702,7 +721,10 @@ export default function AdviceScreen() {
                 label={t("coach.housingType.label")}
                 hint={t("coach.housingType.hint")}
                 options={[
-                  { value: "apartment", label: t("coach.housingType.apartment") },
+                  {
+                    value: "apartment",
+                    label: t("coach.housingType.apartment"),
+                  },
                   { value: "house", label: t("coach.housingType.house") },
                 ]}
                 value={profile.housingType}
@@ -717,7 +739,9 @@ export default function AdviceScreen() {
                   { value: "3", label: t("coach.propertyCount.threePlus") },
                 ]}
                 value={
-                  profile.propertyCount ? String(profile.propertyCount) : undefined
+                  profile.propertyCount
+                    ? String(profile.propertyCount)
+                    : undefined
                 }
                 onSelect={(v) =>
                   updateField("propertyCount", v ? parseInt(v, 10) : undefined)
@@ -768,7 +792,14 @@ export default function AdviceScreen() {
           {cfg.askPets ? (
             <>
               <Text style={styles.qLabel}>{cfg.petsLabel}</Text>
-              <View style={{ flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 4 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  marginTop: 8,
+                  marginBottom: 4,
+                }}
+              >
                 <TouchableOpacity
                   onPress={() => {
                     const active = profile.hasPets === true;
@@ -778,25 +809,59 @@ export default function AdviceScreen() {
                       pets: active ? undefined : profile.pets,
                     });
                   }}
-                  style={[styles.optionRow, { flex: 1 }, profile.hasPets === true && styles.optionRowActive]}
+                  style={[
+                    styles.optionRow,
+                    { flex: 1 },
+                    profile.hasPets === true && styles.optionRowActive,
+                  ]}
                   activeOpacity={0.85}
                 >
-                  <View style={[styles.radio, profile.hasPets === true && styles.radioActive]}>
-                    {profile.hasPets === true ? <Feather name="check" size={12} color="#000" /> : null}
+                  <View
+                    style={[
+                      styles.radio,
+                      profile.hasPets === true && styles.radioActive,
+                    ]}
+                  >
+                    {profile.hasPets === true ? (
+                      <Feather name="check" size={12} color="#000" />
+                    ) : null}
                   </View>
-                  <Text style={[styles.optionText, profile.hasPets === true && styles.optionTextActive]}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      profile.hasPets === true && styles.optionTextActive,
+                    ]}
+                  >
                     {t("coach.yes")}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => persist({ ...profile, hasPets: false, pets: [] })}
-                  style={[styles.optionRow, { flex: 1 }, profile.hasPets === false && styles.optionRowActive]}
+                  onPress={() =>
+                    persist({ ...profile, hasPets: false, pets: [] })
+                  }
+                  style={[
+                    styles.optionRow,
+                    { flex: 1 },
+                    profile.hasPets === false && styles.optionRowActive,
+                  ]}
                   activeOpacity={0.85}
                 >
-                  <View style={[styles.radio, profile.hasPets === false && styles.radioActive]}>
-                    {profile.hasPets === false ? <Feather name="check" size={12} color="#000" /> : null}
+                  <View
+                    style={[
+                      styles.radio,
+                      profile.hasPets === false && styles.radioActive,
+                    ]}
+                  >
+                    {profile.hasPets === false ? (
+                      <Feather name="check" size={12} color="#000" />
+                    ) : null}
                   </View>
-                  <Text style={[styles.optionText, profile.hasPets === false && styles.optionTextActive]}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      profile.hasPets === false && styles.optionTextActive,
+                    ]}
+                  >
                     {t("coach.no")}
                   </Text>
                 </TouchableOpacity>
@@ -829,7 +894,9 @@ export default function AdviceScreen() {
               return (
                 <TouchableOpacity
                   key={field}
-                  onPress={() => persist({ ...profile, [field]: active ? undefined : true })}
+                  onPress={() =>
+                    persist({ ...profile, [field]: active ? undefined : true })
+                  }
                   style={[styles.optionRow, active && styles.optionRowActive]}
                   activeOpacity={0.85}
                   accessibilityRole="checkbox"
@@ -837,9 +904,16 @@ export default function AdviceScreen() {
                   accessibilityLabel={label}
                 >
                   <View style={[styles.radio, active && styles.radioActive]}>
-                    {active ? <Feather name="check" size={12} color="#000" /> : null}
+                    {active ? (
+                      <Feather name="check" size={12} color="#000" />
+                    ) : null}
                   </View>
-                  <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      active && styles.optionTextActive,
+                    ]}
+                  >
                     {label}
                   </Text>
                 </TouchableOpacity>
@@ -916,7 +990,10 @@ export default function AdviceScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() =>
-              router.navigate({ pathname: "/", params: { tab: "premium" } } as never)
+              router.navigate({
+                pathname: "/",
+                params: { tab: "premium" },
+              } as never)
             }
             hitSlop={10}
           >
@@ -1030,6 +1107,18 @@ export default function AdviceScreen() {
           })
         )}
       </ScrollView>
+
+      {/* Le voile se pose sur la liste, jamais sur l'en-tête : on doit pouvoir
+          revenir en arrière, changer d'espace et rouvrir le questionnaire. */}
+      {adviceLocked ? (
+        <View style={styles.lockedArea} pointerEvents="box-none">
+          <LockedOverlay
+            titleKey="coach.paywall.title"
+            bodyKey="coach.paywall.body"
+            icon="award"
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -1078,7 +1167,9 @@ function QuestionBlock<T extends string>({
                   <Feather name="check" size={12} color="#000" />
                 ) : null}
               </View>
-              <Text style={[styles.optionText, active && styles.optionTextActive]}>
+              <Text
+                style={[styles.optionText, active && styles.optionTextActive]}
+              >
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -1108,7 +1199,9 @@ function ChipsBlock<T extends string>({
     <View style={{ marginBottom: 20 }}>
       <Text style={styles.qLabel}>{label}</Text>
       {hint ? <Text style={styles.qHint}>{hint}</Text> : null}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+      <View
+        style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}
+      >
         {options.map((opt) => {
           const active = opt.value === value;
           return (
@@ -1154,16 +1247,28 @@ function PetsBlock({
                 style={[styles.optionRow, active && styles.optionRowActive]}
                 activeOpacity={0.85}
               >
-                <View style={[styles.checkbox, active && styles.checkboxActive]}>
-                  {active ? <Feather name="check" size={12} color="#000" /> : null}
+                <View
+                  style={[styles.checkbox, active && styles.checkboxActive]}
+                >
+                  {active ? (
+                    <Feather name="check" size={12} color="#000" />
+                  ) : null}
                 </View>
-                <Text style={[styles.optionText, active && styles.optionTextActive, { flex: 1 }]}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    active && styles.optionTextActive,
+                    { flex: 1 },
+                  ]}
+                >
                   {opt.label}
                 </Text>
                 {active ? (
                   <View style={styles.stepper}>
                     <TouchableOpacity
-                      onPress={() => onSetCount(opt.value, (pet?.count ?? 1) - 1)}
+                      onPress={() =>
+                        onSetCount(opt.value, (pet?.count ?? 1) - 1)
+                      }
                       hitSlop={8}
                       style={styles.stepperBtn}
                     >
@@ -1171,7 +1276,9 @@ function PetsBlock({
                     </TouchableOpacity>
                     <Text style={styles.stepperValue}>{pet?.count ?? 1}</Text>
                     <TouchableOpacity
-                      onPress={() => onSetCount(opt.value, (pet?.count ?? 1) + 1)}
+                      onPress={() =>
+                        onSetCount(opt.value, (pet?.count ?? 1) + 1)
+                      }
                       hitSlop={8}
                       style={styles.stepperBtn}
                     >
@@ -1217,7 +1324,9 @@ function ChildrenBlock({
                   <Feather name="check" size={12} color="#000" />
                 ) : null}
               </View>
-              <Text style={[styles.optionText, active && styles.optionTextActive]}>
+              <Text
+                style={[styles.optionText, active && styles.optionTextActive]}
+              >
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -1295,10 +1404,7 @@ function AdviceCardView({
       {expanded ? (
         <View style={styles.sourcesList}>
           {card.sources.map((src, i) => (
-            <TouchableOpacity
-              key={i}
-              onPress={() => openExternal(src)}
-            >
+            <TouchableOpacity key={i} onPress={() => openExternal(src)}>
               <Text style={styles.sourceText}>{src}</Text>
             </TouchableOpacity>
           ))}
@@ -1309,8 +1415,15 @@ function AdviceCardView({
 }
 
 const styles = StyleSheet.create({
+  // Commence sous l'en-tête et le badge de scope, qui restent nets et actifs.
+  lockedArea: { position: "absolute", left: 0, right: 0, top: 116, bottom: 0 },
   safe: { flex: 1, backgroundColor: MIDNIGHT },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -1576,7 +1689,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  figureLabel: { color: TEXT_3, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.3 },
+  figureLabel: {
+    color: TEXT_3,
+    fontSize: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
   figureValue: {
     color: MINT,
     fontSize: 14,

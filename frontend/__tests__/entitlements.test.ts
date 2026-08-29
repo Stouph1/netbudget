@@ -6,9 +6,13 @@
 
 import {
   canCreateEvent,
+  canCreateGoal,
+  canJoinWorkspace,
+  canSeeScheduleYear,
   isEventTypeLocked,
   limitsFor,
   remainingEvents,
+  remainingGoals,
   tierUnlocking,
 } from "../src/lib/entitlements";
 
@@ -103,5 +107,92 @@ describe("tierUnlocking", () => {
 
   it("désigne Duo pour le mariage", () => {
     expect(tierUnlocking("wedding")).toBe("duo");
+  });
+});
+
+describe("objectifs d'épargne", () => {
+  it("laisse UN objectif sans abonnement", () => {
+    // Zéro rendrait la fonctionnalité invisible, donc invendable. Un objectif
+    // suffit à comprendre ce qu'elle apporte.
+    expect(canCreateGoal("free", 0).allowed).toBe(true);
+    expect(canCreateGoal("free", 1).allowed).toBe(false);
+  });
+
+  it("propose l'abonnement au premier refus, pas une formule supérieure", () => {
+    const denial = canCreateGoal("free", 1);
+    expect(denial.allowed).toBe(false);
+    expect(!denial.allowed && denial.reason).toBe("needsSubscription");
+    expect(!denial.allowed && denial.upgradeTo).toBe("solo");
+  });
+
+  it("en laisse trois en solo", () => {
+    expect(canCreateGoal("solo", 2).allowed).toBe(true);
+    expect(canCreateGoal("solo", 3).allowed).toBe(false);
+    expect(!canCreateGoal("solo", 3).allowed && canCreateGoal("solo", 3)).toMatchObject({
+      reason: "goalLimit",
+      upgradeTo: "duo",
+    });
+  });
+
+  it("n'en limite aucun sur les formules à plusieurs", () => {
+    for (const tier of ["duo", "family"] as const) {
+      expect(canCreateGoal(tier, 999).allowed).toBe(true);
+      expect(remainingGoals(tier, 999)).toBeNull();
+    }
+  });
+
+  it("annonce ce qui reste au lieu de laisser découvrir la limite", () => {
+    expect(remainingGoals("free", 0)).toBe(1);
+    expect(remainingGoals("solo", 1)).toBe(2);
+    // Jamais négatif : un ancien abonné redescendu en free garde ses objectifs
+    // mais n'en crée plus.
+    expect(remainingGoals("free", 5)).toBe(0);
+  });
+});
+
+describe("échéancier de prêt", () => {
+  it("laisse voir l'année en cours sans abonnement", () => {
+    expect(canSeeScheduleYear("free", 0)).toBe(true);
+  });
+
+  it("réserve la projection sur les années suivantes", () => {
+    expect(canSeeScheduleYear("free", 1)).toBe(false);
+    expect(canSeeScheduleYear("free", 12)).toBe(false);
+  });
+
+  it("laisse le passé lisible", () => {
+    // Ce sont des échéances déjà payées. Les masquer donnerait le sentiment
+    // qu'on retient son propre historique en otage.
+    expect(canSeeScheduleYear("free", -1)).toBe(true);
+    expect(canSeeScheduleYear("free", -8)).toBe(true);
+  });
+
+  it("ouvre tout dès la première formule payante", () => {
+    for (const tier of ["solo", "duo", "family"] as const) {
+      expect(canSeeScheduleYear(tier, 25)).toBe(true);
+    }
+  });
+});
+
+describe("rejoindre un espace partagé", () => {
+  it("est ouvert à tout le monde, abonnement ou non", () => {
+    // C'est l'abonné qui paie pour inviter. Bloquer l'invité annulerait
+    // l'achat qu'on vient d'encaisser.
+    expect(canJoinWorkspace()).toBe(true);
+  });
+
+  it("ne se confond pas avec le droit d'en créer un", () => {
+    expect(limitsFor("free").maxWorkspaces).toBe(0);
+    expect(limitsFor("solo").maxWorkspaces).toBe(0);
+    expect(limitsFor("duo").maxWorkspaces).toBeGreaterThan(0);
+  });
+});
+
+describe("conseils personnalisés", () => {
+  it("sont réservés aux formules payantes", () => {
+    expect(limitsFor("free").advice).toBe(false);
+    for (const tier of ["solo", "duo", "family"] as const) {
+      expect(limitsFor(tier).advice).toBe(true);
+    }
   });
 });

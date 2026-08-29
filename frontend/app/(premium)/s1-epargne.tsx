@@ -29,6 +29,9 @@ import {
   type SavingsGoal,
 } from "../../src/types/premium";
 import GoalEditor from "./_components/GoalEditor";
+import { PaywallSheet } from "../../src/components/PaywallSheet";
+import { usePaywall } from "../../src/hooks/usePaywall";
+import { remainingGoals } from "../../src/lib/entitlements";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -66,7 +69,6 @@ const DATE_LOCALES: Record<Lang, string> = {
   ja: "ja-JP",
 };
 
-
 function progressPct(goal: SavingsGoal): number {
   if (goal.targetAmount <= 0) return 0;
   return Math.min(100, (goal.currentAmount / goal.targetAmount) * 100);
@@ -84,7 +86,10 @@ function goalPlan(
   if (remaining <= 0) return { text: t("goals.plan.done"), tone: "ok" };
 
   const monthLabel = (d: Date) =>
-    d.toLocaleDateString(DATE_LOCALES[lang], { month: "long", year: "numeric" });
+    d.toLocaleDateString(DATE_LOCALES[lang], {
+      month: "long",
+      year: "numeric",
+    });
   const euro = (n: number) =>
     new Intl.NumberFormat("fr-FR", {
       style: "currency",
@@ -149,7 +154,13 @@ export default function S1Epargne() {
   // aucun effet sur cet écran).
   const { fmt: formatEuro, currency } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
-  const { workspaceId, scopeLabel, scopeLabelIsKey, loading: scopeLoading } = useActiveScope();
+  const paywall = usePaywall();
+  const {
+    workspaceId,
+    scopeLabel,
+    scopeLabelIsKey,
+    loading: scopeLoading,
+  } = useActiveScope();
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
   const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [payload, setPayload] = useState<S1Payload>(EMPTY_S1_PAYLOAD);
@@ -210,6 +221,13 @@ export default function S1Epargne() {
     [user?.id, workspaceId, t, tp],
   );
 
+  // Objectifs ACTIFS uniquement : un objectif atteint puis archivé ne doit pas
+  // continuer d'occuper une place, sinon la limite devient « nombre
+  // d'objectifs que tu auras eus dans ta vie ».
+  const activeGoalCount = payload.goals.filter((g) => !g.extraP).length;
+
+  const goalsLeft = remainingGoals(paywall.tier, activeGoalCount);
+
   const upsertGoal = useCallback(
     (g: SavingsGoal) => {
       const next = { ...payload };
@@ -267,7 +285,10 @@ export default function S1Epargne() {
         <Text style={styles.title}>{t("goals.title")}</Text>
         <TouchableOpacity
           onPress={() =>
-            router.navigate({ pathname: "/", params: { tab: "premium" } } as never)
+            router.navigate({
+              pathname: "/",
+              params: { tab: "premium" },
+            } as never)
           }
           hitSlop={10}
         >
@@ -281,11 +302,7 @@ export default function S1Epargne() {
         onPress={() => setSwitcherOpen(true)}
         activeOpacity={0.8}
       >
-        <Feather
-          name={workspaceId ? "users" : "user"}
-          size={13}
-          color={GOLD}
-        />
+        <Feather name={workspaceId ? "users" : "user"} size={13} color={GOLD} />
         <Text style={styles.scopeBadgeText}>{resolvedScopeLabel}</Text>
         <Feather name="chevron-down" size={13} color={TEXT_3} />
       </TouchableOpacity>
@@ -294,6 +311,31 @@ export default function S1Epargne() {
         visible={switcherOpen}
         onClose={() => setSwitcherOpen(false)}
       />
+
+      {/* Ce qui reste, ANNONCÉ. Découvrir une limite au moment où on se la
+          prend donne le sentiment d'un piège ; la voir avant est une
+          information. On ne l'affiche que s'il y a une limite. */}
+      {goalsLeft !== null ? (
+        <TouchableOpacity
+          style={styles.quotaRow}
+          onPress={() => router.push("/plans" as never)}
+          activeOpacity={goalsLeft === 0 ? 0.7 : 1}
+          disabled={goalsLeft > 0}
+        >
+          <Feather
+            name={goalsLeft === 0 ? "lock" : "target"}
+            size={12}
+            color={goalsLeft === 0 ? GOLD : TEXT_3}
+          />
+          <Text style={[styles.quotaText, goalsLeft === 0 && { color: GOLD }]}>
+            {goalsLeft === 0
+              ? t("goals.quota.full")
+              : tp(goalsLeft > 1 ? "goals.quota.left" : "goals.quota.leftOne", {
+                  n: goalsLeft,
+                })}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         {donutSegments.length > 0 ? (
@@ -308,7 +350,9 @@ export default function S1Epargne() {
             />
             <Text style={styles.totalMeta}>
               {tp(
-                totals.count > 1 ? "goals.donutMeta.many" : "goals.donutMeta.one",
+                totals.count > 1
+                  ? "goals.donutMeta.many"
+                  : "goals.donutMeta.one",
                 { total: formatEuro(totals.target), count: totals.count },
               )}
             </Text>
@@ -317,8 +361,12 @@ export default function S1Epargne() {
           <View style={styles.totalCard}>
             <Text style={styles.totalLabel}>{t("goals.totalLabel")}</Text>
             <View style={styles.totalRow}>
-              <Text style={styles.totalCurrent}>{formatEuro(totals.current)}</Text>
-              <Text style={styles.totalTarget}>/ {formatEuro(totals.target)}</Text>
+              <Text style={styles.totalCurrent}>
+                {formatEuro(totals.current)}
+              </Text>
+              <Text style={styles.totalTarget}>
+                / {formatEuro(totals.target)}
+              </Text>
             </View>
             <View style={styles.progressBar}>
               <View
@@ -345,84 +393,115 @@ export default function S1Epargne() {
               return ra !== rb ? ra - rb : a.i - b.i;
             })
             .map(({ g: item, i }) => {
-            const color = item.color ?? SEGMENT_COLORS[i % SEGMENT_COLORS.length];
-            const plan = goalPlan(item, lang, t, tp);
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.goalCard}
-                onPress={() => {
-                  setEditingGoal(item);
-                  setEditorOpen(true);
-                }}
-                activeOpacity={0.85}
-              >
-                <View style={styles.goalHeader}>
-                  <View style={[styles.colorDot, { backgroundColor: color }]} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.goalLabel}>{item.label}</Text>
-                    <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
-                      {item.priority === "urgent" ? (
-                        <Text style={[styles.priorityTag, styles.priorityUrgent]}>
-                          {t("goals.tag.urgent")}
-                        </Text>
-                      ) : null}
-                      {item.priority === "optional" ? (
-                        <Text style={[styles.priorityTag, styles.priorityOptional]}>
-                          {t("goals.tag.optional")}
-                        </Text>
-                      ) : null}
-                      {item.extraP ? (
-                        <Text style={styles.extraPTag}>{t("goals.tag.extraP")}</Text>
-                      ) : null}
-                    </View>
-                  </View>
-                  <Text style={styles.goalPct}>
-                    {progressPct(item).toFixed(0)}%
-                  </Text>
-                </View>
-                <View style={styles.goalRow}>
-                  <Text style={styles.goalCurrent}>
-                    {formatEuro(item.currentAmount)}
-                  </Text>
-                  <Text style={styles.goalTarget}>
-                    / {formatEuro(item.targetAmount)}
-                  </Text>
-                </View>
-                <View style={styles.progressBarSmall}>
-                  <View
-                    style={[
-                      styles.progressBarFillSmall,
-                      { width: `${progressPct(item)}%`, backgroundColor: color },
-                    ]}
-                  />
-                </View>
-                {plan ? (
-                  <View style={styles.goalPlanRow}>
-                    <Feather
-                      name={plan.tone === "late" ? "alert-circle" : "calendar"}
-                      size={13}
-                      color={plan.tone === "late" ? "#F87171" : TEXT_3}
+              const color =
+                item.color ?? SEGMENT_COLORS[i % SEGMENT_COLORS.length];
+              const plan = goalPlan(item, lang, t, tp);
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.goalCard}
+                  onPress={() => {
+                    setEditingGoal(item);
+                    setEditorOpen(true);
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.goalHeader}>
+                    <View
+                      style={[styles.colorDot, { backgroundColor: color }]}
                     />
-                    <Text
-                      style={[
-                        styles.goalPlanText,
-                        plan.tone === "late" && { color: "#F87171" },
-                      ]}
-                    >
-                      {plan.text}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.goalLabel}>{item.label}</Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 6,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {item.priority === "urgent" ? (
+                          <Text
+                            style={[styles.priorityTag, styles.priorityUrgent]}
+                          >
+                            {t("goals.tag.urgent")}
+                          </Text>
+                        ) : null}
+                        {item.priority === "optional" ? (
+                          <Text
+                            style={[
+                              styles.priorityTag,
+                              styles.priorityOptional,
+                            ]}
+                          >
+                            {t("goals.tag.optional")}
+                          </Text>
+                        ) : null}
+                        {item.extraP ? (
+                          <Text style={styles.extraPTag}>
+                            {t("goals.tag.extraP")}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+                    <Text style={styles.goalPct}>
+                      {progressPct(item).toFixed(0)}%
                     </Text>
                   </View>
-                ) : null}
-              </TouchableOpacity>
-            );
-          })
+                  <View style={styles.goalRow}>
+                    <Text style={styles.goalCurrent}>
+                      {formatEuro(item.currentAmount)}
+                    </Text>
+                    <Text style={styles.goalTarget}>
+                      / {formatEuro(item.targetAmount)}
+                    </Text>
+                  </View>
+                  <View style={styles.progressBarSmall}>
+                    <View
+                      style={[
+                        styles.progressBarFillSmall,
+                        {
+                          width: `${progressPct(item)}%`,
+                          backgroundColor: color,
+                        },
+                      ]}
+                    />
+                  </View>
+                  {plan ? (
+                    <View style={styles.goalPlanRow}>
+                      <Feather
+                        name={
+                          plan.tone === "late" ? "alert-circle" : "calendar"
+                        }
+                        size={13}
+                        color={plan.tone === "late" ? "#F87171" : TEXT_3}
+                      />
+                      <Text
+                        style={[
+                          styles.goalPlanText,
+                          plan.tone === "late" && { color: "#F87171" },
+                        ]}
+                      >
+                        {plan.text}
+                      </Text>
+                    </View>
+                  ) : null}
+                </TouchableOpacity>
+              );
+            })
         )}
       </ScrollView>
 
       <TouchableOpacity
         style={styles.fab}
         onPress={() => {
+          // On demande AVANT d'ouvrir l'éditeur. Laisser remplir un formulaire
+          // pour refuser à l'enregistrement est la pire des séquences : le
+          // travail est perdu et le refus paraît arbitraire.
+          if (
+            !paywall.require({ feature: "goal", currentCount: activeGoalCount })
+          ) {
+            return;
+          }
           setEditingGoal(null);
           setEditorOpen(true);
         }}
@@ -430,6 +509,12 @@ export default function S1Epargne() {
       >
         <Feather name="plus" size={24} color="#000" />
       </TouchableOpacity>
+
+      <PaywallSheet
+        visible={paywall.visible}
+        reason={paywall.reason}
+        onClose={paywall.close}
+      />
 
       <GoalEditor
         visible={editorOpen}
@@ -458,8 +543,23 @@ export default function S1Epargne() {
 }
 
 const styles = StyleSheet.create({
+  quotaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "center",
+    marginBottom: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  quotaText: { color: TEXT_3, fontSize: 11.5, fontWeight: "600" },
   safe: { flex: 1, backgroundColor: MIDNIGHT },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -513,7 +613,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontFamily: MONO_FONT,
   },
-  totalMeta: { color: TEXT_2, fontSize: 13, marginTop: 12, textAlign: "center" },
+  totalMeta: {
+    color: TEXT_2,
+    fontSize: 13,
+    marginTop: 12,
+    textAlign: "center",
+  },
   progressBar: {
     marginTop: 12,
     height: 6,
