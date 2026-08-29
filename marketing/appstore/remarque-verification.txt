@@ -1,0 +1,50 @@
+NETbudget est une application de budget personnel. Elle fonctionne
+entierement sans compte et sans connexion : le budget, les prets, le reste a
+vivre et le convertisseur de devises sont gratuits et sans limite de duree.
+Rien n'est bloque derriere l'abonnement dans cette partie de l'application.
+
+L'abonnement debloque trois choses :
+- la synchronisation des donnees entre plusieurs appareils, chiffree de bout
+  en bout (la cle est generee sur l'appareil et ne le quitte jamais) ;
+- des conseils personnalises selon la situation de l'utilisateur (age,
+  situation familiale, logement, pays), issus exclusivement de sources
+  publiques officielles citees dans chaque fiche ;
+- des budgets d'evenement (voyage, mariage, naissance...).
+
+Les trois formules different par le nombre de personnes et le nombre
+d'evenements suivis simultanement :
+- Solo : 1 personne, 1 evenement a la fois, budget mariage non inclus
+- Duo : 2 personnes, evenements illimites
+- Famille : jusqu'a 6 personnes, evenements illimites
+
+COMMENT ATTEINDRE L'ECRAN D'ACHAT
+1. Ouvrir l'application.
+2. Toucher l'onglet Profil (icone la plus a droite de la barre du bas).
+3. Se connecter avec le compte de test fourni ci-dessous, ou creer un compte
+   par e-mail.
+4. Toucher la tuile « Formules ».
+
+L'ecran affiche les trois formules, la bascule mensuel / annuel, la duree de
+l'essai gratuit, le montant preleve ensuite, le fait que le renouvellement est
+automatique et la maniere de le resilier. La restauration des achats est
+accessible en bas du meme ecran.
+
+COMPTE DE TEST
+Adresse : [A COMPLETER]
+Mot de passe : [A COMPLETER]
+
+Aucune donnee reelle n'est necessaire pour tester : les montants saisis sont
+libres.
+
+REMARQUES COMPLEMENTAIRES
+- L'application ne se connecte a aucune banque et ne demande aucune
+  information bancaire. Les paiements passent exclusivement par l'App Store.
+- Les conseils affiches sont informatifs. Chaque fiche cite ses sources
+  officielles et la date de derniere verification, et l'application indique
+  qu'ils ne remplacent pas l'avis d'un professionnel.
+- Aucune publicite, aucun traceur, aucune mesure d'audience.
+- Un essai gratuit de 7 jours est configure sur chaque produit. Il est annonce
+  dans l'application au-dessus du bouton d'achat, avec le montant preleve
+  ensuite et la marche a suivre pour arreter.
+- Les conditions d'utilisation et la politique de confidentialite sont
+  accessibles depuis l'ecran des formules et sur https://netbudget.app
