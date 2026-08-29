@@ -39,12 +39,23 @@ export function LockedOverlay({
   icon = "lock",
   /** Hauteur minimale du voile — au moins la place de la carte. */
   minHeight = 180,
+  align = "center",
   onPress,
 }: {
   titleKey: string;
   bodyKey: string;
   icon?: keyof typeof Feather.glyphMap;
   minHeight?: number;
+  /**
+   * Où poser la carte dans la zone floutée.
+   *
+   * « center » va bien sur un bloc de la taille d'un écran. Sur un bloc LONG —
+   * vingt années d'échéancier, deux mille pixels — centrer envoie la carte à
+   * mille pixels du haut, c'est-à-dire hors de vue : l'utilisateur ne voit
+   * qu'un flou sans explication et sans issue. « top » la garde là où le
+   * regard est déjà.
+   */
+  align?: "center" | "top";
   /** Par défaut, envoie vers les formules. */
   onPress?: () => void;
 }) {
@@ -67,7 +78,10 @@ export function LockedOverlay({
         pointerEvents="none"
       />
 
-      <View style={styles.center} pointerEvents="box-none">
+      <View
+        style={[styles.center, align === "top" && styles.top]}
+        pointerEvents="box-none"
+      >
         <View style={styles.card}>
           <View style={styles.iconWrap}>
             <Feather name={icon} size={20} color={GOLD} />
@@ -96,6 +110,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 18,
   },
+  top: { justifyContent: "flex-start", paddingTop: 26 },
   card: {
     maxWidth: 340,
     width: "100%",

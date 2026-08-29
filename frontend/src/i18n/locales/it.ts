@@ -575,6 +575,7 @@ export const it: Catalog = {
   "coach.paywall.body": "Il tuo profilo è salvato. L'abbonamento mostra i consigli adatti alla tua situazione, ciascuno con la sua fonte ufficiale.",
   "schedule.locked.title": "Guarda gli anni che verranno",
   "schedule.locked.body": "L'anno in corso resta visibile. L'abbonamento apre tutto il piano di ammortamento: mese per mese, fino all'ultima rata, e quanto costa il prestito in totale.",
+  "schedule.locked.more": "e altri {n} anni",
   "goals.quota.full": "Tutti i tuoi obiettivi sono occupati: creane altri",
   "goals.quota.left": "Restano {n} obiettivi",
   "goals.quota.leftOne": "Resta 1 obiettivo",

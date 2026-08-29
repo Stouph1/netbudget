@@ -575,6 +575,7 @@ export const ar: Catalog = {
   "coach.paywall.body": "تم حفظ ملفك. يعرض الاشتراك النصائح المناسبة لوضعك، وكل نصيحة مع مصدرها الرسمي.",
   "schedule.locked.title": "اطّلع على السنوات القادمة",
   "schedule.locked.body": "تبقى السنة الحالية ظاهرة. ويفتح الاشتراك جدول السداد كاملاً: شهراً بشهر حتى آخر قسط، وكم يكلّفك القرض في المجموع.",
+  "schedule.locked.more": "و{n} سنوات أخرى",
   "goals.quota.full": "كل أهدافك مستخدَمة — أنشئ المزيد",
   "goals.quota.left": "بقيت {n} أهداف",
   "goals.quota.leftOne": "بقي هدف واحد",

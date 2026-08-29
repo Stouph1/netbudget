@@ -373,6 +373,13 @@ const styles = StyleSheet.create({
   // `position: relative` explicite : le voile est en absolu par-dessus, et
   // doit se caler sur ce bloc-ci, pas sur la feuille entière.
   lockedBlock: { position: "relative" },
+  lockedMore: {
+    color: "#8193AC",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 14,
+    marginBottom: 4,
+  },
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",

@@ -18,6 +18,7 @@
 //    dont on ne sort qu'en achetant se fait refuser en revue, et à raison.
 
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
   Modal,
@@ -101,7 +102,12 @@ export function PaywallSheet({
 
           <Text style={s.sub}>{t(reason.featureKey)}</Text>
 
-          <ScrollView style={{ maxHeight: 330 }} showsVerticalScrollIndicator={false}>
+          {/* La liste occupe la place restante ; l'essai et le bouton
+              restent toujours visibles dessous. Une hauteur figée coupait la
+              troisième formule en plein titre — ça ne se lit pas comme « fais
+              défiler », ça se lit comme « c'est cassé ». */}
+          <View style={s.listWrap}>
+            <ScrollView showsVerticalScrollIndicator contentContainerStyle={{ paddingBottom: 18 }}>
             {SELLABLE_TIERS.map((tier) => {
               const members = planMembers(tier);
               const best = tier === HIGHLIGHTED_TIER;
@@ -130,7 +136,16 @@ export function PaywallSheet({
                 </View>
               );
             })}
-          </ScrollView>
+            </ScrollView>
+
+            {/* Dégradé sur le bord bas : une carte à demi masquée par un
+                fondu se lit comme « il y en a encore », pas comme un défaut. */}
+            <LinearGradient
+              colors={["rgba(15,23,42,0)", MIDNIGHT]}
+              style={s.fade}
+              pointerEvents="none"
+            />
+          </View>
 
           {/* L'essai est annoncé ici aussi : c'est le moment où la question se
               pose, pas deux écrans plus loin. */}
@@ -165,6 +180,9 @@ export function PaywallSheet({
 const s = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
   sheet: {
+    // Bornée en hauteur : sans ça, une feuille plus haute que l'écran pousse
+    // le bouton d'action hors de vue.
+    maxHeight: "86%",
     backgroundColor: MIDNIGHT,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -180,6 +198,8 @@ const s = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 14,
   },
+  listWrap: { flexShrink: 1, position: "relative" },
+  fade: { position: "absolute", left: 0, right: 0, bottom: 0, height: 34 },
   head: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   title: { flex: 1, color: TEXT_1, fontSize: 19, fontWeight: "800", lineHeight: 25 },
   sub: { color: TEXT_2, fontSize: 14, lineHeight: 20, marginTop: 8, marginBottom: 16 },
