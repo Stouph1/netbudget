@@ -21,7 +21,12 @@
 
 import { NativeModules, Platform } from "react-native";
 import type { Tier } from "../entitlements";
-import { PRODUCT_IDS, type Period } from "./plans";
+import {
+  PLAY_BASE_PLANS,
+  PLAY_SUBSCRIPTION_IDS,
+  PRODUCT_IDS,
+  type Period,
+} from "./plans";
 import { loadPurchases, type PurchasesModule } from "./purchases";
 import type { BillingProvider, Offering, PurchaseResult } from "./provider";
 
@@ -68,16 +73,64 @@ function hasNativeModule(): boolean {
   return Platform.OS !== "web" && Boolean(NativeModules.RNPurchases);
 }
 
-/** Retrouve formule et périodicité depuis l'identifiant produit. */
+const TIERS = Object.keys(PRODUCT_IDS) as Exclude<Tier, "free">[];
+const PERIODS: Period[] = ["monthly", "yearly"];
+
+/**
+ * Retrouve formule et périodicité depuis l'identifiant que renvoie la boutique.
+ *
+ * DEUX FORMES, parce que les deux boutiques ne nomment pas pareil :
+ *   Apple  : « netbudget.solo.monthly »  — un produit par formule et durée
+ *   Google : « netbudget.solo:monthly »  — abonnement, puis base plan
+ *
+ * On accepte les deux ici plutôt que d'aiguiller sur `Platform.OS` : le jour
+ * où un identifiant arrive de l'autre boutique — restauration croisée, compte
+ * migré, test sur simulateur — il est reconnu au lieu d'être jeté.
+ */
 function describeProduct(
   productId: string,
 ): { tier: Exclude<Tier, "free">; period: Period } | null {
-  for (const tier of Object.keys(PRODUCT_IDS) as Exclude<Tier, "free">[]) {
-    for (const period of ["monthly", "yearly"] as Period[]) {
+  // Forme Google. Un base plan assorti d'une offre s'écrit « base:offre » :
+  // on ne garde que le premier segment, l'offre ne change pas la durée.
+  const colon = productId.indexOf(":");
+  if (colon > 0) {
+    const subId = productId.slice(0, colon);
+    const basePlan = productId.slice(colon + 1).split(":")[0];
+    const tier = TIERS.find((x) => PLAY_SUBSCRIPTION_IDS[x] === subId);
+    const period = PERIODS.find((x) => PLAY_BASE_PLANS[x] === basePlan);
+    return tier && period ? { tier, period } : null;
+  }
+
+  // Forme Apple.
+  for (const tier of TIERS) {
+    for (const period of PERIODS) {
       if (PRODUCT_IDS[tier][period] === productId) return { tier, period };
     }
   }
   return null;
+}
+
+/**
+ * Identifiants à demander à la boutique.
+ *
+ * Chez Google on interroge les TROIS abonnements : la boutique renvoie ensuite
+ * un produit par base plan. Demander « netbudget.solo.monthly » n'y renverrait
+ * rien, cet identifiant n'existe pas côté Play.
+ */
+function storeProductIds(): string[] {
+  if (Platform.OS === "android") return Object.values(PLAY_SUBSCRIPTION_IDS);
+  return Object.values(PRODUCT_IDS).flatMap((byPeriod) => Object.values(byPeriod));
+}
+
+/**
+ * Identifiant canonique interne : celui d'Apple, quelle que soit la boutique.
+ *
+ * Le reste de l'app n'en connaît qu'un seul jeu. Sans ça, l'écran des formules
+ * devrait porter un `Platform.OS` — et la première divergence entre les deux
+ * boutiques passerait inaperçue jusqu'à la production Android.
+ */
+function canonicalId(tier: Exclude<Tier, "free">, period: Period): string {
+  return PRODUCT_IDS[tier][period];
 }
 
 /** Le plus haut droit actif. « free » si aucun. */
@@ -159,11 +212,8 @@ export const revenueCatBilling: BillingProvider = {
 
   async listOfferings(): Promise<Offering[]> {
     if (!Purchases) return [];
-    const ids = Object.values(PRODUCT_IDS).flatMap((byPeriod) =>
-      Object.values(byPeriod),
-    );
     try {
-      const products = await Purchases.getProducts(ids);
+      const products = await Purchases.getProducts(storeProductIds());
       const out: Offering[] = [];
       for (const p of products) {
         const what = describeProduct(p.identifier);
@@ -172,7 +222,7 @@ export const revenueCatBilling: BillingProvider = {
         // sait pas honorer.
         if (!what) continue;
         out.push({
-          productId: p.identifier,
+          productId: canonicalId(what.tier, what.period),
           tier: what.tier,
           period: what.period,
           priceLabel: p.priceString,
@@ -192,7 +242,13 @@ export const revenueCatBilling: BillingProvider = {
     if (!what) return { ok: false, reason: "unavailable" };
 
     try {
-      const [product] = await Purchases.getProducts([productId]);
+      // On redemande le catalogue plutôt que d'interroger `productId` tel quel :
+      // sur Google, cet identifiant n'existe pas côté boutique.
+      const products = await Purchases.getProducts(storeProductIds());
+      const product = products.find((p) => {
+        const d = describeProduct(p.identifier);
+        return d && d.tier === what.tier && d.period === what.period;
+      });
       if (!product) return { ok: false, reason: "unavailable" };
 
       const result = await Purchases.purchaseStoreProduct(product);
@@ -234,4 +290,11 @@ export function __resetRevenueCatForTests(): void {
   configuredFor = null;
 }
 
-export const __testing = { describeProduct, tierFromCustomerInfo, reasonFromError, ENTITLEMENTS };
+export const __testing = {
+  describeProduct,
+  tierFromCustomerInfo,
+  reasonFromError,
+  storeProductIds,
+  canonicalId,
+  ENTITLEMENTS,
+};

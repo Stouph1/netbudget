@@ -8,9 +8,14 @@
 //   - erreur du SDK -> message affiché.
 
 import { __testing } from "../src/lib/billing/revenuecat";
-import { PRODUCT_IDS } from "../src/lib/billing/plans";
+import {
+  PLAY_BASE_PLANS,
+  PLAY_SUBSCRIPTION_IDS,
+  PRODUCT_IDS,
+} from "../src/lib/billing/plans";
 
-const { describeProduct, tierFromCustomerInfo, reasonFromError, ENTITLEMENTS } = __testing;
+const { describeProduct, tierFromCustomerInfo, reasonFromError, canonicalId, ENTITLEMENTS } =
+  __testing;
 
 describe("identification des produits", () => {
   it("reconnaît les six produits du catalogue", () => {
@@ -21,11 +26,39 @@ describe("identification des produits", () => {
     }
   });
 
+  it("reconnaît la forme Google : abonnement + base plan", () => {
+    // Play ne vend pas six produits mais trois abonnements à deux base plans.
+    // Sans ça, un abonné Android paie et l'app ne sait pas ce qu'il a acheté.
+    for (const tier of ["solo", "duo", "family"] as const) {
+      for (const period of ["monthly", "yearly"] as const) {
+        const id = `${PLAY_SUBSCRIPTION_IDS[tier]}:${PLAY_BASE_PLANS[period]}`;
+        expect(describeProduct(id)).toEqual({ tier, period });
+      }
+    }
+  });
+
+  it("supporte un base plan assorti d'une offre promotionnelle", () => {
+    // « base:offre » — la promo des 100 premiers passera par là. L'offre ne
+    // change pas la durée, donc pas la formule accordée.
+    expect(describeProduct("netbudget.duo:yearly:premiers100")).toEqual({
+      tier: "duo",
+      period: "yearly",
+    });
+  });
+
+  it("ramène toujours à l'identifiant canonique, quelle que soit la boutique", () => {
+    // Le reste de l'app ne connaît qu'un seul jeu d'identifiants.
+    const google = describeProduct("netbudget.family:monthly")!;
+    expect(canonicalId(google.tier, google.period)).toBe(PRODUCT_IDS.family.monthly);
+  });
+
   it("ignore un produit inconnu au lieu de deviner", () => {
     // Deviner ici accorderait un palier au hasard sur un produit qu'on n'a pas
     // créé — par exemple un ancien identifiant resté dans la boutique.
     expect(describeProduct("netbudget.pro.lifetime")).toBeNull();
     expect(describeProduct("")).toBeNull();
+    expect(describeProduct("netbudget.solo:weekly")).toBeNull();
+    expect(describeProduct("autre.app:monthly")).toBeNull();
   });
 });
 

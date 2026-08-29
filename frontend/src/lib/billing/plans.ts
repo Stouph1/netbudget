@@ -33,6 +33,31 @@ export const PRODUCT_IDS: Record<Exclude<Tier, "free">, Record<Period, string>> 
   family: { monthly: "netbudget.family.monthly", yearly: "netbudget.family.yearly" },
 };
 
+/**
+ * Identifiants côté Google Play, qui ne suit PAS le même modèle qu'Apple.
+ *
+ * Apple vend six produits indépendants. Google vend TROIS abonnements, chacun
+ * portant deux « base plans » (mensuel, annuel). Ce n'est pas un détail de
+ * nommage : chez Google, passer du mensuel à l'annuel à l'intérieur d'un même
+ * abonnement est un changement de base plan, avec calcul du prorata par la
+ * boutique. Avec six abonnements séparés, le client devrait résilier puis
+ * reprendre — et perdrait son ancienneté.
+ *
+ * L'app continue de manipuler les identifiants Apple partout : la traduction
+ * se fait au seul endroit qui parle à la boutique (revenuecat.ts).
+ */
+export const PLAY_SUBSCRIPTION_IDS: Record<Exclude<Tier, "free">, string> = {
+  solo: "netbudget.solo",
+  duo: "netbudget.duo",
+  family: "netbudget.family",
+};
+
+/** Base plans à créer dans chaque abonnement Google Play. */
+export const PLAY_BASE_PLANS: Record<Period, string> = {
+  monthly: "monthly",
+  yearly: "yearly",
+};
+
 /** Formules vendues, dans l'ordre d'affichage. */
 export const SELLABLE_TIERS: Exclude<Tier, "free">[] = ["solo", "duo", "family"];
 
