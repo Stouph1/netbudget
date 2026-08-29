@@ -40,15 +40,11 @@ import {
   saveEvents,
   type EventProject,
 } from "../lib/premiumStore";
-import {
-  canCreateEvent,
-  isEventTypeLocked,
-  type Tier,
-} from "../lib/entitlements";
-import { loadTier } from "../lib/tier";
+import { PaywallSheet } from "./PaywallSheet";
+import { usePaywall } from "../hooks/usePaywall";
 import type { UserProfile } from "../types/advice";
 import { scheduleEventNotifications } from "../utils/eventNotify";
-import { confirmDialog, notify } from "../utils/notify";
+import { notify } from "../utils/notify";
 import { getRates, type RatesPayload } from "../utils/exchangeRates";
 import {
   applyTripToItems,
@@ -122,11 +118,9 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   // Taux de change : les barèmes sourcés sont en euros, l'affichage suit la
   // devise de l'utilisateur.
   const [rates, setRates] = useState<RatesPayload | null>(null);
-  // Formule active — à ne pas confondre avec `tier`, la GAMME de l'événement.
-  // Le départ à « free » est volontairement RESTRICTIF : entre le montage et la
-  // réponse du serveur, mieux vaut proposer une formule à quelqu'un qui l'a
-  // déjà que de laisser créer un événement à quelqu'un qui n'y a pas droit.
-  const [plan, setPlan] = useState<Tier>("free");
+  // Les limites de formule vivent dans un seul endroit (usePaywall) : les
+  // recopier ici finirait par laisser passer ce qu'un autre écran refuse.
+  const paywall = usePaywall();
 
   useFocusEffect(
     useCallback(() => {
@@ -157,11 +151,6 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
           if (!cancelled) setRates(r);
         })
         .catch(() => {});
-      loadTier()
-        .then((p) => {
-          if (!cancelled) setPlan(p);
-        })
-        .catch(() => {});
       return () => {
         cancelled = true;
       };
@@ -174,24 +163,13 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   // remplir un formulaire complet pour lui refuser à la validation est la
   // pire façon d'annoncer une limite.
   const startCreating = useCallback(() => {
-    const verdict = canCreateEvent(plan, (list ?? []).length, "travel");
-    if (verdict.allowed || verdict.reason === "typeLocked") {
+    // On teste avec un type ordinaire : si SEUL le mariage est verrouillé,
+    // l'assistant doit quand même s'ouvrir — le blocage se dira au moment de
+    // choisir ce type-là, pas avant.
+    if (paywall.require({ feature: "event", type: "travel", currentCount: (list ?? []).length })) {
       setCreating(true);
-      return;
     }
-    // On ne se contente pas de refuser : on emmène là où le blocage se lève.
-    // Un refus sans issue est une impasse, et l'utilisateur ne cherchera pas
-    // l'écran des formules de lui-même.
-    confirmDialog(
-      t("events.plan.title"),
-      verdict.reason === "needsSubscription"
-        ? t("events.plan.subscribe")
-        : t("events.plan.quota"),
-      t("plan.choose.cta"),
-      () => router.push("/plans" as never),
-      { cancelLabel: t("btn.cancel") },
-    );
-  }, [plan, list, t]);
+  }, [paywall, list]);
 
   const days = Math.max(0, parseInt(stayLength, 10) || 0);
   const travelers = Math.max(1, parseInt(guests, 10) || 1);
@@ -210,19 +188,11 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     if (!user?.id || !tpl) return;
     // Dernier garde-fou : entre l'ouverture de l'assistant et la validation,
     // un autre appareil du même espace a pu créer un événement.
-    const verdict = canCreateEvent(plan, (list ?? []).length, tpl.type);
-    if (!verdict.allowed) {
-      confirmDialog(
-        t("events.plan.title"),
-        verdict.reason === "needsSubscription"
-          ? t("events.plan.subscribe")
-          : verdict.reason === "typeLocked"
-            ? tp("events.plan.type", { type: t(tpl.labelKey) })
-            : t("events.plan.quota"),
-        t("plan.choose.cta"),
-        () => router.push("/plans" as never),
-        { cancelLabel: t("btn.cancel") },
-      );
+    if (!paywall.require({
+      feature: "event",
+      type: tpl.type,
+      currentCount: (list ?? []).length,
+    })) {
       return;
     }
     const iso = parseFutureDate(dateStr);
@@ -424,7 +394,11 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
               {EVENT_TEMPLATES.map((tpl0) => {
                 // Un type indisponible reste VISIBLE mais marqué : le cacher
                 // priverait l'utilisateur de la raison de monter de formule.
-                const locked = isEventTypeLocked(plan, tpl0.type);
+                const locked = !paywall.allows({
+                  feature: "event",
+                  type: tpl0.type,
+                  currentCount: (list ?? []).length,
+                });
                 return (
                   <TouchableOpacity
                     key={tpl0.type}
@@ -439,13 +413,11 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                     }
                     onPress={() => {
                       if (locked) {
-                        confirmDialog(
-                          t("events.plan.title"),
-                          tp("events.plan.type", { type: t(tpl0.labelKey) }),
-                          t("plan.choose.cta"),
-                          () => router.push("/plans" as never),
-                          { cancelLabel: t("btn.cancel") },
-                        );
+                        paywall.require({
+                          feature: "event",
+                          type: tpl0.type,
+                          currentCount: (list ?? []).length,
+                        });
                         return;
                       }
                       setType(tpl0.type);
@@ -677,6 +649,12 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       )}
 
       <ScopeSwitcher visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+
+      <PaywallSheet
+        visible={paywall.visible}
+        reason={paywall.reason}
+        onClose={paywall.close}
+      />
     </ScrollView>
   );
 }

@@ -162,6 +162,12 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   //
   // Rien n'est envoyé si la résiliation est déjà demandée : il n'y aura pas de
   // prélèvement, donc rien à annoncer.
+  //
+  // SEULE la fin d'essai est annoncée. L'avis de reconduction annuelle a été
+  // retiré : il invitait à résilier au moment le moins opportun. La fin
+  // d'essai, elle, protège le revenu plutôt qu'elle ne le menace — un client
+  // prélevé sans prévenir demande un remboursement à la boutique et laisse un
+  // avis à une étoile.
   const sub = ctx.subscription;
   if (sub && !sub.cancelled) {
     const daysLeft = daysBetween(now, sub.renewsAt);
@@ -178,23 +184,6 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
           bodyKey: "notif.billing.trial.body",
           params: { days: 2 },
           score: 100,
-          at,
-          route: "/plans",
-        });
-      }
-    } else if (sub.period === "yearly") {
-      // Un mois d'avance sur l'annuel : c'est le délai que la loi française
-      // impose au prestataire pour une reconduction tacite. Sur le mensuel,
-      // cette fenêtre n'a aucun sens — on n'envoie rien plutôt que d'ajouter
-      // une notification par mois.
-      const at = atHour(new Date(sub.renewsAt.getTime() - 30 * DAY_MS), prefs.hour);
-      if (daysLeft > 0) {
-        push({
-          id: `billing-renew-${sub.renewsAt.toISOString().slice(0, 10)}`,
-          category: "billing",
-          titleKey: "notif.billing.renew.title",
-          bodyKey: "notif.billing.renew.body",
-          score: 98,
           at,
           route: "/plans",
         });

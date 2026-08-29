@@ -27,11 +27,9 @@ import { useLang } from "../src/contexts/LangContext";
 import { useActiveScope } from "../src/contexts/ScopeContext";
 import { useSession } from "../src/contexts/SessionContext";
 import { loadAdviceProfile } from "../src/lib/premiumStore";
-import { resolveAdviceText } from "../src/types/advice";
-import type { NotifCandidate, NotifCategory, NotifPrefs } from "../src/utils/notificationEngine";
+import type { NotifCategory, NotifPrefs } from "../src/utils/notificationEngine";
 import {
   loadNotifPrefs,
-  previewNotifications,
   saveNotifPrefs,
   syncPersonalNotifications,
   type SyncInput,
@@ -49,9 +47,9 @@ const BORDER = "rgba(255,255,255,0.08)";
 // Ordre d'affichage : du plus utile au plus accessoire. Ce n'est pas cosmétique
 // — la première ligne est celle qu'on lit, et c'est celle qu'il faut garder.
 const CATEGORIES: { key: NotifCategory; icon: keyof typeof Feather.glyphMap }[] = [
-  // La facturation en tête : c'est la seule catégorie qui annonce un débit, et
-  // la seule qu'on déconseille explicitement de couper.
-  { key: "billing", icon: "credit-card" },
+  // La facturation n'apparaît PAS ici, volontairement : l'avis de fin d'essai
+  // n'est pas une préférence, c'est ce qui évite qu'un client soit prélevé
+  // sans le savoir. Le rendre désactivable revenait à proposer d'y renoncer.
   { key: "rights", icon: "award" },
   { key: "event", icon: "calendar" },
   { key: "goal", icon: "target" },
@@ -65,14 +63,13 @@ const FREQUENCIES = [1, 2, 3, 5];
 const HOURS = [9, 12, 19, 21];
 
 export default function NotificationSettings() {
-  const { t, tp, lang } = useLang();
+  const { t, tp } = useLang();
   const { user } = useSession();
   const { workspaceId } = useActiveScope();
   const { currency } = useCurrency();
 
   const [prefs, setPrefs] = useState<NotifPrefs | null>(null);
   const [input, setInput] = useState<SyncInput | null>(null);
-  const [preview, setPreview] = useState<NotifCandidate[]>([]);
 
   const tt = useCallback(
     (key: string, params?: Record<string, string | number>) =>
@@ -97,7 +94,6 @@ export default function NotificationSettings() {
         if (!alive) return;
         setInput(built);
         setPrefs(p);
-        setPreview(await previewNotifications(built));
       })();
       return () => {
         alive = false;
@@ -114,23 +110,12 @@ export default function NotificationSettings() {
       setPrefs(next);
       await saveNotifPrefs(next);
       if (!input) return;
-      setPreview(await previewNotifications(input, next));
       await syncPersonalNotifications(input, tt);
     },
     [prefs, input, tt],
   );
 
-  const dateLabel = (d: Date) =>
-    d.toLocaleDateString(lang === "en" ? "en-GB" : lang, {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    });
 
-  const bodyOf = (c: NotifCandidate) =>
-    c.category === "rights"
-      ? resolveAdviceText(c.bodyKey, t, c.bodyKey)
-      : tt(c.bodyKey, c.params);
 
   if (!prefs) {
     return (
@@ -233,24 +218,6 @@ export default function NotificationSettings() {
           ))}
         </View>
 
-        {/* --- Aperçu ------------------------------------------------------ */}
-        <Text style={s.sectionTitle}>{t("notifPrefs.preview.title")}</Text>
-        {preview.length === 0 ? (
-          <View style={s.card}>
-            <Text style={s.empty}>{t("notifPrefs.preview.empty")}</Text>
-          </View>
-        ) : (
-          <View style={s.card}>
-            {preview.map((c, i) => (
-              <View key={c.id} style={[s.previewRow, i > 0 && s.rowBorderTop]}>
-                <Text style={s.previewWhen}>{dateLabel(c.at)}</Text>
-                <Text style={s.previewTitle}>{tt(c.titleKey, c.params)}</Text>
-                <Text style={s.previewBody}>{bodyOf(c)}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-        <Text style={s.hint}>{t("notifPrefs.preview.hint")}</Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -23,6 +23,8 @@ import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
+import { PremiumGate } from "../../src/components/PremiumGate";
+import { usePaywall } from "../../src/hooks/usePaywall";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import {
   allAdviceGrouped,
@@ -388,6 +390,10 @@ function currentWeekSeed(): number {
 export default function AdviceScreen() {
   const { t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
+  // Les conseils font partie de l'abonnement. On garde l'écran ATTEIGNABLE et
+  // on explique ce qu'il contient : le masquer empêcherait de découvrir ce
+  // qu'on gagnerait à s'abonner.
+  const paywall = usePaywall();
   // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
   // jamais la liste — l'utilisateur continue de remplir naturellement.
   const { onboard } = useLocalSearchParams<{ onboard?: string }>();
@@ -534,6 +540,16 @@ export default function AdviceScreen() {
       p.species === species ? { ...p, count: Math.max(1, count) } : p,
     );
     updateField("pets", next);
+  }
+
+  if (!paywall.loading && !paywall.allows({ feature: "advice" })) {
+    return (
+      <PremiumGate
+        titleKey="gate.advice.title"
+        bodyKey="gate.advice.body"
+        icon="award"
+      />
+    );
   }
 
   if (sessionLoading || scopeLoading || loading) {

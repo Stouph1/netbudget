@@ -571,12 +571,6 @@ export default function CompleteProfile() {
               </>
             )}
           </TouchableOpacity>
-
-          {/* Réassurance sécurité / confidentialité */}
-          <View style={styles.secureNote}>
-            <Feather name="lock" size={13} color={TEXT_3} />
-            <Text style={styles.secureNoteText}>{t("signup.secure")}</Text>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -622,20 +616,6 @@ const styles = StyleSheet.create({
   avatarHint: { color: TEXT_3, fontSize: 12, marginTop: 10 },
   hint: { color: TEXT_3, fontSize: 12, lineHeight: 17, marginBottom: 8 },
   ageEcho: { color: GOLD, fontSize: 13, fontWeight: "700", marginTop: 6 },
-  secureNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    marginTop: 14,
-  },
-  secureNoteText: {
-    color: TEXT_3,
-    fontSize: 12,
-    lineHeight: 17,
-    textAlign: "center",
-    flexShrink: 1,
-  },
 
   label: {
     color: TEXT_2,

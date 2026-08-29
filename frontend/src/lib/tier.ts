@@ -21,15 +21,17 @@ export { parseTier };
 const CACHE_KEY = "netbudget:tier:cache";
 
 /**
- * Palier appliqué pendant le développement, tant que la facturation n'est pas
- * en service.
+ * Palier appliqué tant que la facturation n'est pas en service.
  *
- * ⚠️ À REPASSER À "free" avant le lancement. Tant que cette valeur est
- * "family", tout le monde a tout — ce qui est voulu pour pouvoir tester, et
- * inacceptable en production. Le test `tier.test.ts` échouera si on oublie,
- * une fois BILLING_LIVE passé à true.
+ * « free », donc les limites s'appliquent réellement : c'est le seul moyen de
+ * voir l'application telle qu'un utilisateur non abonné la verra, et donc de
+ * vérifier que chaque blocage propose bien une issue. Une app testée en accès
+ * total ne révèle jamais ses impasses.
+ *
+ * Pour tester un palier payant sans boutique : passer temporairement cette
+ * valeur à "solo", "duo" ou "family", puis la remettre.
  */
-const TIER_DURING_DEV: Tier = "family";
+const TIER_DURING_DEV: Tier = "free";
 
 /**
  * La facturation est-elle en service ?

@@ -1056,22 +1056,6 @@ export default function Index() {
     });
   }
 
-  // DEV uniquement : rejoue la fête d'anniversaire sans toucher au verrou
-  // annuel (netbudget:bday:<année>) — pour tester le deck à volonté.
-  const devReplayBirthday = __DEV__
-    ? async () => {
-        if (!premiumUser?.id) return;
-        const details = await loadProfileDetails(premiumUser.id);
-        const a = details.birthdate
-          ? computeAge(new Date(details.birthdate))
-          : 25;
-        const perso = await loadAdviceProfile(premiumUser.id, null);
-        setBdaySource("birthday");
-        setBdayCards(buildBirthdayCards(a, details.first_name, perso, adviceI18n));
-        setBdayOpen(true);
-      }
-    : undefined;
-
   // Suppression du COMPTE (cloud) — double confirmation, irréversible.
   // Le budget local du téléphone n'est pas touché (free tier préservé).
   function askDeleteAccount() {
@@ -1233,7 +1217,7 @@ export default function Index() {
               <Text style={styles.title}>NETbudget</Text>
             </View>
           </View>
-          <PremiumHomePanel onGoBudget={() => setTab("budget")} onDevReplayBirthday={devReplayBirthday} />
+          <PremiumHomePanel onGoBudget={() => setTab("budget")} />
         </View>
         </Animated.View>
         </GestureDetector>

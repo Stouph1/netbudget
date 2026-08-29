@@ -196,6 +196,32 @@ export default function SettingsScreen({
         </TouchableOpacity>
       </Section>
 
+      {/* Sauvegarde de la clé de chiffrement.
+          Elle n'a de sens qu'avec un compte : sans cloud, rien ne quitte le
+          téléphone et il n'y a rien à récupérer ailleurs. Elle vit ici et non
+          sur l'accueil — c'est une action qu'on fait une fois, pas tous les
+          jours — mais elle doit rester ATTEIGNABLE : sans elle, un changement
+          de téléphone perd l'historique synchronisé, définitivement. */}
+      {canDeleteAccount ? (
+        <Section title={t("settings.vault.title")}>
+          <TouchableOpacity
+            onPress={() => router.push("/vault-backup" as never)}
+            style={styles.toggleRow}
+            accessibilityRole="button"
+            accessibilityLabel={t("settings.vault.backup")}
+            testID="settings-vault-backup"
+            activeOpacity={0.7}
+          >
+            <Feather name="key" size={20} color={TEXT_3} style={{ marginRight: 12 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.toggleLabel}>{t("settings.vault.backup")}</Text>
+              <Text style={styles.infoRowText}>{t("settings.vault.backupDesc")}</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={TEXT_3} />
+          </TouchableOpacity>
+        </Section>
+      ) : null}
+
       <Section title={t("settings.danger.title")}>
         <TouchableOpacity
           onPress={onResetAll}

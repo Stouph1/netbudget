@@ -32,6 +32,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "react-native";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
+import { PremiumGate } from "../../src/components/PremiumGate";
+import { usePaywall } from "../../src/hooks/usePaywall";
 import type { Lang } from "../../src/i18n/translations";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import { pickAndUploadWorkspacePhoto } from "../../src/lib/photos";
@@ -112,6 +114,8 @@ function useKeyboardHeight(): number {
 export default function WorkspacesScreen() {
   const { t } = useLang();
   const { user } = useSession();
+  // Les espaces partagés appartiennent aux formules Duo et Famille.
+  const paywall = usePaywall();
   const { workspaceId: activeId, setScope } = useActiveScope();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
@@ -161,6 +165,16 @@ export default function WorkspacesScreen() {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
+    );
+  }
+
+  if (!paywall.loading && !paywall.allows({ feature: "sharedSpace" })) {
+    return (
+      <PremiumGate
+        titleKey="gate.shared.title"
+        bodyKey="gate.shared.body"
+        icon="users"
+      />
     );
   }
 

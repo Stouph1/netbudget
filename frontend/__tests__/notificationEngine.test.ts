@@ -353,23 +353,25 @@ describe("argent qui va partir", () => {
     expect(Math.round((inDays(7).getTime() - c.at.getTime()) / 86_400_000)).toBe(2);
   });
 
-  it("prévient un mois avant une reconduction annuelle", () => {
-    const out = buildCandidates(withSub({ renewsAt: inDays(60) }));
-    const c = out.find((x) => x.category === "billing")!;
-    expect(c).toBeDefined();
-    expect(Math.round((inDays(60).getTime() - c.at.getTime()) / 86_400_000)).toBe(30);
-  });
-
-  it("n'annonce PAS de reconduction sur un abonnement mensuel", () => {
-    // La fenêtre d'un mois n'a aucun sens sur un cycle de trente jours : ce
-    // serait une notification par mois, donc du bruit.
-    const out = buildCandidates(withSub({ period: "monthly", renewsAt: inDays(20) }));
-    expect(out.filter((c) => c.category === "billing")).toEqual([]);
+  it("n'annonce AUCUNE reconduction, ni annuelle ni mensuelle", () => {
+    // Retire volontairement : cet avis invitait a resilier au moment le moins
+    // opportun. Seule la fin d'essai subsiste, parce qu'elle evite les
+    // remboursements plutot qu'elle ne provoque des departs.
+    expect(
+      buildCandidates(withSub({ period: "yearly", renewsAt: inDays(60) }))
+        .filter((c) => c.category === "billing"),
+    ).toEqual([]);
+    expect(
+      buildCandidates(withSub({ period: "monthly", renewsAt: inDays(20) }))
+        .filter((c) => c.category === "billing"),
+    ).toEqual([]);
   });
 
   it("se tait quand la résiliation est déjà demandée", () => {
     // Il n'y aura pas de prélèvement : annoncer un débit inquiéterait pour rien.
-    const out = buildCandidates(withSub({ cancelled: true, renewsAt: inDays(60) }));
+    const out = buildCandidates(
+      withSub({ isTrial: true, cancelled: true, renewsAt: inDays(7) }),
+    );
     expect(out.filter((c) => c.category === "billing")).toEqual([]);
   });
 
