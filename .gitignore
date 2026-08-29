@@ -106,3 +106,14 @@ docs/*
 # Exception : les documents remis aux testeurs vivent avec le projet.
 !docs/testeurs/
 design-system/
+
+# Cles de signature Apple et Google. Un .p8 ne se telecharge QU'UNE FOIS et
+# permet de lire les transactions du compte : il n'a rien a faire dans un
+# depot, meme prive.
+*.p8
+*.mobileprovision
+*.keystore
+*.jks
+play-service-account*.json
+AuthKey_*.p8
+SubscriptionKey_*.p8
