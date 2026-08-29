@@ -21,6 +21,7 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import { useTourTarget } from "../../src/components/tour/TourContext";
 import { Feather } from "@expo/vector-icons";
 import { GOLD, TAB_ORDER, TEXT_3 } from "./constants";
 import { styles } from "./styles";
@@ -55,6 +56,17 @@ export default function TabBar({
   /** Appelé depuis le worklet via runOnJS pendant le glissement sur la barre. */
   onSlideToIndex: (idx: number) => void;
 }) {
+  // Cibles de la visite guidée. Un appel de hook par onglet, à un niveau
+  // constant : les crocheter dans la boucle de rendu violerait les règles des
+  // hooks dès qu'un onglet apparaîtrait ou disparaîtrait.
+  const tourRefs: Record<Tab, (v: View | null) => void> = {
+    settings: useTourTarget("tab:settings"),
+    events: useTourTarget("tab:events"),
+    budget: useTourTarget("tab:budget"),
+    converter: useTourTarget("tab:converter"),
+    premium: useTourTarget("tab:premium"),
+  };
+
   // ----- Bulle de sélection façon Apple -----
   //
   // Deux régimes distincts, c'est ce qui fait la sensation :
@@ -185,7 +197,12 @@ export default function TabBar({
                     : t(`tab.${it.key}`)
                 }
               >
-                <View>
+                {/* `collapsable={false}` n'est pas décoratif : sur Android,
+                    une vue sans style propre est supprimée de l'arbre natif à
+                    l'optimisation. Elle existe encore en JavaScript, mais
+                    `measureInWindow` ne renvoie plus rien — et le projecteur de
+                    la visite guidée se poserait dans le coin de l'écran. */}
+                <View ref={tourRefs[it.key]} collapsable={false}>
                   <Feather
                     name={it.icon}
                     size={21}

@@ -6,6 +6,7 @@ import { CurrencyProvider } from "../src/contexts/CurrencyContext";
 import { LangProvider } from "../src/contexts/LangContext";
 import { ScopeProvider } from "../src/contexts/ScopeContext";
 import { SessionProvider } from "../src/contexts/SessionContext";
+import { TourProvider } from "../src/components/tour/TourContext";
 import { useNotificationRouting } from "../src/hooks/useNotificationRouting";
 import { usePersonalNotifications } from "../src/hooks/usePersonalNotifications";
 import { useVault } from "../src/hooks/useVault";
@@ -31,6 +32,9 @@ export default function RootLayout() {
           <LangProvider>
           <CurrencyProvider>
           <ScopeProvider>
+          {/* Au-dessus de la pile de navigation : le voile de la visite guidée
+              doit pouvoir couvrir l'écran courant quel qu'il soit. */}
+          <TourProvider>
             <AppEffects />
             <StatusBar style="light" />
             <Stack
@@ -39,6 +43,7 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: "#0A0A0C" },
               }}
             />
+          </TourProvider>
           </ScopeProvider>
           </CurrencyProvider>
           </LangProvider>

@@ -36,6 +36,8 @@ import { notify } from "../src/utils/notify";
 import BirthdayCelebration from "../src/components/BirthdayCelebration";
 import { TierUnlock } from "../src/components/TierUnlock";
 import { useTierUnlock } from "../src/hooks/useTierUnlock";
+import { useTourRunner } from "../src/hooks/useTourRunner";
+import { TourOverlay } from "../src/components/tour/TourOverlay";
 import {
   buildBirthdayCards,
   buildChildBirthdayCards,
@@ -390,6 +392,9 @@ export default function Index() {
   const [bdayCards, setBdayCards] = useState<BirthdayCard[] | null>(null);
   const [bdayOpen, setBdayOpen] = useState(false);
   const tierUnlock = useTierUnlock();
+  // La visite attend que la fête de déverrouillage soit passée : deux
+  // plein-écrans empilés, c'est quelqu'un qui ferme les deux sans lire.
+  const tour = useTourRunner({ blocked: tierUnlock.visible || bdayOpen });
   // Source du dépôt pour la fête en cours : "birthday" | "child:Nom" | "pet:Nom"
   const [bdaySource, setBdaySource] = useState("birthday");
   // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
@@ -1209,6 +1214,7 @@ export default function Index() {
             onToggleMonthlyReminder={toggleMonthlyReminder}
             onResetAll={askResetAll}
             onDeleteAccount={askDeleteAccount}
+            onReplayTour={() => void tour.replay()}
           />
         </View>
 
@@ -1293,6 +1299,10 @@ export default function Index() {
           onClose={() => void tierUnlock.dismiss()}
         />
       ) : null}
+
+      {/* Visite guidée : posée en dernier pour passer au-dessus de la barre
+          d'onglets, qui est justement ce qu'elle désigne. */}
+      <TourOverlay />
 
       {/* Fête d'anniversaire (jour J, une fois par an) */}
       <BirthdayCelebration

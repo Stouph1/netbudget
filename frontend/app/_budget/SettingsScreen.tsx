@@ -31,6 +31,7 @@ export default function SettingsScreen({
   onToggleMonthlyReminder,
   onResetAll,
   onDeleteAccount,
+  onReplayTour,
 }: {
   currency: CurrencyCode;
   lang: Lang;
@@ -48,6 +49,8 @@ export default function SettingsScreen({
   onToggleMonthlyReminder: (next: boolean) => void;
   onResetAll: () => void;
   onDeleteAccount: () => void;
+  /** Remet la visite guidée à zéro. Développement uniquement. */
+  onReplayTour: () => void;
 }) {
   // Aperçu de l'écran de déverrouillage, en développement uniquement.
   const [previewTier, setPreviewTier] = React.useState<
@@ -239,6 +242,19 @@ export default function SettingsScreen({
           <Text style={styles.infoRowText}>
             {"Rejoue l'écran de déverrouillage. Ne change pas ton abonnement."}
           </Text>
+          <TouchableOpacity
+            onPress={onReplayTour}
+            style={styles.toggleRow}
+            activeOpacity={0.7}
+            testID="dev-replay-tour"
+          >
+            <Feather name="compass" size={20} color={TEXT_3} style={{ marginRight: 12 }} />
+            <Text style={[styles.toggleLabel, { flex: 1 }]}>
+              {"Rejouer la visite guidée"}
+            </Text>
+            <Feather name="chevron-right" size={18} color={TEXT_3} />
+          </TouchableOpacity>
+
           <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
             {(["solo", "duo", "family"] as const).map((tier) => (
               <TouchableOpacity
