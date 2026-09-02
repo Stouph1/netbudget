@@ -18,6 +18,13 @@
     "production": {
       "autoIncrement": true,
       "channel": "production"
+    },
+    "test": {
+      "autoIncrement": true,
+      "channel": "test",
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {
