@@ -12,6 +12,10 @@ import { interpolate } from "../../src/utils/advice";
 import { BORDER, DANGER, GOLD, TEXT_3 } from "./constants";
 import { styles } from "./styles";
 import { Section } from "./ui";
+import {
+  useTourScroller,
+  useTourTarget,
+} from "../../src/components/tour/TourContext";
 import { TierUnlock } from "../../src/components/TierUnlock";
 import { TierGlyph } from "../../src/components/TierBadge";
 import type { Tier } from "../../src/lib/entitlements";
@@ -72,9 +76,14 @@ export default function SettingsScreen({
   // En développement, le panneau est toujours là. En production, il faut être
   // marqué testeur côté serveur.
   const showTesterPanel = __DEV__ || isTester;
+  const tourNotifs = useTourTarget("settings:notifications");
+  const tourScroll = useTourScroller("settings");
 
   return (
     <ScrollView
+      ref={tourScroll.ref}
+      onScroll={tourScroll.onScroll}
+      scrollEventThrottle={64}
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
@@ -201,6 +210,7 @@ export default function SettingsScreen({
 
         {/* Réglages fins : catégories, fréquence, heure, et surtout l'aperçu
             de ce qui est réellement programmé. */}
+        <View ref={tourNotifs} collapsable={false}>
         <TouchableOpacity
           onPress={() => router.push("/notifications")}
           style={styles.toggleRow}
@@ -220,6 +230,7 @@ export default function SettingsScreen({
           </View>
           <Feather name="chevron-right" size={18} color={TEXT_3} />
         </TouchableOpacity>
+        </View>
       </Section>
 
       {/* Sauvegarde de la clé de chiffrement.

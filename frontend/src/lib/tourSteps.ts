@@ -10,9 +10,12 @@
 // qui passe de Gratuit à Duo ne revoit pas l'onglet Budget qu'il utilise depuis
 // six mois : il voit les deux choses qu'il vient d'acheter.
 //
-// COURT, TOUJOURS. Trois étapes au premier lancement, une ou deux après une
-// montée de formule. Au-delà, la visite est passée sans être lue, et on a
-// dépensé le seul moment d'attention qu'on avait.
+// COMBIEN D'ÉTAPES. La visite couvre l'application, pas un échantillon : onze
+// étapes au premier lancement, une à deux de plus par formule. C'est long pour
+// une visite, et c'est assumé — une visite qui montre quatre choses sur quinze
+// laisse croire que l'app n'en fait que quatre, ce qui est pire que de ne rien
+// montrer. Le compteur est affiché et « Passer » est toujours là : celui qui
+// n'en veut pas sort en un geste, celui qui veut comprendre a tout.
 
 import type { Tier } from "./entitlements";
 
@@ -44,6 +47,7 @@ export type TourStep = {
  * premier jour (son budget) pour aller vers ce qu'on découvre ensuite.
  */
 export const TOUR_STEPS: readonly TourStep[] = [
+  // --- Le budget : ce qu'on fait le premier jour --------------------------
   {
     id: "income",
     tab: "budget",
@@ -58,6 +62,42 @@ export const TOUR_STEPS: readonly TourStep[] = [
     target: "budget:summary",
     titleKey: "tour.remaining.title",
     bodyKey: "tour.remaining.body",
+    from: "free",
+  },
+  {
+    id: "loan",
+    tab: "budget",
+    target: "budget:addLoan",
+    titleKey: "tour.loan.title",
+    bodyKey: "tour.loan.body",
+    from: "free",
+  },
+  {
+    id: "export",
+    tab: "budget",
+    target: "budget:export",
+    titleKey: "tour.export.title",
+    bodyKey: "tour.export.body",
+    from: "free",
+  },
+
+  // --- Le convertisseur ---------------------------------------------------
+  {
+    id: "converter",
+    tab: "converter",
+    target: "converter:main",
+    titleKey: "tour.converter.title",
+    bodyKey: "tour.converter.body",
+    from: "free",
+  },
+
+  // --- Le profil : ce qu'on découvre ensuite ------------------------------
+  {
+    id: "tier",
+    tab: "premium",
+    target: "home:tier",
+    titleKey: "tour.tier.title",
+    bodyKey: "tour.tier.body",
     from: "free",
   },
   {
@@ -77,6 +117,34 @@ export const TOUR_STEPS: readonly TourStep[] = [
     from: "free",
   },
   {
+    id: "join",
+    tab: "premium",
+    target: "home:spaces",
+    titleKey: "tour.join.title",
+    bodyKey: "tour.join.body",
+    from: "free",
+  },
+  {
+    id: "history",
+    tab: "premium",
+    target: "home:history",
+    titleKey: "tour.history.title",
+    bodyKey: "tour.history.body",
+    from: "free",
+  },
+
+  // --- Les réglages -------------------------------------------------------
+  {
+    id: "notifications",
+    tab: "settings",
+    target: "settings:notifications",
+    titleKey: "tour.notifs.title",
+    bodyKey: "tour.notifs.body",
+    from: "free",
+  },
+
+  // --- Ce que chaque formule ajoute ---------------------------------------
+  {
     id: "events",
     tab: "events",
     target: "events:create",
@@ -91,6 +159,14 @@ export const TOUR_STEPS: readonly TourStep[] = [
     titleKey: "tour.shared.title",
     bodyKey: "tour.shared.body",
     from: "duo",
+  },
+  {
+    id: "birthdays",
+    tab: "premium",
+    target: "home:birthdays",
+    titleKey: "tour.birthdays.title",
+    bodyKey: "tour.birthdays.body",
+    from: "family",
   },
 ];
 

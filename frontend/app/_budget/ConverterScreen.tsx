@@ -9,6 +9,10 @@ import { convert, RatesPayload } from "../../src/utils/exchangeRates";
 import { GOLD, TEXT_3 } from "./constants";
 import { relativeAgoParts } from "./helpers";
 import { styles } from "./styles";
+import {
+  useTourScroller,
+  useTourTarget,
+} from "../../src/components/tour/TourContext";
 import type { ConvHistoryItem, Translate } from "./types";
 
 export default function ConverterScreen({
@@ -51,8 +55,14 @@ export default function ConverterScreen({
     return t(`ago.${unit}`).replace("{n}", String(value));
   };
 
+  const tourConverter = useTourTarget("converter:main");
+  const tourScroll = useTourScroller("converter");
+
   return (
     <ScrollView
+      ref={tourScroll.ref}
+      onScroll={tourScroll.onScroll}
+      scrollEventThrottle={64}
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
@@ -75,7 +85,7 @@ export default function ConverterScreen({
       </View>
 
       {/* From card */}
-      <View style={styles.convCard}>
+      <View style={styles.convCard} ref={tourConverter} collapsable={false}>
         <TouchableOpacity
           style={styles.convChip}
           onPress={() => onOpenPicker("from")}

@@ -40,7 +40,7 @@ import {
 import { displayItemLabel, loanMonthlyPayment } from "./helpers";
 import { styles } from "./styles";
 import { Field, Section } from "./ui";
-import { useTourTarget } from "../../src/components/tour/TourContext";
+import { useTourScroller, useTourTarget } from "../../src/components/tour/TourContext";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
 export default function BudgetScreen({
@@ -166,6 +166,10 @@ export default function BudgetScreen({
   // Cibles de la visite guidée. Voir tourSteps.ts pour ce qu'elles racontent.
   const tourSummary = useTourTarget("budget:summary");
   const tourAddIncome = useTourTarget("budget:addIncome");
+  const tourAddLoan = useTourTarget("budget:addLoan");
+  const tourExport = useTourTarget("budget:export");
+  // Permet à la visite d'aller chercher une cible sous le pli.
+  const tourScroll = useTourScroller("budget");
 
   return (
     <ScrollView
@@ -173,8 +177,15 @@ export default function BudgetScreen({
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      onScroll={onBudgetScroll}
-      scrollEventThrottle={400}
+      ref={tourScroll.ref}
+      onScroll={(e) => {
+        // Deux consommateurs pour un seul événement : le suivi existant et la
+        // visite guidée. Remplacer l'un par l'autre casserait silencieusement
+        // celui qu'on n'a pas regardé.
+        onBudgetScroll(e);
+        tourScroll.onScroll(e);
+      }}
+      scrollEventThrottle={64}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -410,6 +421,7 @@ export default function BudgetScreen({
       <Section
         title={t("section.loans.title")}
         action={
+          <View ref={tourAddLoan} collapsable={false}>
           <TouchableOpacity
             onPress={onAddLoan}
             style={styles.addBtn}
@@ -419,6 +431,7 @@ export default function BudgetScreen({
             <Feather name="plus" size={16} color="#000" />
             <Text style={styles.addBtnText}>{t("btn.add")}</Text>
           </TouchableOpacity>
+          </View>
         }
       >
         {loans.length === 0 ? (
@@ -747,15 +760,17 @@ export default function BudgetScreen({
       </Section>
 
       {/* === Export PDF === */}
-      <TouchableOpacity
-        style={[styles.exportBtn, styles.exportBtnPrimary, { marginTop: 16 }]}
-        onPress={onExportPdf}
-        testID="export-pdf"
-        activeOpacity={0.85}
-      >
-        <Feather name="file-text" size={18} color="#000" />
-        <Text style={styles.exportBtnTextDark}>{t("btn.exportPdf")}</Text>
-      </TouchableOpacity>
+      <View ref={tourExport} collapsable={false} style={{ marginTop: 16 }}>
+        <TouchableOpacity
+          style={[styles.exportBtn, styles.exportBtnPrimary]}
+          onPress={onExportPdf}
+          testID="export-pdf"
+          activeOpacity={0.85}
+        >
+          <Feather name="file-text" size={18} color="#000" />
+          <Text style={styles.exportBtnTextDark}>{t("btn.exportPdf")}</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={{ height: 40 }} />
     </ScrollView>

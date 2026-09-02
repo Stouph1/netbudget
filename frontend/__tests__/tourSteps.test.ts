@@ -11,13 +11,28 @@ const ids = (tier: Parameters<typeof stepsFor>[0], seen: Parameters<typeof steps
 
 describe("première visite", () => {
   it("montre les bases sans abonnement", () => {
-    expect(ids("free", null)).toEqual(["income", "remaining", "goals", "advice"]);
+    expect(ids("free", null)).toEqual([
+      "income",
+      "remaining",
+      "loan",
+      "export",
+      "converter",
+      "tier",
+      "goals",
+      "advice",
+      "join",
+      "history",
+      "notifications",
+    ]);
   });
 
-  it("reste courte — quatre étapes, pas dix", () => {
-    // Au-delà, la visite est passée sans être lue, et on a dépensé le seul
-    // moment d'attention disponible.
-    expect(ids("free", null).length).toBeLessThanOrEqual(4);
+  it("couvre l'application, pas un échantillon", () => {
+    // Une visite qui montre quatre choses sur quinze laisse croire que l'app
+    // n'en fait que quatre — pire que de ne rien montrer.
+    expect(ids("free", null).length).toBeGreaterThanOrEqual(9);
+    // Et elle touche les quatre onglets, pas seulement le budget.
+    const tabs = new Set(stepsFor("free", null).map((s) => s.tab));
+    expect(tabs).toEqual(new Set(["budget", "converter", "premium", "settings"]));
   });
 
   it("ne montre RIEN qui demande un abonnement", () => {
@@ -28,7 +43,8 @@ describe("première visite", () => {
   });
 
   it("ajoute les événements dès Solo", () => {
-    expect(ids("solo", null)).toEqual(["income", "remaining", "goals", "advice", "events"]);
+    expect(ids("solo", null)).toContain("events");
+    expect(ids("free", null)).not.toContain("events");
   });
 
   it("ajoute l'espace partagé à partir de Duo", () => {
@@ -43,7 +59,7 @@ describe("après une montée de formule", () => {
     // Quelqu'un qui utilise l'onglet Budget depuis six mois n'a pas besoin
     // qu'on le lui présente à nouveau.
     expect(ids("duo", "free")).toEqual(["events", "shared"]);
-    expect(ids("family", "duo")).toEqual([]);
+    expect(ids("family", "duo")).toEqual(["birthdays"]);
     expect(ids("solo", "free")).toEqual(["events"]);
   });
 
@@ -51,6 +67,13 @@ describe("après une montée de formule", () => {
     for (const tier of ["free", "solo", "duo", "family"] as const) {
       expect(ids(tier, tier)).toEqual([]);
       expect(hasTour(tier, tier)).toBe(false);
+    }
+  });
+
+  it("montre les anniversaires seulement à Famille", () => {
+    expect(ids("family", null)).toContain("birthdays");
+    for (const tier of ["free", "solo", "duo"] as const) {
+      expect(ids(tier, null)).not.toContain("birthdays");
     }
   });
 

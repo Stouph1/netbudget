@@ -54,7 +54,7 @@ import type { S1Payload } from "../types/premium";
 import { TierBadge } from "./TierBadge";
 import { usePaywall } from "../hooks/usePaywall";
 import { PaywallSheet } from "./PaywallSheet";
-import { useTourTarget } from "./tour/TourContext";
+import { useTourScroller, useTourTarget } from "./tour/TourContext";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -97,6 +97,10 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const paywall = usePaywall();
   // Cibles de la visite guidée. Voir tourSteps.ts.
   const tourGoals = useTourTarget("home:goals");
+  const tourTier = useTourTarget("home:tier");
+  const tourHistory = useTourTarget("home:history");
+  const tourBirthdays = useTourTarget("home:birthdays");
+  const tourScroll = useTourScroller("premium");
   const tourAdvice = useTourTarget("home:advice");
   const tourSpaces = useTourTarget("home:spaces");
   const [busyAvatar, setBusyAvatar] = useState(false);
@@ -411,16 +415,18 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
               Sans elle, un utilisateur attribue une limite à un bug, écrit au
               support, et repart déçu d'un produit qui marchait. Elle mène aux
               formules : c'est l'endroit où la question se pose. */}
-          <TouchableOpacity
-            onPress={() => router.push("/plans" as never)}
-            activeOpacity={0.8}
-            hitSlop={6}
-            accessibilityRole="button"
-            accessibilityLabel={t(`plan.${paywall.tier}.name`)}
-            style={{ marginTop: 4, alignSelf: "flex-start" }}
-          >
-            <TierBadge tier={paywall.tier} label={t(`plan.${paywall.tier}.name`)} size={13} />
-          </TouchableOpacity>
+          <View ref={tourTier} collapsable={false} style={{ alignSelf: "flex-start" }}>
+            <TouchableOpacity
+              onPress={() => router.push("/plans" as never)}
+              activeOpacity={0.8}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel={t(`plan.${paywall.tier}.name`)}
+              style={{ marginTop: 4 }}
+            >
+              <TierBadge tier={paywall.tier} label={t(`plan.${paywall.tier}.name`)} size={13} />
+            </TouchableOpacity>
+          </View>
           <Text style={styles.profileEmail} numberOfLines={1}>
             {user.email ?? t("home.emailHidden")}
           </Text>
@@ -521,6 +527,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
         <Tile
           icon="gift"
           label={t("home.tile.birthdays")}
+          tourRef={tourBirthdays}
           onPress={() => {
             if (!paywall.require({ feature: "birthdays" })) return;
             router.push("/(premium)/celebrations" as never);
@@ -568,6 +575,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
 
 
       {/* Évolution du budget — historique mensuel du scope actif */}
+      <View ref={tourHistory} collapsable={false}>
       <BudgetHistoryCard
         points={history}
         scopeLabel={resolvedScopeLabel}
@@ -580,6 +588,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
             : undefined
         }
       />
+      </View>
 
       <ScopeSwitcher
         visible={switcherOpen}
