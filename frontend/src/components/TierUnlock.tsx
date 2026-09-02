@@ -36,7 +36,7 @@ import Reanimated, {
 } from "react-native-reanimated";
 import { BreathingHalo, Rays, Shimmer, Sparkles } from "./unlockFx";
 import { useLang } from "../contexts/LangContext";
-import { planFeatureKeys, planMembers } from "../lib/billing/plans";
+import { planFeatures, planMembers } from "../lib/billing/plans";
 import type { Tier } from "../lib/entitlements";
 
 const MIDNIGHT = "#0B1220";
@@ -178,7 +178,7 @@ export function TierUnlock({
   const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value * 0.5 }));
 
   const members = planMembers(tier);
-  const features = planFeatureKeys(tier).filter((k) => k !== "plan.feature.noWedding");
+  const features = planFeatures(tier);
 
   return (
     <Modal visible={visible} animationType="fade" transparent={false} onRequestClose={onClose}>
@@ -223,9 +223,9 @@ export function TierUnlock({
         </Reanimated.Text>
 
         <View style={s.features}>
-          {features.map((key, i) => (
+          {features.map((f, i) => (
             <Reanimated.View
-              key={key}
+              key={f.key}
               // Décalées une à une : la liste se REMPLIT sous les yeux au lieu
               // d'apparaître d'un bloc. C'est ce qui donne la sensation de
               // gagner quelque chose plutôt que de lire une facture.
@@ -235,7 +235,7 @@ export function TierUnlock({
               <View style={s.check}>
                 <Feather name="check" size={12} color={GOLD} />
               </View>
-              <Text style={s.featureText}>{t(key)}</Text>
+              <Text style={s.featureText}>{f.params ? tp(f.key, f.params) : t(f.key)}</Text>
             </Reanimated.View>
           ))}
         </View>

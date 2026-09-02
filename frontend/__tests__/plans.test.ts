@@ -15,7 +15,7 @@ import {
   HIGHLIGHTED_TIER,
   monthlyEquivalent,
   periodFromProductId,
-  planFeatureKeys,
+  planFeatures,
   planMembers,
   PRODUCT_IDS,
   SELLABLE_TIERS,
@@ -53,36 +53,72 @@ describe("identifiants de produits", () => {
 });
 
 describe("points forts affichés", () => {
+  const keysOf = (tier: Parameters<typeof planFeatures>[0]) =>
+    planFeatures(tier).map((f) => f.key);
+
   it("ne promettent jamais plus que la formule n'autorise", () => {
     for (const tier of SELLABLE_TIERS) {
-      const keys = planFeatureKeys(tier);
+      const keys = keysOf(tier);
       const limits = limitsFor(tier);
 
-      // Le mariage n'est annoncé que là où il est réellement permis.
+      // Le mariage n'est annoncé que là où il est réellement permis. Et une
+      // carte de vente n'énumère PAS ce qu'on n'a pas : l'absence se tait.
       if (limits.blockedEventTypes.includes("wedding")) {
-        expect(keys).toContain("plan.feature.noWedding");
         expect(keys).not.toContain("plan.feature.wedding");
       } else {
         expect(keys).toContain("plan.feature.wedding");
       }
 
-      // Les espaces partagés ne sont annoncés que là où ils existent.
-      if (limits.maxWorkspaces > 0) expect(keys).toContain("plan.feature.shared");
-      else expect(keys).not.toContain("plan.feature.shared");
+      // Le partage n'est annoncé que là où il existe.
+      const shared = keys.some((k) => k.startsWith("plan.feature.shared"));
+      expect(shared).toBe(limits.maxWorkspaces > 0);
+
+      // Les anniversaires appartiennent à Famille seule.
+      expect(keys.includes("plan.feature.birthdays")).toBe(limits.birthdays);
+
+      // L'échéancier complet n'est annoncé que s'il est réellement complet.
+      expect(keys.includes("plan.feature.schedule")).toBe(
+        limits.loanScheduleYears === null,
+      );
     }
   });
 
   it("annonce un seul événement pour Solo, illimité pour les autres", () => {
-    expect(planFeatureKeys("solo")).toContain("plan.feature.eventsOne");
-    expect(planFeatureKeys("duo")).toContain("plan.feature.eventsUnlimited");
-    expect(planFeatureKeys("family")).toContain("plan.feature.eventsUnlimited");
+    expect(keysOf("solo")).toContain("plan.feature.eventsOne");
+    expect(keysOf("duo")).toContain("plan.feature.eventsUnlimited");
+    expect(keysOf("family")).toContain("plan.feature.eventsUnlimited");
   });
 
   it("met la synchronisation et les conseils dans toutes les formules", () => {
     for (const tier of SELLABLE_TIERS) {
-      expect(planFeatureKeys(tier)).toContain("plan.feature.sync");
-      expect(planFeatureKeys(tier)).toContain("plan.feature.advice");
+      expect(keysOf(tier)).toContain("plan.feature.sync");
+      expect(keysOf(tier)).toContain("plan.feature.advice");
     }
+  });
+
+  it("tire les NOMBRES des limites, jamais d'un texte", () => {
+    // « trois objectifs » doit venir de maxGoals. Sinon, changer la limite
+    // laisserait l'écran de vente promettre l'ancienne — c'est-à-dire vendre
+    // autre chose que le produit.
+    const solo = planFeatures("solo").find((f) => f.key === "plan.feature.goalsCount");
+    expect(solo?.params?.n).toBe(limitsFor("solo").maxGoals);
+
+    const family = planFeatures("family").find((f) =>
+      f.key.startsWith("plan.feature.shared"),
+    );
+    expect(family?.params?.members).toBe(limitsFor("family").maxMembersPerWorkspace);
+    expect(family?.params?.spaces).toBe(limitsFor("family").maxWorkspaces);
+  });
+
+  it("met en tête ce qui DISTINGUE la formule", () => {
+    // Les cartes n'affichent que les deux premiers arguments. Si « tes données
+    // sur tous tes appareils » arrivait en tête partout, les trois cartes
+    // seraient indiscernables.
+    for (const tier of SELLABLE_TIERS) {
+      expect(keysOf(tier)[0]).not.toBe("plan.feature.sync");
+    }
+    expect(keysOf("duo")[0]).toMatch(/^plan\.feature\.shared/);
+    expect(keysOf("family")[0]).toMatch(/^plan\.feature\.shared/);
   });
 });
 

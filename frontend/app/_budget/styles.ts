@@ -30,6 +30,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
   },
+  testTileOn: { borderColor: GOLD, backgroundColor: "rgba(74,222,128,0.08)" },
 
   safe: { flex: 1, backgroundColor: BG },
   scroll: { flex: 1 },

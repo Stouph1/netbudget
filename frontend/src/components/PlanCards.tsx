@@ -19,7 +19,7 @@ import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLang } from "../contexts/LangContext";
-import { HIGHLIGHTED_TIER, planFeatureKeys, planMembers, SELLABLE_TIERS } from "../lib/billing/plans";
+import { HIGHLIGHTED_TIER, planFeatures, planMembers, SELLABLE_TIERS } from "../lib/billing/plans";
 import type { Tier } from "../lib/entitlements";
 
 const SURFACE = "#1A2238";
@@ -84,16 +84,13 @@ export function PlanCards({
                 {members ? tp("plan.forMembers", { n: members }) : t("plan.forOne")}
               </Text>
 
-              {planFeatureKeys(tier)
-                // « Pas de mariage » est une absence : une carte de vente
-                // n'énumère pas ce qu'on n'a pas.
-                .filter((k) => k !== "plan.feature.noWedding")
+              {planFeatures(tier)
                 .slice(0, featuresPerCard)
-                .map((k) => (
-                  <View key={k} style={s.featureRow}>
+                .map((f) => (
+                  <View key={f.key} style={s.featureRow}>
                     <Feather name="check" size={11} color={GOLD} />
                     <Text style={s.featureText} numberOfLines={2}>
-                      {t(k)}
+                      {f.params ? tp(f.key, f.params) : t(f.key)}
                     </Text>
                   </View>
                 ))}

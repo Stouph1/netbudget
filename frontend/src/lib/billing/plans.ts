@@ -61,35 +61,57 @@ export const PLAY_BASE_PLANS: Record<Period, string> = {
 /** Formules vendues, dans l'ordre d'affichage. */
 export const SELLABLE_TIERS: Exclude<Tier, "free">[] = ["solo", "duo", "family"];
 
+/** Un argument de vente, avec ses valeurs à insérer. */
+export type PlanFeature = { key: string; params?: Record<string, string | number> };
+
 /**
- * Points forts d'une formule, sous forme de clés i18n.
+ * Points forts d'une formule, DÉRIVÉS DES LIMITES RÉELLES.
  *
- * Dérivés des limites réelles : une formule sans espace partagé ne peut pas
- * l'annoncer, et le nombre d'événements vient du même endroit que le contrôle
- * qui l'applique.
+ * Rien n'est écrit à la main ici, et les nombres non plus : « trois objectifs »
+ * vient de `maxGoals`, pas d'une chaîne de traduction. Sans ça, changer une
+ * limite dans entitlements.ts laisserait l'écran de vente promettre l'ancienne
+ * — c'est-à-dire vendre autre chose que le produit.
+ *
+ * L'ORDRE N'EST PAS ESTHÉTIQUE. Les cartes n'affichent que les deux ou trois
+ * premiers arguments : ceux qui DISTINGUENT la formule passent donc devant.
+ * Mettre « tes données sur tous tes appareils » en tête sur les trois cartes
+ * les rendrait indiscernables.
  */
-export function planFeatureKeys(tier: Exclude<Tier, "free">): string[] {
-  const limits = limitsFor(tier);
-  const keys: string[] = ["plan.feature.sync", "plan.feature.advice"];
+export function planFeatures(tier: Exclude<Tier, "free">): PlanFeature[] {
+  const l = limitsFor(tier);
+  const out: PlanFeature[] = [];
 
-  if (limits.maxEvents === null) keys.push("plan.feature.eventsUnlimited");
-  else if (limits.maxEvents === 1) keys.push("plan.feature.eventsOne");
+  // 1. Ce qui sépare les formules entre elles.
+  if (l.maxWorkspaces > 0) {
+    out.push({
+      key: l.maxWorkspaces > 1 ? "plan.feature.sharedMany" : "plan.feature.shared",
+      params: { members: l.maxMembersPerWorkspace, spaces: l.maxWorkspaces },
+    });
+  }
+  if (l.birthdays) out.push({ key: "plan.feature.birthdays" });
 
-  if (limits.blockedEventTypes.includes("wedding")) {
-    keys.push("plan.feature.noWedding");
-  } else {
-    keys.push("plan.feature.wedding");
+  // 2. Les projets.
+  if (l.maxEvents === null) out.push({ key: "plan.feature.eventsUnlimited" });
+  else if (l.maxEvents === 1) out.push({ key: "plan.feature.eventsOne" });
+  if (!l.blockedEventTypes.includes("wedding")) {
+    out.push({ key: "plan.feature.wedding" });
   }
 
-  if (limits.maxWorkspaces > 0) keys.push("plan.feature.shared");
+  // 3. L'épargne.
+  out.push(
+    l.maxGoals === null
+      ? { key: "plan.feature.goalsUnlimited" }
+      : { key: "plan.feature.goalsCount", params: { n: l.maxGoals } },
+  );
 
-  return keys;
+  // 4. Ce que toutes les formules payantes partagent, en dernier.
+  if (l.advice) out.push({ key: "plan.feature.advice" });
+  if (l.loanScheduleYears === null) out.push({ key: "plan.feature.schedule" });
+  out.push({ key: "plan.feature.sync" });
+
+  return out;
 }
 
-/**
- * Nombre de membres annoncé, ou null quand la notion ne s'applique pas.
- * Sert au libellé « jusqu'à N personnes ».
- */
 export function planMembers(tier: Exclude<Tier, "free">): number | null {
   const max = limitsFor(tier).maxMembersPerWorkspace;
   return max > 0 ? max : null;

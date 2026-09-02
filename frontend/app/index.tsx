@@ -40,7 +40,12 @@ import { useIsTester } from "../src/hooks/useIsTester";
 import { useTesterConsent } from "../src/hooks/useTesterConsent";
 import { TesterConsent } from "../src/components/TesterConsent";
 import { limitsFor, type Tier } from "../src/lib/entitlements";
-import { loadTier } from "../src/lib/tier";
+import { loadTier, refreshTier } from "../src/lib/tier";
+import {
+  onTierOverrideChange,
+  setTierOverride,
+  tierOverride,
+} from "../src/lib/tierOverride";
 import { useTourRunner } from "../src/hooks/useTourRunner";
 import { useWhatsNew } from "../src/hooks/useWhatsNew";
 import { WhatsNewSheet } from "../src/components/WhatsNewSheet";
@@ -395,6 +400,12 @@ export default function Index() {
   // Palier réel, utilisé par l'écran d'approbation pour nommer la formule
   // testée dans le texte du contrat.
   const [testerTier, setTesterTier] = useState<Tier>("free");
+  // Palier forcé pour les tests. Lu au montage : le réglage survit à un
+  // redémarrage, sinon on le repose à chaque essai.
+  const [forcedTier, setForcedTier] = useState<Tier | null>(null);
+  useEffect(() => {
+    return onTierOverrideChange(() => setForcedTier(tierOverride()));
+  }, []);
   // Ville libre saisie dans le profil (« Rouen »), à faire correspondre au
   // référentiel de villes pour l'indice de coût de la vie.
   const [profileCity, setProfileCity] = useState<string | null>(null);
@@ -1296,6 +1307,16 @@ export default function Index() {
             onReplayTour={() => void tour.replay()}
             isTester={isTester}
             onReplayBirthday={(kind) => void replayBirthday(kind)}
+            forcedTier={forcedTier}
+            onForceTier={(tier) => {
+              void setTierOverride(tier).then(() => {
+                setForcedTier(tier);
+                // On rediffuse le palier : les écrans déjà montés (pastille,
+                // gardes, tuiles) se remettent à jour sans relancer l'app.
+                void refreshTier(1);
+                reloadPremiumProfile();
+              });
+            }}
           />
         </View>
 

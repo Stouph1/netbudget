@@ -14,6 +14,7 @@ import { styles } from "./styles";
 import { Section } from "./ui";
 import { TierUnlock } from "../../src/components/TierUnlock";
 import { TierGlyph } from "../../src/components/TierBadge";
+import type { Tier } from "../../src/lib/entitlements";
 import type { Translate } from "./types";
 
 export default function SettingsScreen({
@@ -34,6 +35,8 @@ export default function SettingsScreen({
   onReplayTour,
   isTester,
   onReplayBirthday,
+  forcedTier,
+  onForceTier,
 }: {
   currency: CurrencyCode;
   lang: Lang;
@@ -57,6 +60,9 @@ export default function SettingsScreen({
   isTester: boolean;
   /** Rejoue une fête d'anniversaire. Phase de test. */
   onReplayBirthday: (kind: "self" | "child" | "pet") => void;
+  /** Palier actuellement forcé, ou null. */
+  forcedTier: Tier | null;
+  onForceTier: (tier: Tier | null) => void;
 }) {
   // Aperçu de l'écran de déverrouillage, en développement uniquement.
   const [previewTier, setPreviewTier] = React.useState<
@@ -255,6 +261,47 @@ export default function SettingsScreen({
           <Text style={styles.infoRowText}>
             {"Ces boutons rejouent des écrans qui ne s'affichent normalement qu'une fois. Ils ne changent ni ton abonnement ni tes données."}
           </Text>
+
+          <Text style={[styles.infoRowText, { marginTop: 12 }]}>
+            {"Palier affiché — change ce que l'interface autorise, sans toucher à ton abonnement réel"}
+          </Text>
+          <View style={{ flexDirection: "row", gap: 6, marginTop: 8 }}>
+            {(["free", "solo", "duo", "family"] as const).map((tier) => {
+              const active = forcedTier === tier;
+              return (
+                <TouchableOpacity
+                  key={tier}
+                  onPress={() => onForceTier(tier)}
+                  style={[styles.testTile, active && styles.testTileOn]}
+                  activeOpacity={0.8}
+                  testID={`test-tier-${tier}`}
+                >
+                  <TierGlyph tier={tier} size={18} />
+                  <Text
+                    style={[
+                      styles.infoRowText,
+                      { marginTop: 4 },
+                      active && { color: GOLD, fontWeight: "700" },
+                    ]}
+                  >
+                    {t(`plan.${tier}.name`)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {forcedTier ? (
+            <TouchableOpacity
+              onPress={() => onForceTier(null)}
+              style={{ marginTop: 8, alignSelf: "flex-start" }}
+              hitSlop={8}
+              testID="test-tier-reset"
+            >
+              <Text style={[styles.infoRowText, { color: GOLD }]}>
+                {"Revenir à mon palier réel"}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
 
           <TouchableOpacity
             onPress={onReplayTour}

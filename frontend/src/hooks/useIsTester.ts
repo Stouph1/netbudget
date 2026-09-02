@@ -11,6 +11,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "../contexts/SessionContext";
 import { supabase } from "../lib/supabase";
+import { allowTierOverride, loadTierOverride } from "../lib/tierOverride";
 
 export function useIsTester(): boolean {
   const { user } = useSession();
@@ -19,13 +20,20 @@ export function useIsTester(): boolean {
   useEffect(() => {
     if (!user?.id) {
       setIsTester(false);
+      allowTierOverride(false);
       return;
     }
     let alive = true;
     void (async () => {
       try {
         const { data, error } = await supabase.rpc("am_i_tester");
-        if (alive) setIsTester(!error && data === true);
+        const ok = !error && data === true;
+        if (!alive) return;
+        setIsTester(ok);
+        // La porte du palier forcé ne s'ouvre qu'ici, sur une réponse du
+        // serveur. Voir tierOverride.ts.
+        allowTierOverride(ok);
+        if (ok) await loadTierOverride();
       } catch {
         // Hors ligne, ou fonction absente d'une base pas encore migrée.
         if (alive) setIsTester(false);

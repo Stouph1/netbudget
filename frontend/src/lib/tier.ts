@@ -15,6 +15,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "./supabase";
 import { parseTier, type Tier } from "./entitlements";
+import { tierOverride } from "./tierOverride";
 
 export { parseTier };
 
@@ -72,6 +73,13 @@ async function writeCache(tier: Tier): Promise<void> {
  * prime sur le serveur laisserait un abonnement résilié actif indéfiniment.
  */
 export async function loadTier(): Promise<Tier> {
+  // Palier forcé par un testeur. Placé AVANT tout le reste, y compris avant
+  // le serveur : c'est le but, pouvoir voir les quatre paliers sans quatre
+  // comptes. La porte ne s'ouvre que sur un `is_tester` confirmé en base —
+  // voir tierOverride.ts.
+  const forced = tierOverride();
+  if (forced) return forced;
+
   if (!BILLING_LIVE) return TIER_DURING_DEV;
 
   try {

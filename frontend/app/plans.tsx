@@ -34,7 +34,7 @@ import {
   annualSaving,
   HIGHLIGHTED_TIER,
   monthlyEquivalent,
-  planFeatureKeys,
+  planFeatures,
   planMembers,
   PRODUCT_IDS,
   SELLABLE_TIERS,
@@ -270,17 +270,12 @@ export default function Plans() {
                 ) : null}
 
                 <View style={s.features}>
-                  {planFeatureKeys(tier).map((key) => {
-                    const excluded = key === "plan.feature.noWedding";
+                  {planFeatures(tier).map((f) => {
                     return (
-                      <View key={key} style={s.featureRow}>
-                        <Feather
-                          name={excluded ? "minus" : "check"}
-                          size={14}
-                          color={excluded ? TEXT_3 : GOLD}
-                        />
-                        <Text style={[s.featureText, excluded && { color: TEXT_3 }]}>
-                          {t(key)}
+                      <View key={f.key} style={s.featureRow}>
+                        <Feather name="check" size={14} color={GOLD} />
+                        <Text style={s.featureText}>
+                          {f.params ? tp(f.key, f.params) : t(f.key)}
                         </Text>
                       </View>
                     );
