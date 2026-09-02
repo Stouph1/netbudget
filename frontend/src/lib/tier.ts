@@ -80,8 +80,19 @@ export async function loadTier(): Promise<Tier> {
   const forced = tierOverride();
   if (forced) return forced;
 
-  if (!BILLING_LIVE) return TIER_DURING_DEV;
-
+  // ON DEMANDE TOUJOURS AU SERVEUR, même quand la boutique n'est pas encore en
+  // service.
+  //
+  // C'ÉTAIT UN DÉFAUT GRAVE ET SILENCIEUX. Il y avait ici un raccourci
+  // « si la facturation n'est pas branchée, renvoyer le palier de
+  // développement » — donc « free ». Or `my_tier()` existe déjà et répond, et
+  // c'est par lui qu'on accorde un palier à la main pendant la phase de test
+  // (grant_test_tier). Avec le raccourci, les huit testeurs restaient gratuits
+  // quoi qu'on écrive en base, sans le moindre message : les profils Solo, Duo
+  // et Famille n'auraient rien pu tester.
+  //
+  // Interroger le serveur sans boutique ne coûte rien : la table n'a aucune
+  // policy d'écriture, et `my_tier()` renvoie « free » par défaut.
   try {
     const { data, error } = await supabase.rpc("my_tier");
     const fromServer = error ? null : parseTier(data);
@@ -90,8 +101,12 @@ export async function loadTier(): Promise<Tier> {
       return fromServer;
     }
   } catch {
-    // Hors ligne : on retombe sur le cache ci-dessous.
+    // Hors ligne, ou pas de session : on retombe plus bas.
   }
+
+  // Le serveur n'a pas répondu. En développement, le palier de confort permet
+  // de travailler sans réseau ni compte.
+  if (!BILLING_LIVE) return TIER_DURING_DEV;
 
   // Le cache ne sert qu'à ne pas dégrader l'expérience d'un abonné hors
   // ligne. Il ne peut pas accorder plus que ce que le serveur a déjà accordé
