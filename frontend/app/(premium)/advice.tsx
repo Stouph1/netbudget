@@ -25,6 +25,7 @@ import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { usePaywall } from "../../src/hooks/usePaywall";
 import { LockedOverlay } from "../../src/components/LockedOverlay";
+import { SyncBanner } from "../../src/components/SyncBanner";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import {
   allAdviceGrouped,
@@ -56,7 +57,6 @@ import type {
   UserProfile,
 } from "../../src/types/advice";
 import { markAdviceSeen } from "../../src/utils/notificationScheduler";
-import { notify } from "../../src/utils/notify";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -403,6 +403,8 @@ export default function AdviceScreen() {
   // tard, ses conseils sont déjà prêts. Lui faire tout ressaisir serait le
   // punir d'avoir hésité.
   const paywall = usePaywall();
+  // Dernier échec de synchronisation, affiché en bandeau. Voir SyncBanner.
+  const [syncError, setSyncError] = useState<string | null>(null);
   const adviceLocked =
     !paywall.loading && !paywall.allows({ feature: "advice" });
   // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
@@ -515,16 +517,12 @@ export default function AdviceScreen() {
       setProfile(next);
       if (!user?.id) return;
       const result = await saveAdviceProfile(user.id, next, workspaceId);
-      if (!result.ok) {
-        notify(
-          t("coach.sync.title"),
-          tp("coach.sync.body", {
-            error: result.error ?? t("coach.sync.unknownError"),
-          }),
-        );
-      }
+      // Bandeau, jamais d'alerte : cet écran enregistre à CHAQUE sélection.
+      // Une modale par échec faisait douze fenêtres à fermer sur un
+      // questionnaire de douze questions, et rendait l'app inutilisable.
+      setSyncError(result.ok ? null : (result.error ?? "unknown"));
     },
-    [user?.id, workspaceId, t, tp],
+    [user?.id, workspaceId],
   );
 
   function updateField<K extends keyof UserProfile>(
@@ -623,6 +621,10 @@ export default function AdviceScreen() {
           />
           <Text style={styles.scopeBadgeText}>{resolvedScopeLabel}</Text>
         </View>
+
+        {/* C'est ICI que l'alerte tombait : le questionnaire enregistre à
+            chaque sélection. Le bandeau informe une fois et reste. */}
+        <SyncBanner error={syncError} />
 
         <ScrollView
           contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
@@ -1017,6 +1019,8 @@ export default function AdviceScreen() {
         visible={switcherOpen}
         onClose={() => setSwitcherOpen(false)}
       />
+
+      <SyncBanner error={syncError} />
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         <View style={styles.profileTag}>

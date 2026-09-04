@@ -162,3 +162,49 @@ export async function currentKey(userId: string | null): Promise<Uint8Array | nu
   if (!userId) return null;
   return loadKey(userId);
 }
+
+/**
+ * Repart de zéro : efface les données cloud chiffrées et crée un coffre neuf.
+ *
+ * POURQUOI CETTE PORTE EXISTE, alors qu'elle détruit des données. Quelqu'un
+ * qui réinstalle l'app sans avoir noté sa phrase se retrouve avec un compte
+ * dont les données cloud sont illisibles — définitivement, et c'est le prix du
+ * chiffrement de bout en bout. Sans cette issue, son compte reste bloqué à
+ * vie : chaque écriture échoue, et aucune manipulation ne le débloque.
+ *
+ * On ne peut pas déchiffrer à sa place — personne ne peut, c'est justement la
+ * garantie. La seule chose honnête est de lui dire ce qu'il perd et de lui
+ * laisser la décision.
+ *
+ * CE QUI EST EFFACÉ : les payloads chiffrés du compte et l'empreinte de clé.
+ * Le budget stocké sur l'appareil n'est PAS touché — il n'a jamais été
+ * chiffré, il est local, et il n'y a aucune raison de le détruire au passage.
+ */
+export async function resetVault(userId: string): Promise<SetupResult> {
+  try {
+    // 1. Les données devenues illisibles. Les garder n'apporterait rien et
+    //    ferait échouer la prochaine lecture sur un déchiffrement impossible.
+    const { error: delError } = await supabase
+      .from("encrypted_payloads")
+      .delete()
+      .eq("user_id", userId);
+    if (delError) return { ok: false, error: delError.message };
+
+    // 2. L'empreinte. `setUpVault` refuse d'écraser une empreinte existante —
+    //    c'est ce qui protège les données d'un compte déjà chiffré. Il faut
+    //    donc la remettre à null explicitement, ici, après la suppression.
+    const { error: fpError } = await supabase
+      .from("profiles")
+      .update({ vault_fingerprint: null })
+      .eq("id", userId);
+    if (fpError) return { ok: false, error: fpError.message };
+
+    await forgetKey(userId);
+
+    // 3. Coffre neuf. À partir de là, tout ce qui sera écrit sera chiffré avec
+    //    une clé que cet appareil possède.
+    return await setUpVault(userId);
+  } catch (e: unknown) {
+    return { ok: false, error: (e as { message?: string }).message ?? "unknown" };
+  }
+}

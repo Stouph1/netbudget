@@ -34,10 +34,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLang } from "../src/contexts/LangContext";
 import { useSession } from "../src/contexts/SessionContext";
 import { keyPersistsOnThisDevice } from "../src/lib/crypto/keystore";
-import { unlockVault } from "../src/lib/crypto/vault";
+import { resetVault, unlockVault } from "../src/lib/crypto/vault";
 import { checkPhrase, normalizePhrase, PHRASE_WORDS } from "../src/lib/crypto/vaultKey";
 import { WORDLIST } from "../src/lib/crypto/wordlist";
-import { notify } from "../src/utils/notify";
+import { confirmDialog, notify } from "../src/utils/notify";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -228,6 +228,58 @@ export default function VaultUnlock() {
             <Feather name="help-circle" size={16} color={TEXT_3} />
             <Text style={s.lostText}>{t("vault.unlock.lost")}</Text>
           </View>
+
+          {/* L'ISSUE DE SECOURS.
+              Sans elle, quelqu'un qui a perdu sa phrase reste bloqué à vie :
+              chaque écriture échoue et rien ne le débloque. On ne peut pas
+              déchiffrer à sa place — personne ne peut, c'est la garantie même
+              du chiffrement de bout en bout. La seule chose honnête est de
+              lui dire ce qu'il perd et de lui laisser la décision.
+
+              Double confirmation, parce que c'est irréversible. */}
+          <TouchableOpacity
+            style={s.resetBtn}
+            onPress={() => {
+              const userId = user?.id;
+              if (!userId) return;
+              // DEUX confirmations, pas une. C'est irréversible et ça détruit
+              // des données : un seul « OK » se donne par réflexe.
+              confirmDialog(
+                t("vault.reset.confirm1.title"),
+                t("vault.reset.confirm1.body"),
+                t("vault.reset.confirm1.cta"),
+                () =>
+                  confirmDialog(
+                    t("vault.reset.confirm2.title"),
+                    t("vault.reset.confirm2.body"),
+                    t("vault.reset.confirm2.cta"),
+                    async () => {
+                      setBusy(true);
+                      const result = await resetVault(userId);
+                      setBusy(false);
+                      if (!result.ok) {
+                        notify(t("vault.reset.failed"), result.error);
+                        return;
+                      }
+                      notify(
+                        t("vault.reset.done.title"),
+                        t("vault.reset.done.body"),
+                        () => router.back(),
+                      );
+                    },
+                    { destructive: true, cancelLabel: t("btn.cancel") },
+                  ),
+                { destructive: true, cancelLabel: t("btn.cancel") },
+              );
+            }}
+            disabled={busy}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            testID="vault-reset"
+          >
+            <Feather name="rotate-ccw" size={15} color={DANGER} />
+            <Text style={s.resetText}>{t("vault.reset.cta")}</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -236,6 +288,18 @@ export default function VaultUnlock() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
+  resetBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 18,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(248,113,113,0.4)",
+  },
+  resetText: { color: DANGER, fontSize: 13.5, fontWeight: "700" },
   header: {
     flexDirection: "row",
     alignItems: "center",
