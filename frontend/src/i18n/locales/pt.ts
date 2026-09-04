@@ -427,6 +427,8 @@ export const pt: Catalog = {
   "coach.familyLabel": "A tua situação familiar *",
   "coach.foyerLabel": "O agregado *",
   "coach.optionalHeader": "Opcional — quanto mais preencheres, mais preciso fica",
+  "coach.recap.title": "Já indicado no registo",
+  "coach.recap.edit": "Editar",
   "coach.country.hint": "França por predefinição. Os conselhos adaptam-se à fiscalidade e aos apoios do teu país.",
   "coach.region.labelPerso": "A tua região (França)",
   "coach.region.labelShared": "A vossa região (França)",

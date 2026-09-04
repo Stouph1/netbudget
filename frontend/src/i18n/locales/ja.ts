@@ -427,6 +427,8 @@ export const ja: Catalog = {
   "coach.familyLabel": "家族構成 *",
   "coach.foyerLabel": "世帯 *",
   "coach.optionalHeader": "任意 — 入力が増えるほど精度が上がります",
+  "coach.recap.title": "登録時に入力済み",
+  "coach.recap.edit": "変更",
   "coach.country.hint": "既定はフランスです。アドバイスはお住まいの国の税制や制度に合わせて変わります。",
   "coach.region.labelPerso": "地域（フランス）",
   "coach.region.labelShared": "地域（フランス）",

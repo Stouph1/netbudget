@@ -482,6 +482,8 @@ export const fr: Catalog = {
   "coach.familyLabel": "Ta situation familiale *",
   "coach.foyerLabel": "Le foyer *",
   "coach.optionalHeader": "Optionnel — plus tu remplis, plus c'est précis",
+  "coach.recap.title": "Déjà renseigné à l'inscription",
+  "coach.recap.edit": "Modifier",
   "coach.country.hint": "France par défaut. Les conseils s'adaptent à la fiscalité et aux dispositifs de ton pays.",
   "coach.region.labelPerso": "Ta région (France)",
   "coach.region.labelShared": "Votre région (France)",

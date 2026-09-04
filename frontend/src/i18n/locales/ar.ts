@@ -427,6 +427,8 @@ export const ar: Catalog = {
   "coach.familyLabel": "حالتك الأسرية *",
   "coach.foyerLabel": "الأسرة *",
   "coach.optionalHeader": "اختياري — كلما أكملت أكثر، صارت النتيجة أدق",
+  "coach.recap.title": "مُسجَّل مسبقاً عند إنشاء الحساب",
+  "coach.recap.edit": "تعديل",
   "coach.country.hint": "فرنسا افتراضيًا. تتكيف النصائح مع الضرائب والبرامج في بلدك.",
   "coach.region.labelPerso": "منطقتك (فرنسا)",
   "coach.region.labelShared": "منطقتكم (فرنسا)",

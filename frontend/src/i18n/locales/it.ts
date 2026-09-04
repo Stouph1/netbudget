@@ -427,6 +427,8 @@ export const it: Catalog = {
   "coach.familyLabel": "La tua situazione familiare *",
   "coach.foyerLabel": "Il nucleo *",
   "coach.optionalHeader": "Opzionale — più informazioni inserisci, più è preciso",
+  "coach.recap.title": "Già indicato all'iscrizione",
+  "coach.recap.edit": "Modifica",
   "coach.country.hint": "Francia per impostazione predefinita. I consigli si adattano al fisco e agli strumenti del tuo paese.",
   "coach.region.labelPerso": "La tua regione (Francia)",
   "coach.region.labelShared": "La vostra regione (Francia)",

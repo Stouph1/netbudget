@@ -405,6 +405,11 @@ export default function AdviceScreen() {
   const paywall = usePaywall();
   // Dernier échec de synchronisation, affiché en bandeau. Voir SyncBanner.
   const [syncError, setSyncError] = useState<string | null>(null);
+  // Âge et localisation viennent de l'inscription. On les REPLIE au lieu de
+  // les redemander : reposer une question déjà posée deux écrans plus tôt
+  // donne le sentiment que rien n'a été enregistré, et c'est le premier
+  // moment où l'on gagne ou perd la confiance de quelqu'un.
+  const [editBasics, setEditBasics] = useState(false);
   const adviceLocked =
     !paywall.loading && !paywall.allows({ feature: "advice" });
   // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
@@ -431,6 +436,25 @@ export default function AdviceScreen() {
 
   const mode = modeFor(workspaceKind);
   const cfg = useMemo(() => onboardingConfig(t)[mode], [t, mode]);
+
+  // « Connu » = les deux champs que l'inscription remplit vraiment. Un seul
+  // des deux ne suffit pas : un récapitulatif à trous inquiète plus qu'il
+  // rassure.
+  const basicsKnown = Boolean(profile.age && profile.country);
+  const basicsSummary = useMemo(() => {
+    // On passe par les MÊMES tables d'options que les questions : construire
+    // une clé de traduction à la main (« coach.age.18-25 ») donnerait un
+    // libellé manquant, affiché tel quel à l'écran.
+    const parts: string[] = [];
+    const age = ageOptions(t).find((o) => o.value === profile.age)?.label;
+    if (age) parts.push(age);
+    if (profile.region) parts.push(profile.region);
+    else {
+      const country = COUNTRY_OPTIONS.find((o) => o.value === profile.country)?.label;
+      if (country) parts.push(country);
+    }
+    return parts.join(" · ");
+  }, [profile.age, profile.region, profile.country, t]);
 
   const toggleGroup = useCallback((key: string) => {
     setExpandedGroups((prev) => {
@@ -632,7 +656,27 @@ export default function AdviceScreen() {
         >
           <Text style={styles.intro}>{cfg.intro}</Text>
 
-          {cfg.askAge ? (
+          {/* Récapitulatif de ce qui a déjà été saisi à l'inscription. On ne
+              le montre que si les deux sont connus : à moitié rempli, il
+              vaut mieux poser les questions normalement. */}
+          {basicsKnown && !editBasics ? (
+            <TouchableOpacity
+              style={styles.recapCard}
+              onPress={() => setEditBasics(true)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              testID="coach-recap-basics"
+            >
+              <Feather name="check-circle" size={16} color={GOLD} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.recapTitle}>{t("coach.recap.title")}</Text>
+                <Text style={styles.recapValue}>{basicsSummary}</Text>
+              </View>
+              <Text style={styles.recapEdit}>{t("coach.recap.edit")}</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {cfg.askAge && (!basicsKnown || editBasics) ? (
             <QuestionBlock
               label={cfg.ageLabel}
               options={ageOptions(t)}
@@ -685,7 +729,7 @@ export default function AdviceScreen() {
             </Text>
           ) : null}
 
-          {cfg.askCountry ? (
+          {cfg.askCountry && (!basicsKnown || editBasics) ? (
             <ChipsBlock
               label={cfg.countryLabel}
               hint={t("coach.country.hint")}
@@ -694,7 +738,9 @@ export default function AdviceScreen() {
               onSelect={(v) => updateField("country", v)}
             />
           ) : null}
-          {cfg.askCountry && (profile.country ?? "FR") === "FR" ? (
+          {cfg.askCountry &&
+          (!basicsKnown || editBasics) &&
+          (profile.country ?? "FR") === "FR" ? (
             <ChipsBlock
               label={
                 mode === "perso"
@@ -1420,6 +1466,20 @@ function AdviceCardView({
 }
 
 const styles = StyleSheet.create({
+  recapCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 13,
+    marginBottom: 18,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.28)",
+    backgroundColor: "rgba(74,222,128,0.06)",
+  },
+  recapTitle: { color: TEXT_2, fontSize: 11.5 },
+  recapValue: { color: TEXT_1, fontSize: 14, fontWeight: "700", marginTop: 1 },
+  recapEdit: { color: GOLD, fontSize: 12, fontWeight: "700" },
   // Commence sous l'en-tête et le badge de scope, qui restent nets et actifs.
   lockedArea: { position: "absolute", left: 0, right: 0, top: 116, bottom: 0 },
   safe: { flex: 1, backgroundColor: MIDNIGHT },

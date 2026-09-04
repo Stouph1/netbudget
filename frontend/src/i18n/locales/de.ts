@@ -427,6 +427,8 @@ export const de: Catalog = {
   "coach.familyLabel": "Deine Familiensituation *",
   "coach.foyerLabel": "Der Haushalt *",
   "coach.optionalHeader": "Optional — je mehr du ausfüllst, desto genauer wird es",
+  "coach.recap.title": "Bei der Anmeldung schon angegeben",
+  "coach.recap.edit": "Ändern",
   "coach.country.hint": "Standard ist Frankreich. Die Tipps richten sich nach Steuern und Programmen deines Landes.",
   "coach.region.labelPerso": "Deine Region (Frankreich)",
   "coach.region.labelShared": "Eure Region (Frankreich)",
