@@ -138,7 +138,31 @@ begin
   ) then
     raise exception 'is_tester absente : la migration a échoué';
   end if;
-  raise notice 'Migration 019 appliquée. Accorde un palier avec : select public.grant_test_tier(''email'', ''family'');';
+  raise notice 'Migration 019 appliquée.';
 end $$;
 
-select public.am_i_tester() as je_suis_testeur;
+-- ---------------------------------------------------------------------------
+-- ATTENTION : cette migration ne fait que CRÉER les fonctions.
+-- ---------------------------------------------------------------------------
+--
+-- Elle n'accorde aucun palier. Pour désigner un testeur, il faut lancer la
+-- commande suivante SÉPARÉMENT, dans un onglet SQL vide, une fois par
+-- personne et APRÈS son inscription dans l'app :
+--
+--   select public.grant_test_tier('adresse@exemple.com', 'family');
+--
+-- Paliers : free, solo, duo, family.
+--
+-- NE PAS utiliser `select public.am_i_tester()` pour vérifier depuis cet
+-- éditeur : `auth.uid()` y est vide — on n'est pas connecté comme
+-- utilisateur de l'app — donc la fonction renvoie TOUJOURS false. Elle ne
+-- prouverait rien, et ferait croire que la commande a échoué.
+--
+-- La bonne vérification, elle, lit directement les tables :
+
+select u.email, p.is_tester, s.tier, s.platform
+from auth.users u
+left join public.profiles p on p.id = u.id
+left join public.subscriptions s on s.user_id = u.id and s.platform = 'test'
+where p.is_tester or s.platform = 'test'
+order by u.email;
