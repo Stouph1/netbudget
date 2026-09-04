@@ -50,6 +50,7 @@ import { useTourRunner } from "../src/hooks/useTourRunner";
 import { useWhatsNew } from "../src/hooks/useWhatsNew";
 import { WhatsNewSheet } from "../src/components/WhatsNewSheet";
 import { TourOverlay } from "../src/components/tour/TourOverlay";
+import { useTour } from "../src/components/tour/TourContext";
 import {
   buildBirthdayCards,
   buildChildBirthdayCards,
@@ -429,6 +430,14 @@ export default function Index() {
   });
   // La visite attend que la fête de déverrouillage soit passée : deux
   // plein-écrans empilés, c'est quelqu'un qui ferme les deux sans lire.
+  // La visite guidée a besoin de savoir quel onglet est RÉELLEMENT affiché :
+  // elle attend d'y être avant de mesurer sa cible, au lieu de parier sur un
+  // délai. Sans ça, le projecteur se posait au bon endroit du mauvais écran.
+  const { setActiveTab } = useTour();
+  useEffect(() => {
+    setActiveTab(tab);
+  }, [tab, setActiveTab]);
+
   const tour = useTourRunner({
     blocked: consent.needed || tierUnlock.visible || bdayOpen || whatsNew.visible,
     // La visite ouvre elle-même l'onglet dont elle parle.
