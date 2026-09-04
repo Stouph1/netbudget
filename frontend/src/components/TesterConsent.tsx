@@ -24,7 +24,9 @@ import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -81,6 +83,14 @@ export function TesterConsent({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={() => {}}>
+      {/* Le champ du nom vit dans un pied FIXE, hors du défilement :
+          `automaticallyAdjustKeyboardInsets` n'y ferait rien. Il faut remonter
+          tout l'écran. Sans ça le testeur ne voit pas ce qu'il tape — et c'est
+          le premier écran qu'il rencontre. */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       <View style={s.root}>
         <View style={s.head}>
           <Text style={s.title}>{APPROVAL.titre}</Text>
@@ -92,6 +102,7 @@ export function TesterConsent({
           contentContainerStyle={{ padding: 20, paddingBottom: 30 }}
           onScroll={onScroll}
           scrollEventThrottle={80}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator
         >
           {sections.map((sec) => (
@@ -178,6 +189,7 @@ export function TesterConsent({
           <Text style={s.trace}>{APPROVAL.mentionTrace}</Text>
         </View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

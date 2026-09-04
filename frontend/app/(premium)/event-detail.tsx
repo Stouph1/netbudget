@@ -312,7 +312,9 @@ export default function EventDetail() {
 
       <SyncBanner error={syncError} />
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+      <ScrollView
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive" contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         {/* Vue d'ensemble */}
         <View style={styles.overview}>
           <Text style={styles.overviewDate}>

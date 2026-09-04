@@ -173,6 +173,8 @@ export default function BudgetScreen({
 
   return (
     <ScrollView
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"

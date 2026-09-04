@@ -60,6 +60,8 @@ export default function ConverterScreen({
 
   return (
     <ScrollView
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
       ref={tourScroll.ref}
       onScroll={tourScroll.onScroll}
       scrollEventThrottle={64}

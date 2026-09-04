@@ -298,6 +298,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
 
   return (
     <ScrollView
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
       contentContainerStyle={{ padding: 20, paddingBottom: standalone ? 60 : 130 }}
       showsVerticalScrollIndicator={false}
     >

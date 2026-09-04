@@ -103,7 +103,9 @@ export default function Celebrations() {
           <ActivityIndicator color={GOLD} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+        <ScrollView
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive" contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
           <Text style={styles.intro}>{t("celeb.intro")}</Text>
 
           {/* Formulaire d'ajout */}
