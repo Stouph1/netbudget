@@ -14,24 +14,45 @@ type UploadResult =
   | { ok: true; url: string }
   | { ok: false; reason: "cancelled" | "permission" | "error"; message?: string };
 
+/**
+ * Ouvre le sélecteur de photos du système et renvoie l'image choisie.
+ *
+ * AUCUNE PERMISSION N'EST DEMANDÉE, et c'est le point important.
+ *
+ * Il y avait ici un `requestMediaLibraryPermissionsAsync()`, qui exigeait
+ * `READ_MEDIA_IMAGES` sur Android 13+. Google Play REFUSE cette permission dès
+ * qu'on cible Android 13 : elle n'est accordée que si les sélecteurs système
+ * sont techniquement insuffisants pour le fonctionnement de base de l'app.
+ * Choisir une photo de profil ne l'est pas — le sélecteur système fait
+ * exactement ça.
+ *
+ * Le sélecteur système n'a besoin d'aucune permission : il tourne hors de
+ * l'app et ne nous rend qu'une seule image, celle que l'utilisateur a
+ * désignée. On ne voit jamais sa galerie. C'est plus respectueux que ce qu'on
+ * faisait, et c'est aussi ce que Google impose.
+ */
 async function pickImage(): Promise<
   | { ok: true; uri: string }
   | { ok: false; reason: "cancelled" | "permission" }
 > {
-  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!perm.granted) return { ok: false, reason: "permission" };
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ["images"],
-    allowsEditing: true,     // crop carré natif
-    aspect: [1, 1],
-    quality: 0.7,            // compression — avatars, pas besoin de plus
-    exif: false,
-  });
-  if (result.canceled || !result.assets?.[0]?.uri) {
-    return { ok: false, reason: "cancelled" };
+  try {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,     // crop carré natif
+      aspect: [1, 1],
+      quality: 0.7,            // compression — avatars, pas besoin de plus
+      exif: false,
+    });
+    if (result.canceled || !result.assets?.[0]?.uri) {
+      return { ok: false, reason: "cancelled" };
+    }
+    return { ok: true, uri: result.assets[0].uri };
+  } catch {
+    // Le sélecteur n'a pas pu s'ouvrir. Sur les Android antérieurs à 13, c'est
+    // le seul cas où un refus d'accès peut encore se produire — le message
+    // « autorise l'accès aux photos » reste donc le bon.
+    return { ok: false, reason: "permission" };
   }
-  return { ok: true, uri: result.assets[0].uri };
 }
 
 async function uploadTo(path: string, uri: string): Promise<UploadResult> {
