@@ -41,6 +41,7 @@ import {
   type EventProject,
 } from "../lib/premiumStore";
 import { PaywallSheet } from "./PaywallSheet";
+import { SyncBanner } from "./SyncBanner";
 import { usePaywall } from "../hooks/usePaywall";
 import { useTourTarget } from "./tour/TourContext";
 import type { UserProfile } from "../types/advice";
@@ -122,6 +123,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   // Les limites de formule vivent dans un seul endroit (usePaywall) : les
   // recopier ici finirait par laisser passer ce qu'un autre écran refuse.
   const paywall = usePaywall();
+  const [syncError, setSyncError] = useState<string | null>(null);
   const tourCreate = useTourTarget("events:create");
 
   useFocusEffect(
@@ -249,7 +251,12 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     };
     const next = [ev, ...(list ?? [])];
     setList(next);
-    await saveEvents(user.id, next, workspaceId, currency);
+    // On REGARDE le résultat. Il était ignoré : un événement créé avec le
+    // coffre verrouillé restait sur l'appareil sans que personne le sache —
+    // et dans un espace partagé, l'autre membre ne voyait jamais rien
+    // apparaître, sans explication.
+    const saved = await saveEvents(user.id, next, workspaceId, currency);
+    setSyncError(saved.ok ? null : (saved.error ?? "unknown"));
     scheduleEventNotifications(ev, t); // best-effort, jamais bloquant
     setCreating(false);
     setType(null);
@@ -296,6 +303,13 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     >
       {!standalone ? <Text style={styles.pageTitle}>{t("events.title")}</Text> : null}
       <Text style={styles.intro}>{t("events.intro")}</Text>
+
+      {/* Le bandeau est DANS le défilement ici : le panneau est intégré à
+          l'onglet Projets, il n'a pas d'en-tête fixe où l'accrocher.
+          Marge négative pour compenser le rembourrage du conteneur. */}
+      <View style={{ marginHorizontal: -20 }}>
+        <SyncBanner error={syncError} />
+      </View>
 
       {/* Espace actif : les événements d'un espace partagé sont visibles par
           tous ses membres. Changer d'espace recharge la liste. */}

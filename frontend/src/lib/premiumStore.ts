@@ -674,12 +674,23 @@ export async function loadEvents(
   );
 }
 
+/**
+ * Enregistre les événements et RENVOIE le verdict de l'écriture.
+ *
+ * Elle renvoyait `void` : le résultat de `writePayload` était avalé. Un
+ * événement créé avec le coffre verrouillé restait donc sur l'appareil sans
+ * que personne le sache — et dans un espace partagé, l'autre membre ne voyait
+ * jamais rien apparaître, sans explication.
+ *
+ * Une fonction qui peut échouer et ne le dit pas est un piège pour tous ceux
+ * qui l'appelleront ensuite.
+ */
 export async function saveEvents(
   userId: string,
   list: EventProject[],
   workspaceId: string | null,
   displayCurrency?: CurrencyCode,
-): Promise<void> {
+): Promise<{ ok: boolean; error?: string }> {
   const raw = await readPayload<EventProject[] | EventsEnvelope>(
     EVENTS_KEY, userId, [], workspaceId,
   );
@@ -692,7 +703,7 @@ export async function saveEvents(
       convertEvents(d as unknown as Record<string, unknown>[], from, to, rates) as unknown as EventProject[],
     "toStored",
   );
-  await writePayload<EventsEnvelope>(
+  return await writePayload<EventsEnvelope>(
     EVENTS_KEY, userId, { currency: stamped, events: back }, workspaceId,
   );
 }

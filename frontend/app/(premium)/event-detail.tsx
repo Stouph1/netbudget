@@ -4,6 +4,7 @@
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { goBack } from "../../src/lib/nav";
+import { SyncBanner } from "../../src/components/SyncBanner";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -68,6 +69,7 @@ export default function EventDetail() {
   const { user, loading: sessionLoading } = useSession();
   const { workspaceId } = useActiveScope();
   const [all, setAll] = useState<EventProject[] | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [draftEstimated, setDraftEstimated] = useState("");
   const [draftActual, setDraftActual] = useState("");
@@ -109,7 +111,11 @@ export default function EventDetail() {
     setAll(nextAll);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      void saveEvents(user.id, nextAll, workspaceId, currency);
+      // Résultat regardé : un jalon coché avec le coffre verrouillé restait
+      // sur l'appareil, et l'autre membre de l'espace ne voyait rien bouger.
+      void saveEvents(user.id, nextAll, workspaceId, currency).then((r) =>
+        setSyncError(r.ok ? null : (r.error ?? "unknown")),
+      );
       if (reschedule) void scheduleEventNotifications(next, t);
     }, 600);
   }
@@ -159,7 +165,8 @@ export default function EventDetail() {
         // l'événement supprimé réapparaissait.
         setDeleting(true);
         try {
-          await saveEvents(user.id, nextAll, workspaceId, currency);
+          const saved = await saveEvents(user.id, nextAll, workspaceId, currency);
+          setSyncError(saved.ok ? null : (saved.error ?? "unknown"));
         } finally {
           setDeleting(false);
         }
@@ -302,6 +309,8 @@ export default function EventDetail() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <SyncBanner error={syncError} />
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         {/* Vue d'ensemble */}
