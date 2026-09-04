@@ -3,6 +3,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { goBack } from "../../src/lib/nav";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -162,7 +163,7 @@ export default function EventDetail() {
         } finally {
           setDeleting(false);
         }
-        router.back();
+        goBack();
       },
     );
   }
@@ -181,7 +182,7 @@ export default function EventDetail() {
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
           <Text style={{ color: TEXT_2 }}>{t("event.notFound")}</Text>
-          <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 12 }}>
+          <TouchableOpacity onPress={() => goBack()} style={{ marginTop: 12 }}>
             <Text style={{ color: GOLD }}>{t("event.back")}</Text>
           </TouchableOpacity>
         </View>
@@ -276,7 +277,7 @@ export default function EventDetail() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+        <TouchableOpacity onPress={() => goBack()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>

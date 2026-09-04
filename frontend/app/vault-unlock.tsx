@@ -18,6 +18,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { goBack } from "../src/lib/nav";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -94,7 +95,7 @@ export default function VaultUnlock() {
 
     if (result.ok) {
       notify(t("vault.unlock.done.title"), t("vault.unlock.done.body"), () =>
-        router.back(),
+        goBack(),
       );
       return;
     }
@@ -151,7 +152,7 @@ export default function VaultUnlock() {
       >
         <View style={s.header}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => goBack()}
             hitSlop={10}
             accessibilityRole="button"
             accessibilityLabel={t("common.back")}
@@ -264,7 +265,7 @@ export default function VaultUnlock() {
                       notify(
                         t("vault.reset.done.title"),
                         t("vault.reset.done.body"),
-                        () => router.back(),
+                        () => goBack(),
                       );
                     },
                     { destructive: true, cancelLabel: t("btn.cancel") },

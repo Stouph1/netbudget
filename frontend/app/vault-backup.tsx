@@ -12,6 +12,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
+import { goBack } from "../src/lib/nav";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -74,7 +75,7 @@ export default function VaultBackup() {
     <SafeAreaView style={s.safe} edges={["top", "left", "right"]}>
       <View style={s.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel={t("common.back")}

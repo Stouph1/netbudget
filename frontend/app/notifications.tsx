@@ -11,6 +11,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
+import { goBack } from "../src/lib/nav";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -129,7 +130,7 @@ export default function NotificationSettings() {
     <SafeAreaView style={s.screen} edges={["top", "bottom"]}>
       <View style={s.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           style={s.backBtn}
           accessibilityRole="button"
           accessibilityLabel={t("common.back")}

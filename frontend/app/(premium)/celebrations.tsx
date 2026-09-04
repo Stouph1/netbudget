@@ -3,6 +3,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
+import { goBack } from "../../src/lib/nav";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -90,7 +91,7 @@ export default function Celebrations() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+        <TouchableOpacity onPress={() => goBack()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
         <Text style={styles.title}>{t("celeb.title")}</Text>

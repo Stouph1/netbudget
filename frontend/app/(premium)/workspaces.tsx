@@ -12,6 +12,7 @@ import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { confirmDialog, notify } from "../../src/utils/notify";
 import { router } from "expo-router";
+import { goBack } from "../../src/lib/nav";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -159,7 +160,7 @@ export default function WorkspacesScreen() {
           <Feather name="lock" size={32} color={TEXT_3} />
           <Text style={styles.emptyTitle}>{t("common.premiumRequired")}</Text>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => goBack()}
             style={styles.emptyBtn}
           >
             <Text style={styles.emptyBtnText}>{t("common.back")}</Text>
@@ -193,7 +194,7 @@ export default function WorkspacesScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+        <TouchableOpacity onPress={() => goBack()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
         <Text style={styles.title}>{t("ws.title")}</Text>

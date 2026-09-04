@@ -8,6 +8,7 @@ import { openExternal } from "../../src/utils/openExternal";
 
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { goBack } from "../../src/lib/nav";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -26,6 +27,8 @@ import { useSession } from "../../src/contexts/SessionContext";
 import { usePaywall } from "../../src/hooks/usePaywall";
 import { LockedOverlay } from "../../src/components/LockedOverlay";
 import { SyncBanner } from "../../src/components/SyncBanner";
+import * as Haptics from "expo-haptics";
+import Reanimated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
 import {
   allAdviceGrouped,
@@ -410,6 +413,11 @@ export default function AdviceScreen() {
   // donne le sentiment que rien n'a été enregistré, et c'est le premier
   // moment où l'on gagne ou perd la confiance de quelqu'un.
   const [editBasics, setEditBasics] = useState(false);
+  // Fin du questionnaire pendant l'inscription : on MARQUE l'aboutissement.
+  // Basculer sec du formulaire à la liste ne dit pas « c'est fait » — la
+  // personne vient de répondre à douze questions et n'a aucun signe que ça a
+  // servi à quelque chose.
+  const [justFinished, setJustFinished] = useState(false);
   const adviceLocked =
     !paywall.loading && !paywall.allows({ feature: "advice" });
   // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
@@ -602,7 +610,7 @@ export default function AdviceScreen() {
           <Feather name="lock" size={32} color={TEXT_3} />
           <Text style={styles.emptyTitle}>{t("coach.locked.title")}</Text>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => goBack()}
             style={styles.emptyBtn}
             activeOpacity={0.85}
           >
@@ -623,7 +631,7 @@ export default function AdviceScreen() {
           <TouchableOpacity
             onPress={() => {
               if (hasMinimumProfileFor(profile, mode)) setEditing(false);
-              else router.back();
+              else goBack();
             }}
             hitSlop={10}
           >
@@ -972,7 +980,16 @@ export default function AdviceScreen() {
           {hasMinimumProfileFor(profile, mode) ? (
             missingQuestions.length === 0 ? (
               <TouchableOpacity
-                onPress={() => setEditing(false)}
+                onPress={() => {
+                  void Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Success,
+                  ).catch(() => {});
+                  // L'aboutissement ne s'affiche qu'à la PREMIÈRE fin, pendant
+                  // l'inscription. Le rejouer à chaque retouche du profil
+                  // deviendrait une porte à franchir.
+                  if (onboard === "1") setJustFinished(true);
+                  setEditing(false);
+                }}
                 style={styles.ctaBtn}
                 activeOpacity={0.85}
               >
@@ -1025,10 +1042,60 @@ export default function AdviceScreen() {
     };
   });
 
+  if (justFinished) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <View style={styles.doneWrap}>
+          <Reanimated.View entering={ZoomIn.duration(420)} style={styles.doneRing}>
+            <Feather name="check" size={38} color={GOLD} />
+          </Reanimated.View>
+
+          <Reanimated.Text
+            entering={FadeInDown.delay(220).duration(420)}
+            style={styles.doneTitle}
+          >
+            {t("coach.done.title")}
+          </Reanimated.Text>
+          <Reanimated.Text
+            entering={FadeInDown.delay(320).duration(420)}
+            style={styles.doneBody}
+          >
+            {tp("coach.done.body", { n: totalCount })}
+          </Reanimated.Text>
+
+          <Reanimated.View
+            entering={FadeInDown.delay(460).duration(420)}
+            style={{ alignSelf: "stretch", gap: 10, marginTop: 26 }}
+          >
+            <TouchableOpacity
+              style={styles.ctaBtn}
+              onPress={() => setJustFinished(false)}
+              activeOpacity={0.85}
+              testID="coach-done-see"
+            >
+              <Text style={styles.ctaBtnText}>{t("coach.done.see")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.doneLater}
+              onPress={() => {
+                setJustFinished(false);
+                router.replace({ pathname: "/", params: { tab: "premium" } } as never);
+              }}
+              activeOpacity={0.8}
+              testID="coach-done-home"
+            >
+              <Text style={styles.doneLaterText}>{t("coach.done.home")}</Text>
+            </TouchableOpacity>
+          </Reanimated.View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+        <TouchableOpacity onPress={() => goBack()} hitSlop={10}>
           <Feather name="arrow-left" size={22} color={TEXT_1} />
         </TouchableOpacity>
         <Text style={styles.title}>{t("coach.title")}</Text>
@@ -1466,6 +1533,38 @@ function AdviceCardView({
 }
 
 const styles = StyleSheet.create({
+  doneWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+  },
+  doneRing: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(74,222,128,0.12)",
+    borderWidth: 1.5,
+    borderColor: "rgba(74,222,128,0.4)",
+    marginBottom: 22,
+  },
+  doneTitle: {
+    color: TEXT_1,
+    fontSize: 23,
+    fontWeight: "800",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  doneBody: {
+    color: TEXT_2,
+    fontSize: 14.5,
+    lineHeight: 21,
+    textAlign: "center",
+  },
+  doneLater: { alignItems: "center", paddingVertical: 12 },
+  doneLaterText: { color: TEXT_3, fontSize: 13.5, fontWeight: "600" },
   recapCard: {
     flexDirection: "row",
     alignItems: "center",

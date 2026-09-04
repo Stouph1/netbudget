@@ -19,6 +19,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { goBack } from "../src/lib/nav";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -128,7 +129,7 @@ export default function Plans() {
       // rendre la main, sinon l'utilisateur revient sur un écran qui le croit
       // encore non abonné.
       void refreshTier();
-      notify(t("plan.bought.title"), t("plan.bought.body"), () => router.back());
+      notify(t("plan.bought.title"), t("plan.bought.body"), () => goBack());
       return;
     }
     if (result.reason === "cancelled") return; // l'utilisateur a renoncé, rien à dire
@@ -159,7 +160,7 @@ export default function Plans() {
     <SafeAreaView style={s.safe} edges={["top", "left", "right"]}>
       <View style={s.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel={t("common.back")}

@@ -8,6 +8,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { goBack } from "../../src/lib/nav";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -224,7 +225,7 @@ export default function CompleteProfile() {
     }
 
     if (isEdit) {
-      notify(t("signup.updated"), undefined, () => router.back());
+      notify(t("signup.updated"), undefined, () => goBack());
       return;
     }
 
@@ -251,7 +252,7 @@ export default function CompleteProfile() {
         <View style={styles.center}>
           <Feather name="lock" size={32} color={TEXT_3} />
           <Text style={styles.centerTitle}>{t("signup.signin.first")}</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.secondaryBtn}>
+          <TouchableOpacity onPress={() => goBack()} style={styles.secondaryBtn}>
             <Text style={styles.secondaryBtnText}>{t("signup.back")}</Text>
           </TouchableOpacity>
         </View>
@@ -266,7 +267,7 @@ export default function CompleteProfile() {
         style={{ flex: 1 }}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+          <TouchableOpacity onPress={() => goBack()} hitSlop={10}>
             <Feather name="arrow-left" size={22} color={TEXT_1} />
           </TouchableOpacity>
           <Text style={styles.title}>
