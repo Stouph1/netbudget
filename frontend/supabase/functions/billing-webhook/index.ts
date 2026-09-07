@@ -29,31 +29,21 @@
 // optionnel.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Traductions isolées pour être TESTABLES depuis le projet : ces trois
+// fonctions décident du palier de quelqu'un qui vient de payer.
+// Voir _shared/billingMapping.ts et __tests__/billingMapping.test.ts.
+import {
+  CANCELLING,
+  platformFromStore,
+  REVOKING,
+  statusFor,
+  tierFromEntitlements,
+  type Tier,
+} from "../_shared/billingMapping.ts";
 
-/** Paliers acceptés. Tout le reste est rejeté plutôt qu'interprété. */
-const TIERS = ["free", "solo", "duo", "family"] as const;
-type Tier = (typeof TIERS)[number];
 
-/**
- * Entitlement RevenueCat → palier.
- *
- * On lit l'entitlement et non l'identifiant de produit : c'est ce qui permet
- * d'ajouter une offre promotionnelle ou de changer un identifiant de produit
- * sans redéployer cette fonction.
- */
-function tierFromEntitlements(ids: string[]): Tier {
-  // Ordre décroissant : quelqu'un qui cumule garde le plus généreux.
-  if (ids.includes("family")) return "family";
-  if (ids.includes("duo")) return "duo";
-  if (ids.includes("solo")) return "solo";
-  return "free";
-}
 
-/** Types d'événements qui retirent l'accès à terme échu. */
-const REVOKING = new Set(["EXPIRATION", "REFUND", "SUBSCRIPTION_PAUSED"]);
 
-/** Types qui signalent une résiliation sans retirer la période payée. */
-const CANCELLING = new Set(["CANCELLATION", "UNSUBSCRIBE"]);
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -129,15 +119,26 @@ Deno.serve(async (req: Request) => {
   const revoking = REVOKING.has(type);
   const tier: Tier = revoking ? "free" : tierFromEntitlements(entitlements);
 
-  const store = String(event.store ?? "").toLowerCase();
-  const storeValue =
-    store.includes("app_store") || store.includes("mac")
-      ? "app_store"
-      : store.includes("play")
-        ? "play_store"
-        : store.includes("promo")
-          ? "promotional"
-          : null;
+  // `platform` porte une contrainte CHECK : apple, google, stripe,
+  // promotional, test. Une valeur hors liste fait échouer l'écriture — donc on
+  // traduit, on ne recopie pas ce que RevenueCat envoie.
+  const platform = platformFromStore(event.store);
+
+  // `status` porte aussi une contrainte CHECK, et la colonne est OBLIGATOIRE.
+  // On la déduit du type d'événement plutôt que de la laisser vide.
+  const periodType = String(event.period_type ?? "").toUpperCase();
+  const status = statusFor(type, periodType);
+
+  // Clé d'unicité RÉELLE de la table : (platform, original_transaction_id).
+  // C'est elle qu'on utilise, et non `user_id` qui n'en porte aucune.
+  const transactionId = String(
+    event.original_transaction_id ?? event.transaction_id ?? eventId,
+  );
+
+  const trialEndsAt =
+    periodType === "TRIAL" && expirationMs > 0
+      ? new Date(expirationMs).toISOString()
+      : null;
 
   // --- 4. Tolérance au désordre -------------------------------------------
   // On ne recule jamais : si l'état enregistré expire PLUS TARD que celui de
@@ -146,7 +147,11 @@ Deno.serve(async (req: Request) => {
   const current = await admin
     .from("subscriptions")
     .select("expires_at")
-    .eq("user_id", userId)
+    // Sur la clé d'unicité réelle. Un filtre sur `user_id` seul peut renvoyer
+    // PLUSIEURS lignes — un même compte peut avoir un historique — et
+    // `maybeSingle()` lèverait alors une erreur.
+    .eq("platform", platform)
+    .eq("original_transaction_id", transactionId)
     .maybeSingle();
 
   const known = current.data?.expires_at ? Date.parse(current.data.expires_at) : 0;
@@ -160,14 +165,19 @@ Deno.serve(async (req: Request) => {
   const upsert = await admin.from("subscriptions").upsert(
     {
       user_id: userId,
+      platform,
+      // Obligatoire en base. RevenueCat l'envoie toujours sur un abonnement ;
+      // le repli évite un échec d'écriture sur un événement inattendu.
+      product_id: String(event.product_id ?? "unknown"),
+      status,
       tier,
       expires_at: expiresAt,
-      cancelled: CANCELLING.has(type),
-      provider_id: String(event.original_app_user_id ?? userId),
-      store: storeValue,
+      trial_ends_at: trialEndsAt,
+      original_transaction_id: transactionId,
+      cancel_reason: CANCELLING.has(type) ? type : null,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "user_id" },
+    { onConflict: "platform,original_transaction_id" },
   );
 
   if (upsert.error) {
