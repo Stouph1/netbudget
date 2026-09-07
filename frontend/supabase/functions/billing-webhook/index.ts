@@ -80,6 +80,17 @@ Deno.serve(async (req: Request) => {
     return new Response("missing_fields", { status: 400 });
   }
 
+  // Le bouton « Send test event » de RevenueCat. Il porte un identifiant de
+  // compte fictif et aucun droit : il n'y a rien à appliquer, et le traiter
+  // comme un vrai achat ne prouverait rien. On répond 200 pour qu'il serve à
+  // ce pour quoi il existe — vérifier que l'URL et le secret sont bons.
+  if (type === "TEST") {
+    return new Response(JSON.stringify({ ok: true, test: true }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
     // Clé de service : elle contourne RLS, et c'est pour ça qu'elle ne doit
@@ -88,15 +99,36 @@ Deno.serve(async (req: Request) => {
     { auth: { persistSession: false } },
   );
 
-  // --- 2. Idempotence ------------------------------------------------------
-  // On insère d'abord le journal. Si l'identifiant existe déjà, c'est un rejeu :
-  // on répond 200 pour que RevenueCat cesse de réessayer, sans rien appliquer.
-  const journal = await admin.from("subscription_events").insert({
-    event_id: eventId,
-    user_id: userId,
-    type,
-    payload: body,
-  });
+  // --- 2. Journal et idempotence -------------------------------------------
+  //
+  // On insère d'abord le journal. Trois issues, et chacune a sa raison :
+  //
+  //   déjà présent (23505)  -> rejeu, on répond 200 sans rien appliquer ;
+  //   compte inconnu (23503)-> voir plus bas, on ne peut RIEN appliquer ;
+  //   autre erreur          -> 500, RevenueCat réessaiera.
+  //
+  // COMPTE INCONNU : `user_id` pointe vers auth.users. Un identifiant qui n'y
+  // figure pas, c'est un événement de test de RevenueCat, ou un achat fait
+  // sous un identifiant anonyme avant connexion. Dans les deux cas, réessayer
+  // ne servira JAMAIS à rien — le compte n'apparaîtra pas. Répondre 500
+  // condamnerait RevenueCat à retenter pendant des jours.
+  //
+  // On garde quand même la trace, avec `user_id` à null : la colonne l'accepte,
+  // et un achat orphelin doit rester visible plutôt que disparaître.
+  const journalRow = { event_id: eventId, type, payload: body };
+  let orphan = false;
+
+  let journal = await admin
+    .from("subscription_events")
+    .insert({ ...journalRow, user_id: userId });
+
+  if (journal.error?.code === "23503") {
+    orphan = true;
+    journal = await admin
+      .from("subscription_events")
+      .insert({ ...journalRow, user_id: null });
+  }
+
   if (journal.error) {
     if (journal.error.code === "23505") {
       return new Response(JSON.stringify({ ok: true, duplicate: true }), {
@@ -106,6 +138,15 @@ Deno.serve(async (req: Request) => {
     }
     console.error("journal", journal.error);
     return new Response("journal_failed", { status: 500 });
+  }
+
+  if (orphan) {
+    // 200 : l'événement est enregistré, il n'y a simplement personne à qui
+    // l'appliquer. Insister n'y changerait rien.
+    return new Response(JSON.stringify({ ok: true, unknown_user: true }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
   }
 
   // --- 3. Calcul du nouvel état -------------------------------------------
