@@ -25,6 +25,14 @@
       "android": {
         "buildType": "app-bundle"
       }
+    },
+    "sandbox": {
+      "autoIncrement": true,
+      "channel": "sandbox",
+      "environment": "preview",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
