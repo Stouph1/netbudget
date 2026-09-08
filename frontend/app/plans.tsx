@@ -66,6 +66,19 @@ export default function Plans() {
   // Recalculé à chaque arrivée du fournisseur : voir onBillingChange.
   const [available, setAvailable] = useState(() => billing().isAvailable());
 
+  // « Disponible » ne suffit PAS à afficher un bouton d'achat.
+  //
+  // `isAvailable()` dit seulement que le SDK est branché. La boutique peut
+  // répondre et n'avoir AUCUN produit — c'est le cas sur Google Play tant que
+  // les abonnements n'y sont pas créés. On affichait alors trois boutons
+  // « Choisir » qui échouaient tous, avec une alerte « Achat impossible » à
+  // chaque tentative. Un bouton mort est pire que pas de bouton.
+  //
+  // On distingue donc trois états : en cours de chargement, vendable, et
+  // branché mais sans catalogue.
+  const loadingOffers = offerings === null;
+  const sellable = available && !loadingOffers && offerings.length > 0;
+
   // Le badge de la bascule annuelle s'appuie sur la formule mise en avant : un
   // pourcentage par formule encombrerait, et ils sont très proches.
   const headlineSaving = annualSaving(
@@ -294,7 +307,7 @@ export default function Plans() {
                   </Text>
                 ) : null}
 
-                {available ? (
+                {sellable ? (
                   <TouchableOpacity
                     style={[s.buyBtn, busy === productId && { opacity: 0.6 }]}
                     onPress={() => buy(productId)}
@@ -314,7 +327,7 @@ export default function Plans() {
           })
         )}
 
-        {!available ? (
+        {loadingOffers ? null : !sellable ? (
           <View style={s.soonBox}>
             <Feather name="clock" size={16} color={TEXT_3} />
             <Text style={s.soonText}>{t("plan.soon")}</Text>
