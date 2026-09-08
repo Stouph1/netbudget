@@ -2829,10 +2829,8 @@ export const ja: Catalog = {
   "notif.budget.fill.body": "2分あれば今の状況がわかります。",
   "notif.comeback.title": "{n}件のアドバイスがあります",
   "notif.comeback.body": "あなたの状況に合ったものです。お金に直結するものもあります。",
-  "notif.billing.trial.title": "無料期間はあと {days} 日です",
-  "notif.billing.trial.body": "その後サブスクリプションが始まります。続けない場合は今からでも停止できます。端末の設定から行えます。",
   "plan.trial.badge": "{n}日間無料",
-  "plan.trial.terms": "{n}日間無料、その後は{price}です。自動更新となり、端末の設定からいつでも停止できます。無料期間終了の2日前にお知らせします。",
+  "plan.trial.terms": "{n}日間無料、その後は{price}です。自動更新となり、端末の設定からいつでも停止できます。",
   "plan.terms": "{price}、自動更新です。端末の設定からいつでも停止できます。",
   "notif.seasonal.title": "今がその時です",
 

@@ -2829,10 +2829,8 @@ export const es: Catalog = {
   "notif.budget.fill.body": "Dos minutos bastan para saber dónde estás.",
   "notif.comeback.title": "{n} consejos te esperan",
   "notif.comeback.body": "Coinciden con tu situación; algunos valen dinero.",
-  "notif.billing.trial.title": "Tu prueba termina en {days} días",
-  "notif.billing.trial.body": "Después empieza la suscripción. Si prefieres no continuar, puedes pararla ya: está en los ajustes de tu teléfono.",
   "plan.trial.badge": "{n} días de prueba",
-  "plan.trial.terms": "{n} días gratis y después {price}. La renovación es automática y puedes pararla cuando quieras desde los ajustes de tu teléfono. Te avisamos 2 días antes del final de la prueba.",
+  "plan.trial.terms": "{n} días gratis y después {price}. La renovación es automática y puedes pararla cuando quieras desde los ajustes de tu teléfono.",
   "plan.terms": "{price}, renovación automática. Puedes pararla cuando quieras desde los ajustes de tu teléfono.",
   "notif.seasonal.title": "Es ahora o nunca",
 

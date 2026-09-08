@@ -20,7 +20,6 @@ export type NotifCategory =
   | "loan" // étape d'un prêt
   | "seasonal" // fenêtre courte : impôts, soldes, rentrée, fêtes
   | "comeback" // reprise après une absence
-  | "billing"; // fin d'essai, reconduction — de l'argent va partir
 
 export type NotifCandidate = {
   id: string;
@@ -55,7 +54,6 @@ export type NotifPrefs = {
    * prélevé sans prévenir — l'écran de réglages le dit, et le plafond
    * hebdomadaire ne s'y applique pas.
    */
-  billing: boolean;
   /** Plafond hebdomadaire, toutes catégories confondues. */
   maxPerWeek: number;
   /** Heure d'envoi (0-23). */
@@ -70,7 +68,6 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   loan: true,
   seasonal: true,
   comeback: true,
-  billing: true,
   // 3 par semaine : au-delà, le taux d'ouverture s'effondre et l'utilisateur
   // coupe TOUT — on perd alors même les rappels utiles.
   maxPerWeek: 3,
@@ -125,10 +122,15 @@ export type NotifContext = {
   /**
    * Abonnement en cours, quand il y en a un.
    *
-   * `renewsAt` est la date à laquelle la boutique prélèvera. `trialEndsAt` est
-   * renseignée pendant une période d'essai — c'est la même date, mais le
-   * message n'est pas le même : « ton essai se termine » se comprend, « ton
-   * abonnement se renouvelle » alarme quelqu'un qui n'a encore rien payé.
+   * VOLONTAIREMENT INUTILISÉ. Le moteur reçoit cette information et n'en tire
+   * aucune notification : c'est la décision, pas un oubli. Apple et Google
+   * préviennent déjà avant qu'un essai devienne payant, et un rappel de plus
+   * sur un sujet d'argent se lit comme de la pression.
+   *
+   * Le champ reste dans le contexte pour deux raisons : un test vérifie qu'on
+   * n'émet rien même quand il est renseigné — c'est le garde-fou contre une
+   * réintroduction distraite — et une notification légitime pourrait un jour
+   * s'en servir sans parler de facturation.
    */
   subscription?: {
     isTrial: boolean;
@@ -136,7 +138,6 @@ export type NotifContext = {
     renewsAt: Date;
     /** Résiliation déjà demandée : il n'y aura pas de prélèvement. */
     cancelled: boolean;
-    /** Périodicité, pour n'annoncer la reconduction que sur l'annuel. */
     period: "monthly" | "yearly";
   };
 };
@@ -175,36 +176,20 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   // il a raison. Toutes les autres notifications peuvent attendre, pas
   // celle-ci.
   //
-  // Rien n'est envoyé si la résiliation est déjà demandée : il n'y aura pas de
-  // prélèvement, donc rien à annoncer.
+  // AUCUNE NOTIFICATION DE FACTURATION, et c'est une décision.
   //
-  // SEULE la fin d'essai est annoncée. L'avis de reconduction annuelle a été
-  // retiré : il invitait à résilier au moment le moins opportun. La fin
-  // d'essai, elle, protège le revenu plutôt qu'elle ne le menace — un client
-  // prélevé sans prévenir demande un remboursement à la boutique et laisse un
-  // avis à une étoile.
-  const sub = ctx.subscription;
-  if (sub && !sub.cancelled) {
-    const daysLeft = daysBetween(now, sub.renewsAt);
-
-    if (sub.isTrial) {
-      // Deux jours : assez pour décider et résilier sans se presser, assez
-      // près pour que ce soit encore d'actualité. La veille serait déloyal.
-      const at = atHour(new Date(sub.renewsAt.getTime() - 2 * DAY_MS), prefs.hour);
-      if (daysLeft > 0) {
-        push({
-          id: `billing-trial-${sub.renewsAt.toISOString().slice(0, 10)}`,
-          category: "billing",
-          titleKey: "notif.billing.trial.title",
-          bodyKey: "notif.billing.trial.body",
-          params: { days: 2 },
-          score: 100,
-          at,
-          route: "/plans",
-        });
-      }
-    }
-  }
+  // Il y avait ici un avis de fin d'essai à J−2. Apple et Google préviennent
+  // DÉJÀ leurs utilisateurs avant qu'un essai se transforme en abonnement
+  // payant : le nôtre faisait doublon. Et un rappel de plus sur un sujet
+  // d'argent ne se lit pas comme une attention, il se lit comme de la
+  // pression — sur la seule notification qu'on ne peut pas désactiver.
+  //
+  // L'avis de reconduction annuelle avait déjà été retiré pour une raison
+  // voisine : il invitait à résilier au moment le moins opportun.
+  //
+  // Ce que l'app doit à l'utilisateur sur ce sujet, elle le dit AVANT l'achat,
+  // sur l'écran des formules : durée de l'essai, montant ensuite,
+  // renouvellement automatique, et comment l'arrêter.
 
   // --- 1. DROITS NON RÉCLAMÉS -------------------------------------------
   // C'est la notification qui justifie l'app à elle seule : de l'argent que
@@ -391,14 +376,6 @@ export function applyBudgetLimits(
   const weekCount = new Map<string, number>();
 
   for (const c of candidates) {
-    // La facturation échappe au plafond ET au « une par jour ». Supprimer un
-    // avis de prélèvement au nom de l'anti-spam, c'est faire exactement le
-    // dommage que le plafond cherche à éviter : perdre la confiance.
-    if (c.category === "billing") {
-      kept.push(c);
-      continue;
-    }
-
     const dayKey = c.at.toISOString().slice(0, 10);
     if (usedDays.has(dayKey)) continue;
 

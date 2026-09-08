@@ -2829,10 +2829,8 @@ export const en: Catalog = {
   "notif.budget.fill.body": "Two minutes is all it takes to know where you stand.",
   "notif.comeback.title": "{n} tips are waiting for you",
   "notif.comeback.body": "They match your situation — some are worth real money.",
-  "notif.billing.trial.title": "Your trial ends in {days} days",
-  "notif.billing.trial.body": "After that the subscription starts. If you would rather not continue, you can stop now — it's in your phone's settings.",
   "plan.trial.badge": "{n}-day trial",
-  "plan.trial.terms": "{n} days free, then {price}. It renews automatically and you can stop it at any time from your phone's settings. We warn you 2 days before the trial ends.",
+  "plan.trial.terms": "{n} days free, then {price}. It renews automatically and you can stop it at any time from your phone's settings.",
   "plan.terms": "{price}, renews automatically. You can stop it at any time from your phone's settings.",
   "notif.seasonal.title": "It's now or not this year",
 
