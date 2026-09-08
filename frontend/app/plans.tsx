@@ -23,6 +23,8 @@ import { goBack } from "../src/lib/nav";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -43,6 +45,7 @@ import {
 } from "../src/lib/billing/plans";
 import { billing, onBillingChange, type Offering } from "../src/lib/billing/provider";
 import { refreshTier } from "../src/lib/tier";
+import { usePaywall } from "../src/hooks/usePaywall";
 import { notify } from "../src/utils/notify";
 
 const MIDNIGHT = "#0F172A";
@@ -76,6 +79,11 @@ export default function Plans() {
   //
   // On distingue donc trois états : en cours de chargement, vendable, et
   // branché mais sans catalogue.
+  // Palier réellement actif, pour marquer la formule en cours. Sans ça, on
+  // laisse quelqu'un racheter ce qu'il a déjà : Apple le refuse, mais avec un
+  // message technique qui donne l'impression d'une panne.
+  const paywall = usePaywall();
+
   const loadingOffers = offerings === null;
   const sellable = available && !loadingOffers && offerings.length > 0;
 
@@ -158,6 +166,23 @@ export default function Plans() {
     );
   }
 
+  /**
+   * Ouvre la page de gestion des abonnements de la boutique.
+   *
+   * On n'annule RIEN nous-mêmes, et c'est volontaire : la boutique est seule
+   * à détenir l'abonnement, et une résiliation faite ailleurs qu'elle ne
+   * serait pas honorée. On emmène simplement l'utilisateur au bon endroit.
+   */
+  function openSubscriptionSettings() {
+    const url =
+      Platform.OS === "ios"
+        ? "https://apps.apple.com/account/subscriptions"
+        : "https://play.google.com/store/account/subscriptions";
+    Linking.openURL(url).catch(() =>
+      notify(t("plan.manage.failed.title"), t("plan.manage.failed.body")),
+    );
+  }
+
   async function restore() {
     setBusy("restore");
     const result = await billing().restore();
@@ -221,6 +246,7 @@ export default function Plans() {
           SELLABLE_TIERS.map((tier) => {
             const productId = PRODUCT_IDS[tier][period];
             const offer = priceFor(productId);
+            const isCurrent = paywall.tier === tier;
             // L'économie se calcule sur les deux prix réels de la boutique.
             // Null quand il n'y en a pas : on n'affiche alors rien, plutôt
             // qu'un « 0 % » ou un chiffre négatif présenté comme un avantage.
@@ -307,7 +333,15 @@ export default function Plans() {
                   </Text>
                 ) : null}
 
-                {sellable ? (
+                {isCurrent ? (
+                  // Formule en cours : pas de bouton d'achat. Apple refuserait
+                  // le doublon, mais avec un message technique qui ressemble à
+                  // une panne. Mieux vaut le dire soi-même, et clairement.
+                  <View style={s.currentBox}>
+                    <Feather name="check-circle" size={16} color={GOLD} />
+                    <Text style={s.currentText}>{t("plan.current")}</Text>
+                  </View>
+                ) : sellable ? (
                   <TouchableOpacity
                     style={[s.buyBtn, busy === productId && { opacity: 0.6 }]}
                     onPress={() => buy(productId)}
@@ -318,7 +352,9 @@ export default function Plans() {
                     {busy === productId ? (
                       <ActivityIndicator color="#000" />
                     ) : (
-                      <Text style={s.buyText}>{t("plan.choose")}</Text>
+                      <Text style={s.buyText}>
+                        {t(paywall.tier === "free" ? "plan.choose" : "plan.switch")}
+                      </Text>
                     )}
                   </TouchableOpacity>
                 ) : null}
@@ -342,6 +378,26 @@ export default function Plans() {
             <Text style={s.linkText}>{t("plan.restore.cta")}</Text>
           </TouchableOpacity>
         )}
+
+        {/* GÉRER SON ABONNEMENT — obligatoire, pas optionnel.
+            Apple et Google l'exigent, et le droit européen aussi : sans accès
+            simple à la résiliation, on se fait refuser en revue.
+
+            Ce n'est d'ailleurs pas nous qui résilions : le lien ouvre la page
+            de la boutique. L'utilisateur y accède de toute façon depuis les
+            réglages de son téléphone — cacher le lien ne retient personne, ça
+            agace seulement celui qui cherche. */}
+        {paywall.tier !== "free" ? (
+          <TouchableOpacity
+            onPress={openSubscriptionSettings}
+            style={{ paddingVertical: 14 }}
+            activeOpacity={0.7}
+            accessibilityRole="link"
+            testID="plan-manage"
+          >
+            <Text style={s.linkText}>{t("plan.manage.cta")}</Text>
+          </TouchableOpacity>
+        ) : null}
 
         {/* La sortie est annoncée sur l'écran d'entrée : cacher la résiliation
             fait hésiter à s'abonner. */}
@@ -442,6 +498,18 @@ const s = StyleSheet.create({
   },
   soonText: { flex: 1, color: TEXT_2, fontSize: 12.5, lineHeight: 19 },
   linkText: { color: GOLD, fontSize: 13.5, fontWeight: "600", textAlign: "center" },
+  currentBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.4)",
+    backgroundColor: "rgba(74,222,128,0.07)",
+  },
+  currentText: { color: GOLD, fontSize: 14.5, fontWeight: "800" },
   cancelNote: {
     color: TEXT_3,
     fontSize: 11.5,
