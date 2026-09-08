@@ -73,6 +73,32 @@ function hasNativeModule(): boolean {
   return Platform.OS !== "web" && Boolean(NativeModules.RNPurchases);
 }
 
+/**
+ * Durée de l'essai gratuit d'un produit, en jours. `null` s'il n'y en a pas.
+ *
+ * On n'accepte que les offres à prix ZÉRO : `introPrice` porte aussi les
+ * tarifs de lancement payants — « 1 € le premier mois » — qui ne sont pas des
+ * essais. Les annoncer comme tels ferait croire à la gratuité.
+ */
+function trialDaysOf(
+  intro: { price: number; periodUnit: string; periodNumberOfUnits: number } | null | undefined,
+): number | null {
+  if (!intro || intro.price !== 0) return null;
+  const n = intro.periodNumberOfUnits;
+  switch (intro.periodUnit?.toUpperCase()) {
+    case "DAY":
+      return n;
+    case "WEEK":
+      return n * 7;
+    case "MONTH":
+      return n * 30;
+    case "YEAR":
+      return n * 365;
+    default:
+      return null;
+  }
+}
+
 const TIERS = Object.keys(PRODUCT_IDS) as Exclude<Tier, "free">[];
 const PERIODS: Period[] = ["monthly", "yearly"];
 
@@ -228,6 +254,7 @@ export const revenueCatBilling: BillingProvider = {
           priceLabel: p.priceString,
           priceAmount: p.price,
           currency: p.currencyCode,
+          trialDays: trialDaysOf(p.introPrice),
         });
       }
       return out;

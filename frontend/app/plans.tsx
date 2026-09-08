@@ -269,10 +269,19 @@ export default function Plans() {
                   </View>
                 ) : null}
 
-                <View style={s.trialChip}>
-                  <Feather name="gift" size={11} color={GOLD} />
-                  <Text style={s.trialChipText}>{t("plan.trial.badge")}</Text>
-                </View>
+                {/* L'essai n'est annoncé QUE si la boutique en donne un.
+                    Le badge était affiché en dur sur les trois formules alors
+                    qu'aucune offre n'était configurée : on promettait un essai
+                    qui n'existait pas, et le client était débité aussitôt.
+                    La durée vient d'Apple, elle peut différer par formule. */}
+                {offer?.trialDays ? (
+                  <View style={s.trialChip}>
+                    <Feather name="gift" size={11} color={GOLD} />
+                    <Text style={s.trialChipText}>
+                      {tp("plan.trial.badge", { n: offer.trialDays })}
+                    </Text>
+                  </View>
+                ) : null}
 
                 <Text style={s.cardTitle}>{t(`plan.${tier}.name`)}</Text>
                 <Text style={s.cardFor}>
@@ -329,7 +338,12 @@ export default function Plans() {
                     consommateur. */}
                 {offer ? (
                   <Text style={s.trialTerms}>
-                    {tp("plan.trial.terms", { price: offer.priceLabel })}
+                    {offer.trialDays
+                      ? tp("plan.trial.terms", {
+                          n: offer.trialDays,
+                          price: offer.priceLabel,
+                        })
+                      : tp("plan.terms", { price: offer.priceLabel })}
                   </Text>
                 ) : null}
 

@@ -2831,8 +2831,9 @@ export const de: Catalog = {
   "notif.comeback.body": "Sie passen zu deiner Situation — manche sind bares Geld wert.",
   "notif.billing.trial.title": "Dein Test endet in {days} Tagen",
   "notif.billing.trial.body": "Danach beginnt das Abo. Wenn du nicht weitermachen willst, kannst du jetzt schon beenden — in den Einstellungen deines Telefons.",
-  "plan.trial.badge": "7 Tage testen",
-  "plan.trial.terms": "7 Tage kostenlos, danach {price}. Es verlängert sich automatisch und du kannst jederzeit in den Einstellungen deines Telefons beenden. Wir melden uns 2 Tage vor Ende des Tests.",
+  "plan.trial.badge": "{n} Tage testen",
+  "plan.trial.terms": "{n} Tage kostenlos, danach {price}. Die Verlängerung ist automatisch und du kannst sie jederzeit in den Einstellungen deines Handys stoppen. Wir melden uns 2 Tage vor Ende des Tests.",
+  "plan.terms": "{price}, verlängert sich automatisch. Du kannst das jederzeit in den Einstellungen deines Handys stoppen.",
   "notif.seasonal.title": "Jetzt oder erst nächstes Jahr",
 
   "settings.notifications.personalize": "Personalisierte Mitteilungen",

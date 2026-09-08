@@ -39,6 +39,19 @@ export type Offering = {
    */
   priceAmount: number;
   currency: string;
+  /**
+   * Essai gratuit RÉELLEMENT configuré dans la boutique, en jours.
+   *
+   * `null` quand il n'y en a pas. C'est la seule source acceptable : l'écran
+   * annonçait « 7 jours d'essai » en dur sur les trois formules alors
+   * qu'AUCUNE offre n'était configurée côté Apple. Promettre un essai que la
+   * boutique ne donne pas est une publicité trompeuse, et ça se voit au
+   * moment le plus coûteux — quand le client est débité tout de suite.
+   *
+   * En jours parce que la durée peut différer d'une formule à l'autre : les
+   * offres se règlent produit par produit.
+   */
+  trialDays: number | null;
 };
 
 export type PurchaseResult =
