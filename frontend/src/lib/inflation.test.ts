@@ -1,4 +1,9 @@
-import { ADVICE_CATALOG_FR } from "./adviceEngine";
+import {
+  ADVICE_CATALOG_FR,
+  effectivePriority,
+  inflationPenalty,
+  matchAdvice,
+} from "./adviceEngine";
 import {
   beatsInflation,
   formatRate,
@@ -127,5 +132,51 @@ describe("cohérence du catalogue", () => {
       expect(card.nominalRatePct).toBeGreaterThan(0);
       expect(card.nominalRatePct).toBeLessThan(15);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+
+describe("classement des conseils selon l'inflation", () => {
+  const loser = ADVICE_CATALOG_FR.find((c) => c.nominalRatePct === 1.5)!;
+  const neutral = ADVICE_CATALOG_FR.find((c) => c.nominalRatePct === undefined)!;
+
+  it("ne change rien quand l'inflation est inconnue", () => {
+    expect(inflationPenalty(loser, undefined)).toBe(0);
+    expect(effectivePriority(loser, undefined)).toBe(loser.priority);
+  });
+
+  it("ne touche pas aux conseils sans taux", () => {
+    expect(inflationPenalty(neutral, 2.7)).toBe(0);
+  });
+
+  it("ne pénalise pas un placement qui bat les prix", () => {
+    expect(inflationPenalty(loser, 1.0)).toBe(0);
+    expect(inflationPenalty(loser, 1.5)).toBe(0);
+  });
+
+  it("pénalise proportionnellement à l'écart", () => {
+    expect(inflationPenalty(loser, 2.5)).toBe(8);
+    expect(inflationPenalty(loser, 3.5)).toBe(16);
+  });
+
+  // Plafonné : au-delà, on classerait un conseil correct derrière des
+  // banalités, alors qu'un livret reste le bon endroit pour un fonds d'urgence.
+  it("plafonne le recul", () => {
+    expect(inflationPenalty(loser, 50)).toBe(25);
+  });
+
+  // Jamais de bonus : l'urgence d'un conseil ne se mesure pas à son rendement.
+  it("ne remonte jamais un conseil", () => {
+    for (const card of ADVICE_CATALOG_FR) {
+      expect(effectivePriority(card, 2.7)).toBeLessThanOrEqual(card.priority);
+    }
+  });
+
+  it("fait bien descendre le conseil dans le classement rendu", () => {
+    const profile = { country: "FR", age: "26-35" } as const;
+    const before = matchAdvice(profile).findIndex((c) => c.id === loser.id);
+    const after = matchAdvice(profile, undefined, 6).findIndex((c) => c.id === loser.id);
+    if (before >= 0) expect(after).toBeGreaterThan(before);
   });
 });

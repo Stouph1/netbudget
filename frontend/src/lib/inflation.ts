@@ -18,6 +18,7 @@
 
 import type { Country } from "../types/advice";
 import { INFLATION, SOURCE_URLS, type InflationRow } from "./inflationData";
+import { liveInflation } from "./inflationLive";
 
 export type { InflationRow } from "./inflationData";
 export { INFLATION_GENERATED_AT } from "./inflationData";
@@ -32,10 +33,17 @@ export { INFLATION_GENERATED_AT } from "./inflationData";
  */
 export const STALE_AFTER_MONTHS = 18;
 
-/** Taux officiel du pays, ou `null` si aucune source ne le couvre. */
+/**
+ * Taux officiel du pays, ou `null` si aucune source ne le couvre.
+ *
+ * La table rafraîchie depuis le serveur l'emporte sur celle embarquée à la
+ * compilation. Le repli n'est pas un détail : sans réseau, au premier
+ * lancement, ou si le service est en panne, l'app doit continuer d'afficher un
+ * chiffre — daté, avec sa période, mais présent.
+ */
 export function inflationFor(country: Country | undefined | null): InflationRow | null {
   if (!country) return null;
-  return INFLATION[country] ?? null;
+  return liveInflation()?.[country] ?? INFLATION[country] ?? null;
 }
 
 /** Lien vers la base publique d'où sort le chiffre, pour qui veut vérifier. */

@@ -4917,9 +4917,46 @@ function monthMatches(card: AdviceCard, now: Date = new Date()): boolean {
   return card.months.includes(now.getMonth() + 1);
 }
 
+/**
+ * Recul de priorité d'un placement qui ne suit pas les prix.
+ *
+ * POURQUOI RECULER PLUTÔT QU'ÉCARTER. Un livret qui perd 1 % par an face à
+ * l'inflation reste le bon endroit pour une épargne de précaution : disponible
+ * tout de suite, sans risque, sans frais. Le supprimer du catalogue priverait
+ * du seul conseil correct quelqu'un qui n'a pas encore de fonds d'urgence.
+ * On le fait donc descendre derrière les conseils qui, eux, protègent le
+ * pouvoir d'achat.
+ *
+ * POURQUOI JAMAIS DE BONUS. Un placement qui bat l'inflation ne doit pas
+ * remonter devant « constitue une épargne de précaution » ou « renégocie ton
+ * assurance emprunteur ». L'urgence d'un conseil ne se mesure pas à son
+ * rendement, et un bonus ferait passer un produit financier devant un geste
+ * qui rapporte davantage et tout de suite.
+ *
+ * Le recul est proportionnel à l'écart et plafonné : au-delà, on classerait
+ * un bon conseil derrière des banalités.
+ */
+export function inflationPenalty(card: AdviceCard, inflationPct?: number): number {
+  if (inflationPct === undefined || card.nominalRatePct === undefined) return 0;
+  const gap = inflationPct - card.nominalRatePct;
+  if (gap <= 0) return 0;
+  return Math.min(25, Math.round(gap * 8));
+}
+
+/** Priorité une fois l'inflation prise en compte. */
+export function effectivePriority(card: AdviceCard, inflationPct?: number): number {
+  return card.priority - inflationPenalty(card, inflationPct);
+}
+
+/**
+ * `inflationPct` est facultatif : sans lui, le classement est exactement
+ * celui d'avant. C'est ce qui permet aux pays sans chiffre officiel, et aux
+ * tests du catalogue, de garder un ordre stable et prévisible.
+ */
 export function matchAdvice(
   profile: UserProfile,
   catalog: AdviceCard[] = ADVICE_CATALOG_FR,
+  inflationPct?: number,
 ): AdviceCard[] {
   return catalog
     .filter(
@@ -4928,7 +4965,9 @@ export function matchAdvice(
         monthMatches(card) &&
         card.appliesWhen(profile),
     )
-    .sort((a, b) => b.priority - a.priority);
+    .sort(
+      (a, b) => effectivePriority(b, inflationPct) - effectivePriority(a, inflationPct),
+    );
 }
 
 export function topAdvice(
@@ -4976,8 +5015,9 @@ export function groupByAdviceGroup(cards: AdviceCard[]): {
 export function allAdviceGrouped(
   profile: UserProfile,
   catalog: AdviceCard[] = ADVICE_CATALOG_FR,
+  inflationPct?: number,
 ): { group: AdviceGroup; cards: AdviceCard[] }[] {
-  return groupByAdviceGroup(matchAdvice(profile, catalog));
+  return groupByAdviceGroup(matchAdvice(profile, catalog, inflationPct));
 }
 
 // Utilitaire : accès aux categories par card (pour retro-compat imports).

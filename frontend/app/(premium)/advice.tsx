@@ -28,6 +28,7 @@ import { usePaywall } from "../../src/hooks/usePaywall";
 import { LockedOverlay } from "../../src/components/LockedOverlay";
 import { SyncBanner } from "../../src/components/SyncBanner";
 import { InflationBanner, RealReturnLine } from "../../src/components/InflationNote";
+import { inflationFor } from "../../src/lib/inflation";
 import * as Haptics from "expo-haptics";
 import Reanimated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
@@ -502,7 +503,14 @@ export default function AdviceScreen() {
     // Le profil de matching dérive la situation familiale du type de workspace
     // (couple → couple avec/sans enfants) et neutralise les champs perso
     // pour les associations.
-    return allAdviceGrouped(matchingProfile(profile, workspaceKind));
+    // L'inflation du pays fait reculer les placements qui ne la suivent pas :
+    // un conseil qui fait perdre du pouvoir d'achat ne doit pas s'afficher
+    // avant un conseil qui en fait gagner.
+    return allAdviceGrouped(
+      matchingProfile(profile, workspaceKind),
+      undefined,
+      inflationFor(profile.country)?.rate,
+    );
   }, [profile, workspaceKind, mode]);
 
   // Ce que l'utilisateur a réellement sous les yeux est marqué « vu » : les
