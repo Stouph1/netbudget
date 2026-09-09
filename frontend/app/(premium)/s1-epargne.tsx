@@ -33,6 +33,13 @@ import GoalEditor from "./_components/GoalEditor";
 import { PaywallSheet } from "../../src/components/PaywallSheet";
 import { usePaywall } from "../../src/hooks/usePaywall";
 import { remainingGoals } from "../../src/lib/entitlements";
+import * as Haptics from "expo-haptics";
+import { goalPct, newMilestones } from "../../src/lib/goalMilestones";
+import {
+  pruneMilestones,
+  rememberMilestone,
+  seenMilestones,
+} from "../../src/lib/goalMilestonesStore";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -169,6 +176,37 @@ export default function S1Epargne() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
+  /** Cap tout juste franchi, à annoncer une fois. */
+  const [reached, setReached] = useState<{ label: string; milestone: number } | null>(null);
+
+  // Détection des caps franchis. Se déclenche après CHAQUE changement des
+  // objectifs — chargement initial comme versement saisi à l'instant — parce
+  // qu'un objectif peut aussi progresser depuis un autre appareil.
+  useEffect(() => {
+    if (loading || !payload.goals.length) return;
+    let alive = true;
+    (async () => {
+      const seen = await seenMilestones();
+      // Le plus gros cap de tous les objectifs : en annoncer plusieurs à la
+      // fois les banaliserait tous.
+      let best: { label: string; milestone: number } | null = null;
+      for (const g of payload.goals) {
+        const pct = goalPct(g.currentAmount, g.targetAmount);
+        const fresh = newMilestones(pct, seen[g.id] ?? 0);
+        if (!fresh.length) continue;
+        const top = fresh[fresh.length - 1];
+        if (!best || top > best.milestone) best = { label: g.label, milestone: top };
+        await rememberMilestone(g.id, pct);
+      }
+      if (!alive || !best) return;
+      setReached(best);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    })();
+    void pruneMilestones(payload.goals.map((g) => g.id));
+    return () => {
+      alive = false;
+    };
+  }, [payload.goals, loading]);
 
   useEffect(() => {
     if (!user?.id || scopeLoading) {
@@ -354,6 +392,41 @@ export default function S1Epargne() {
       ) : null}
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
+        {reached ? (
+          <View style={styles.milestoneCard}>
+            <Feather
+              name={reached.milestone === 100 ? "check-circle" : "flag"}
+              size={18}
+              color={MINT}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.milestoneTitle}>
+                {reached.milestone === 100
+                  ? tp("goals.milestone.done.title", { label: reached.label })
+                  : tp("goals.milestone.title", {
+                      pct: reached.milestone,
+                      label: reached.label,
+                    })}
+              </Text>
+              <Text style={styles.milestoneBody}>
+                {t(
+                  reached.milestone === 100
+                    ? "goals.milestone.done.body"
+                    : "goals.milestone.body",
+                )}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => setReached(null)}
+              hitSlop={10}
+              accessibilityRole="button"
+              testID="goal-milestone-close"
+            >
+              <Feather name="x" size={16} color={TEXT_3} />
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         {donutSegments.length > 0 ? (
           <View style={styles.donutCard}>
             <DonutChart
@@ -635,6 +708,20 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: "center",
   },
+  milestoneCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 11,
+    marginBottom: 16,
+    paddingHorizontal: 13,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.4)",
+    backgroundColor: "rgba(74,222,128,0.08)",
+  },
+  milestoneTitle: { color: "#FFFFFF", fontSize: 13.5, fontWeight: "800" },
+  milestoneBody: { color: TEXT_2, fontSize: 11.5, lineHeight: 16, marginTop: 2 },
   progressBar: {
     marginTop: 12,
     height: 6,
