@@ -14,7 +14,7 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "./supabase";
-import { parseTier, type Tier } from "./entitlements";
+import { parseTier, reachedTier, type Tier } from "./entitlements";
 import { tierOverride } from "./tierOverride";
 
 export { parseTier };
@@ -130,19 +130,34 @@ export function onTierChange(listener: (tier: Tier) => void): () => void {
  * POURQUOI DES TENTATIVES RÉPÉTÉES. Entre le moment où la boutique encaisse et
  * celui où notre webhook a écrit le verdict, il s'écoule de une à quelques
  * secondes. Interroger le serveur une seule fois juste après l'achat renvoie
- * donc souvent « free » : le client vient de payer et voit son abonnement
- * refusé. C'est la pire seconde possible de toute l'application.
+ * l'ancien palier : le client vient de payer et ne voit rien changer. C'est la
+ * pire seconde possible de toute l'application.
  *
- * On s'arrête dès qu'un palier payant apparaît, ou après la dernière tentative.
+ * POURQUOI `expected`, ET POURQUOI SON ABSENCE ÉTAIT UN BUG. La condition
+ * d'arrêt était « le palier n'est plus gratuit ». Elle marchait au premier
+ * achat, où l'on part de `free`. Sur un CHANGEMENT DE FORMULE elle sortait à
+ * la première tentative — quelqu'un qui passe de Solo à Duo est déjà payant —
+ * et l'app restait sur l'ancienne formule jusqu'au prochain lancement, alors
+ * que l'achat avait été encaissé.
+ *
+ * On compare donc à ce que l'achat est censé donner. Le test porte sur le RANG
+ * et non sur l'égalité : lors d'une rétrogradation, la boutique laisse l'ancien
+ * palier courir jusqu'à la fin de la période déjà payée. Le serveur répond donc
+ * « duo » alors qu'on attend « solo », et c'est la bonne réponse — il faut
+ * s'arrêter tout de suite plutôt que d'attendre un changement qui ne viendra
+ * qu'à l'échéance.
+ *
  * Si le webhook a vraiment échoué, `restore()` reste la porte de sortie, et
  * elle est déjà à l'écran.
  */
-export async function refreshTier(attempts = 5): Promise<Tier> {
+export async function refreshTier(expected?: Tier, attempts = 6): Promise<Tier> {
   let tier: Tier = "free";
   for (let i = 0; i < attempts; i++) {
     tier = await loadTier();
-    if (tier !== "free") break;
-    // Attente croissante : 1s, 2s, 3s, 4s. Inutile de marteler le serveur.
+
+    if (reachedTier(tier, expected)) break;
+
+    // Attente croissante : 1s, 2s, 3s, 4s, 5s. Inutile de marteler le serveur.
     if (i < attempts - 1) {
       await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
     }

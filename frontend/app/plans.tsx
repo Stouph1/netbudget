@@ -45,6 +45,7 @@ import {
 } from "../src/lib/billing/plans";
 import { billing, onBillingChange, type Offering } from "../src/lib/billing/provider";
 import { refreshTier } from "../src/lib/tier";
+import type { Tier } from "../src/lib/entitlements";
 import { usePaywall } from "../src/hooks/usePaywall";
 import { CancelSheet } from "../src/components/CancelSheet";
 import { notify } from "../src/utils/notify";
@@ -142,16 +143,21 @@ export default function Plans() {
     }
   }
 
-  async function buy(productId: string) {
+  async function buy(productId: string, bought: Tier) {
     setBusy(productId);
     const result = await billing().purchase(productId);
     setBusy(null);
 
     if (result.ok) {
-      // Le serveur fait autorité : on attend qu'il ait vu l'achat avant de
-      // rendre la main, sinon l'utilisateur revient sur un écran qui le croit
-      // encore non abonné.
-      void refreshTier();
+      // Le serveur fait autorité, et il ne voit l'achat qu'une fois le webhook
+      // arrivé. On lui redemande le palier en tâche de fond, en lui disant ce
+      // qu'on attend : sans ça, un changement de formule s'arrêterait sur
+      // l'ancien palier, qui est déjà payant.
+      //
+      // Volontairement non attendu : l'alerte doit s'afficher tout de suite.
+      // Les écrans se remettent à jour par `onTierChange` quand la réponse
+      // arrive.
+      void refreshTier(bought);
       notify(t("plan.bought.title"), t("plan.bought.body"), () => goBack());
       return;
     }
@@ -360,7 +366,7 @@ export default function Plans() {
                 ) : sellable ? (
                   <TouchableOpacity
                     style={[s.buyBtn, busy === productId && { opacity: 0.6 }]}
-                    onPress={() => buy(productId)}
+                    onPress={() => buy(productId, tier)}
                     disabled={busy !== null}
                     activeOpacity={0.85}
                     accessibilityRole="button"

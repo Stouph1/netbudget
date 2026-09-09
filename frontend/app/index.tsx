@@ -1322,7 +1322,9 @@ export default function Index() {
                 setForcedTier(tier);
                 // On rediffuse le palier : les écrans déjà montés (pastille,
                 // gardes, tuiles) se remettent à jour sans relancer l'app.
-                void refreshTier(1);
+                // Un palier forcé est écrit localement : aucun webhook à attendre, une
+                // seule lecture suffit.
+                void refreshTier(undefined, 1);
                 reloadPremiumProfile();
               });
             }}

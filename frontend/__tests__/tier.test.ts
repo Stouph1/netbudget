@@ -9,7 +9,7 @@
 //     dernier test échoue volontairement si on active la facturation en
 //     laissant tout le monde en « family ».
 
-import { parseTier } from "../src/lib/entitlements";
+import { parseTier, reachedTier, TIER_RANK } from "../src/lib/entitlements";
 
 describe("parseTier", () => {
   it("accepte les quatre paliers réels", () => {
@@ -33,5 +33,51 @@ describe("garde-fou de lancement", () => {
     // de ce fichier-la : le jour ou la facturation passe a true, TIER_DURING_DEV
     // doit avoir disparu, sinon tout le monde a la formule Famille gratuitement.
     expect(true).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
+describe("reachedTier — condition d'arrêt après un achat", () => {
+  // LE BUG QUE CE BLOC VERROUILLE. La condition était « le palier n'est plus
+  // gratuit ». Elle marchait au premier achat, jamais sur un changement de
+  // formule : quelqu'un qui passe de Solo à Duo est DÉJÀ payant, la boucle
+  // s'arrêtait à la première tentative — avant l'arrivée du webhook — et l'app
+  // restait sur Solo alors que Duo avait été encaissé.
+  it("continue d'attendre pendant un passage de Solo à Duo", () => {
+    expect(reachedTier("solo", "duo")).toBe(false);
+    expect(reachedTier("duo", "duo")).toBe(true);
+  });
+
+  it("attend le palier acheté depuis le gratuit", () => {
+    expect(reachedTier("free", "solo")).toBe(false);
+    expect(reachedTier("solo", "solo")).toBe(true);
+  });
+
+  it("attend encore sur un saut de deux paliers", () => {
+    expect(reachedTier("solo", "family")).toBe(false);
+    expect(reachedTier("duo", "family")).toBe(false);
+    expect(reachedTier("family", "family")).toBe(true);
+  });
+
+  // Rétrogradation : la boutique laisse l'ancien palier courir jusqu'à
+  // l'échéance. Le serveur répond « duo » alors qu'on attend « solo », et c'est
+  // la bonne réponse — inutile d'attendre un changement qui ne viendra pas.
+  it("s'arrête tout de suite sur une rétrogradation", () => {
+    expect(reachedTier("duo", "solo")).toBe(true);
+    expect(reachedTier("family", "solo")).toBe(true);
+  });
+
+  it("sans attente précise, se contente d'un palier payant", () => {
+    expect(reachedTier("free")).toBe(false);
+    expect(reachedTier("solo")).toBe(true);
+    expect(reachedTier("family")).toBe(true);
+  });
+
+  // L'ordre doit rester celui de my_tier() côté serveur : family > duo > solo.
+  it("classe les paliers comme le serveur", () => {
+    expect(TIER_RANK.free).toBeLessThan(TIER_RANK.solo);
+    expect(TIER_RANK.solo).toBeLessThan(TIER_RANK.duo);
+    expect(TIER_RANK.duo).toBeLessThan(TIER_RANK.family);
   });
 });

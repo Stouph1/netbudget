@@ -277,3 +277,33 @@ export function canSeeScheduleYear(
 export function canJoinWorkspace(): boolean {
   return true;
 }
+
+/**
+ * Générosité relative des paliers.
+ *
+ * Même ordre que `my_tier()` côté serveur. Les deux doivent rester d'accord :
+ * si l'app et la base ne classaient pas les paliers pareil, un client verrait
+ * un abonnement différent de celui qu'il a payé.
+ */
+export const TIER_RANK: Record<Tier, number> = { free: 0, solo: 1, duo: 2, family: 3 };
+
+/**
+ * Le palier obtenu est-il au moins aussi généreux que celui attendu ?
+ *
+ * Sert de condition d'arrêt quand on interroge le serveur en boucle après un
+ * achat, le temps que le webhook arrive.
+ *
+ * SANS `expected`, on se contente de « ce n'est plus gratuit ». C'était l'ancien
+ * comportement, et c'était un BUG sur un changement de formule : quelqu'un qui
+ * passe de Solo à Duo est déjà payant, la boucle s'arrêtait donc immédiatement
+ * et l'app restait sur l'ancienne formule alors que l'achat était encaissé.
+ *
+ * ON COMPARE LE RANG, PAS L'ÉGALITÉ. Lors d'une rétrogradation, la boutique
+ * laisse l'ancien palier courir jusqu'à la fin de la période déjà payée : le
+ * serveur répond « duo » alors qu'on attend « solo », et c'est la bonne
+ * réponse. Exiger l'égalité ferait attendre un changement qui n'arrivera qu'à
+ * l'échéance.
+ */
+export function reachedTier(got: Tier, expected?: Tier): boolean {
+  return expected ? TIER_RANK[got] >= TIER_RANK[expected] : got !== "free";
+}
