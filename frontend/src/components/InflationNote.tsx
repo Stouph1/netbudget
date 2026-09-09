@@ -28,6 +28,7 @@ import {
   realRate,
   sourceUrl,
 } from "../lib/inflation";
+import { rateLoan, type LoanGrade } from "../lib/loanRating";
 import type { Country } from "../types/advice";
 import { openExternal } from "../utils/openExternal";
 
@@ -36,6 +37,8 @@ const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
 const GREEN = "#4ADE80";
 const AMBER = "#FBBF24";
+const RED = "#F87171";
+const BLUE = "#7DD3FC";
 
 const SOURCE_NAMES = {
   eurostat: "Eurostat",
@@ -135,4 +138,63 @@ const s = StyleSheet.create({
   // Hors écran : complète le libellé pour les lecteurs d'écran sans alourdir
   // la bannière visuellement.
   srOnly: { position: "absolute", width: 1, height: 1, opacity: 0 },
+  loanWrap: { marginTop: 7, gap: 3 },
+  loanChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    alignSelf: "flex-start",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  loanGrade: { fontSize: 11.5, fontWeight: "800" },
+  loanReal: { color: TEXT_2, fontSize: 11 },
+  loanCaveat: { color: TEXT_3, fontSize: 10, lineHeight: 13.5 },
 });
+
+/**
+ * Ce qu'un prêt coûte vraiment, une fois les prix pris en compte.
+ *
+ * Contrairement à l'épargne, un taux SOUS l'inflation est ici une bonne
+ * nouvelle : on rembourse en monnaie dévaluée. La couleur suit donc la note,
+ * pas le signe.
+ *
+ * La mention en dessous n'est pas décorative. Sans elle, « excellent » se lit
+ * comme « emprunte », alors que la note ne parle que du coût du crédit — jamais
+ * de la capacité à le rembourser.
+ */
+export function LoanRatingChip({
+  ratePercent,
+  country,
+}: {
+  ratePercent: number;
+  country: Country | undefined;
+}) {
+  const { lang, t, tp } = useLang();
+  const rating = rateLoan(ratePercent, inflationFor(country));
+  if (!rating) return null;
+
+  const color: Record<LoanGrade, string> = {
+    excellent: GREEN,
+    good: BLUE,
+    fair: TEXT_2,
+    costly: RED,
+  };
+  const tone = color[rating.grade];
+
+  return (
+    <View style={s.loanWrap}>
+      <View style={[s.loanChip, { borderColor: tone + "55", backgroundColor: tone + "14" }]}>
+        <Text style={[s.loanGrade, { color: tone }]}>
+          {t(`loan.rating.${rating.grade}`)}
+        </Text>
+        <Text style={s.loanReal}>
+          {tp("loan.rating.real", { real: formatRate(rating.realRate, lang, true) })}
+        </Text>
+      </View>
+      <Text style={s.loanCaveat}>{t("loan.rating.caveat")}</Text>
+    </View>
+  );
+}

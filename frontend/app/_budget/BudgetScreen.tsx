@@ -19,6 +19,7 @@ import DonutChart, { DonutSegment } from "../../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../../src/components/MonthlyBreakdown";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { StreakCard } from "../../src/components/StreakCard";
+import { LoanRatingChip } from "../../src/components/InflationNote";
 import { City } from "../../src/constants/cities";
 import { CurrencyCode, getCurrency } from "../../src/utils/currency";
 import { parseNumber } from "../../src/utils/finance";
@@ -485,6 +486,13 @@ export default function BudgetScreen({
                       ? t("label.loanDirect")
                       : `${fmt(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ${t("label.years")}`}
                   </Text>
+
+                  {!isDirect ? (
+                    <LoanRatingChip
+                      ratePercent={parseNumber(l.ratePercent)}
+                      country={premiumProfile?.country}
+                    />
+                  ) : null}
 
                   {prog ? (
                     <View style={styles.loanProgressWrap}>
