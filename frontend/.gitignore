@@ -41,3 +41,13 @@ app-example
 
 # Jest
 coverage/
+
+# Dossiers natifs generes par `expo run:ios` / `expo run:android`.
+#
+# A NE JAMAIS COMMITER. Leur presence fait basculer EAS en workflow « bare » :
+# il n'execute plus prebuild, et tous les reglages d'app.json cessent de
+# s'appliquer -- dont les extraPods d'expo-build-properties sans lesquels les
+# pods iOS ne compilent pas, et le retrait de READ_MEDIA_IMAGES refuse par
+# Google Play. On les regenere en local quand on en a besoin.
+/ios/
+/android/
