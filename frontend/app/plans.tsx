@@ -46,6 +46,7 @@ import {
 import { billing, onBillingChange, type Offering } from "../src/lib/billing/provider";
 import { refreshTier } from "../src/lib/tier";
 import { usePaywall } from "../src/hooks/usePaywall";
+import { CancelSheet } from "../src/components/CancelSheet";
 import { notify } from "../src/utils/notify";
 
 const MIDNIGHT = "#0F172A";
@@ -84,6 +85,7 @@ export default function Plans() {
   // message technique qui donne l'impression d'une panne.
   const paywall = usePaywall();
 
+  const [cancelOpen, setCancelOpen] = useState(false);
   const loadingOffers = offerings === null;
   const sellable = available && !loadingOffers && offerings.length > 0;
 
@@ -403,7 +405,7 @@ export default function Plans() {
             agace seulement celui qui cherche. */}
         {paywall.tier !== "free" ? (
           <TouchableOpacity
-            onPress={openSubscriptionSettings}
+            onPress={() => setCancelOpen(true)}
             style={{ paddingVertical: 14 }}
             activeOpacity={0.7}
             accessibilityRole="link"
@@ -417,6 +419,30 @@ export default function Plans() {
             fait hésiter à s'abonner. */}
         <Text style={s.cancelNote}>{t("plan.cancelNote")}</Text>
       </ScrollView>
+
+      <CancelSheet
+        visible={cancelOpen}
+        tier={paywall.tier}
+        onClose={() => setCancelOpen(false)}
+        onDowngrade={() => {
+          // On ne fait pas le changement à sa place : on le ramène sur les
+          // formules, où il choisit. Décider pour quelqu'un ce qu'il paie est
+          // exactement ce qu'on lui reprocherait.
+          setCancelOpen(false);
+          setPeriod("monthly");
+        }}
+        onWrite={() => {
+          setCancelOpen(false);
+          Linking.openURL(
+            "mailto:contact@netbudget.app?subject=" +
+              encodeURIComponent("NETbudget — un problème avant de résilier"),
+          ).catch(() => {});
+        }}
+        onContinue={() => {
+          setCancelOpen(false);
+          openSubscriptionSettings();
+        }}
+      />
     </SafeAreaView>
   );
 }
