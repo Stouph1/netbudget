@@ -121,3 +121,44 @@ describe("erreurs d'achat", () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+
+describe("offerRank — montée ou descente en gamme sur Google", () => {
+  const { offerRank } = require("../src/lib/billing/revenuecat").__testing as {
+    offerRank: (tier: "solo" | "duo" | "family", period: "monthly" | "yearly") => number;
+  };
+
+  // CE QUE CE BLOC PROTÈGE. Chez Google, netbudget.solo et netbudget.duo sont
+  // deux produits sans lien : sans déclarer lequel est remplacé, l'abonné se
+  // retrouve avec DEUX abonnements actifs et paie les deux. Le rang décide du
+  // mode de remplacement, donc une erreur ici se paie en euros.
+  it("classe les formules avant les durées", () => {
+    expect(offerRank("solo", "yearly")).toBeLessThan(offerRank("duo", "monthly"));
+    expect(offerRank("duo", "yearly")).toBeLessThan(offerRank("family", "monthly"));
+  });
+
+  it("place l'annuel au-dessus du mensuel à formule égale", () => {
+    for (const tier of ["solo", "duo", "family"] as const) {
+      expect(offerRank(tier, "monthly")).toBeLessThan(offerRank(tier, "yearly"));
+    }
+  });
+
+  // Les six offres doivent être totalement ordonnées : deux ex æquo rendraient
+  // le sens du changement indécidable.
+  it("n'a aucun ex æquo", () => {
+    const all: number[] = [];
+    for (const tier of ["solo", "duo", "family"] as const) {
+      for (const period of ["monthly", "yearly"] as const) all.push(offerRank(tier, period));
+    }
+    expect(new Set(all).size).toBe(6);
+  });
+
+  it("reconnaît une montée de Solo vers Duo", () => {
+    expect(offerRank("duo", "monthly")).toBeGreaterThan(offerRank("solo", "yearly"));
+  });
+
+  it("reconnaît une descente de Famille vers Solo", () => {
+    expect(offerRank("solo", "yearly")).toBeLessThan(offerRank("family", "monthly"));
+  });
+});

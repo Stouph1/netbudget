@@ -28,6 +28,9 @@ import {
   type Period,
 } from "./plans";
 import { loadPurchases, type PurchasesModule } from "./purchases";
+// Import de TYPE uniquement : effacé à la compilation, donc rien n'entre dans
+// le bundle web où le SDK natif n'existe pas.
+import type { StoreProductChangeInfo } from "react-native-purchases";
 import type { BillingProvider, Offering, PurchaseResult } from "./provider";
 
 /**
@@ -176,6 +179,64 @@ function tierFromCustomerInfo(info: unknown): Tier {
 }
 
 /**
+ * Ordre combiné formule + durée, pour trancher montée ou descente en gamme.
+ *
+ * La formule prime, la durée départage : à formule égale, passer au mensuel
+ * est un recul, passer à l'annuel un engagement plus large.
+ */
+function offerRank(tier: Exclude<Tier, "free">, period: Period): number {
+  return RANK[tier] * 2 + (period === "yearly" ? 1 : 0);
+}
+
+/**
+ * Abonnement à REMPLACER, sur Google uniquement.
+ *
+ * POURQUOI CE N'EST PAS OPTIONNEL. Chez Apple, les six produits vivent dans un
+ * même groupe : la boutique sait qu'un achat en remplace un autre, et le fait
+ * toute seule. Chez Google, `netbudget.solo` et `netbudget.duo` sont deux
+ * produits SANS aucun lien. Sans cette information, un abonné Solo qui prend
+ * Duo ne change pas de formule : il se retrouve avec DEUX abonnements actifs,
+ * et il paie les deux. Personne ne s'en aperçoit avant le relevé bancaire.
+ *
+ * LE MODE DE REMPLACEMENT REPRODUIT LE COMPORTEMENT D'APPLE, pour que les deux
+ * plateformes racontent la même chose à l'utilisateur — et que le texte affiché
+ * après l'achat reste vrai :
+ *   montée en gamme -> immédiate, le temps restant est crédité ;
+ *   descente        -> différée à la fin de la période déjà payée.
+ */
+async function androidChangeInfo(
+  Purchases: PurchasesModule,
+  target: { tier: Exclude<Tier, "free">; period: Period },
+): Promise<StoreProductChangeInfo | null> {
+  if (Platform.OS !== "android") return null;
+
+  let active: string[] = [];
+  try {
+    active = (await Purchases.getCustomerInfo()).activeSubscriptions ?? [];
+  } catch {
+    // Sans information fiable, ne rien déclarer vaut mieux que déclarer faux :
+    // un `oldProductIdentifier` erroné fait échouer l'achat entier.
+    return null;
+  }
+
+  for (const id of active) {
+    const current = describeProduct(id);
+    if (!current) continue;
+    // Déjà exactement ce produit : il n'y a rien à remplacer.
+    if (current.tier === target.tier && current.period === target.period) return null;
+
+    return {
+      oldProductIdentifier: id,
+      replacementMode:
+        offerRank(target.tier, target.period) > offerRank(current.tier, current.period)
+          ? ("WITH_TIME_PRORATION" as StoreProductChangeInfo["replacementMode"])
+          : ("DEFERRED" as StoreProductChangeInfo["replacementMode"]),
+    };
+  }
+  return null;
+}
+
+/**
  * Traduit une erreur du SDK en une raison utilisable par l'interface.
  *
  * L'annulation N'EST PAS une erreur : c'est un choix. L'afficher comme un échec
@@ -278,7 +339,10 @@ export const revenueCatBilling: BillingProvider = {
       });
       if (!product) return { ok: false, reason: "unavailable" };
 
-      const result = await Purchases.purchaseStoreProduct(product);
+      // Sur Google, dire QUEL abonnement est remplacé. Sans ça, l'ancien reste
+      // actif à côté du nouveau et le client paie deux fois.
+      const change = await androidChangeInfo(Purchases, what);
+      const result = await Purchases.purchaseStoreProduct(product, change);
       const granted = tierFromCustomerInfo(result.customerInfo);
 
       // La boutique a encaissé mais le droit n'est pas encore visible : ça
@@ -319,6 +383,7 @@ export function __resetRevenueCatForTests(): void {
 
 export const __testing = {
   describeProduct,
+  offerRank,
   tierFromCustomerInfo,
   reasonFromError,
   storeProductIds,
