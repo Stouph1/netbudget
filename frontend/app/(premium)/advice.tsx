@@ -27,6 +27,7 @@ import { useSession } from "../../src/contexts/SessionContext";
 import { usePaywall } from "../../src/hooks/usePaywall";
 import { LockedOverlay } from "../../src/components/LockedOverlay";
 import { SyncBanner } from "../../src/components/SyncBanner";
+import { InflationBanner, RealReturnLine } from "../../src/components/InflationNote";
 import * as Haptics from "expo-haptics";
 import Reanimated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { useActiveScope } from "../../src/hooks/useActiveScope";
@@ -1142,6 +1143,8 @@ export default function AdviceScreen() {
           </Text>
         </View>
 
+        <InflationBanner country={profile.country} />
+
         <View style={styles.summaryRow}>
           <Text style={styles.summaryText}>
             {tp("coach.summary.tpl", {
@@ -1484,6 +1487,13 @@ function AdviceCardView({
             </View>
           ))}
         </View>
+      ) : null}
+
+      {card.nominalRatePct !== undefined ? (
+        <RealReturnLine
+          nominalRatePct={card.nominalRatePct}
+          country={profile.country}
+        />
       ) : null}
 
       {action.link ? (

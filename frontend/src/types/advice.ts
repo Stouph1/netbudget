@@ -301,6 +301,22 @@ export type AdviceCard = {
   // déclaration…). Absent = toute l'année.
   months?: number[];
   priority: number;
+  /**
+   * Taux de rémunération annuel du placement conseillé, en pourcentage.
+   *
+   * Présent uniquement sur les cartes qui recommandent de PLACER de l'argent.
+   * L'app s'en sert pour confronter le conseil à l'inflation du pays : un
+   * livret à 1,5 % quand les prix montent de 2,7 % fait perdre du pouvoir
+   * d'achat, et l'utilisateur doit le voir avant de suivre le conseil.
+   *
+   * Ce n'est PAS le taux d'un emprunt associé (le prêt d'un PEL, par exemple) :
+   * le comparer à l'inflation n'aurait aucun sens pour un emprunteur.
+   *
+   * Le chiffre est déjà affiché en toutes lettres dans `figures` ; le tenir
+   * aussi ici est une duplication, tenue par un test qui échoue si les deux
+   * divergent (voir adviceEngine.test.ts).
+   */
+  nominalRatePct?: number;
   figures?: AdviceFigure[] | ((p: UserProfile, i18n: AdviceI18n) => AdviceFigure[]);
   sources: string[];
   lastVerified: string;

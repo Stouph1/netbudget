@@ -465,6 +465,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     },
     appliesWhen: (p) => p.income === "low" || p.income === "medium",
     priority: 85,
+    nominalRatePct: 2.5,
     figures: [
       { label: "adv.lep-menages-modestes.fig.0.label", value: "2,5%" },
       { label: "adv.lep-menages-modestes.fig.1.label", value: "10 000 €" },
@@ -709,6 +710,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     },
     appliesWhen: kids("12-15", "16-18"),
     priority: 78,
+    nominalRatePct: 1.5,
     figures: [
       { label: "adv.livret-jeune-ado.fig.0.label", value: "adv.livret-jeune-ado.fig.0.value" },
       { label: "adv.livret-jeune-ado.fig.1.label", value: "1 600 €" },
@@ -729,6 +731,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     },
     appliesWhen: kids("7-11", "12-15"),
     priority: 62,
+    nominalRatePct: 2.0,
     figures: [
       { label: "adv.pel-enfant-etudes.fig.0.label", value: "2,00%" },
       { label: "adv.pel-enfant-etudes.fig.1.label", value: "3,20%" },
@@ -826,6 +829,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     },
     appliesWhen: ageIn("under_18"),
     priority: 90,
+    nominalRatePct: 1.5,
     figures: [
       { label: "adv.under18-livret-jeune.fig.0.label", value: "adv.under18-livret-jeune.fig.0.value" },
       { label: "adv.under18-livret-jeune.fig.1.label", value: "1 600 €" },
