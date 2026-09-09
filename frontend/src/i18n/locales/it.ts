@@ -644,6 +644,8 @@ export const it: Catalog = {
   "gate.shared.body": "Uno spazio comune dove tutti vedono gli stessi conti, dal proprio telefono. Cifrato come il resto: nessun altro può leggerlo.",
   "plan.bought.title": "Attivo",
   "plan.bought.body": "Il tuo abbonamento è in corso.",
+  "plan.switched.title": "Cambio registrato",
+  "plan.switched.body": "Il tuo piano attuale resta attivo fino alla fine del periodo già pagato. Il nuovo subentra al rinnovo, senza che tu debba fare nulla.",
   "plan.failed.title": "Acquisto non riuscito",
   "plan.failed.alreadyOwned": "Hai già questo abbonamento. Usa « Ripristina gli acquisti ».",
   "plan.failed.unavailable": "Gli acquisti non sono disponibili su questo dispositivo.",

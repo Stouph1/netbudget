@@ -644,6 +644,8 @@ export const ja: Catalog = {
   "gate.shared.body": "同じ収支を全員がそれぞれの端末から見られる共有スペースです。他と同じく暗号化され、他の誰にも見えません。",
   "plan.bought.title": "有効になりました",
   "plan.bought.body": "サブスクリプションが開始されました。",
+  "plan.switched.title": "変更を受け付けました",
+  "plan.switched.body": "お支払い済みの期間が終わるまでは現在のプランが有効です。更新時に新しいプランへ自動で切り替わります。",
   "plan.failed.title": "購入できませんでした",
   "plan.failed.alreadyOwned": "すでにこのサブスクリプションをお持ちです。「購入を復元」をご利用ください。",
   "plan.failed.unavailable": "この端末では購入できません。",

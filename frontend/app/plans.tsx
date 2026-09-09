@@ -45,7 +45,7 @@ import {
 } from "../src/lib/billing/plans";
 import { billing, onBillingChange, type Offering } from "../src/lib/billing/provider";
 import { refreshTier } from "../src/lib/tier";
-import type { Tier } from "../src/lib/entitlements";
+import { TIER_RANK, type Tier } from "../src/lib/entitlements";
 import { usePaywall } from "../src/hooks/usePaywall";
 import { CancelSheet } from "../src/components/CancelSheet";
 import { notify } from "../src/utils/notify";
@@ -158,7 +158,21 @@ export default function Plans() {
       // Les écrans se remettent à jour par `onTierChange` quand la réponse
       // arrive.
       void refreshTier(bought);
-      notify(t("plan.bought.title"), t("plan.bought.body"), () => goBack());
+
+      // RÉTROGRADATION : la boutique laisse la formule en cours courir jusqu'à
+      // la fin de la période déjà payée, et ne bascule qu'au renouvellement.
+      // Rien ne change donc à l'écran dans la minute qui suit.
+      //
+      // Annoncer « c'est actif » ici serait un mensonge visible : le client a
+      // choisi Solo, lit que c'est en place, et voit toujours Famille. Il
+      // conclut à une panne et écrit au support. On dit donc ce qui va
+      // réellement se passer.
+      const deferred = TIER_RANK[bought] < TIER_RANK[paywall.tier];
+      notify(
+        t(deferred ? "plan.switched.title" : "plan.bought.title"),
+        t(deferred ? "plan.switched.body" : "plan.bought.body"),
+        () => goBack(),
+      );
       return;
     }
     if (result.reason === "cancelled") return; // l'utilisateur a renoncé, rien à dire

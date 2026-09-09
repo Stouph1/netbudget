@@ -644,6 +644,8 @@ export const de: Catalog = {
   "gate.shared.body": "Ein gemeinsamer Bereich, in dem alle dieselben Konten sehen — jede und jeder auf dem eigenen Handy. Verschlüsselt wie alles andere: niemand sonst kann mitlesen.",
   "plan.bought.title": "Aktiv",
   "plan.bought.body": "Dein Abo läuft.",
+  "plan.switched.title": "Wechsel vorgemerkt",
+  "plan.switched.body": "Dein aktueller Tarif bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv. Der neue übernimmt zur Verlängerung, ohne dass du etwas tun musst.",
   "plan.failed.title": "Kauf nicht möglich",
   "plan.failed.alreadyOwned": "Du hast dieses Abo bereits. Nutze « Käufe wiederherstellen ».",
   "plan.failed.unavailable": "Käufe sind auf diesem Gerät nicht verfügbar.",

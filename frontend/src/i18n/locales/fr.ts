@@ -699,6 +699,8 @@ export const fr: Catalog = {
   "gate.shared.body": "Un espace commun où chacun voit les mêmes comptes, depuis son propre téléphone. Chiffré comme le reste : personne d'autre n'y a accès.",
   "plan.bought.title": "C'est actif",
   "plan.bought.body": "Ton abonnement est en place.",
+  "plan.switched.title": "Changement enregistré",
+  "plan.switched.body": "Ta formule actuelle reste active jusqu'à la fin de la période déjà payée. La nouvelle prendra le relais au renouvellement, sans rien à faire de ta part.",
   "plan.failed.title": "Achat impossible",
   "plan.failed.alreadyOwned": "Tu as déjà cet abonnement. Utilise « Restaurer mes achats ».",
   "plan.failed.unavailable": "Les achats ne sont pas disponibles sur cet appareil.",

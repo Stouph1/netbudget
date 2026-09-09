@@ -644,6 +644,8 @@ export const pt: Catalog = {
   "gate.shared.body": "Um espaço comum onde todos veem as mesmas contas, a partir do próprio telefone. Cifrado como o resto: mais ninguém tem acesso.",
   "plan.bought.title": "Está ativo",
   "plan.bought.body": "A tua subscrição está em vigor.",
+  "plan.switched.title": "Alteração registada",
+  "plan.switched.body": "O teu plano atual mantém-se ativo até ao fim do período já pago. O novo entra em vigor na renovação, sem nada a fazer da tua parte.",
   "plan.failed.title": "Compra falhou",
   "plan.failed.alreadyOwned": "Já tens esta subscrição. Usa « Restaurar as minhas compras ».",
   "plan.failed.unavailable": "As compras não estão disponíveis neste dispositivo.",

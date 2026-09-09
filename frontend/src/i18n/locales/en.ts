@@ -644,6 +644,8 @@ export const en: Catalog = {
   "gate.shared.body": "A shared space where everyone sees the same accounts, from their own phone. Encrypted like the rest: nobody else can read it.",
   "plan.bought.title": "You're set",
   "plan.bought.body": "Your subscription is active.",
+  "plan.switched.title": "Change recorded",
+  "plan.switched.body": "Your current plan stays active until the end of the period you have already paid for. The new one takes over at renewal, with nothing to do on your side.",
   "plan.failed.title": "Purchase failed",
   "plan.failed.alreadyOwned": "You already have this subscription. Use « Restore purchases ».",
   "plan.failed.unavailable": "Purchases are not available on this device.",

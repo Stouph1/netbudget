@@ -644,6 +644,8 @@ export const es: Catalog = {
   "gate.shared.body": "Un espacio común donde todos ven las mismas cuentas, desde su propio teléfono. Cifrado como el resto: nadie más puede leerlo.",
   "plan.bought.title": "Ya está",
   "plan.bought.body": "Tu suscripción está activa.",
+  "plan.switched.title": "Cambio registrado",
+  "plan.switched.body": "Tu plan actual sigue activo hasta el final del periodo ya pagado. El nuevo tomará el relevo en la renovación, sin que tengas que hacer nada.",
   "plan.failed.title": "Compra fallida",
   "plan.failed.alreadyOwned": "Ya tienes esta suscripción. Usa « Restaurar mis compras ».",
   "plan.failed.unavailable": "Las compras no están disponibles en este dispositivo.",
