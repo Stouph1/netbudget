@@ -245,7 +245,14 @@ export default function BudgetScreen({
         onClose={onCloseBudgetSwitcher}
       />
 
-      <StreakCard />
+      <StreakCard
+        figures={{
+          net: netMensuel,
+          expenses: monthlyExpenses,
+          remaining: remaining,
+        }}
+        fmt={fmt}
+      />
 
       {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
       {netMensuel <= 0 ? (

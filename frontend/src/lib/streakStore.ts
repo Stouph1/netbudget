@@ -12,7 +12,8 @@
 // une copie périmée.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { computeStreak, markCheckIn, type Month, type Streak } from "./streak";
+import { addSnapshot, previousSnapshot, type Snapshot } from "./recap";
+import { computeStreak, markCheckIn, monthKey, type Month, type Streak } from "./streak";
 
 const KEY = "netbudget:streak";
 
@@ -20,9 +21,11 @@ type Stored = {
   months: Month[];
   /** Derniers paliers déjà fêtés, pour ne pas rejouer la même célébration. */
   celebrated: number[];
+  /** Chiffres relevés à chaque point, pour comparer d'un mois sur l'autre. */
+  snapshots: Snapshot[];
 };
 
-const EMPTY: Stored = { months: [], celebrated: [] };
+const EMPTY: Stored = { months: [], celebrated: [], snapshots: [] };
 
 async function read(): Promise<Stored> {
   try {
@@ -33,6 +36,9 @@ async function read(): Promise<Stored> {
       months: Array.isArray(parsed.months) ? parsed.months.filter(isMonth) : [],
       celebrated: Array.isArray(parsed.celebrated)
         ? parsed.celebrated.filter((n) => typeof n === "number")
+        : [],
+      snapshots: Array.isArray(parsed.snapshots)
+        ? parsed.snapshots.filter(isSnapshot)
         : [],
     };
   } catch {
@@ -47,6 +53,17 @@ function isMonth(v: unknown): v is Month {
   return typeof v === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(v);
 }
 
+// Un instantané amputé d'un champ produirait un écart de plusieurs centaines
+// d'euros sorti de nulle part, sur un écran censé rassurer.
+function isSnapshot(v: unknown): v is Snapshot {
+  if (typeof v !== "object" || v === null) return false;
+  const s = v as Record<string, unknown>;
+  return (
+    isMonth(s.month) &&
+    ["net", "expenses", "remaining"].every((k) => Number.isFinite(s[k]))
+  );
+}
+
 async function write(s: Stored): Promise<void> {
   try {
     await AsyncStorage.setItem(KEY, JSON.stringify(s));
@@ -59,12 +76,29 @@ export async function loadStreak(now: Date = new Date()): Promise<Streak> {
   return computeStreak((await read()).months, now);
 }
 
-/** Enregistre le point du mois et rend la série à jour. */
-export async function recordCheckIn(now: Date = new Date()): Promise<Streak> {
+/**
+ * Enregistre le point du mois et rend la série à jour.
+ *
+ * `figures` est facultatif : sans budget saisi, il n'y a rien à photographier,
+ * et le point reste valable — on ne refuse pas une habitude à quelqu'un qui
+ * n'a pas encore rempli son budget.
+ */
+export async function recordCheckIn(
+  figures?: Omit<Snapshot, "month">,
+  now: Date = new Date(),
+): Promise<Streak> {
   const stored = await read();
   const months = markCheckIn(stored.months, now);
-  await write({ ...stored, months });
+  const snapshots = figures
+    ? addSnapshot(stored.snapshots, { month: monthKey(now), ...figures })
+    : stored.snapshots;
+  await write({ ...stored, months, snapshots });
   return computeStreak(months, now);
+}
+
+/** Instantané du dernier point d'un mois précédent, ou null s'il n'y en a pas. */
+export async function lastSnapshot(now: Date = new Date()): Promise<Snapshot | null> {
+  return previousSnapshot((await read()).snapshots, monthKey(now));
 }
 
 /**

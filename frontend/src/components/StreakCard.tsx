@@ -23,17 +23,32 @@ import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useLang } from "../contexts/LangContext";
+import { buildRecap, type Recap, type Snapshot } from "../lib/recap";
 import { milestoneReached, type Streak } from "../lib/streak";
-import { claimMilestone, loadStreak, recordCheckIn } from "../lib/streakStore";
+import { claimMilestone, lastSnapshot, loadStreak, recordCheckIn } from "../lib/streakStore";
+import { monthKey } from "../lib/streak";
 
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const GOLD = "#4ADE80";
+const AMBER = "#FBBF24";
 
-export function StreakCard() {
+/**
+ * `figures` vient de l'écran Budget. Absent tant que rien n'est saisi : le
+ * point reste possible, il ne produit simplement pas de bilan.
+ */
+export function StreakCard({
+  figures,
+  fmt,
+}: {
+  figures?: Omit<Snapshot, "month">;
+  /** Formateur de montant de l'écran Budget : l'app n'est pas qu'en euros. */
+  fmt?: (v: number) => string;
+}) {
   const { t, tp } = useLang();
   const [streak, setStreak] = useState<Streak | null>(null);
   const [milestone, setMilestone] = useState<number | null>(null);
+  const [recap, setRecap] = useState<Recap | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -47,8 +62,16 @@ export function StreakCard() {
 
   const check = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    const next = await recordCheckIn();
+
+    // On lit l'instantané précédent AVANT d'écrire le nouveau : après, le
+    // dernier point serait celui de ce mois-ci et la comparaison serait vide.
+    const previous = figures ? await lastSnapshot() : null;
+    const next = await recordCheckIn(figures);
     setStreak(next);
+
+    if (figures && previous) {
+      setRecap(buildRecap(previous, { month: monthKey(new Date()), ...figures }));
+    }
 
     const reached = milestoneReached(next);
     // `claimMilestone` rend false si le palier a déjà été fêté : sans ça la
@@ -57,9 +80,41 @@ export function StreakCard() {
       setMilestone(reached);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
-  }, []);
+  }, [figures]);
 
   if (!streak) return null;
+
+  // Le bilan d'abord : c'est ce qui a de la valeur. Le palier est une
+  // félicitation, il peut attendre la fermeture du bilan.
+  if (recap) {
+    return (
+      <Reanimated.View entering={FadeIn} exiting={FadeOut} style={[s.card, s.cardWin, s.cardCol]}>
+        <View style={s.row}>
+          <Feather name="bar-chart-2" size={17} color={GOLD} />
+          <Text style={[s.title, { flex: 1 }]}>{t("recap.title")}</Text>
+          <TouchableOpacity onPress={() => setRecap(null)} hitSlop={10} accessibilityRole="button">
+            <Feather name="x" size={16} color={TEXT_2} />
+          </TouchableOpacity>
+        </View>
+        {recap.lines.map((l) => {
+          const good = l.delta > 0 === l.upIsGood;
+          return (
+            <View key={l.key} style={s.row}>
+              <Feather
+                name={l.delta > 0 ? "arrow-up-right" : "arrow-down-right"}
+                size={13}
+                color={good ? GOLD : AMBER}
+              />
+              <Text style={[s.body, { flex: 1, marginTop: 0 }]}>
+                {tp(`recap.line.${l.key}`, { delta: fmtDelta(l.delta, fmt) })}
+              </Text>
+            </View>
+          );
+        })}
+        <Text style={s.foot}>{t("recap.note")}</Text>
+      </Reanimated.View>
+    );
+  }
 
   // Palier atteint : on félicite, une fois, et on s'efface au geste suivant.
   if (milestone !== null) {
@@ -116,6 +171,15 @@ export function StreakCard() {
   );
 }
 
+// Signe toujours explicite : « 40 € » ne dit pas si on a gagné ou perdu, et
+// le lecteur ne doit pas avoir à le deviner d'après la flèche. Le montant
+// passe par le formateur de l'écran Budget, sans quoi un utilisateur en francs
+// suisses ou en dirhams lirait des euros.
+function fmtDelta(n: number, fmt?: (v: number) => string): string {
+  const abs = Math.round(Math.abs(n));
+  return `${n > 0 ? "+" : "−"}${fmt ? fmt(abs) : abs}`;
+}
+
 const s = StyleSheet.create({
   card: {
     flexDirection: "row",
@@ -134,6 +198,9 @@ const s = StyleSheet.create({
     borderColor: "rgba(74,222,128,0.4)",
     backgroundColor: "rgba(74,222,128,0.08)",
   },
+  cardCol: { flexDirection: "column", alignItems: "stretch", gap: 8 },
+  row: { flexDirection: "row", alignItems: "center", gap: 9 },
+  foot: { color: "#8193AC", fontSize: 10.5, lineHeight: 14 },
   title: { color: TEXT_1, fontSize: 13, fontWeight: "700" },
   body: { color: TEXT_2, fontSize: 11.5, lineHeight: 16, marginTop: 1 },
   cta: {
