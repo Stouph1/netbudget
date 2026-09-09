@@ -18,6 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import DonutChart, { DonutSegment } from "../../src/components/DonutChart";
 import MonthlyBreakdown, { MonthRow } from "../../src/components/MonthlyBreakdown";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
+import { StreakCard } from "../../src/components/StreakCard";
 import { City } from "../../src/constants/cities";
 import { CurrencyCode, getCurrency } from "../../src/utils/currency";
 import { parseNumber } from "../../src/utils/finance";
@@ -243,6 +244,8 @@ export default function BudgetScreen({
         visible={budgetSwitcherOpen}
         onClose={onCloseBudgetSwitcher}
       />
+
+      <StreakCard />
 
       {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
       {netMensuel <= 0 ? (
