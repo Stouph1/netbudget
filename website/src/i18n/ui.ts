@@ -214,7 +214,8 @@ const fr: Catalog = {
   "faq.account.q": "Faut-il créer un compte ?",
   "faq.account.a": "Non, et c'est un choix de conception. Tu peux installer l'app et t'en servir sans jamais donner d'adresse e-mail. Le compte ne devient utile que si tu veux retrouver tes données sur un autre appareil ou partager un budget avec quelqu'un.",
   "faq.data.q": "Où sont stockées mes données financières ?",
-  "faq.data.a": "Sans compte, uniquement dans la mémoire de ton téléphone : rien n'est envoyé. Avec un compte, ce que tu choisis d'enregistrer est synchronisé sur nos serveurs. La page de confidentialité détaille précisément quoi, et dit aussi ce qui n'est pas encore chiffré de bout en bout.",
+  "faq.data.a":
+    "Sans compte, uniquement dans la mémoire de ton téléphone : rien n'est envoyé. Avec un compte, ce que tu choisis d'enregistrer est synchronisé sur nos serveurs, et tu peux activer un chiffrement de bout en bout qui nous empêche de le lire. La page de confidentialité détaille précisément ce qui est couvert et ce qui ne peut pas l'être.",
   "faq.offline.q": "Est-ce que ça marche sans internet ?",
   "faq.offline.a": "Entièrement, sauf deux choses : les taux de change du convertisseur, qui ont besoin d'être récupérés une fois puis restent en cache, et la synchronisation si tu as un compte. Le calcul de ton budget, lui, ne dépend d'aucun serveur.",
   "faq.countries.q": "Ça fonctionne dans mon pays ?",
@@ -242,9 +243,10 @@ const fr: Catalog = {
   "page.privacy.section2.body":
     "Créer un compte est facultatif et sert à retrouver tes données sur plusieurs appareils, à partager un budget et à recevoir des conseils adaptés à ta situation. Sont alors enregistrés sur nos serveurs : ton adresse e-mail (ou l'identifiant fourni par Apple ou Google), ton pseudo, éventuellement tes prénom et nom, ta date de naissance, ton pays, ta région et ta ville, ta situation professionnelle, ta photo de profil si tu en ajoutes une, la date de ton acceptation de cette politique, ainsi que tes objectifs d'épargne, tes budgets d'événement, ton historique mensuel et le profil qui sert à personnaliser les conseils — âge, situation familiale, logement, tranche d'imposition, présence d'enfants ou d'animaux. Tu choisis ce que tu renseignes : les champs laissés vides ne sont pas déduits.",
 
-  "page.privacy.section3.title": "État réel du chiffrement",
+  "page.privacy.section3.title":
+    "Chiffrement : ce qui est protégé, et comment",
   "page.privacy.section3.body":
-    "Nous voulons être exacts sur ce point, car il est trop souvent exagéré. Les échanges entre l'application et nos serveurs sont chiffrés en transit (HTTPS), et ton jeton de session est conservé dans le trousseau sécurisé du système. En revanche, le chiffrement de bout en bout — celui qui empêcherait techniquement quiconque, nous y compris, de lire tes données — n'est PAS encore en service. Tant que cette page n'indique pas le contraire, considère que les données synchronisées sont lisibles par l'administrateur de la base. Elles sont protégées par des règles d'accès qui interdisent à un utilisateur de voir celles d'un autre, mais ce n'est pas la même garantie.",
+    "Nous voulons être exacts sur ce point, car il est trop souvent exagéré. Les échanges entre l'application et nos serveurs sont chiffrés en transit (HTTPS), et ton jeton de session est conservé dans le trousseau sécurisé du système. Au-delà, tu peux activer un chiffrement de bout en bout : l'application génère une phrase de douze mots, en dérive une clé qui ne quitte jamais ton appareil, et chiffre tes données avant de les envoyer. Une fois activé, nous ne pouvons plus lire ces données — ni nous, ni l'hébergeur, ni personne disposant d'un accès à la base. Cette activation est un choix, pas un réglage par défaut : tant que tu ne l'as pas faite, considère que les données synchronisées sont lisibles par l'administrateur de la base. Elles restent protégées par des règles d'accès qui interdisent à un utilisateur de voir celles d'un autre, mais ce n'est pas la même garantie. Certaines informations ne peuvent pas être chiffrées ainsi, parce que le service en a besoin pour fonctionner : ton adresse e-mail, l'état de ton abonnement et l'existence de ton compte.",
 
   "page.privacy.section4.title": "Budgets partagés",
   "page.privacy.section4.body":
@@ -252,11 +254,11 @@ const fr: Catalog = {
 
   "page.privacy.section5.title": "Connexions réseau",
   "page.privacy.section5.body":
-    "Sans compte, l'application contacte deux services, sans jamais transmettre d'identifiant : open.er-api.com pour les taux de change, avec un cache local, et itunes.apple.com pour savoir si une mise à jour est disponible. Avec un compte, elle communique avec Supabase, qui héberge la base de données, l'authentification et le stockage des photos. Si tu choisis Apple ou Google pour te connecter, ce fournisseur est sollicité au moment de la connexion. Les nombreux liens vers les sites officiels cités dans les conseils ne sont ouverts que si tu les touches, et dans ton navigateur.",
+    "Sans compte, l'application contacte deux services, sans jamais transmettre d'identifiant : open.er-api.com pour les taux de change, avec un cache local, et itunes.apple.com pour savoir si une mise à jour est disponible. Avec un compte, elle communique avec Supabase, qui héberge la base de données, l'authentification et le stockage des photos. Si tu choisis Apple ou Google pour te connecter, ce fournisseur est sollicité au moment de la connexion. Si tu prends un abonnement, l'application interroge RevenueCat pour savoir ce que ton compte a le droit d'ouvrir. Les taux d'inflation affichés dans les conseils sont embarqués dans l'application, précisément pour ne pas avoir à interroger un institut de statistiques — ce qui reviendrait à lui indiquer où tu vis à chaque ouverture. Les nombreux liens vers les sites officiels cités dans les conseils ne sont ouverts que si tu les touches, et dans ton navigateur.",
 
   "page.privacy.section6.title": "Sous-traitants",
   "page.privacy.section6.body":
-    "Supabase héberge les données de compte. Apple et Google interviennent uniquement si tu utilises leur méthode de connexion, et pour la facturation de l'abonnement lorsqu'il sera disponible. open.er-api.com fournit les taux de change. Aucun autre tiers ne reçoit tes données : il n'y a ni publicité, ni mesure d'audience, ni traceur, ni revente. Nous ne vendons pas de données, et ce n'est pas notre modèle économique — l'application se finance par l'abonnement.",
+    "Supabase héberge les données de compte. Apple et Google interviennent si tu utilises leur méthode de connexion, et pour la vente et l'encaissement des abonnements. RevenueCat, qui gère les abonnements pour notre compte, reçoit un identifiant de compte et les informations d'achat transmises par la boutique — jamais tes données budgétaires, jamais tes coordonnées bancaires, que nous ne voyons pas davantage. open.er-api.com fournit les taux de change. Aucun autre tiers ne reçoit tes données : il n'y a ni publicité, ni mesure d'audience, ni traceur, ni revente. Nous ne vendons pas de données, et ce n'est pas notre modèle économique — l'application se finance par l'abonnement.",
 
   "page.privacy.section7.title": "Permissions demandées",
   "page.privacy.section7.body":
@@ -274,9 +276,14 @@ const fr: Catalog = {
   "page.privacy.section10.body":
     "L'application peut être utilisée sans compte à tout âge. La création d'un compte est réservée aux personnes de quinze ans ou plus, âge du consentement numérique en France. Nous ne cherchons pas à collecter de données concernant des enfants ; si un compte a été créé pour un mineur plus jeune, écris-nous et nous le supprimerons.",
 
-  "page.privacy.section11.title": "Modifications et contact",
+  "page.privacy.section11.title": "Programme de test",
   "page.privacy.section11.body":
+    "Une session de test fermée précède la mise en vente. Les personnes qui y participent sont invitées nominativement, approuvent un contrat d'essai depuis l'application, et nous transmettent à cette occasion le nom qu'elles y inscrivent, la date de leur accord et la formule qui leur est attribuée. Ces éléments servent uniquement à prouver que l'accord a été donné et à ouvrir le bon périmètre de test. Ils sont supprimés à la fin de la session, en même temps que les accès de test, et ne servent à aucune fin commerciale. Refuser le contrat retire le statut de testeur, sans autre conséquence.",
+
+  "page.privacy.section12.title": "Modifications et contact",
+  "page.privacy.section12.body":
     "Toute évolution de cette politique sera publiée ici, avec sa date. Un changement qui élargirait l'usage de tes données te sera signalé dans l'application avant d'entrer en vigueur. Pour toute question : contact@netbudget.app.",
+
 
   "page.privacy.updated": "Dernière mise à jour",
 
@@ -301,41 +308,46 @@ const fr: Catalog = {
   "page.terms.section4.body":
     "Le compte est facultatif : l'application fonctionne sans. Si tu en crées un, tu es responsable de la confidentialité de ton mot de passe et des activités menées depuis ton compte. Il est réservé aux personnes de quinze ans ou plus. Nous pouvons suspendre un compte utilisé pour nuire à autrui, contourner la facturation ou attaquer le service — jamais pour un usage normal, même intensif.",
 
-  "page.terms.section5.title": "Abonnement et paliers",
+  "page.terms.section5.title": "Chiffrement et phrase de récupération",
   "page.terms.section5.body":
+    "Tu peux activer un chiffrement de bout en bout sur les données que tu synchronises. L'application génère alors une phrase de douze mots, dérive une clé à partir d'elle et chiffre les données AVANT de les envoyer. Cette phrase n'est jamais transmise : elle existe sur ton appareil et sur le support où tu l'as notée, nulle part ailleurs. La conséquence doit être comprise avant d'activer la fonction — si tu perds cette phrase et que tu perds aussi l'accès à tes appareils, personne ne peut déchiffrer tes données synchronisées, nous y compris, et elles deviennent définitivement illisibles. Il n'existe aucune procédure de récupération, et c'est précisément ce qui donne sa valeur à la garantie. L'éditeur ne peut être tenu responsable d'une perte de données résultant d'une phrase égarée.",
+
+  "page.terms.section6.title": "Abonnement et paliers",
+  "page.terms.section6.body":
     "L'application est utilisable gratuitement et sans limite de temps : budget, prêts, reste à vivre, règle 50/30/20 et convertisseur. Un abonnement facultatif ouvre la synchronisation entre appareils, les conseils personnalisés et les budgets d'événement. La formule Solo suit un événement à la fois et n'inclut pas le budget mariage, qui se prépare à plusieurs et appartient aux formules Duo et Famille. Les limites exactes de chaque formule sont indiquées dans l'application avant tout paiement.",
 
-  "page.terms.section6.title": "Paiement, renouvellement, résiliation",
-  "page.terms.section6.body":
-    "Les abonnements sont vendus et encaissés par l'App Store d'Apple ou le Play Store de Google, jamais par nous — nous ne voyons donc aucune donnée bancaire. Ils se renouvellent automatiquement à échéance, sauf résiliation au moins vingt-quatre heures avant. La résiliation se fait depuis les réglages de ton téléphone, dans la gestion des abonnements : nous n'avons pas la main dessus, et c'est mieux ainsi — personne ne peut te retenir ni te faire passer par un service client. Elle prend effet à la fin de la période déjà payée, sans frais, et tes données restent accessibles en version gratuite.",
-
-  "page.terms.section7.title": "Remboursement et droit de rétractation",
+  "page.terms.section7.title": "Paiement, renouvellement, résiliation",
   "page.terms.section7.body":
+    "Les abonnements sont vendus et encaissés par l'App Store d'Apple ou le Play Store de Google, jamais par nous — nous ne voyons donc aucune donnée bancaire. Lorsqu'une période d'essai gratuite est proposée, elle se transforme en abonnement payant à son terme si elle n'a pas été résiliée avant : la boutique t'en informe, et la date figure dans la gestion de tes abonnements. Les abonnements se renouvellent ensuite automatiquement à chaque échéance, sauf résiliation au moins vingt-quatre heures avant. La résiliation se fait depuis les réglages de ton téléphone, dans la gestion des abonnements : nous n'avons pas la main dessus, et c'est mieux ainsi. L'application peut afficher un écran te demandant la raison de ton départ et te proposant une réponse — une formule moins chère, une aide. Cet écran est facultatif de bout en bout : le lien vers la boutique y est visible dès son ouverture, aucune réponse n'est exigée, et rien ne peut retarder ta résiliation. Elle prend effet à la fin de la période déjà payée, sans frais, et tes données restent accessibles en version gratuite.",
+
+  "page.terms.section8.title": "Remboursement et droit de rétractation",
+  "page.terms.section8.body":
     "Les remboursements sont traités par la boutique qui a encaissé le paiement, selon ses propres règles : Apple et Google disposent chacun d'un formulaire de demande. Nous n'avons techniquement pas la possibilité de rembourser à leur place, mais écris-nous et nous appuierons ta demande. Pour un achat effectué dans l'Union européenne, le droit de rétractation de quatorze jours s'applique dans les conditions prévues par la boutique concernée.",
 
-  "page.terms.section8.title": "Codes promotionnels",
-  "page.terms.section8.body":
+  "page.terms.section9.title": "Codes promotionnels",
+  "page.terms.section9.body":
     "Un code de réduction s'applique à la période indiquée au moment de son utilisation, puis l'abonnement se poursuit au tarif normal. Un code n'est ni cumulable avec un autre, ni échangeable contre de l'argent, ni transférable. Un code obtenu ou utilisé de manière frauduleuse peut être annulé.",
 
-  "page.terms.section9.title": "Budgets partagés",
-  "page.terms.section9.body":
+  "page.terms.section10.title": "Budgets partagés",
+  "page.terms.section10.body":
     "Dans un espace partagé, tu rends volontairement visibles aux autres membres le budget, les objectifs et les événements de cet espace, ainsi que ton pseudo et ta photo de profil. N'y place que ce que tu acceptes de partager. Le propriétaire d'un espace peut le supprimer, ce qui en efface le contenu pour tous ses membres. Ton espace personnel n'est jamais visible par qui que ce soit.",
 
-  "page.terms.section10.title": "Disponibilité du service",
-  "page.terms.section10.body":
+  "page.terms.section11.title": "Disponibilité du service",
+  "page.terms.section11.body":
     "L'application fonctionne hors ligne pour l'essentiel, ce qui la rend peu sensible aux pannes. La synchronisation, elle, dépend de serveurs et peut être interrompue pour maintenance ou incident. Aucune garantie de disponibilité continue n'est donnée. Des fonctionnalités peuvent évoluer ou disparaître ; si l'une d'elles justifiait ton abonnement, tu peux résilier comme indiqué plus haut.",
 
-  "page.terms.section11.title": "Propriété intellectuelle",
-  "page.terms.section11.body":
+  "page.terms.section12.title": "Propriété intellectuelle",
+  "page.terms.section12.body":
     "Le nom NETbudget, le logo, l'interface et le code source appartiennent à l'éditeur. Tes données, elles, t'appartiennent : nous ne revendiquons aucun droit dessus et ne les exploitons pas à d'autres fins que de faire fonctionner l'application. La règle 50/30/20 est issue des travaux d'Elizabeth Warren et Amelia Warren Tyagi, publiés dans leurs ouvrages.",
 
-  "page.terms.section12.title": "Droit applicable et litiges",
-  "page.terms.section12.body":
+  "page.terms.section13.title": "Droit applicable et litiges",
+  "page.terms.section13.body":
     "Ces conditions sont soumises au droit français. En cas de désaccord, écris-nous d'abord : la plupart des problèmes se règlent en quelques messages. Si aucune solution n'est trouvée, tu peux saisir un médiateur de la consommation ou les tribunaux compétents. Rien ici ne restreint les droits que la loi de ton pays de résidence te garantit en tant que consommateur.",
 
-  "page.terms.section13.title": "Évolution des conditions",
-  "page.terms.section13.body":
+  "page.terms.section14.title": "Évolution des conditions",
+  "page.terms.section14.body":
     "Ce texte peut être modifié ; la date de dernière mise à jour figure en bas de page. Un changement significatif — notamment sur la facturation — sera signalé dans l'application avant son entrée en vigueur. Poursuivre l'utilisation après cette date vaut acceptation. Une question : contact@netbudget.app.",
+
 
   "page.terms.updated": "Dernière mise à jour",
 
@@ -545,7 +557,8 @@ const en: Catalog = {
   "faq.account.q": "Do I need an account?",
   "faq.account.a": "No, and that is a design choice. You can install the app and use it without ever giving an email address. An account only becomes useful if you want your data on another device or want to share a budget with someone.",
   "faq.data.q": "Where is my financial data stored?",
-  "faq.data.a": "Without an account, only in your phone's storage: nothing is sent. With an account, whatever you choose to save is synchronised to our servers. The privacy page spells out exactly what, and also says what is not yet end-to-end encrypted.",
+  "faq.data.a":
+    "Without an account, only in your phone's storage: nothing is sent. With an account, whatever you choose to save is synchronised to our servers, and you can turn on end-to-end encryption that stops us reading it. The privacy page spells out exactly what is covered and what cannot be.",
   "faq.offline.q": "Does it work without internet?",
   "faq.offline.a": "Entirely, apart from two things: the converter's exchange rates, which need fetching once and are then cached, and syncing if you have an account. Your budget calculation itself depends on no server.",
   "faq.countries.q": "Does it work in my country?",
@@ -573,9 +586,10 @@ const en: Catalog = {
   "page.privacy.section2.body":
     "Creating an account is optional. It lets you find your data on several devices, share a budget, and receive advice matched to your situation. We then store on our servers: your email address (or the identifier provided by Apple or Google), your username, optionally your first and last name, your date of birth, your country, region and city, your occupation, your profile picture if you add one, the date you accepted this policy, along with your savings goals, event budgets, monthly history, and the profile used to tailor advice — age, family situation, housing, tax band, children or pets. You choose what you fill in: blank fields are not inferred.",
 
-  "page.privacy.section3.title": "Where encryption actually stands",
+  "page.privacy.section3.title":
+    "Encryption: what is protected, and how",
   "page.privacy.section3.body":
-    "We want to be exact here, because this is routinely overstated. Traffic between the app and our servers is encrypted in transit (HTTPS), and your session token is kept in the operating system's secure keystore. However, end-to-end encryption — the kind that would make it technically impossible for anyone, including us, to read your data — is NOT yet in place. Until this page says otherwise, assume synchronised data is readable by a database administrator. It is protected by access rules that stop one user from seeing another's, but that is not the same guarantee.",
+    "We want to be exact here, because this is routinely overstated. Traffic between the app and our servers is encrypted in transit (HTTPS), and your session token is kept in the operating system's secure keystore. Beyond that, you can turn on end-to-end encryption: the app generates a twelve-word phrase, derives from it a key that never leaves your device, and encrypts your data before sending it. Once it is on, we can no longer read that data — not us, not the host, nor anyone with access to the database. Turning it on is a choice, not a default: until you do, assume synchronised data is readable by a database administrator. It is still protected by access rules that stop one user from seeing another's, but that is not the same guarantee. Some information cannot be encrypted this way because the service needs it to work: your email address, your subscription status and the existence of your account.",
 
   "page.privacy.section4.title": "Shared budgets",
   "page.privacy.section4.body":
@@ -583,11 +597,11 @@ const en: Catalog = {
 
   "page.privacy.section5.title": "Network connections",
   "page.privacy.section5.body":
-    "Without an account, the app contacts two services and never sends an identifier: open.er-api.com for exchange rates, with a local cache, and itunes.apple.com to check whether an update is available. With an account, it talks to Supabase, which hosts the database, authentication and photo storage. If you sign in with Apple or Google, that provider is contacted at sign-in time. The many links to official websites quoted in the advice are only opened if you tap them, and in your browser.",
+    "Without an account, the app contacts two services and never sends an identifier: open.er-api.com for exchange rates, with a local cache, and itunes.apple.com to check whether an update is available. With an account, it talks to Supabase, which hosts the database, authentication and photo storage. If you sign in with Apple or Google, that provider is contacted at sign-in time. If you subscribe, the app asks RevenueCat what your account is entitled to open. The inflation rates shown in the advice are bundled into the app, precisely so that no statistics institute has to be queried — which would tell it where you live every time you open the app. The many links to official websites quoted in the advice are only opened if you tap them, and in your browser.",
 
   "page.privacy.section6.title": "Processors",
   "page.privacy.section6.body":
-    "Supabase hosts account data. Apple and Google are involved only if you use their sign-in method, and for subscription billing once it is available. open.er-api.com supplies exchange rates. No other third party receives your data: there is no advertising, no analytics, no tracker, no resale. We do not sell data, and it is not our business model — the app is funded by subscriptions.",
+    "Supabase hosts account data. Apple and Google are involved if you use their sign-in method, and for selling and charging subscriptions. RevenueCat, which manages subscriptions on our behalf, receives an account identifier and the purchase information passed on by the store — never your budget data, and never your payment details, which we do not see either. open.er-api.com supplies exchange rates. No other third party receives your data: there is no advertising, no analytics, no tracker, no resale. We do not sell data, and it is not our business model — the app is funded by subscriptions.",
 
   "page.privacy.section7.title": "Permissions requested",
   "page.privacy.section7.body":
@@ -605,9 +619,14 @@ const en: Catalog = {
   "page.privacy.section10.body":
     "The app can be used without an account at any age. Creating an account is restricted to people aged fifteen or over, the age of digital consent in France. We do not seek to collect data about children; if an account was created for a younger minor, write to us and we will delete it.",
 
-  "page.privacy.section11.title": "Changes and contact",
+  "page.privacy.section11.title": "Testing programme",
   "page.privacy.section11.body":
+    "A closed testing session precedes general sale. Participants are invited by name, approve a testing agreement from within the app, and in doing so send us the name they enter, the date of their agreement and the plan assigned to them. These records exist only to prove that consent was given and to open the right testing scope. They are deleted at the end of the session, together with the test access itself, and serve no commercial purpose. Declining the agreement removes tester status, with no further consequence.",
+
+  "page.privacy.section12.title": "Changes and contact",
+  "page.privacy.section12.body":
     "Any change to this policy will be published here with its date. A change that would broaden how your data is used will be flagged in the app before it takes effect. Any questions: contact@netbudget.app.",
+
 
   "page.privacy.updated": "Last updated",
 
@@ -632,41 +651,46 @@ const en: Catalog = {
   "page.terms.section4.body":
     "An account is optional: the app works without one. If you create one, you are responsible for keeping your password confidential and for activity carried out from your account. It is restricted to people aged fifteen or over. We may suspend an account used to harm others, circumvent billing or attack the service — never for normal use, however heavy.",
 
-  "page.terms.section5.title": "Subscription and plans",
+  "page.terms.section5.title": "Encryption and recovery phrase",
   "page.terms.section5.body":
+    "You can turn on end-to-end encryption for the data you synchronise. The app then generates a twelve-word phrase, derives a key from it and encrypts your data BEFORE sending it. The phrase is never transmitted: it exists on your device and wherever you wrote it down, nowhere else. The consequence must be understood before you turn the feature on — if you lose that phrase and also lose access to your devices, nobody can decrypt your synchronised data, ourselves included, and it becomes permanently unreadable. There is no recovery procedure, and that is precisely what makes the guarantee worth anything. The publisher cannot be held liable for data lost as a result of a mislaid phrase.",
+
+  "page.terms.section6.title": "Subscription and plans",
+  "page.terms.section6.body":
     "The app is usable free of charge with no time limit: budget, loans, disposable income, the 50/30/20 rule and the converter. An optional subscription unlocks syncing across devices, tailored advice and event budgets. The Solo plan tracks one event at a time and does not include the wedding budget, which is planned together and belongs to the Duo and Family plans. Each plan's exact limits are shown in the app before any payment.",
 
-  "page.terms.section6.title": "Payment, renewal, cancellation",
-  "page.terms.section6.body":
-    "Subscriptions are sold and charged by Apple's App Store or Google's Play Store, never by us — so we never see any payment details. They renew automatically at the end of each period unless cancelled at least twenty-four hours beforehand. Cancellation happens in your phone's settings, under subscription management: we have no control over it, and that is better — nobody can hold you back or route you through a retention agent. It takes effect at the end of the period you already paid for, at no cost, and your data stays accessible on the free tier.",
-
-  "page.terms.section7.title": "Refunds and right of withdrawal",
+  "page.terms.section7.title": "Payment, renewal, cancellation",
   "page.terms.section7.body":
+    "Subscriptions are sold and charged by Apple's App Store or Google's Play Store, never by us — so we never see any payment details. Where a free trial is offered, it turns into a paid subscription at the end unless cancelled beforehand: the store tells you so, and the date appears in your subscription management. Subscriptions then renew automatically at each period end unless cancelled at least twenty-four hours in advance. Cancellation happens in your phone's settings, under subscription management: we have no control over it, and that is better. The app may show one screen asking why you are leaving and offering an answer — a cheaper plan, some help. That screen is optional from start to finish: the link to the store is visible the moment it opens, no answer is required, and nothing can delay your cancellation. It takes effect at the end of the period you already paid for, at no cost, and your data stays accessible on the free tier.",
+
+  "page.terms.section8.title": "Refunds and right of withdrawal",
+  "page.terms.section8.body":
     "Refunds are handled by whichever store took the payment, under its own rules: Apple and Google each provide a request form. We are technically unable to refund on their behalf, but write to us and we will support your request. For a purchase made in the European Union, the fourteen-day right of withdrawal applies under the conditions set by the store concerned.",
 
-  "page.terms.section8.title": "Promotional codes",
-  "page.terms.section8.body":
+  "page.terms.section9.title": "Promotional codes",
+  "page.terms.section9.body":
     "A discount code applies to the period stated when it is used, after which the subscription continues at the standard price. A code cannot be combined with another, exchanged for money, or transferred. A code obtained or used fraudulently may be cancelled.",
 
-  "page.terms.section9.title": "Shared budgets",
-  "page.terms.section9.body":
+  "page.terms.section10.title": "Shared budgets",
+  "page.terms.section10.body":
     "In a shared space, you deliberately make that space's budget, goals and events visible to its other members, along with your username and profile picture. Only put there what you are willing to share. A space's owner can delete it, which erases its contents for every member. Your personal space is never visible to anyone.",
 
-  "page.terms.section10.title": "Service availability",
-  "page.terms.section10.body":
+  "page.terms.section11.title": "Service availability",
+  "page.terms.section11.body":
     "The app works offline for the most part, which makes it largely immune to outages. Syncing, however, depends on servers and may be interrupted for maintenance or incidents. No guarantee of continuous availability is given. Features may change or be withdrawn; if one of them was the reason for your subscription, you can cancel as described above.",
 
-  "page.terms.section11.title": "Intellectual property",
-  "page.terms.section11.body":
+  "page.terms.section12.title": "Intellectual property",
+  "page.terms.section12.body":
     "The NETbudget name, logo, interface and source code belong to the publisher. Your data belongs to you: we claim no rights over it and use it for nothing other than running the app. The 50/30/20 rule comes from the work of Elizabeth Warren and Amelia Warren Tyagi, published in their books.",
 
-  "page.terms.section12.title": "Governing law and disputes",
-  "page.terms.section12.body":
+  "page.terms.section13.title": "Governing law and disputes",
+  "page.terms.section13.body":
     "These terms are governed by French law. If something goes wrong, write to us first: most problems are settled in a few messages. If no solution is found, you may refer the matter to a consumer mediator or to the competent courts. Nothing here restricts the rights that the law of your country of residence guarantees you as a consumer.",
 
-  "page.terms.section13.title": "Changes to these terms",
-  "page.terms.section13.body":
+  "page.terms.section14.title": "Changes to these terms",
+  "page.terms.section14.body":
     "This text may be amended; the date it was last updated appears at the bottom of the page. A significant change — particularly to billing — will be flagged in the app before it takes effect. Continuing to use the app after that date constitutes acceptance. Any questions: contact@netbudget.app.",
+
 
   "page.terms.updated": "Last updated",
 
