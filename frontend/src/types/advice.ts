@@ -24,6 +24,13 @@ export type HousingStatus = "renter" | "owner" | "accessor" | "free_housing";
 
 export type HousingType = "apartment" | "house"; // copropriété vs entretien intégral
 
+/**
+ * Énergie du véhicule principal du foyer. « none » = pas de véhicule, valeur
+ * utile en soi : les conseils d'achat et d'aides s'adressent aussi à qui
+ * envisage d'en prendre un.
+ */
+export type VehicleEnergy = "none" | "petrol" | "diesel" | "hybrid" | "electric";
+
 export type Occupation =
   | "student"
   | "employee"
@@ -99,6 +106,9 @@ export type UserProfile = {
   disabilitySelf?: boolean;          // l'utilisateur est concerné
   disabilityChild?: boolean;         // un enfant du foyer est concerné
   caregiver?: boolean;               // aide un proche (hors enfant du foyer)
+  // Véhicule : assurance, carburant, frais réels, aides à l'achat — un vrai
+  // poste de budget, partout. Absent = question non posée.
+  vehicle?: VehicleEnergy;
 };
 
 // ============================================================================
@@ -132,7 +142,8 @@ export type AdviceCategory =
   | "shared"          // → Budget à plusieurs (couple / famille / coloc)
   | "association"     // → Association (trésorerie, dons, subventions)
   | "pets"            // → Animaux de compagnie
-  | "disability";     // → Handicap & autonomie (droits, compensation, aidants)
+  | "disability"      // → Handicap & autonomie (droits, compensation, aidants)
+  | "vehicle";        // → Véhicule (assurance, carburant, achat, frais réels)
 
 // Regroupement UI par thème visible pour l'user.
 export type AdviceGroup = {
@@ -167,6 +178,12 @@ export const ADVICE_GROUPS: AdviceGroup[] = [
     labelKey: "adv.group.invest",
     icon: "trending-up",
     categories: ["long_term", "retirement"],
+  },
+  {
+    key: "vehicle",
+    labelKey: "adv.group.vehicle",
+    icon: "truck",
+    categories: ["vehicle"],
   },
   {
     key: "tax",

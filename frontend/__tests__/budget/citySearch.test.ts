@@ -89,6 +89,26 @@ describe("resolveProfileCity", () => {
     expect(got?.name).toBe("Paris");
   });
 
+  // LE BUG QUE CE TEST VERROUILLE. Une ville hors référentiel retombait sur la
+  // médiane de la région, et c'est le NOM de cette médiane qui s'affichait en
+  // tête du budget : « Nantes » pour quelqu'un qui avait écrit « Vertou ». Le
+  // nom saisi doit rester celui qu'on lit ; seul l'indice vient de la médiane.
+  it("garde le nom saisi quand la ville est hors référentiel", () => {
+    const region = CITIES[0].region;
+    const pool = [...CITIES.filter((c) => c.region === region)].sort((a, b) => a.index - b.index);
+    const median = pool[Math.floor(pool.length / 2)];
+    const got = resolveProfileCity(true, "Villeneuve-des-Tests", region, undefined);
+    expect(got?.name).toBe("Villeneuve-des-Tests");
+    expect(got?.index).toBe(median.index);
+    expect(got?.region).toBe(median.region);
+    expect(got?.id).toMatch(/^profile:/);
+  });
+
+  it("ne fabrique pas de ville quand rien n'est saisi", () => {
+    const region = CITIES[0].region;
+    expect(resolveProfileCity(true, "   ", region, undefined)?.id).not.toMatch(/^profile:/);
+  });
+
   it("retombe sur la ville d'indice MÉDIAN de la région", () => {
     const region = CITIES[0].region;
     const pool = [...CITIES.filter((c) => c.region === region)]

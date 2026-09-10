@@ -179,7 +179,19 @@ type OnboardingConfig = {
   savingsHint: string;
   askPets: boolean;
   petsLabel: string;
+  askVehicle: boolean;
+  vehicleLabel: string;
 };
+
+// Énergie du véhicule principal. « Aucun » est une réponse à part entière :
+// les cartes d'achat et d'aides s'adressent aussi à qui envisage d'en prendre.
+const vehicleOptions = (t: Translate): { value: NonNullable<UserProfile["vehicle"]>; label: string }[] => [
+  { value: "none", label: t("coach.vehicle.none") },
+  { value: "petrol", label: t("coach.vehicle.petrol") },
+  { value: "diesel", label: t("coach.vehicle.diesel") },
+  { value: "hybrid", label: t("coach.vehicle.hybrid") },
+  { value: "electric", label: t("coach.vehicle.electric") },
+];
 
 const onboardingConfig = (
   t: Translate,
@@ -204,6 +216,8 @@ const onboardingConfig = (
     savingsHint: t("coach.onb.perso.savingsHint"),
     askPets: true,
     petsLabel: t("coach.onb.perso.petsLabel"),
+    askVehicle: true,
+    vehicleLabel: t("coach.onb.perso.vehicleLabel"),
   },
   couple: {
     intro: t("coach.onb.couple.intro"),
@@ -225,6 +239,8 @@ const onboardingConfig = (
     savingsHint: t("coach.onb.couple.savingsHint"),
     askPets: true,
     petsLabel: t("coach.onb.couple.petsLabel"),
+    askVehicle: true,
+    vehicleLabel: t("coach.onb.couple.vehicleLabel"),
   },
   family: {
     intro: t("coach.onb.family.intro"),
@@ -246,6 +262,8 @@ const onboardingConfig = (
     savingsHint: t("coach.onb.family.savingsHint"),
     askPets: true,
     petsLabel: t("coach.onb.family.petsLabel"),
+    askVehicle: true,
+    vehicleLabel: t("coach.onb.family.vehicleLabel"),
   },
   coloc: {
     intro: t("coach.onb.coloc.intro"),
@@ -267,6 +285,8 @@ const onboardingConfig = (
     savingsHint: t("coach.onb.coloc.savingsHint"),
     askPets: true,
     petsLabel: t("coach.onb.coloc.petsLabel"),
+    askVehicle: true,
+    vehicleLabel: t("coach.onb.coloc.vehicleLabel"),
   },
   association: {
     intro: t("coach.onb.association.intro"),
@@ -288,6 +308,8 @@ const onboardingConfig = (
     savingsHint: t("coach.onb.association.savingsHint"),
     askPets: false,
     petsLabel: "",
+    askVehicle: false,
+    vehicleLabel: "",
   },
 });
 
@@ -323,6 +345,7 @@ function profileCompleteness(
     );
   }
   if (cfg.askPets) optional.push(p.hasPets === undefined ? undefined : true);
+  if (cfg.askVehicle) optional.push(p.vehicle === undefined ? undefined : true);
   const filled = optional.filter((v) => v !== undefined && v !== null).length;
   return { filled, total: optional.length };
 }
@@ -545,6 +568,8 @@ export default function AdviceScreen() {
     if (cfg.askTmi && !profile.tmi) out.push(t("coach.missing.tmi"));
     if (cfg.askPets && profile.hasPets === undefined)
       out.push(t("coach.missing.pets"));
+    if (cfg.askVehicle && profile.vehicle === undefined)
+      out.push(t("coach.missing.vehicle"));
     return out;
   }, [profile, cfg, t]);
 
@@ -699,6 +724,16 @@ export default function AdviceScreen() {
               options={ageOptions(t)}
               value={profile.age}
               onSelect={(v) => updateField("age", v)}
+            />
+          ) : null}
+
+          {cfg.askVehicle ? (
+            <QuestionBlock
+              label={cfg.vehicleLabel}
+              options={vehicleOptions(t)}
+              value={profile.vehicle}
+              onSelect={(v) => updateField("vehicle", v)}
+              allowDeselect
             />
           ) : null}
 

@@ -106,5 +106,21 @@ export function resolveProfileCity(
       : [];
   if (!pool.length) return null;
   const sorted = [...pool].sort((a, b) => a.index - b.index);
-  return sorted[Math.floor(sorted.length / 2)];
+  const median = sorted[Math.floor(sorted.length / 2)];
+
+  // LE NOM AFFICHÉ RESTE CELUI QUE LA PERSONNE A SAISI. Avant, quelqu'un qui
+  // avait écrit « Vertou » voyait « NANTES · ATLANTIQUE » en tête de son
+  // budget — la ville médiane de sa région, choisie pour son INDICE. Le
+  // chiffre était le bon, le nom ne l'était pas, et c'est le nom qu'on lit :
+  // « le lieu n'a rien à voir avec ce que j'ai sélectionné ». On garde donc
+  // l'indice et le thème de la médiane, mais sous le nom saisi. L'identifiant
+  // est préfixé pour ne jamais être confondu avec une ville du référentiel.
+  if (wanted && profileCity) {
+    return {
+      ...median,
+      id: `profile:${wanted}`,
+      name: profileCity.trim(),
+    };
+  }
+  return median;
 }

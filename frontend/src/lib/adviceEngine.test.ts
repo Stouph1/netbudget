@@ -16,8 +16,8 @@ import type { UserProfile } from "../types/advice";
 const ids = (p: UserProfile) => matchAdvice(p).map((c) => c.id);
 
 describe("intégrité du catalogue", () => {
-  it("contient les 247 cartes attendues", () => {
-    expect(ADVICE_CATALOG_FR).toHaveLength(247);
+  it("contient les 255 cartes attendues", () => {
+    expect(ADVICE_CATALOG_FR).toHaveLength(255);
   });
 
   it("n'a aucun identifiant en double", () => {
@@ -193,5 +193,55 @@ describe("topAdvice", () => {
 
   it("respecte la limite demandée", () => {
     expect(topAdvice({ country: "FR", age: "26-35" }, 5).length).toBeLessThanOrEqual(5);
+  });
+});
+
+describe("véhicule", () => {
+  const ids = (p: Parameters<typeof matchAdvice>[0]) => matchAdvice(p).map((c) => c.id);
+
+  it("ne dit rien tant que la question n'a pas été posée", () => {
+    expect(ids({ country: "FR", age: "26-35" })).not.toContain("veh-assurance-obligatoire");
+    expect(ids({ country: "FR", age: "26-35" })).not.toContain("veh-comparer-ademe");
+  });
+
+  it("parle assurance et carburant à qui roule à l'essence", () => {
+    const got = ids({ country: "FR", age: "26-35", vehicle: "petrol" });
+    expect(got).toContain("veh-assurance-obligatoire");
+    expect(got).toContain("veh-prix-carburants");
+    expect(got).toContain("veh-comparer-ademe");
+  });
+
+  // L'électrique n'a pas de plein à comparer, mais reste assuré et éligible aux aides.
+  it("épargne les prix carburant à l'électrique", () => {
+    const got = ids({ country: "FR", age: "26-35", vehicle: "electric" });
+    expect(got).not.toContain("veh-prix-carburants");
+    expect(got).toContain("veh-assurance-obligatoire");
+    expect(got).toContain("veh-aides-achat");
+  });
+
+  // « Aucun véhicule » est une réponse : on propose le comparateur et les aides
+  // — pas l'assurance d'un véhicule qui n'existe pas.
+  it("propose le comparateur, pas l'assurance, à qui n'a pas de véhicule", () => {
+    const got = ids({ country: "FR", age: "26-35", vehicle: "none" });
+    expect(got).toContain("veh-comparer-ademe");
+    expect(got).not.toContain("veh-assurance-obligatoire");
+  });
+
+  it("réserve les frais réels kilométriques aux salariés", () => {
+    expect(ids({ country: "FR", age: "26-35", vehicle: "diesel", occupation: "employee" })).toContain("veh-frais-reels-km");
+    expect(ids({ country: "FR", age: "26-35", vehicle: "diesel", occupation: "retired" })).not.toContain("veh-frais-reels-km");
+  });
+});
+
+describe("déclaration de revenus", () => {
+  const ids = (p: Parameters<typeof matchAdvice>[0]) => matchAdvice(p).map((c) => c.id);
+
+  it("propose le guide à tous en France", () => {
+    expect(ids({ country: "FR", age: "26-35" })).toContain("impots-declaration-guide");
+  });
+
+  it("adresse la ligne micro aux seuls indépendants", () => {
+    expect(ids({ country: "FR", age: "26-35", occupation: "self_employed" })).toContain("impots-micro-2042cpro");
+    expect(ids({ country: "FR", age: "26-35", occupation: "employee" })).not.toContain("impots-micro-2042cpro");
   });
 });

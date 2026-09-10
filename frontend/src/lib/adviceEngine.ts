@@ -63,6 +63,14 @@ const or =
   (p) =>
     preds.some((f) => f(p));
 
+// Véhicule du foyer. `hasVehicle` = a répondu autre chose que « aucun ».
+const vehicleIs =
+  (...energies: NonNullable<UserProfile["vehicle"]>[]): AdvicePredicate =>
+  (p) =>
+    !!p.vehicle && energies.includes(p.vehicle);
+const hasVehicle: AdvicePredicate = (p) => !!p.vehicle && p.vehicle !== "none";
+const answeredVehicle: AdvicePredicate = (p) => p.vehicle !== undefined;
+
 // Cadre de vie / logement / situation pro
 const zoneIs =
   (...zones: NonNullable<UserProfile["zone"]>[]): AdvicePredicate =>
@@ -3904,6 +3912,152 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     lastVerified: "2026-08-06",
   },
 
+
+  // ==========================================================================
+  // VÉHICULE — vérifié 2026-09-10 (service-public F2628 et F1989, ADEME Car
+  // Labelling, prix-carburants.gouv.fr, primealaconversion.gouv.fr).
+  //
+  // Un véhicule est un vrai poste de budget — assurance, carburant, entretien,
+  // achat — et un sujet où l'on décide mal par manque de repères. Aucun chiffre
+  // ci-dessous n'est de nous : ceux qui existent viennent d'une fiche
+  // officielle datée ; là où le site officiel ne donne pas de montant sur sa
+  // page d'accueil (aides à l'achat), on n'en donne pas non plus.
+  // ==========================================================================
+  {
+    id: "veh-assurance-obligatoire",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-assurance-obligatoire.title",
+    bodyKey: "adv.veh-assurance-obligatoire.body",
+    actionLabelKey: "adv.veh-assurance-obligatoire.action",
+    action: { link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2628" },
+    appliesWhen: hasVehicle,
+    priority: 88,
+    figures: [
+      { label: "adv.veh-assurance-obligatoire.fig.0.label", value: "3 750 €" },
+      { label: "adv.veh-assurance-obligatoire.fig.1.label", value: "500 €" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2628"],
+    lastVerified: "2026-04-10",
+  },
+  {
+    id: "veh-comparer-ademe",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-comparer-ademe.title",
+    bodyKey: "adv.veh-comparer-ademe.body",
+    actionLabelKey: "adv.veh-comparer-ademe.action",
+    action: { link: "https://carlabelling.ademe.fr/" },
+    // Qui a un véhicule finira par le remplacer ; qui n'en a pas envisage
+    // peut-être d'en prendre un. Les deux ont besoin du comparateur.
+    appliesWhen: answeredVehicle,
+    priority: 82,
+    figures: [{ label: "adv.veh-comparer-ademe.fig.0.label", value: "3 451" }],
+    sources: ["https://carlabelling.ademe.fr/"],
+    lastVerified: "2026-09-10",
+  },
+  {
+    id: "veh-prix-carburants",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-prix-carburants.title",
+    bodyKey: "adv.veh-prix-carburants.body",
+    actionLabelKey: "adv.veh-prix-carburants.action",
+    action: { link: "https://www.prix-carburants.gouv.fr/" },
+    appliesWhen: vehicleIs("petrol", "diesel", "hybrid"),
+    priority: 78,
+    sources: ["https://www.prix-carburants.gouv.fr/"],
+    lastVerified: "2026-09-10",
+  },
+  {
+    id: "veh-frais-reels-km",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-frais-reels-km.title",
+    bodyKey: "adv.veh-frais-reels-km.body",
+    actionLabelKey: "adv.veh-frais-reels-km.action",
+    action: { link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F1989" },
+    appliesWhen: and(hasVehicle, occupationIs("employee", "civil_servant")),
+    priority: 76,
+    figures: [
+      { label: "adv.veh-frais-reels-km.fig.0.label", value: "509 €" },
+      { label: "adv.veh-frais-reels-km.fig.1.label", value: "14 555 €" },
+      { label: "adv.veh-frais-reels-km.fig.2.label", value: "+20 %" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F1989"],
+    lastVerified: "2026-04-15",
+  },
+  {
+    id: "veh-aides-achat",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-aides-achat.title",
+    bodyKey: "adv.veh-aides-achat.body",
+    actionLabelKey: "adv.veh-aides-achat.action",
+    action: { link: "https://www.primealaconversion.gouv.fr/" },
+    appliesWhen: answeredVehicle,
+    priority: 74,
+    // Aucun montant : la page officielle renvoie aux barèmes PDF et n'en
+    // affiche pas. On ne recopie pas un chiffre qu'on n'a pas lu.
+    sources: ["https://www.primealaconversion.gouv.fr/"],
+    lastVerified: "2026-09-10",
+  },
+
+  // ==========================================================================
+  // DÉCLARATION DE REVENUS — guide instructif. Vérifié 2026-09-10 sur
+  // service-public F358 (05/06/2026), F1989 (15/04/2026), F23267 (13/05/2026).
+  // ==========================================================================
+  {
+    id: "impots-declaration-guide",
+    category: "tax",
+    countries: ["FR"],
+    titleKey: "adv.impots-declaration-guide.title",
+    bodyKey: "adv.impots-declaration-guide.body",
+    actionLabelKey: "adv.impots-declaration-guide.action",
+    // Écran interne : un pas-à-pas coché, chaque étape portant sa source.
+    action: { route: "/impots" },
+    appliesWhen: always,
+    priority: 83,
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F358"],
+    lastVerified: "2026-06-05",
+  },
+  {
+    id: "impots-frais-reels",
+    category: "tax",
+    countries: ["FR"],
+    titleKey: "adv.impots-frais-reels.title",
+    bodyKey: "adv.impots-frais-reels.body",
+    actionLabelKey: "adv.impots-frais-reels.action",
+    action: { link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F1989" },
+    appliesWhen: occupationIs("employee", "civil_servant"),
+    priority: 72,
+    figures: [
+      { label: "adv.impots-frais-reels.fig.0.label", value: "10 %" },
+      { label: "adv.impots-frais-reels.fig.1.label", value: "509 €" },
+      { label: "adv.impots-frais-reels.fig.2.label", value: "14 555 €" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F1989"],
+    lastVerified: "2026-04-15",
+  },
+  {
+    id: "impots-micro-2042cpro",
+    category: "tax",
+    countries: ["FR"],
+    titleKey: "adv.impots-micro-2042cpro.title",
+    bodyKey: "adv.impots-micro-2042cpro.body",
+    actionLabelKey: "adv.impots-micro-2042cpro.action",
+    action: { link: "https://entreprendre.service-public.gouv.fr/vosdroits/F23267" },
+    appliesWhen: occupationIs("self_employed"),
+    priority: 85,
+    figures: [
+      { label: "adv.impots-micro-2042cpro.fig.0.label", value: "71 %" },
+      { label: "adv.impots-micro-2042cpro.fig.1.label", value: "50 %" },
+      { label: "adv.impots-micro-2042cpro.fig.2.label", value: "34 %" },
+      { label: "adv.impots-micro-2042cpro.fig.3.label", value: "305 €" },
+    ],
+    sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F23267"],
+    lastVerified: "2026-05-13",
+  },
   // ==========================================================================
   // VAGUE IDF + CULTURE + IMPÔTS + ENFANTS + ANIMAUX — vérifiée 2026-08-06
   // (IDFM, iledefrance.fr, culture.gouv.fr, impots.gouv.fr, service-public,
