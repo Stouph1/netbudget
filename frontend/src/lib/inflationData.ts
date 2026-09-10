@@ -5,7 +5,7 @@
 // exacte à laquelle elle se rapporte, parce que l'app l'affiche : un taux sans
 // date laisserait croire qu'il est d'aujourd'hui.
 //
-// Généré le 2026-09-09.
+// Généré le 2026-09-10.
 
 import type { Country } from "../types/advice";
 
@@ -20,7 +20,7 @@ export type InflationRow = {
   source: InflationSource;
 };
 
-export const INFLATION_GENERATED_AT = "2026-09-09";
+export const INFLATION_GENERATED_AT = "2026-09-10";
 
 export const SOURCE_URLS: Record<InflationSource, string> = {
   eurostat:
