@@ -1504,7 +1504,17 @@ function AdviceCardView({
         />
       ) : null}
 
-      {action.link ? (
+      {action.route ? (
+        <TouchableOpacity
+          onPress={() => router.push(action.route as never)}
+          style={styles.actionBtn}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+        >
+          <Feather name="arrow-right-circle" size={16} color={GOLD} />
+          <Text style={styles.actionBtnText}>{action.label}</Text>
+        </TouchableOpacity>
+      ) : action.link ? (
         <TouchableOpacity
           onPress={() => openExternal(action.link)}
           style={styles.actionBtn}

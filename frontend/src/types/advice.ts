@@ -218,6 +218,12 @@ export type AdviceAction = {
   // Optionnel : une carte migrée déclare plutôt `actionLabelKey` sur la card.
   label?: string;
   link?: string;      // Optionnel : URL de ressource externe (impots.gouv.fr, etc.)
+  /**
+   * Optionnel : écran INTERNE à ouvrir (ex. "/acre"). Prime sur `link` quand
+   * les deux sont présents. Sert aux conseils qui appellent une vérification
+   * que l'app sait faire elle-même plutôt qu'un renvoi vers une page à lire.
+   */
+  route?: string;
 };
 
 // Prédicat : renvoie true si le conseil s'applique au profil donné.
@@ -342,11 +348,12 @@ export function resolveAction(
   card: AdviceCard,
   p: UserProfile,
   i18n: AdviceI18n,
-): { label: string; link?: string } {
+): { label: string; link?: string; route?: string } {
   const base = typeof card.action === "function" ? card.action(p, i18n) : card.action;
   return {
     label: resolveAdviceText(card.actionLabelKey ?? base.label, i18n.t, base.label),
     link: base.link,
+    route: base.route,
   };
 }
 

@@ -10,7 +10,10 @@ export type IncomeType =
   | "dividendes"
   | "autre";
 
-export type IncomeFrequency = "monthly" | "annual" | "monthOnce";
+// `daily` : un taux journalier (TJM) multiplié par un nombre de jours facturés
+// par mois. C'est ainsi qu'un indépendant raisonne — jamais en annuel, rarement
+// en mensuel fixe. Le forcer à convertir lui-même fausse tout le budget.
+export type IncomeFrequency = "monthly" | "annual" | "monthOnce" | "daily";
 
 export type ProStatus = "non-cadre" | "cadre" | "fonctionnaire" | "liberal";
 
@@ -22,6 +25,7 @@ export type IncomeSource = {
   frequency: IncomeFrequency;
   chargesPercent: string; // 0 = brut = net (ex: revenus déjà nets)
   variableMonth?: number; // utilisé quand frequency === "monthOnce"
+  daysPerMonth?: number; // utilisé quand frequency === "daily" (jours facturés / mois)
   // Spécifique aux salaires
   proStatus?: ProStatus;
   timeMode?: "plein" | "partiel";
@@ -98,6 +102,10 @@ function frequencyFactorMonthly(
     case "monthOnce":
       // versé une seule fois dans l'année, sur un mois précis
       return s.variableMonth === monthIndex ? 1 : 0;
+    case "daily":
+      // TJM × jours facturés dans le mois. Sans nombre de jours, rien : on ne
+      // suppose pas un mois plein à la place de l'utilisateur.
+      return Math.max(0, s.daysPerMonth ?? 0);
     default:
       return 0;
   }
@@ -164,6 +172,9 @@ export function annualGross(sources: IncomeSource[]): number {
       case "annual":
       case "monthOnce":
         sum += amount;
+        break;
+      case "daily":
+        sum += amount * Math.max(0, s.daysPerMonth ?? 0) * 12;
         break;
     }
   }

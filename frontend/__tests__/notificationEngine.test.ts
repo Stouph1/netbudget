@@ -345,24 +345,56 @@ describe("argent qui va partir", () => {
       },
     });
 
-  it("n'envoie AUCUNE notification de facturation", () => {
-    // Décision assumée : Apple et Google previennent deja avant qu'un essai
-    // devienne payant. Doubler cet avis ne se lit pas comme une attention mais
-    // comme de la pression — sur le seul sujet ou la confiance est la plus
-    // fragile, et sur une notification qu'on ne pouvait pas desactiver.
-    //
-    // Ce que l'app doit dire sur ce sujet, elle le dit AVANT l'achat, sur
-    // l'ecran des formules.
-    for (const over of [
-      { isTrial: true, renewsAt: inDays(7) },
-      { isTrial: true, renewsAt: inDays(2) },
-      { period: "yearly" as const, renewsAt: inDays(60) },
-      { period: "monthly" as const, renewsAt: inDays(20) },
-      { isTrial: true, cancelled: true, renewsAt: inDays(7) },
-    ]) {
-      const out = buildCandidates(withSub(over));
-      expect(out.map((c) => c.titleKey).filter((k) => k.startsWith("notif.billing"))).toEqual([]);
-    }
+  // UN SEUL AVIS, TROIS JOURS AVANT, DÉSACTIVABLE, SOUMIS AUX PLAFONDS. Il
+  // avait été retiré (Apple et Google préviennent déjà) ; les testeurs l'ont
+  // redemandé parce que le courriel de boutique se noie. Ces tests fixent les
+  // conditions qui le rendent acceptable — pas un rappel de plus, pas la veille,
+  // rien à qui a résilié.
+  const billing = (ctx: NotifContext) =>
+    buildCandidates(ctx).filter((c) => c.category === "billing");
+
+  it("annonce une fin d'essai trois jours avant, une seule fois", () => {
+    const out = billing(withSub({ isTrial: true, renewsAt: inDays(7) }));
+    expect(out).toHaveLength(1);
+    expect(out[0].titleKey).toBe("notif.billing.trial.title");
+    expect(out[0].params).toEqual({ days: 3 });
+    expect(out[0].route).toBe("/plans");
+    const lead = (inDays(7).getTime() - out[0].at.getTime()) / 86_400_000;
+    expect(lead).toBeGreaterThanOrEqual(2.5);
+    expect(lead).toBeLessThanOrEqual(3.5);
+  });
+
+  it("annonce un renouvellement avec un autre message", () => {
+    const out = billing(withSub({ period: "yearly", renewsAt: inDays(60) }));
+    expect(out).toHaveLength(1);
+    expect(out[0].titleKey).toBe("notif.billing.renew.title");
+  });
+
+  // Trop tard pour prévenir « trois jours avant » : on ne prévient pas la
+  // veille — ce serait déloyal — et on ne prévient pas après coup.
+  it("ne dit rien si l'échéance est à moins de trois jours", () => {
+    expect(billing(withSub({ isTrial: true, renewsAt: inDays(2) }))).toEqual([]);
+  });
+
+  // Résiliation déjà demandée : il n'y aura pas de prélèvement. Annoncer un
+  // renouvellement ferait douter que la résiliation a été prise en compte.
+  it("ne dit rien à qui a résilié", () => {
+    expect(billing(withSub({ isTrial: true, cancelled: true, renewsAt: inDays(7) }))).toEqual([]);
+    expect(billing(withSub({ cancelled: true, renewsAt: inDays(60) }))).toEqual([]);
+  });
+
+  it("se désactive comme les autres catégories", () => {
+    const ctx = withSub({ isTrial: true, renewsAt: inDays(7) });
+    ctx.prefs = { ...ctx.prefs, billing: false };
+    expect(billing(ctx)).toEqual([]);
+  });
+
+  // Pas d'exemption des plafonds : c'est ce qui le rend discret.
+  it("passe sous un droit non réclamé dans le classement", () => {
+    const out = buildCandidates(withSub({ isTrial: true, renewsAt: inDays(7) }));
+    const idx = out.findIndex((c) => c.category === "billing");
+    expect(idx).toBeGreaterThanOrEqual(0);
+    expect(out[idx].score).toBeLessThan(100);
   });
 
   it("ne dit rien sans abonnement", () => {

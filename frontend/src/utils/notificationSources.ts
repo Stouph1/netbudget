@@ -95,7 +95,7 @@ async function loadSubscription(
   try {
     const { data } = await supabase
       .from("subscriptions")
-      .select("status, expires_at, product_id")
+      .select("status, expires_at, product_id, cancel_reason")
       .eq("user_id", userId)
       .in("status", ["trial", "active"])
       .order("expires_at", { ascending: false })
@@ -110,10 +110,11 @@ async function loadSubscription(
     return {
       isTrial: data.status === "trial",
       renewsAt,
-      // `status` vaut 'cancelled' quand la résiliation est prise en compte, et
-      // la requête ci-dessus l'exclut déjà. Le champ reste pour la lisibilité
-      // du contexte côté moteur.
-      cancelled: false,
+      // Une résiliation demandée laisse l'accès actif jusqu'à l'échéance : le
+      // statut reste 'active' et seul `cancel_reason` en porte la trace. C'est
+      // lui qu'il faut lire — sinon on annoncerait un renouvellement à
+      // quelqu'un qui vient justement de l'arrêter.
+      cancelled: Boolean(data.cancel_reason),
       period,
     };
   } catch {

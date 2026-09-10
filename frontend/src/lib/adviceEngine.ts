@@ -3874,12 +3874,18 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     titleKey: "adv.ae-acre-2026.title",
     bodyKey: "adv.ae-acre-2026.body",
     actionLabelKey: "adv.ae-acre-2026.action",
-    action: { link: "https://entreprendre.service-public.gouv.fr/actualites/A18795" },
+    // Écran interne : la vérification d'éligibilité se fait dans l'app, sur la
+    // liste officielle des situations (fiche F11677), puis renvoie vers le
+    // formulaire. Un simple lien laissait la personne seule devant la fiche.
+    action: { route: "/acre" },
     appliesWhen: occupationIs("self_employed"),
     priority: 80,
     figures: [{ label: "adv.ae-acre-2026.fig.0.label", value: "adv.ae-acre-2026.fig.0.value" }],
-    sources: ["https://entreprendre.service-public.gouv.fr/actualites/A18795"],
-    lastVerified: "2026-08-06",
+    sources: [
+      "https://entreprendre.service-public.gouv.fr/vosdroits/F11677",
+      "https://entreprendre.service-public.gouv.fr/actualites/A18795",
+    ],
+    lastVerified: "2026-09-10",
   },
   {
     id: "ae-chomage-retraite",

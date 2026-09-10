@@ -20,6 +20,7 @@ export type NotifCategory =
   | "loan" // étape d'un prêt
   | "seasonal" // fenêtre courte : impôts, soldes, rentrée, fêtes
   | "comeback" // reprise après une absence
+  | "billing"; // échéance d'abonnement — un seul avis, discret, désactivable
 
 export type NotifCandidate = {
   id: string;
@@ -47,13 +48,15 @@ export type NotifPrefs = {
   seasonal: boolean;
   comeback: boolean;
   /**
-   * Fin d'essai et reconduction.
+   * Échéance d'abonnement.
    *
-   * Activée par défaut, et volontairement traitée à part partout : c'est la
-   * seule catégorie qui annonce un DÉBIT. La couper revient à demander à être
-   * prélevé sans prévenir — l'écran de réglages le dit, et le plafond
-   * hebdomadaire ne s'y applique pas.
+   * Un seul avis, trois jours avant, désactivable comme les autres. Il avait
+   * été retiré parce qu'Apple et Google préviennent déjà ; il revient à la
+   * demande des testeurs, qui voulaient un rappel VISIBLE DANS L'APP plutôt
+   * qu'un courriel de boutique noyé parmi d'autres. Il reste soumis au plafond
+   * hebdomadaire : c'est ce qui le rend discret et non pressant.
    */
+  billing: boolean;
   /** Plafond hebdomadaire, toutes catégories confondues. */
   maxPerWeek: number;
   /** Heure d'envoi (0-23). */
@@ -68,6 +71,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   loan: true,
   seasonal: true,
   comeback: true,
+  billing: true,
   // 3 par semaine : au-delà, le taux d'ouverture s'effondre et l'utilisateur
   // coupe TOUT — on perd alors même les rappels utiles.
   maxPerWeek: 3,
@@ -168,28 +172,45 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     out.push(c);
   };
 
-  // --- 0. ARGENT QUI VA PARTIR -------------------------------------------
+  // --- 0. ÉCHÉANCE D'ABONNEMENT ------------------------------------------
   //
-  // En tête, et avec les scores les plus élevés de tout le moteur. C'est la
-  // seule catégorie qui annonce un DÉBIT : un utilisateur prélevé sans
-  // avertissement demande un remboursement et laisse un avis à une étoile, et
-  // il a raison. Toutes les autres notifications peuvent attendre, pas
-  // celle-ci.
+  // UN SEUL AVIS, TROIS JOURS AVANT. Cet avis avait été retiré : Apple et
+  // Google préviennent déjà, et un rappel de plus sur un sujet d'argent se lit
+  // comme de la pression. Les testeurs ont demandé son retour, pour une raison
+  // recevable : le courriel de la boutique se noie, alors que l'app est ce
+  // qu'ils ouvrent. On le remet donc, mais aux conditions qui le rendent
+  // acceptable :
   //
-  // AUCUNE NOTIFICATION DE FACTURATION, et c'est une décision.
+  //   - trois jours avant, pas la veille : le temps de décider sans se presser ;
+  //   - le message dit ce qui va se passer, jamais « attention » ni « vite » ;
+  //   - il est DÉSACTIVABLE, comme toute autre catégorie ;
+  //   - il compte dans le plafond hebdomadaire et la règle « une par jour » —
+  //     aucune exemption. Un avis d'argent qui saute la file redevient de la
+  //     pression.
   //
-  // Il y avait ici un avis de fin d'essai à J−2. Apple et Google préviennent
-  // DÉJÀ leurs utilisateurs avant qu'un essai se transforme en abonnement
-  // payant : le nôtre faisait doublon. Et un rappel de plus sur un sujet
-  // d'argent ne se lit pas comme une attention, il se lit comme de la
-  // pression — sur la seule notification qu'on ne peut pas désactiver.
-  //
-  // L'avis de reconduction annuelle avait déjà été retiré pour une raison
-  // voisine : il invitait à résilier au moment le moins opportun.
-  //
-  // Ce que l'app doit à l'utilisateur sur ce sujet, elle le dit AVANT l'achat,
-  // sur l'écran des formules : durée de l'essai, montant ensuite,
-  // renouvellement automatique, et comment l'arrêter.
+  // Rien si la résiliation est déjà demandée : il n'y aura pas de prélèvement,
+  // et annoncer un renouvellement à quelqu'un qui a résilié le ferait douter
+  // que sa résiliation a été prise en compte.
+  const sub = ctx.subscription;
+  if (sub && !sub.cancelled) {
+    const daysLeft = daysBetween(now, sub.renewsAt);
+    if (daysLeft >= 3) {
+      const at = atHour(new Date(sub.renewsAt.getTime() - 3 * DAY_MS), prefs.hour);
+      const dateKey = sub.renewsAt.toISOString().slice(0, 10);
+      push({
+        id: `billing-${sub.isTrial ? "trial" : "renew"}-${dateKey}`,
+        category: "billing",
+        titleKey: sub.isTrial ? "notif.billing.trial.title" : "notif.billing.renew.title",
+        bodyKey: sub.isTrial ? "notif.billing.trial.body" : "notif.billing.renew.body",
+        params: { days: 3 },
+        // Utile sans être urgent : au-dessus des saisonniers, sous un droit
+        // non réclamé — de l'argent à toucher passe avant de l'argent à payer.
+        score: 70,
+        at,
+        route: "/plans",
+      });
+    }
+  }
 
   // --- 1. DROITS NON RÉCLAMÉS -------------------------------------------
   // C'est la notification qui justifie l'app à elle seule : de l'argent que

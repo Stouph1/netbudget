@@ -143,6 +143,7 @@ export default function IncomeModal({
                   { value: "monthly", label: t("freq.monthly"), hint: t("freq.monthlyHint") },
                   { value: "annual", label: t("freq.annual"), hint: t("freq.annualHint") },
                   { value: "monthOnce", label: t("freq.monthOnce"), hint: t("freq.monthOnceHint") },
+                  { value: "daily", label: t("freq.daily"), hint: t("freq.dailyHint") },
                 ]}
                 onChange={(next) =>
                   setIncomeForm((f) => ({
@@ -153,6 +154,21 @@ export default function IncomeModal({
                 }
                 testID="income-freq-dropdown"
               />
+              {incomeForm.frequency === "daily" && (
+                <Field
+                  label={t("income.daysPerMonth")}
+                  icon={<Feather name="briefcase" size={18} color={GOLD} />}
+                  value={incomeForm.daysPerMonth ? String(incomeForm.daysPerMonth) : ""}
+                  onChangeText={(v) => {
+                    const n = parseInt(v.replace(/[^0-9]/g, ""), 10);
+                    setIncomeForm((f) => ({ ...f, daysPerMonth: Number.isFinite(n) ? Math.min(31, n) : 0 }));
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="18"
+                  hintText={t("income.daysPerMonthHint")}
+                  testID="income-days"
+                />
+              )}
               {incomeForm.frequency === "monthOnce" && (
                 <ScrollView
                   horizontal

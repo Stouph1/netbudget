@@ -342,7 +342,9 @@ export default function BudgetScreen({
                 ? t("freq.monthly")
                 : src.frequency === "annual"
                   ? t("freq.annual")
-                  : interpolate(t("income.paidIn"), { month: t(MONTH_KEYS_SHORT[src.variableMonth ?? 0]) });
+                  : src.frequency === "daily"
+                    ? interpolate(t("income.dailyLabel"), { days: src.daysPerMonth ?? 0 })
+                    : interpolate(t("income.paidIn"), { month: t(MONTH_KEYS_SHORT[src.variableMonth ?? 0]) });
             return (
               <TouchableOpacity
                 key={src.id}
