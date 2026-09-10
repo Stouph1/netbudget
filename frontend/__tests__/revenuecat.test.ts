@@ -162,3 +162,50 @@ describe("offerRank — montée ou descente en gamme sur Google", () => {
     expect(offerRank("solo", "yearly")).toBeLessThan(offerRank("family", "monthly"));
   });
 });
+
+// ---------------------------------------------------------------------------
+
+describe("trialDaysOf — durée de l'essai affichée", () => {
+  const { trialDaysOf } = require("../src/lib/billing/revenuecat").__testing as {
+    trialDaysOf: (
+      intro: { price: number; periodUnit: string; periodNumberOfUnits: number } | null,
+    ) => number | null;
+  };
+
+  const free = (periodUnit: string, periodNumberOfUnits: number) => ({
+    price: 0,
+    periodUnit,
+    periodNumberOfUnits,
+  });
+
+  // LES DEUX BOUTIQUES NE DISENT PAS LA MÊME CHOSE POUR LA MÊME DURÉE.
+  // App Store Connect propose « 1 semaine » ; Play Console fait saisir
+  // « 7 jours ». Sans conversion, la pastille afficherait « 1 jour d'essai »
+  // sur iOS — une promesse fausse, affichée juste avant un paiement.
+  it("compte une semaine comme sept jours", () => {
+    expect(trialDaysOf(free("WEEK", 1))).toBe(7);
+    expect(trialDaysOf(free("DAY", 7))).toBe(7);
+  });
+
+  it("accepte la casse renvoyée par le SDK", () => {
+    expect(trialDaysOf(free("week", 1))).toBe(7);
+  });
+
+  it("convertit les autres unités", () => {
+    expect(trialDaysOf(free("DAY", 3))).toBe(3);
+    expect(trialDaysOf(free("MONTH", 1))).toBe(30);
+    expect(trialDaysOf(free("YEAR", 1))).toBe(365);
+  });
+
+  // `introPrice` porte AUSSI les tarifs de lancement payants — « 1 € le
+  // premier mois ». Les annoncer comme essai gratuit ferait croire à la
+  // gratuité juste avant un prélèvement.
+  it("refuse une offre de lancement payante", () => {
+    expect(trialDaysOf({ price: 1, periodUnit: "MONTH", periodNumberOfUnits: 1 })).toBeNull();
+  });
+
+  it("rend null sans offre ou sur une unité inconnue", () => {
+    expect(trialDaysOf(null)).toBeNull();
+    expect(trialDaysOf(free("FORTNIGHT", 1))).toBeNull();
+  });
+});

@@ -384,6 +384,7 @@ export function __resetRevenueCatForTests(): void {
 export const __testing = {
   describeProduct,
   offerRank,
+  trialDaysOf,
   tierFromCustomerInfo,
   reasonFromError,
   storeProductIds,
