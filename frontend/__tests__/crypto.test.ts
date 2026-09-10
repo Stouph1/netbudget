@@ -31,11 +31,23 @@ import {
   phraseWords,
 } from "../src/lib/crypto/vaultKey";
 
-// Phrase valide et FIGÉE : les tests ne doivent pas dépendre du hasard.
-// Générée avec notre propre encodage — attention, une phrase valide au sens de
-// BIP-39 ne l'est PAS ici, la somme de contrôle utilise BLAKE2b.
-const PHRASE =
-  "legend window pudding dash broccoli offer plate vehicle aspect sand come rich";
+// Phrase valide, produite par notre propre encodeur au démarrage des tests.
+//
+// POURQUOI PAS UNE CONSTANTE ÉCRITE EN DUR. Une suite de douze mots figée dans
+// le dépôt est indiscernable d'une vraie phrase de récupération : les scanners
+// de secrets la signalent à chaque publication, et personne, dans deux ans, ne
+// saura dire si elle protégeait un compte réel. Une alerte qui se répète finit
+// par masquer celles qui comptent.
+//
+// Les propriétés testées ici — somme de contrôle, normalisation, dérivation
+// déterministe — valent pour TOUTE phrase valide, pas pour une en particulier.
+// Attention : une phrase valide au sens de BIP-39 ne l'est PAS ici, la somme de
+// contrôle utilise BLAKE2b.
+let PHRASE: string;
+
+beforeAll(async () => {
+  PHRASE = await generatePhrase();
+});
 
 describe("génération de la phrase", () => {
   it("produit douze mots valides", async () => {
@@ -58,21 +70,24 @@ describe("validation de la phrase", () => {
   it("pardonne majuscules, espaces multiples et espaces insécables", () => {
     // Ce sont les trois dégâts classiques d'un copier-coller ou d'une
     // correction automatique. Refuser la phrase ici serait cruel.
-    const sale = "  Legend   WINDOW pudding dash broccoli offer plate vehicle aspect sand come\u00a0rich ";
+    const w = PHRASE.split(" ");
+    // On abîme la phrase courante des trois façons vues en vrai : majuscule
+    // d'auto-correction, espaces multiples, espace insécable d'un copier-coller.
+    const sale = `  ${w[0][0].toUpperCase()}${w[0].slice(1)}   ${w[1].toUpperCase()} ${w
+      .slice(2, -1)
+      .join(" ")}\u00a0${w[w.length - 1]} `;
     const out = checkPhrase(sale);
     expect(out.ok).toBe(true);
     expect(out.ok && out.phrase).toBe(PHRASE);
   });
 
   it("distingue un mauvais nombre de mots", () => {
-    const out = checkPhrase("legend window pudding");
+    const out = checkPhrase(PHRASE.split(" ").slice(0, 3).join(" "));
     expect(out).toEqual({ ok: false, reason: "wordCount" });
   });
 
   it("nomme les mots inconnus au lieu d'un refus opaque", () => {
-    const out = checkPhrase(
-      "zzzz window pudding dash broccoli offer plate vehicle aspect sand come rich",
-    );
+    const out = checkPhrase(["zzzz", ...PHRASE.split(" ").slice(1)].join(" "));
     expect(out.ok).toBe(false);
     expect(out.ok === false && out.reason).toBe("unknownWord");
     expect(out.ok === false && out.badWords).toEqual(["zzzz"]);
@@ -255,7 +270,9 @@ describe("affichage de la phrase", () => {
   it("numérote les mots à partir de 1", () => {
     const words = phraseWords(PHRASE);
     expect(words).toHaveLength(PHRASE_WORDS);
-    expect(words[0]).toEqual({ index: 1, word: "legend" });
+    // Ce qui est testé, c'est la NUMÉROTATION : elle part de 1 et pas de 0,
+    // parce qu'on la lit à voix haute en recopiant sa phrase sur papier.
+    expect(words[0]).toEqual({ index: 1, word: PHRASE.split(" ")[0] });
     expect(words[11].index).toBe(12);
   });
 });

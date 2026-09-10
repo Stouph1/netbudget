@@ -9,7 +9,7 @@
 //     approximative qui déchiffrerait des budgets en bouillie ;
 //   - retirer sa copie à un membre lui retire l'accès, sans toucher aux autres.
 
-import { KEY_BYTES, keyFromPhrase } from "../src/lib/crypto/vaultKey";
+import { generatePhrase, KEY_BYTES, keyFromPhrase } from "../src/lib/crypto/vaultKey";
 import {
   generateWorkspaceKey,
   keyFromInviteToken,
@@ -20,12 +20,14 @@ import {
 } from "../src/lib/crypto/workspaceKey";
 import { decryptPayload, encryptPayload } from "../src/lib/crypto/payload";
 
-const PHRASE_A =
-  "legend window pudding dash broccoli offer plate vehicle aspect sand come rich";
-
 // Deux clés personnelles distinctes, comme deux membres réels.
+//
+// La phrase est générée à l'exécution plutôt qu'écrite en dur : douze mots
+// figés dans le dépôt sont indiscernables d'une vraie phrase de récupération,
+// et les scanners de secrets les signalent à chaque publication. Aucune
+// assertion ici ne dépend de sa valeur — seulement de sa validité.
 async function twoMembers() {
-  const a = await keyFromPhrase(PHRASE_A);
+  const a = await keyFromPhrase(await generatePhrase());
   const b = await generateWorkspaceKey(); // 32 octets aléatoires : fait l'affaire
   return { a, b };
 }
