@@ -334,7 +334,7 @@ const fr: Catalog = {
 
   "page.terms.section6.title": "Abonnement et paliers",
   "page.terms.section6.body":
-    "L'application est utilisable gratuitement et sans limite de temps : budget, prêts, reste à vivre, règle 50/30/20 et convertisseur. Un abonnement facultatif ouvre la synchronisation entre appareils, les conseils personnalisés et les budgets d'événement. La formule Solo suit un événement à la fois et n'inclut pas le budget mariage, qui se prépare à plusieurs et appartient aux formules Duo et Famille. Les limites exactes de chaque formule sont indiquées dans l'application avant tout paiement.",
+    "L'application est utilisable gratuitement et sans limite de temps : budget, prêts, reste à vivre, règle 50/30/20 et convertisseur. Un abonnement facultatif ouvre la synchronisation entre appareils, les conseils personnalisés et les budgets d'événement. La formule Solo suit jusqu'à six événements en parallèle et n'inclut pas le budget mariage, qui se prépare à plusieurs et appartient aux formules Duo et Famille. Les limites exactes de chaque formule sont indiquées dans l'application avant tout paiement.",
 
   "page.terms.section7.title": "Paiement, renouvellement, résiliation",
   "page.terms.section7.body":
@@ -697,7 +697,7 @@ const en: Catalog = {
 
   "page.terms.section6.title": "Subscription and plans",
   "page.terms.section6.body":
-    "The app is usable free of charge with no time limit: budget, loans, disposable income, the 50/30/20 rule and the converter. An optional subscription unlocks syncing across devices, tailored advice and event budgets. The Solo plan tracks one event at a time and does not include the wedding budget, which is planned together and belongs to the Duo and Family plans. Each plan's exact limits are shown in the app before any payment.",
+    "The app is usable free of charge with no time limit: budget, loans, disposable income, the 50/30/20 rule and the converter. An optional subscription unlocks syncing across devices, tailored advice and event budgets. The Solo plan tracks up to six events at once and does not include the wedding budget, which is planned together and belongs to the Duo and Family plans. Each plan's exact limits are shown in the app before any payment.",
 
   "page.terms.section7.title": "Payment, renewal, cancellation",
   "page.terms.section7.body":
