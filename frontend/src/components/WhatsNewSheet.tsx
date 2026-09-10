@@ -14,6 +14,9 @@
 //    écran de nouveautés qui se révèle être une publicité apprend à
 //    l'utilisateur à fermer les suivants sans les lire.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
+import { useMemo } from "react";
 import { Feather } from "@expo/vector-icons";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, { FadeInDown } from "react-native-reanimated";
@@ -22,7 +25,6 @@ import { useLang } from "../contexts/LangContext";
 const MIDNIGHT = "#0F172A";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
-const GOLD = "#4ADE80";
 
 /**
  * Les entrées de la version majeure en cours.
@@ -48,6 +50,8 @@ export function WhatsNewSheet({
   version: string;
   onClose: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
 
   return (
@@ -95,7 +99,8 @@ export function WhatsNewSheet({
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
   sheet: {
     maxHeight: "82%",
@@ -127,7 +132,7 @@ const s = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: "rgba(74,222,128,0.12)",
+    backgroundColor: alpha(GOLD, 0.12),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -135,4 +140,4 @@ const s = StyleSheet.create({
   rowBody: { color: TEXT_2, fontSize: 12.5, lineHeight: 18 },
   cta: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 15, alignItems: "center" },
   ctaText: { color: "#04140B", fontSize: 15, fontWeight: "800" },
-});
+  });

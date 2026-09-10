@@ -5,9 +5,10 @@
 // Gérer/inviter/supprimer un workspace reste dans l'écran Workspaces complet ;
 // ce composant ne fait QUE lister + activer.
 
+import { useAccent, useAccentFor } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -29,7 +30,6 @@ const SURFACE_2 = "#0F1B33";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 const KIND_ICON: Record<WorkspaceKind, keyof typeof Feather.glyphMap> = {
@@ -46,6 +46,10 @@ type Props = {
 };
 
 export default function ScopeSwitcher({ visible, onClose }: Props) {
+  const GOLD = useAccent().main;
+  // Chaque espace porte sa couleur : on la voit avant même d\'y entrer.
+  const accentFor = useAccentFor();
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   const { workspaceId, setScope } = useActiveScope();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -88,7 +92,7 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
             activeOpacity={0.85}
           >
             <View style={styles.iconWrap}>
-              <Feather name="user" size={18} color={workspaceId === null ? "#000" : GOLD} />
+              <Feather name="user" size={18} color={workspaceId === null ? "#000" : accentFor(null).main} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.rowName}>{t("ws.personalAccount")}</Text>
@@ -116,7 +120,7 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
                       <Feather
                         name={KIND_ICON[ws.kind] ?? "users"}
                         size={18}
-                        color={active ? "#000" : GOLD}
+                        color={active ? "#000" : accentFor(ws.id).main}
                       />
                     )}
                   </View>
@@ -151,7 +155,8 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   backdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" },
   sheet: {
     backgroundColor: MIDNIGHT,
@@ -213,4 +218,4 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   manageBtnText: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
-});
+  });

@@ -1,4 +1,5 @@
 // Ratio budgétaire — explication du mix (personnalisée si Premium loggé).
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { explainBudgetSplit } from "../../../src/lib/adviceEngine";
@@ -20,6 +21,7 @@ export default function RatioInfoModal({
   t: Translate;
   onClose: () => void;
 }) {
+  const { styles } = useBudgetTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.confirmBackdrop}>

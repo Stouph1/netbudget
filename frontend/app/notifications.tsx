@@ -9,10 +9,12 @@
 // Les catégories sont indépendantes : couper les rappels de budget ne doit pas
 // faire perdre l'alerte « tu as droit à cette aide », qui est la plus utile.
 
+import { alpha } from "../src/theme/accents";
+import { useAccent } from "../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { goBack } from "../src/lib/nav";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -42,7 +44,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 // Ordre d'affichage : du plus utile au plus accessoire. Ce n'est pas cosmétique
@@ -64,6 +65,8 @@ const FREQUENCIES = [1, 2, 3, 5];
 const HOURS = [9, 12, 19, 21];
 
 export default function NotificationSettings() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const { user } = useSession();
   const { workspaceId } = useActiveScope();
@@ -224,7 +227,8 @@ export default function NotificationSettings() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   screen: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -262,7 +266,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
   },
-  chipActive: { backgroundColor: "rgba(74,222,128,0.14)", borderColor: GOLD },
+  chipActive: { backgroundColor: alpha(GOLD, 0.14), borderColor: GOLD },
   chipText: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
   chipTextActive: { color: GOLD },
   hint: { color: TEXT_3, fontSize: 12, lineHeight: 17, marginTop: 8 },
@@ -289,4 +293,4 @@ const s = StyleSheet.create({
   previewTitle: { color: TEXT_1, fontSize: 15, fontWeight: "600", marginTop: 4 },
   previewBody: { color: TEXT_2, fontSize: 13, lineHeight: 18, marginTop: 2 },
   empty: { color: TEXT_3, fontSize: 13, lineHeight: 19, paddingVertical: 16 },
-});
+  });

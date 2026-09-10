@@ -8,10 +8,12 @@
 //  - Connecté → profil (avatar photo uploadable), scope actif, overview S1,
 //    tuiles de navigation.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -62,7 +64,6 @@ const SURFACE_2 = "#0F1B33";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const MINT = "#10B981";
 const BORDER = "rgba(255,255,255,0.08)";
 const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
@@ -82,6 +83,8 @@ type Props = {
 };
 
 export default function PremiumHomePanel({ onGoBudget }: Props) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
   // Devise active (le « € » était codé en dur : changer de devise n'avait
   // aucun effet sur cet écran).
@@ -664,6 +667,8 @@ function buildRows(
 }
 
 function DeltaText({ row }: { row: CompareRow }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { fmt: formatEuro, currency } = useCurrency();
   if (row.a === undefined || row.b === undefined) {
     return <Text style={styles.rowDeltaNeutral}>—</Text>;
@@ -687,6 +692,8 @@ function BudgetHistoryCard({
   scopeLabel: string;
   onSeedDemo?: () => void; // __DEV__ uniquement — absent en prod
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const { fmt: formatEuro, currency } = useCurrency();
   const [selected, setSelected] = useState<string | null>(null);
@@ -915,6 +922,8 @@ function Tile({
   /** Cible de la visite guidée, quand cette tuile en est une. */
   tourRef?: (v: View | null) => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   return (
     // La vue enveloppe porte la cible : TouchableOpacity n'accepte pas
     // `collapsable`, et sans lui Android supprime la vue de l'arbre natif —
@@ -928,7 +937,8 @@ function Tile({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
 
   signinHero: {
@@ -1146,7 +1156,7 @@ const styles = StyleSheet.create({
   },
   historyColSelected: {
     borderColor: GOLD,
-    backgroundColor: "rgba(74,222,128,0.08)",
+    backgroundColor: alpha(GOLD, 0.08),
   },
   historyBars: {
     flex: 1,
@@ -1257,4 +1267,4 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   tileLabel: { color: TEXT_1, fontSize: 13, fontWeight: "600" },
-});
+  });

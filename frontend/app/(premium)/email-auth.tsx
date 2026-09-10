@@ -3,10 +3,11 @@
 // Après succès : si le pseudo n'est pas encore choisi → écran d'inscription
 // (complete-profile), sinon retour au Profil — même flow que les providers.
 
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { goBack } from "../../src/lib/nav";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -30,10 +31,11 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function EmailAuth() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [email, setEmail] = useState("");
@@ -236,7 +238,8 @@ export default function EmailAuth() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -319,4 +322,4 @@ const styles = StyleSheet.create({
     marginTop: 14,
     textAlign: "center",
   },
-});
+  });

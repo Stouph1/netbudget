@@ -2,6 +2,7 @@
 //
 // Partagée par les DEUX points d'entrée (Réglages et Convertisseur) : même
 // liste, même rendu ; seuls le titre et les testID changent.
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import {
   Modal,
@@ -36,6 +37,7 @@ export default function CurrencySheetModal({
   onSelect: (code: CurrencyCode) => void;
   onClose: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   return (
     <Modal
       visible={visible}

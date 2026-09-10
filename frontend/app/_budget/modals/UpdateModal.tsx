@@ -1,4 +1,5 @@
 // « Nouvelle version disponible » — vérification au lancement contre l'App Store.
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -17,6 +18,7 @@ export default function UpdateModal({
   t: Translate;
   onDismiss: () => void;
 }) {
+  const { styles } = useBudgetTheme();
   return (
     <Modal
       visible={!!updateInfo}

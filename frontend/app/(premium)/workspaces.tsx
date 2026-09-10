@@ -7,13 +7,15 @@
 //  - Sur chaque workspace : bouton pour switcher, voir membres, inviter, quitter
 //  - Bouton "Rejoindre via un code" pour accepter une invitation
 
+import { alpha } from "../../src/theme/accents";
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { confirmDialog, notify } from "../../src/utils/notify";
 import { router } from "expo-router";
 import { goBack } from "../../src/lib/nav";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Share,
@@ -62,7 +64,6 @@ const SURFACE_2 = "#0F1B33";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const MINT = "#10B981";
 const DANGER = "#DC2626";
 const BORDER = "rgba(255,255,255,0.08)";
@@ -114,6 +115,8 @@ function useKeyboardHeight(): number {
 }
 
 export default function WorkspacesScreen() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   const { user } = useSession();
   // Les espaces partagés appartiennent aux formules Duo et Famille.
@@ -358,6 +361,8 @@ function ScopeCard({
   onDetail?: () => void;
   isOwner?: boolean;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   return (
     <View style={[styles.scopeCard, active && styles.scopeCardActive]}>
@@ -424,6 +429,8 @@ function CreateModal({
   onClose: () => void;
   onCreated: (ws: Workspace) => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   const keyboardHeight = useKeyboardHeight();
   const [name, setName] = useState("");
@@ -544,6 +551,8 @@ function JoinModal({
   onClose: () => void;
   onJoined: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   const keyboardHeight = useKeyboardHeight();
   const [token, setToken] = useState("");
@@ -639,6 +648,8 @@ function WorkspaceDetailModal({
   onDeleted: () => void;
   onLeft: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
   const keyboardHeight = useKeyboardHeight();
   const [members, setMembers] = useState<MemberWithProfile[]>([]);
@@ -999,7 +1010,8 @@ function WorkspaceDetailModal({
 // Styles
 // ============================================================================
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   // Le bouton reste ENTIER, pas grisé : il est cliquable et raconte pourquoi.
   // Un bouton mort ne s'explique jamais.
   primaryBtnLocked: { opacity: 0.75 },
@@ -1284,7 +1296,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.4)",
+    borderColor: alpha(GOLD, 0.4),
   },
   tokenActionPrimary: { backgroundColor: GOLD, borderColor: GOLD },
   tokenActionText: { color: GOLD, fontSize: 13, fontWeight: "700" },
@@ -1311,4 +1323,4 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   emptyBtnText: { color: TEXT_1, fontSize: 14, fontWeight: "500" },
-});
+  });

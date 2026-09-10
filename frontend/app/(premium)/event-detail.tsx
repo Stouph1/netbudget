@@ -1,11 +1,13 @@
 // Détail d'un budget d'événement : postes ajustables, financement, message
 // personnalisé du coach, rétro-planning avec jalons cochables, rappels.
 
+import { alpha } from "../../src/theme/accents";
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { goBack } from "../../src/lib/nav";
 import { SyncBanner } from "../../src/components/SyncBanner";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -51,7 +53,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 // Montant saisi : borné à >= 0 et fini ("1e999" donnerait Infinity, que
@@ -64,6 +65,8 @@ function safeAmount(input: string): number {
 
 
 export default function EventDetail() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang, t, tp } = useLang();
   // Devise active : « € » était codé en dur, changer de devise n'avait aucun effet ici.
@@ -722,7 +725,8 @@ export default function EventDetail() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -758,7 +762,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(74,222,128,0.10)",
+    backgroundColor: alpha(GOLD, 0.10),
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 9,
@@ -770,7 +774,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.35)",
+    borderColor: alpha(GOLD, 0.35),
     padding: 14,
     marginTop: 12,
   },
@@ -883,7 +887,7 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     backgroundColor: SURFACE,
   },
-  quoteChipOn: { borderColor: "rgba(74,222,128,0.5)", backgroundColor: "rgba(74,222,128,0.10)" },
+  quoteChipOn: { borderColor: alpha(GOLD, 0.5), backgroundColor: alpha(GOLD, 0.10) },
   quoteChipText: { color: TEXT_2, fontSize: 12 },
   quoteChipTextOn: { color: GOLD, fontWeight: "700" },
   quoteForm: { gap: 8, marginBottom: 10 },
@@ -958,10 +962,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.4)",
+    borderColor: alpha(GOLD, 0.4),
     borderRadius: 11,
     paddingVertical: 12,
     marginTop: 16,
   },
   notifBtnText: { color: GOLD, fontSize: 14, fontWeight: "600" },
-});
+  });

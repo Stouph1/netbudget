@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CurrencyProvider } from "../src/contexts/CurrencyContext";
 import { LangProvider } from "../src/contexts/LangContext";
 import { ScopeProvider } from "../src/contexts/ScopeContext";
+import { ThemeProvider } from "../src/contexts/ThemeContext";
 import { SessionProvider } from "../src/contexts/SessionContext";
 import { TourProvider } from "../src/components/tour/TourContext";
 import { useNotificationRouting } from "../src/hooks/useNotificationRouting";
@@ -42,6 +43,7 @@ export default function RootLayout() {
           <LangProvider>
           <CurrencyProvider>
           <ScopeProvider>
+          <ThemeProvider>
           {/* Au-dessus de la pile de navigation : le voile de la visite guidée
               doit pouvoir couvrir l'écran courant quel qu'il soit. */}
           <TourProvider>
@@ -54,6 +56,7 @@ export default function RootLayout() {
               }}
             />
           </TourProvider>
+          </ThemeProvider>
           </ScopeProvider>
           </CurrencyProvider>
           </LangProvider>

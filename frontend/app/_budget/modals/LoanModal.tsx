@@ -1,5 +1,6 @@
 // Ajout / édition d'un prêt : mensualité calculée (capital, taux, durée) ou
 // saisie directement, avec aperçu de l'échéancier.
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import {
   Keyboard,
@@ -55,6 +56,7 @@ export default function LoanModal({
   onSave: () => void;
   onClose: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   return (
     <Modal
       visible={visible}

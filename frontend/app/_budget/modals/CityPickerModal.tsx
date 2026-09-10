@@ -2,6 +2,7 @@
 //
 // L'étape « pays » affiche AUSSI des suggestions globales de villes : si le
 // user tape « argenteuil » sans avoir choisi de pays, il trouve quand même.
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import {
   FlatList,
@@ -63,6 +64,7 @@ export default function CityPickerModal({
   onPickCity: (next: City) => void;
   onClose: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   return (
     <Modal
       visible={visible}

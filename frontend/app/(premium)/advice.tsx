@@ -1,4 +1,6 @@
 // Écran Conseils personnalisés Premium.
+import { alpha } from "../../src/theme/accents";
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { openExternal } from "../../src/utils/openExternal";
 //
 // Flow :
@@ -70,7 +72,6 @@ const SURFACE_2 = "#0F1B33";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const MINT = "#10B981";
 const BORDER = "rgba(255,255,255,0.08)";
 const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
@@ -432,6 +433,8 @@ function currentWeekSeed(): number {
 }
 
 export default function AdviceScreen() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
   // Les conseils font partie de l'abonnement, mais le QUESTIONNAIRE reste
@@ -1344,6 +1347,8 @@ function QuestionBlock<T extends string>({
   onSelect: (v: T | undefined) => void;
   allowDeselect?: boolean; // optional fields: click on selected to unset
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   return (
     <View style={{ marginBottom: 20 }}>
       <Text style={styles.qLabel}>{label}</Text>
@@ -1397,6 +1402,8 @@ function ChipsBlock<T extends string>({
   value: T | undefined;
   onSelect: (v: T | undefined) => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   return (
     <View style={{ marginBottom: 20 }}>
       <Text style={styles.qLabel}>{label}</Text>
@@ -1433,6 +1440,8 @@ function PetsBlock({
   onToggleSpecies: (s: PetSpecies) => void;
   onSetCount: (s: PetSpecies, count: number) => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   return (
     <View style={{ marginBottom: 20 }}>
@@ -1506,6 +1515,8 @@ function ChildrenBlock({
   value: ChildAgeBracket[];
   onToggle: (b: ChildAgeBracket) => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   return (
     <View style={{ marginBottom: 20 }}>
@@ -1546,6 +1557,8 @@ function AdviceCardView({
   card: AdviceCard;
   profile: UserProfile;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const [expanded, setExpanded] = useState(false);
   // Le catalogue ne porte que des clés i18n (`adv.…`) : on traduit au rendu.
@@ -1633,7 +1646,8 @@ function AdviceCardView({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   doneWrap: {
     flex: 1,
     alignItems: "center",
@@ -1646,9 +1660,9 @@ const styles = StyleSheet.create({
     borderRadius: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(74,222,128,0.12)",
+    backgroundColor: alpha(GOLD, 0.12),
     borderWidth: 1.5,
-    borderColor: "rgba(74,222,128,0.4)",
+    borderColor: alpha(GOLD, 0.4),
     marginBottom: 22,
   },
   doneTitle: {
@@ -1674,8 +1688,8 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.28)",
-    backgroundColor: "rgba(74,222,128,0.06)",
+    borderColor: alpha(GOLD, 0.28),
+    backgroundColor: alpha(GOLD, 0.06),
   },
   recapTitle: { color: TEXT_2, fontSize: 11.5 },
   recapValue: { color: TEXT_1, fontSize: 14, fontWeight: "700", marginTop: 1 },
@@ -1843,9 +1857,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     alignItems: "flex-start",
-    backgroundColor: "rgba(74,222,128,0.08)",
+    backgroundColor: alpha(GOLD, 0.08),
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.28)",
+    borderColor: alpha(GOLD, 0.28),
     borderRadius: 12,
     padding: 14,
     marginTop: 14,
@@ -2021,4 +2035,4 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   emptyBtnText: { color: TEXT_1, fontSize: 14, fontWeight: "500" },
-});
+  });

@@ -9,6 +9,8 @@
 // `swipeX` est la valeur partagée Reanimated de l'écran parent : elle arrive
 // par props, la barre ne fait que la LIRE. Les valeurs propres à la bulle
 // (dragProgress, tabFocus, lastSlideIdx) restent locales.
+import { useBudgetTheme } from "./useBudgetTheme";
+import { rgbTriplet } from "../../src/theme/accents";
 import React, { useMemo, useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -55,6 +57,9 @@ export default function TabBar({
   /** Appelé depuis le worklet via runOnJS pendant le glissement sur la barre. */
   onSlideToIndex: (idx: number) => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
+  // Capturé par le worklet : une chaîne, pas une fonction.
+  const accentRgb = rgbTriplet(GOLD);
   // ----- Bulle de sélection façon Apple -----
   //
   // Deux régimes distincts, c'est ce qui fait la sensation :
@@ -77,7 +82,7 @@ export default function TabBar({
         { scale: 1 + tabFocus.value * 0.1 },
       ],
       opacity: tabBarWidth > 0 ? 1 : 0,
-      backgroundColor: `rgba(74,222,128,${0.14 + tabFocus.value * 0.16})`,
+      backgroundColor: `rgba(${accentRgb},${0.14 + tabFocus.value * 0.16})`,
       shadowOpacity: tabFocus.value * 0.5,
     };
   }, [tabBarWidth, screenW]);

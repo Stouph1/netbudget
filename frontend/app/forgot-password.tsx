@@ -6,9 +6,11 @@
 // exactement le mauvais moment pour être ambigu. Ici, un seul champ, une seule
 // action, et on dit ce qui va se passer avant que ça arrive.
 
+import { alpha } from "../src/theme/accents";
+import { useAccent } from "../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -30,12 +32,13 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPassword() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
   // L'écran de connaissance passe l'adresse déjà saisie : la retaper serait
   // une corvée gratuite.
@@ -164,7 +167,8 @@ export default function ForgotPassword() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -216,7 +220,7 @@ const s = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "rgba(74,222,128,0.12)",
+    backgroundColor: alpha(GOLD, 0.12),
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 18,
@@ -236,4 +240,4 @@ const s = StyleSheet.create({
     textAlign: "center",
     marginBottom: 24,
   },
-});
+  });

@@ -17,10 +17,12 @@
 // La résiliation n'est pas un lien caché en bas : elle est annoncée sur l'écran
 // d'achat lui-même. Cacher la sortie fait hésiter à entrer.
 
+import { alpha } from "../src/theme/accents";
+import { useAccent } from "../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { goBack } from "../src/lib/nav";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -55,10 +57,11 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function Plans() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp, lang } = useLang();
   // Formule demandée depuis une carte d'offre. Validée : un paramètre d'URL
   // n'est pas une source de confiance.
@@ -467,7 +470,8 @@ export default function Plans() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -488,7 +492,7 @@ const s = StyleSheet.create({
     marginBottom: 22,
   },
   periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: "center" },
-  periodBtnActive: { backgroundColor: "rgba(74,222,128,0.14)" },
+  periodBtnActive: { backgroundColor: alpha(GOLD, 0.14) },
   periodText: { color: TEXT_2, fontSize: 13.5, fontWeight: "600" },
   periodBadge: { color: GOLD, fontSize: 10.5, fontWeight: "800", marginTop: 2 },
   saving: { color: GOLD, fontSize: 12.5, fontWeight: "700", marginTop: 4 },
@@ -501,10 +505,10 @@ const s = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
   },
-  cardHighlighted: { borderColor: "rgba(74,222,128,0.45)" },
+  cardHighlighted: { borderColor: alpha(GOLD, 0.45) },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "rgba(74,222,128,0.14)",
+    backgroundColor: alpha(GOLD, 0.14),
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -527,7 +531,7 @@ const s = StyleSheet.create({
     gap: 5,
     alignSelf: "flex-start",
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.3)",
+    borderColor: alpha(GOLD, 0.3),
     borderRadius: 999,
     paddingHorizontal: 9,
     paddingVertical: 3,
@@ -566,8 +570,8 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.4)",
-    backgroundColor: "rgba(74,222,128,0.07)",
+    borderColor: alpha(GOLD, 0.4),
+    backgroundColor: alpha(GOLD, 0.07),
   },
   currentText: { color: GOLD, fontSize: 14.5, fontWeight: "800" },
   cancelNote: {
@@ -577,4 +581,4 @@ const s = StyleSheet.create({
     textAlign: "center",
     marginTop: 18,
   },
-});
+  });

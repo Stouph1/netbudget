@@ -23,8 +23,10 @@
 // → voici ce que tu n'as peut-être pas vu. Si la réponse ne convient pas, la
 // sortie est juste en dessous.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLang } from "../contexts/LangContext";
 import type { Tier } from "../lib/entitlements";
@@ -34,7 +36,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const DANGER = "#F87171";
 const BORDER = "rgba(255,255,255,0.10)";
 
@@ -81,6 +82,8 @@ export function CancelSheet({
   /** Ouvre un message vers le support. */
   onWrite: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
   const [reason, setReason] = useState<CancelReason | null>(null);
 
@@ -151,7 +154,8 @@ export function CancelSheet({
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
   sheet: {
     maxHeight: "88%",
@@ -184,7 +188,7 @@ const s = StyleSheet.create({
     backgroundColor: SURFACE,
     marginBottom: 8,
   },
-  reasonOn: { borderColor: "rgba(74,222,128,0.45)" },
+  reasonOn: { borderColor: alpha(GOLD, 0.45) },
   reasonText: { flex: 1, color: TEXT_2, fontSize: 13.5 },
   offer: {
     marginTop: 8,
@@ -192,8 +196,8 @@ const s = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.3)",
-    backgroundColor: "rgba(74,222,128,0.06)",
+    borderColor: alpha(GOLD, 0.3),
+    backgroundColor: alpha(GOLD, 0.06),
   },
   offerTitle: { color: TEXT_1, fontSize: 15, fontWeight: "800", marginBottom: 5 },
   offerBody: { color: TEXT_2, fontSize: 13, lineHeight: 19, marginBottom: 12 },
@@ -207,4 +211,4 @@ const s = StyleSheet.create({
   continueBtn: { alignItems: "center", paddingVertical: 15, marginTop: 6 },
   continueText: { color: DANGER, fontSize: 14.5, fontWeight: "700" },
   note: { color: TEXT_3, fontSize: 11, lineHeight: 16, textAlign: "center" },
-});
+  });

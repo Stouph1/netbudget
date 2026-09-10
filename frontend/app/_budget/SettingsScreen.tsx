@@ -1,6 +1,10 @@
 // Onglet Réglages : devise, langue, localisation, notifications, zone rouge.
 //
 // Indépendant du Budget : il ne lit que des réglages device + le profil.
+import { useBudgetTheme } from "./useBudgetTheme";
+import { useThemeSettings } from "../../src/contexts/ThemeContext";
+import { useActiveScope } from "../../src/contexts/ScopeContext";
+import { ACCENTS } from "../../src/theme/accents";
 import React from "react";
 import { ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -79,6 +83,11 @@ export default function SettingsScreen({
   /** Situation professionnelle du profil ; la ligne ACRE n'a de sens qu'en indépendant. */
   occupation: string | null;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
+  // Couleur d'accent : un réglage par espace, gardé sur l'appareil.
+  const { accentId, setAccent } = useThemeSettings();
+  const { scopeLabel, scopeLabelIsKey } = useActiveScope();
+  const scopeName = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   // Aperçu de l'écran de déverrouillage, en développement uniquement.
   const [previewTier, setPreviewTier] = React.useState<
     "solo" | "duo" | "family" | null
@@ -163,6 +172,40 @@ export default function SettingsScreen({
           </View>
           <Feather name="chevron-right" size={20} color={TEXT_3} />
         </TouchableOpacity>
+      </Section>
+
+      <Section
+        title={t("settings.theme.title")}
+        subtitle={interpolate(t("settings.theme.hint"), { scope: scopeName })}
+      >
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, paddingVertical: 4 }}>
+          {ACCENTS.map((a) => {
+            const on = a.id === accentId;
+            return (
+              <TouchableOpacity
+                key={a.id}
+                onPress={() => void setAccent(a.id)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={t(`theme.${a.id}`)}
+                testID={`settings-theme-${a.id}`}
+                activeOpacity={0.85}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: a.main,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 3,
+                  borderColor: on ? "#FFFFFF" : "transparent",
+                }}
+              >
+                {on ? <Feather name="check" size={18} color="#000" /> : null}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </Section>
 
       <Section title={t("settings.location.title")} subtitle={t("settings.location.hint")}>

@@ -9,11 +9,12 @@
 // Il sert à une seule chose : permettre à qui le veut de conserver son accès
 // avant de changer de téléphone. Deux phrases, les mots, un bouton.
 
+import { useAccent } from "../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { goBack } from "../src/lib/nav";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -33,10 +34,11 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function VaultBackup() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
   const { user } = useSession();
   const [phrase, setPhrase] = useState<string | null>(null);
@@ -128,7 +130,8 @@ export default function VaultBackup() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -170,4 +173,4 @@ const s = StyleSheet.create({
   },
   copyText: { color: "#000", fontSize: 15, fontWeight: "800" },
   note: { color: TEXT_3, fontSize: 12, lineHeight: 17, marginTop: 14 },
-});
+  });

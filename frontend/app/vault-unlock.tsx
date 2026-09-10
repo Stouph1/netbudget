@@ -16,6 +16,8 @@
 //    progression, et une faute de frappe se repère à l'endroit où le compteur
 //    cesse d'avancer.
 
+import { alpha } from "../src/theme/accents";
+import { useAccent } from "../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { goBack } from "../src/lib/nav";
@@ -45,11 +47,12 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const DANGER = "#F87171";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function VaultUnlock() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const { user } = useSession();
   const [input, setInput] = useState("");
@@ -287,7 +290,8 @@ export default function VaultUnlock() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   resetBtn: {
     flexDirection: "row",
@@ -326,8 +330,8 @@ const s = StyleSheet.create({
   suggestRow: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12 },
   suggestChip: {
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.3)",
-    backgroundColor: "rgba(74,222,128,0.07)",
+    borderColor: alpha(GOLD, 0.3),
+    backgroundColor: alpha(GOLD, 0.07),
     borderRadius: 999,
     paddingHorizontal: 13,
     paddingVertical: 7,
@@ -353,4 +357,4 @@ const s = StyleSheet.create({
     marginTop: 24,
   },
   lostText: { flex: 1, color: TEXT_2, fontSize: 12.5, lineHeight: 19 },
-});
+  });

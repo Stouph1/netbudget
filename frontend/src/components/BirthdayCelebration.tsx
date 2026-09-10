@@ -6,8 +6,10 @@
 //    halo doré pulsant sur les cartes décisives — l'esprit Clash Royale.
 // Signes : vert = bonne nouvelle · doré brillant = décisif · rouge = à anticiper.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   Animated,
   Dimensions,
@@ -33,7 +35,6 @@ const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.10)";
 
 const { width: W, height: H } = Dimensions.get("window");
@@ -132,6 +133,8 @@ function TopCard({
   item: BirthdayCard;
   onDecide: (kept: boolean) => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
@@ -225,6 +228,8 @@ type Props = {
 };
 
 export default function BirthdayCelebration({ visible, cards, onKeep, onClose }: Props) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const [index, setIndex] = useState(0);
 
@@ -334,7 +339,8 @@ export default function BirthdayCelebration({ visible, cards, onKeep, onClose }:
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(8,12,24,0.96)", justifyContent: "center" },
   closeBtn: {
     position: "absolute", top: 58, right: 22, zIndex: 10,
@@ -384,5 +390,5 @@ const styles = StyleSheet.create({
   dots: { flexDirection: "row", justifyContent: "center", gap: 7, marginTop: 16 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.22)" },
   dotActive: { backgroundColor: GOLD, width: 18 },
-  dotDone: { backgroundColor: "rgba(74,222,128,0.45)" },
-});
+  dotDone: { backgroundColor: alpha(GOLD, 0.45) },
+  });

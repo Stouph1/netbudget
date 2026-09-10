@@ -16,10 +16,12 @@ import {
   TEXT_2,
   TEXT_3,
 } from "./constants";
+import { alpha } from "../../src/theme/accents";
 
 export const SCREEN_H = Dimensions.get("window").height;
 
-export const styles = StyleSheet.create({
+export const makeBudgetStyles = (GOLD: string) =>
+  StyleSheet.create({
   // Panneau de test (voir SettingsScreen). Absent de l'app publiée pour tout
   // compte non marqué testeur.
   testTile: {
@@ -30,7 +32,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
   },
-  testTileOn: { borderColor: GOLD, backgroundColor: "rgba(74,222,128,0.08)" },
+  testTileOn: { borderColor: GOLD, backgroundColor: alpha(GOLD, 0.08) },
 
   safe: { flex: 1, backgroundColor: BG },
   scroll: { flex: 1 },
@@ -270,9 +272,9 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "rgba(74,222,128,0.08)",
+    backgroundColor: alpha(GOLD, 0.08),
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.28)",
+    borderColor: alpha(GOLD, 0.28),
     borderRadius: 12,
     paddingHorizontal: 13,
     paddingVertical: 11,
@@ -304,11 +306,11 @@ export const styles = StyleSheet.create({
     left: 0,
     borderRadius: 19,
     // backgroundColor piloté par l'animation (s'éclaircit au maintien)
-    backgroundColor: "rgba(74,222,128,0.14)",
+    backgroundColor: alpha(GOLD, 0.14),
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.22)",
+    borderColor: alpha(GOLD, 0.22),
     // Halo qui apparaît quand la bulle prend le focus
-    shadowColor: "#4ADE80",
+    shadowColor: GOLD,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 12,
     shadowOpacity: 0,
@@ -491,7 +493,7 @@ export const styles = StyleSheet.create({
     flex: 1, paddingVertical: 10, paddingHorizontal: 10, borderRadius: 12,
     borderWidth: 1, borderColor: BORDER, alignItems: "center", backgroundColor: SURFACE,
   },
-  pillActive: { borderColor: GOLD, backgroundColor: "rgba(74,222,128,0.12)" },
+  pillActive: { borderColor: GOLD, backgroundColor: alpha(GOLD, 0.12) },
   pillText: { color: TEXT_2, fontSize: 12, fontWeight: "600" },
   pillTextActive: { color: GOLD, fontWeight: "800" },
 
@@ -769,4 +771,8 @@ export const styles = StyleSheet.create({
   distribPillActive: { backgroundColor: GOLD, borderColor: GOLD },
   distribPillText: { color: TEXT_2, fontSize: 12, fontWeight: "600" },
   distribPillTextActive: { color: "#000", fontWeight: "800" },
-});
+  });
+
+// Version statique, en menthe : pour ce qui n'est pas un composant. Les
+// composants passent par useBudgetTheme() pour suivre l'accent de l'espace.
+export const styles = makeBudgetStyles(GOLD);

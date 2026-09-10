@@ -6,6 +6,8 @@
 // À la fin : enchaîne sur le profil conseils (advice) pour que l'utilisateur
 // reçoive des conseils personnalisés dès la fin de l'inscription.
 
+import { alpha } from "../../src/theme/accents";
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { goBack } from "../../src/lib/nav";
@@ -48,7 +50,6 @@ const SURFACE_2 = "#0F1B33";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 // Libellés purement numériques : identiques dans les 8 langues, pas de clé i18n.
@@ -72,6 +73,8 @@ const OCCUPATION_OPTIONS: { value: Occupation; key: string }[] = [
 ];
 
 export default function CompleteProfile() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
   const { setScope } = useActiveScope();
@@ -578,7 +581,8 @@ export default function CompleteProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
   centerTitle: { color: TEXT_1, fontSize: 16, fontWeight: "600", marginTop: 16 },
@@ -632,7 +636,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE_2,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.28)",
+    borderColor: alpha(GOLD, 0.28),
     overflow: "hidden",
   },
   suggestRow: {
@@ -712,4 +716,4 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   secondaryBtnText: { color: TEXT_1, fontSize: 14, fontWeight: "500" },
-});
+  });

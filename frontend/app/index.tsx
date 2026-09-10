@@ -1,3 +1,4 @@
+import { useBudgetTheme } from "./_budget/useBudgetTheme";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
@@ -159,6 +160,7 @@ import UpdateModal from "./_budget/modals/UpdateModal";
 
 
 export default function Index() {
+  const { styles } = useBudgetTheme();
   // Insets pour éviter que les modales remontent sous la barre de statut iOS
   // quand le clavier s'ouvre (cf. KeyboardAvoidingView dans chaque modal).
   const insets = useSafeAreaInsets();

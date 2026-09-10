@@ -6,6 +6,8 @@
 // perdu sa source. Les cases cochées restent sur l'appareil, le temps de la
 // session : ce n'est pas une donnée, c'est un aide-mémoire.
 
+import { alpha } from "../../src/theme/accents";
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -23,10 +25,11 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.10)";
 
 export default function ImpotsScreen() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, lang } = useLang();
   const { user } = useSession();
   const [taxProfile, setTaxProfile] = useState<TaxProfile>({});
@@ -131,7 +134,8 @@ export default function ImpotsScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12 },
   title: { color: TEXT_1, fontSize: 18, fontWeight: "800" },
@@ -139,10 +143,10 @@ const s = StyleSheet.create({
   progress: { color: GOLD, fontSize: 13, fontWeight: "800", marginBottom: 14 },
   audRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, marginBottom: 10 },
   audLead: { color: TEXT_3, fontSize: 12 },
-  audChip: { borderRadius: 999, borderWidth: 1, borderColor: "rgba(74,222,128,0.35)", backgroundColor: "rgba(74,222,128,0.08)", paddingHorizontal: 9, paddingVertical: 3 },
+  audChip: { borderRadius: 999, borderWidth: 1, borderColor: alpha(GOLD, 0.35), backgroundColor: alpha(GOLD, 0.08), paddingHorizontal: 9, paddingVertical: 3 },
   audChipText: { color: GOLD, fontSize: 12, fontWeight: "700" },
   card: { padding: 14, borderRadius: 14, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE, marginBottom: 10 },
-  cardOn: { borderColor: "rgba(74,222,128,0.35)" },
+  cardOn: { borderColor: alpha(GOLD, 0.35) },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 11 },
   box: { width: 22, height: 22, borderRadius: 6, borderWidth: 1.4, borderColor: BORDER, alignItems: "center", justifyContent: "center", marginTop: 2 },
   boxOn: { backgroundColor: GOLD, borderColor: GOLD },
@@ -152,4 +156,4 @@ const s = StyleSheet.create({
   sourceRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8, marginLeft: 33 },
   source: { color: TEXT_3, fontSize: 11, textDecorationLine: "underline" },
   foot: { color: TEXT_3, fontSize: 11.5, lineHeight: 16, marginTop: 14 },
-});
+  });

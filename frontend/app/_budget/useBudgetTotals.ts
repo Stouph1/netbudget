@@ -3,6 +3,7 @@
 //
 // Que des calculs mémoïsés à partir de l'état — aucun effet de bord, aucune
 // écriture. Les seuils des conseils suivent le mix personnalisé (`budgetRatio`).
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { useMemo } from "react";
 import { AdviceItem, buildAdvice } from "../../src/utils/advice";
 import { DonutSegment } from "../../src/components/DonutChart";
@@ -47,6 +48,8 @@ export function useBudgetTotals({
   /** Sert de clé de recalcul aux libellés traduits (donut, mois). */
   lang: Lang;
 }) {
+  // L'accent de l'espace colore le « reste » du donut.
+  const GOLD = useAccent().main;
   // ---- Calculs revenus (multi-sources) ----
   const netSeries = useMemo(
     () => monthlyNetSeries(incomes, tithePercent),

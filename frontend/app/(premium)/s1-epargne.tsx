@@ -1,6 +1,8 @@
 // S1 — Épargne (Objectifs uniquement).
 // Storage : encrypted_payloads via premiumStore (encryption stub Phase 3).
 
+import { alpha } from "../../src/theme/accents";
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { goBack } from "../../src/lib/nav";
@@ -48,7 +50,6 @@ const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
 const MINT = "#10B981";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 const MONO_FONT = Platform.OS === "ios" ? "Menlo" : "monospace";
 
@@ -157,6 +158,8 @@ function goalPlan(
 }
 
 export default function S1Epargne() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
   // Devise active (le « € » était codé en dur : changer de devise n'avait
   // aucun effet sur cet écran).
@@ -631,7 +634,8 @@ export default function S1Epargne() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   quotaRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -717,8 +721,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.4)",
-    backgroundColor: "rgba(74,222,128,0.08)",
+    borderColor: alpha(GOLD, 0.4),
+    backgroundColor: alpha(GOLD, 0.08),
   },
   milestoneTitle: { color: "#FFFFFF", fontSize: 13.5, fontWeight: "800" },
   milestoneBody: { color: TEXT_2, fontSize: 11.5, lineHeight: 16, marginTop: 2 },
@@ -846,4 +850,4 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
   },
   emptyBtnText: { color: TEXT_1, fontSize: 14, fontWeight: "500" },
-});
+  });

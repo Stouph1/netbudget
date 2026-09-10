@@ -17,10 +17,12 @@
 // de boucles du fichier — tous les lecteurs ne l'honorent pas de la même façon,
 // et une boucle involontaire est très visible.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, {
   Easing,
@@ -43,7 +45,6 @@ const MIDNIGHT = "#0B1220";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 
 const CARD_W = 262;
 const CARD_H = 188;
@@ -108,6 +109,8 @@ export function TierUnlock({
   visible: boolean;
   onClose: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const [frozen, setFrozen] = useState(false);
 
@@ -268,7 +271,8 @@ export function TierUnlock({
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: MIDNIGHT,
@@ -327,7 +331,7 @@ const s = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "rgba(74,222,128,0.14)",
+    backgroundColor: alpha(GOLD, 0.14),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -335,4 +339,4 @@ const s = StyleSheet.create({
   ctaWrap: { maxWidth: 330, width: "100%", paddingHorizontal: 26, marginTop: 26 },
   cta: { backgroundColor: GOLD, borderRadius: 15, paddingVertical: 16, alignItems: "center" },
   ctaText: { color: "#04140B", fontSize: 15.5, fontWeight: "900", letterSpacing: 0.2 },
-});
+  });

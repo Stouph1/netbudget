@@ -5,6 +5,8 @@
 // on déplie. Les années déjà passées sont grisées, l'année en cours est mise
 // en avant — l'utilisateur se repère immédiatement.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -34,7 +36,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const CAPITAL = "#4ADE80";
 const INTEREST = "#F87171";
 const BORDER = "rgba(255,255,255,0.08)";
@@ -63,6 +64,8 @@ export default function LoanScheduleModal({
   monthlyPayment,
   format,
 }: Props) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
   const [expanded, setExpanded] = useState<number | null>(null);
 
@@ -399,7 +402,8 @@ export default function LoanScheduleModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   // `position: relative` explicite : le voile est en absolu par-dessus, et
   // doit se caler sur ce bloc-ci, pas sur la feuille entière.
   lockedBlock: { marginTop: 4 },
@@ -407,7 +411,7 @@ const styles = StyleSheet.create({
   teaser: { height: 96, overflow: "hidden" },
   lockedCard: {
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.28)",
+    borderColor: alpha(GOLD, 0.28),
     borderRadius: 18,
     padding: 14,
     marginTop: -6,
@@ -493,7 +497,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   yearRowPast: { opacity: 0.55 },
-  yearRowCurrent: { borderColor: "rgba(74,222,128,0.45)" },
+  yearRowCurrent: { borderColor: alpha(GOLD, 0.45) },
   yearLabel: { color: TEXT_1, fontSize: 13, fontWeight: "700", width: 82 },
   mutedText: { color: TEXT_3 },
   splitBar: {
@@ -537,4 +541,4 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontStyle: "italic",
   },
-});
+  });

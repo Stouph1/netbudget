@@ -1,4 +1,5 @@
 // Feuille de sélection de la langue de l'app (Réglages).
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import {
   Modal,
@@ -30,6 +31,7 @@ export default function LanguageSheetModal({
   onSelect: (next: Lang) => void;
   onClose: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   return (
     <Modal
       visible={visible}

@@ -1,9 +1,10 @@
+import { useAccent } from "../../../src/contexts/ThemeContext";
 import * as Crypto from "expo-crypto";
 // Modal d'édition/création d'un objectif d'épargne S1.
 // Design : sheet bas d'écran avec inputs simples. Validation minimale.
 
 import { Feather } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Dimensions,
   Keyboard,
@@ -30,7 +31,6 @@ const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
 const MINT = "#10B981";
-const GOLD = "#4ADE80";
 const DANGER = "#DC2626";
 const BORDER = "rgba(255,255,255,0.08)";
 
@@ -61,6 +61,8 @@ export default function GoalEditor({
   onSave,
   onDelete,
 }: Props) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   const insets = useSafeAreaInsets();
 
@@ -339,7 +341,8 @@ export default function GoalEditor({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: "flex-end",
@@ -431,4 +434,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+  });

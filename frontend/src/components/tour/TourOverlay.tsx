@@ -13,6 +13,9 @@
 // moitié basse — la barre d'onglets, donc la plupart du temps — en dessous
 // sinon. Une bulle qui sort de l'écran est un tutoriel qui a l'air cassé.
 
+import { alpha } from "../../theme/accents";
+import { useAccent } from "../../contexts/ThemeContext";
+import { useMemo } from "react";
 import { Feather } from "@expo/vector-icons";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -22,7 +25,6 @@ import { useTour } from "./TourContext";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const SCRIM = "rgba(8,12,24,0.86)";
 
 /** Marge autour de la cible, pour qu'elle respire dans le trou. */
@@ -30,6 +32,8 @@ const PAD = 8;
 const BUBBLE_MAX = 330;
 
 export function TourOverlay() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
   const { step, rect, index, total, next, skip } = useTour();
   if (!step || !rect) return null;
@@ -127,19 +131,20 @@ export function TourOverlay() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   shade: { position: "absolute", backgroundColor: SCRIM },
   ring: {
     position: "absolute",
     borderRadius: 18,
     borderWidth: 2,
-    borderColor: "rgba(74,222,128,0.85)",
+    borderColor: alpha(GOLD, 0.85),
   },
   bubbleWrap: { position: "absolute", width: BUBBLE_MAX },
   bubble: {
     backgroundColor: "#1A2238",
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.28)",
+    borderColor: alpha(GOLD, 0.28),
     borderRadius: 18,
     padding: 16,
   },
@@ -158,4 +163,4 @@ const s = StyleSheet.create({
     paddingHorizontal: 15,
   },
   ctaText: { color: "#04140B", fontSize: 13.5, fontWeight: "800" },
-});
+  });

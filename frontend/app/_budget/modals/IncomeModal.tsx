@@ -1,4 +1,5 @@
 // Ajout / édition d'une source de revenu.
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import {
   Keyboard,
@@ -60,6 +61,7 @@ export default function IncomeModal({
   onSave: () => void;
   onClose: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   return (
     <Modal
       visible={visible}

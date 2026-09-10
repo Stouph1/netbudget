@@ -5,9 +5,10 @@
 // une table permettrait de changer le mot de passe et d'enfermer dehors son
 // propriétaire. Le coût est une ligne de saisie, le gain est réel.
 
+import { useAccent } from "../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -29,12 +30,13 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 const MIN_LENGTH = 8;
 
 export default function ChangePassword() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -153,7 +155,8 @@ export default function ChangePassword() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -198,4 +201,4 @@ const s = StyleSheet.create({
     marginTop: 18,
     textAlign: "center",
   },
-});
+  });

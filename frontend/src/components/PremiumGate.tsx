@@ -10,6 +10,9 @@
 // pour les non-abonnés empêche de découvrir ce qui existe — et donc d'avoir
 // envie de payer.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
+import { useMemo } from "react";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -21,7 +24,6 @@ const MIDNIGHT = "#0F172A";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 
 export function PremiumGate({
   titleKey,
@@ -32,6 +34,8 @@ export function PremiumGate({
   bodyKey: string;
   icon?: keyof typeof Feather.glyphMap;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
 
   return (
@@ -77,14 +81,15 @@ export function PremiumGate({
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: { paddingHorizontal: 20, paddingVertical: 14 },
   hero: {
     width: 62,
     height: 62,
     borderRadius: 31,
-    backgroundColor: "rgba(74,222,128,0.12)",
+    backgroundColor: alpha(GOLD, 0.12),
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
@@ -108,4 +113,4 @@ const s = StyleSheet.create({
   trial: { color: TEXT_3, fontSize: 11.5, lineHeight: 16, marginTop: 6, marginBottom: 14 },
   cta: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 15, alignItems: "center" },
   ctaText: { color: "#000", fontSize: 15, fontWeight: "800" },
-});
+  });

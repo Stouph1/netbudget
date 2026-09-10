@@ -2,6 +2,8 @@
 // Rendu soit embarqué dans le pager (onglet tab bar), soit en écran autonome
 // via app/(premium)/events.tsx. L'événement vit dans le scope actif.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -59,7 +61,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 
@@ -93,6 +94,8 @@ export function eventNeedsAttention(ev: EventProject, now: Date = new Date()): b
 }
 
 export default function EventsPanel({ standalone = false }: { standalone?: boolean }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
   // Devise active : « € » était codé en dur, changer de devise n'avait aucun effet ici.
   const { fmt, currency } = useCurrency();
@@ -682,7 +685,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 8 },
   pageTitle: { color: TEXT_1, fontSize: 22, fontWeight: "800", marginBottom: 8 },
   intro: { color: TEXT_2, fontSize: 13, lineHeight: 20, marginBottom: 18 },
@@ -805,9 +809,9 @@ const styles = StyleSheet.create({
   styleQuestion: { color: TEXT_2, fontSize: 13, fontWeight: "700", marginTop: 4 },
   hint: { color: TEXT_3, fontSize: 11.5, lineHeight: 16 },
   estimateBox: {
-    backgroundColor: "rgba(74,222,128,0.08)",
+    backgroundColor: alpha(GOLD, 0.08),
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.25)",
+    borderColor: alpha(GOLD, 0.25),
     borderRadius: 12,
     padding: 12,
     gap: 3,
@@ -830,4 +834,4 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: { color: "#000", fontSize: 14, fontWeight: "700" },
   linkText: { color: TEXT_2, fontSize: 13, paddingVertical: 6 },
-});
+  });

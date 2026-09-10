@@ -17,6 +17,9 @@
 // 3. Le texte dit ce qu'on obtient, jamais ce qu'on perd. « Vois les vingt ans »
 //    plutôt que « tu ne peux pas voir ».
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
+import { useMemo } from "react";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
@@ -30,7 +33,6 @@ import {
 import { useLang } from "../contexts/LangContext";
 import { PlanCards } from "./PlanCards";
 
-const GOLD = "#4ADE80";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 
@@ -70,6 +72,8 @@ export function LockedOverlay({
   /** Par défaut, envoie vers les formules. */
   onPress?: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
 
   return (
@@ -125,7 +129,8 @@ export function LockedOverlay({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   scrim: { backgroundColor: "rgba(15,23,42,0.55)" },
   center: {
     flex: 1,
@@ -140,7 +145,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(26,34,56,0.96)",
     borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.28)",
+    borderColor: alpha(GOLD, 0.28),
     borderRadius: 18,
     paddingHorizontal: 18,
     paddingVertical: 18,
@@ -151,7 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(74,222,128,0.12)",
+    backgroundColor: alpha(GOLD, 0.12),
     marginBottom: 10,
   },
   title: {
@@ -177,4 +182,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ctaText: { color: "#000", fontSize: 14, fontWeight: "800" },
-});
+  });

@@ -19,6 +19,8 @@
 // c'est perdu. C'est la seule information de cet écran qui coûte de l'argent
 // si on la rate, donc elle est la plus visible.
 
+import { alpha } from "../../src/theme/accents";
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -39,11 +41,12 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const AMBER = "#FBBF24";
 const BORDER = "rgba(255,255,255,0.10)";
 
 export default function AcreScreen() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, lang } = useLang();
   const [checked, setChecked] = useState<AcreCondition[]>([]);
   const [hadAcre, setHadAcre] = useState<boolean | null>(null);
@@ -171,7 +174,8 @@ export default function AcreScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12 },
   title: { color: TEXT_1, fontSize: 18, fontWeight: "800" },
@@ -181,16 +185,16 @@ const s = StyleSheet.create({
   section: { color: TEXT_1, fontSize: 15, fontWeight: "800", marginTop: 8, marginBottom: 4 },
   hint: { color: TEXT_3, fontSize: 12.5, lineHeight: 17, marginBottom: 10 },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 11, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE, marginBottom: 8 },
-  rowOn: { borderColor: "rgba(74,222,128,0.45)" },
+  rowOn: { borderColor: alpha(GOLD, 0.45) },
   rowText: { flex: 1, color: TEXT_2, fontSize: 13.5, lineHeight: 19 },
   box: { width: 22, height: 22, borderRadius: 6, borderWidth: 1.4, borderColor: BORDER, alignItems: "center", justifyContent: "center", marginTop: 1 },
   boxOn: { backgroundColor: GOLD, borderColor: GOLD },
   chip: { flex: 1, alignItems: "center", paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE },
-  chipOn: { borderColor: "rgba(74,222,128,0.5)", backgroundColor: "rgba(74,222,128,0.10)" },
+  chipOn: { borderColor: alpha(GOLD, 0.5), backgroundColor: alpha(GOLD, 0.10) },
   chipText: { color: TEXT_2, fontSize: 13.5 },
   chipTextOn: { color: GOLD, fontWeight: "700" },
   verdict: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, marginTop: 18 },
-  verdictOk: { borderColor: "rgba(74,222,128,0.4)", backgroundColor: "rgba(74,222,128,0.08)" },
+  verdictOk: { borderColor: alpha(GOLD, 0.4), backgroundColor: alpha(GOLD, 0.08) },
   verdictBad: { borderColor: "rgba(248,113,113,0.4)", backgroundColor: "rgba(248,113,113,0.08)" },
   verdictNone: { borderColor: BORDER, backgroundColor: SURFACE },
   verdictTitle: { color: TEXT_1, fontSize: 14.5, fontWeight: "800", marginBottom: 3 },
@@ -202,4 +206,4 @@ const s = StyleSheet.create({
   ctaText: { color: "#04140B", fontSize: 15, fontWeight: "800" },
   foot: { color: TEXT_3, fontSize: 11.5, lineHeight: 16, marginTop: 14 },
   source: { color: TEXT_3, fontSize: 11, marginTop: 8, textDecorationLine: "underline" },
-});
+  });

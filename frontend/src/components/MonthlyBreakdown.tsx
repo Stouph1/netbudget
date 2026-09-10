@@ -1,4 +1,6 @@
-import React from "react";
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { CurrencyCode, formatCurrency } from "../utils/currency";
 
@@ -11,7 +13,6 @@ export type MonthRow = {
   remaining: number;
 };
 
-const GOLD = "#4ADE80";
 const SURFACE = "#141826";
 const SURFACE_2 = "#1C2130";
 const BORDER = "#2A3142";
@@ -50,6 +51,8 @@ export default function MonthlyBreakdown({
   annualExpenses,
   labels,
 }: Props) {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const fmt = (v: number) => formatCurrency(v, currency);
   const max = Math.max(...months.map((m) => Math.abs(m.remaining)), 1);
 
@@ -185,7 +188,8 @@ export default function MonthlyBreakdown({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   cardsRow: { paddingVertical: 4, paddingRight: 12, gap: 10 },
   monthCard: {
     width: 120,
@@ -198,7 +202,7 @@ const styles = StyleSheet.create({
   },
   monthCardCurrent: {
     borderColor: GOLD,
-    backgroundColor: "rgba(74,222,128,0.08)",
+    backgroundColor: alpha(GOLD, 0.08),
   },
   monthName: {
     color: TEXT_2,
@@ -256,7 +260,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(39,39,42,0.5)",
   },
   tableRowCurrent: {
-    backgroundColor: "rgba(74,222,128,0.08)",
+    backgroundColor: alpha(GOLD, 0.08),
     borderRadius: 8,
     paddingHorizontal: 6,
     marginHorizontal: -6,
@@ -308,4 +312,4 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontVariant: ["tabular-nums"],
   },
-});
+  });

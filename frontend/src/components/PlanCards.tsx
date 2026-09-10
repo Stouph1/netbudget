@@ -15,6 +15,9 @@
 // leur place que sur l'écran d'achat. Une carte qui affiche un prix approché
 // puis un autre au paiement est un litige garanti — voir plans.ts.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
+import { useMemo } from "react";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -26,7 +29,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 // Les mêmes visuels que la fête de déverrouillage. `require` statique : Metro
@@ -47,6 +49,8 @@ export function PlanCards({
   suggested?: Tier | null;
   featuresPerCard?: number;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
 
   return (
@@ -104,7 +108,8 @@ export function PlanCards({
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -115,7 +120,7 @@ const s = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
   },
-  cardBest: { borderColor: "rgba(74,222,128,0.5)", backgroundColor: "#1C2742" },
+  cardBest: { borderColor: alpha(GOLD, 0.5), backgroundColor: "#1C2742" },
   cover: {
     width: 58,
     height: 58,
@@ -125,7 +130,7 @@ const s = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", gap: 7 },
   name: { color: TEXT_1, fontSize: 16, fontWeight: "800" },
   badge: {
-    backgroundColor: "rgba(74,222,128,0.14)",
+    backgroundColor: alpha(GOLD, 0.14),
     borderRadius: 999,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -140,4 +145,4 @@ const s = StyleSheet.create({
   members: { color: TEXT_3, fontSize: 11.5, marginTop: 1, marginBottom: 6 },
   featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 6, marginBottom: 3 },
   featureText: { flex: 1, color: TEXT_2, fontSize: 11.5, lineHeight: 15 },
-});
+  });

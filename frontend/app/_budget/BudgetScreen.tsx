@@ -3,6 +3,7 @@
 //
 // Composant de PRÉSENTATION : tout l'état vit dans app/index.tsx et arrive par
 // props explicites — aucun contexte nouveau.
+import { useBudgetTheme } from "./useBudgetTheme";
 import React from "react";
 import {
   ActivityIndicator,
@@ -165,6 +166,7 @@ export default function BudgetScreen({
   onDeleteItem: (id: string) => void;
   onExportPdf: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   // Cibles de la visite guidée. Voir tourSteps.ts pour ce qu'elles racontent.
   const tourSummary = useTourTarget("budget:summary");
   const tourAddIncome = useTourTarget("budget:addIncome");

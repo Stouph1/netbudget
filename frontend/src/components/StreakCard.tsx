@@ -17,9 +17,11 @@
 // Ce qui la rend efficace n'est donc pas la pression, c'est que le geste
 // demandé est réellement court et réellement utile.
 
+import { alpha } from "../theme/accents";
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useLang } from "../contexts/LangContext";
@@ -30,7 +32,6 @@ import { monthKey } from "../lib/streak";
 
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
-const GOLD = "#4ADE80";
 const AMBER = "#FBBF24";
 
 /**
@@ -45,6 +46,8 @@ export function StreakCard({
   /** Formateur de montant de l'écran Budget : l'app n'est pas qu'en euros. */
   fmt?: (v: number) => string;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
   const [streak, setStreak] = useState<Streak | null>(null);
   const [milestone, setMilestone] = useState<number | null>(null);
@@ -180,7 +183,8 @@ function fmtDelta(n: number, fmt?: (v: number) => string): string {
   return `${n > 0 ? "+" : "−"}${fmt ? fmt(abs) : abs}`;
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -195,8 +199,8 @@ const s = StyleSheet.create({
     backgroundColor: "#1A2238",
   },
   cardWin: {
-    borderColor: "rgba(74,222,128,0.4)",
-    backgroundColor: "rgba(74,222,128,0.08)",
+    borderColor: alpha(GOLD, 0.4),
+    backgroundColor: alpha(GOLD, 0.08),
   },
   cardCol: { flexDirection: "column", alignItems: "stretch", gap: 8 },
   row: { flexDirection: "row", alignItems: "center", gap: 9 },
@@ -210,4 +214,4 @@ const s = StyleSheet.create({
     paddingVertical: 9,
   },
   ctaText: { color: "#04140B", fontSize: 12.5, fontWeight: "800" },
-});
+  });

@@ -2,6 +2,7 @@
 //
 // Elle remplace Alert.alert : sur navigateur, un Alert.alert à plusieurs
 // boutons est un no-op silencieux (cf. src/utils/notify).
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { DANGER } from "../constants";
@@ -18,6 +19,7 @@ export default function ConfirmModal({
   /** Ferme la boîte SANS effacer titre/message (l'animation de sortie les lit). */
   onCloseKeepingState: () => void;
 }) {
+  const { styles } = useBudgetTheme();
   return (
     <Modal
       visible={confirm.open}

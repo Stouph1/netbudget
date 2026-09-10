@@ -11,9 +11,10 @@
 // cours de vérification, lien valide, lien mort — parce que « ça ne marche
 // pas » n'aide personne à savoir s'il faut redemander un e-mail.
 
+import { useAccent } from "../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -36,7 +37,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const DANGER = "#F87171";
 const BORDER = "rgba(255,255,255,0.08)";
 
@@ -46,6 +46,8 @@ const MIN_LENGTH = 8;
 type LinkState = "checking" | "valid" | "expired";
 
 export default function ResetPassword() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
   const params = useLocalSearchParams<{ code?: string }>();
   const [linkState, setLinkState] = useState<LinkState>("checking");
@@ -199,7 +201,8 @@ export default function ResetPassword() {
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -257,4 +260,4 @@ const s = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
   },
-});
+  });

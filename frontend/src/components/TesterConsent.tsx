@@ -20,8 +20,9 @@
 //    en français par nos soins. Traduire un engagement en huit langues sans
 //    relecture juridique par langue serait pire que de ne pas le traduire.
 
+import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -44,7 +45,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const DANGER = "#F87171";
 const BORDER = "rgba(255,255,255,0.10)";
 
@@ -64,6 +64,8 @@ export function TesterConsent({
   onAccept: (fullName: string) => void;
   onDecline: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const [name, setName] = useState(defaultName ?? "");
   const [checks, setChecks] = useState<boolean[]>(APPROVAL.cases.map(() => false));
   const [readToEnd, setReadToEnd] = useState(false);
@@ -194,7 +196,8 @@ export function TesterConsent({
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   root: { flex: 1, backgroundColor: MIDNIGHT },
   head: { paddingHorizontal: 20, paddingTop: 54, paddingBottom: 12 },
   title: { color: TEXT_1, fontSize: 23, fontWeight: "800", marginBottom: 6 },
@@ -243,4 +246,4 @@ const s = StyleSheet.create({
   ctaText: { color: "#04140B", fontSize: 15.5, fontWeight: "800" },
   decline: { color: DANGER, fontSize: 13, fontWeight: "600" },
   trace: { color: TEXT_3, fontSize: 11, lineHeight: 15, textAlign: "center" },
-});
+  });

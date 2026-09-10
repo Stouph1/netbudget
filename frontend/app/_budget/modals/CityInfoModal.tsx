@@ -1,4 +1,5 @@
 // Explication de l'indice de coût de la vie + liens vers les sources.
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -17,6 +18,7 @@ export default function CityInfoModal({
   t: Translate;
   onClose: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.confirmBackdrop}>

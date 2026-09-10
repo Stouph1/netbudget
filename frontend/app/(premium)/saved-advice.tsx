@@ -1,4 +1,5 @@
 // Dépôt de conseils — les cartes gardées (swipe droite à l'anniversaire).
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { openExternal } from "../../src/utils/openExternal";
 // Accessible depuis le Profil. Suppression à l'unité.
 //
@@ -10,7 +11,7 @@ import { openExternal } from "../../src/utils/openExternal";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { goBack } from "../../src/lib/nav";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -36,7 +37,6 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 // Locale d'affichage des dates, dérivée de la langue de l'app.
@@ -83,6 +83,8 @@ const TONE_BORDER: Record<string, string> = {
 };
 
 export default function SavedAdvice() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
   const { user, loading: sessionLoading } = useSession();
   const [items, setItems] = useState<SavedAdviceItem[] | null>(null);
@@ -188,7 +190,8 @@ export default function SavedAdvice() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -229,4 +232,4 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sourceLink: { color: GOLD, fontSize: 12, flexShrink: 1 },
-});
+  });

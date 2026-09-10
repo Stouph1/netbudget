@@ -1,6 +1,7 @@
 // Onglet Convertisseur (rendu façon Google Traduction) + historique local.
 //
 // Indépendant du Budget : il ne travaille que sur les taux de change.
+import { useBudgetTheme } from "./useBudgetTheme";
 import React from "react";
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -46,6 +47,7 @@ export default function ConverterScreen({
   onRestoreHistory: (h: ConvHistoryItem) => void;
   onClearHistory: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   // Ancienneté localisée : l'utilitaire ne renvoie que l'unité et la valeur,
   // la phrase se compose ici. `t` arrive par props, on interpole donc {n}
   // sur place plutôt que d'ajouter une prop `tp` juste pour ça.

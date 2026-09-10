@@ -1,4 +1,5 @@
 // Ajout d'une catégorie de dépense personnalisée dans une famille.
+import { useBudgetTheme } from "../useBudgetTheme";
 import React from "react";
 import {
   Keyboard,
@@ -45,6 +46,7 @@ export default function AddItemModal({
   onSave: () => void;
   onClose: () => void;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   return (
     <Modal
       visible={family !== null}

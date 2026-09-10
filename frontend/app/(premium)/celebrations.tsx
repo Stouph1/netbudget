@@ -1,10 +1,11 @@
 // Anniversaires suivis (enfants, animaux) : le jour J, la fête de cartes se
 // déclenche pour eux aussi. Gestion : ajout / suppression.
 
+import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { goBack } from "../../src/lib/nav";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -30,10 +31,11 @@ const SURFACE = "#1A2238";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 const BORDER = "rgba(255,255,255,0.08)";
 
 export default function Celebrations() {
+  const GOLD = useAccent().main;
+  const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
   const { user, loading: sessionLoading } = useSession();
   const [list, setList] = useState<CelebrationPerson[] | null>(null);
@@ -204,7 +206,8 @@ export default function Celebrations() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (GOLD: string) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   header: {
     flexDirection: "row",
@@ -283,4 +286,4 @@ const styles = StyleSheet.create({
   },
   rowName: { color: TEXT_1, fontSize: 15, fontWeight: "600" },
   rowMeta: { color: TEXT_3, fontSize: 12, marginTop: 2 },
-});
+  });

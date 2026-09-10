@@ -1,5 +1,6 @@
 // Briques d'UI partagées de l'écran Budget (ex-app/index.tsx) : encadré de
 // section, champ de saisie, liste déroulante, pilule d'état.
+import { useBudgetTheme } from "./useBudgetTheme";
 import React, { useState } from "react";
 import { Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -18,6 +19,7 @@ export function Section({
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const { styles } = useBudgetTheme();
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -68,6 +70,7 @@ export function Field({
    *  supprimer une catégorie à qui croyait refermer quelque chose. */
   deleteA11yLabel?: string;
 }) {
+  const { styles } = useBudgetTheme();
   const [focused, setFocused] = useState(false);
   const handleFocus = () => {
     setFocused(true);
@@ -145,6 +148,7 @@ export function Dropdown<T extends string>({
   icon?: React.ReactNode;
   testID?: string;
 }) {
+  const { styles, GOLD } = useBudgetTheme();
   const [open, setOpen] = useState(false);
   const current = options.find((o) => o.value === value);
   return (
@@ -215,6 +219,7 @@ export function StatusPill({
   onPress: () => void;
   testID?: string;
 }) {
+  const { styles } = useBudgetTheme();
   return (
     <TouchableOpacity
       onPress={onPress}

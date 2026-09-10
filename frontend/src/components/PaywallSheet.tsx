@@ -17,6 +17,8 @@
 // 3. ON PEUT LA FERMER SANS RIEN FAIRE, d'un geste ou du bouton. Une fenêtre
 //    dont on ne sort qu'en achetant se fait refuser en revue, et à raison.
 
+import { useAccent } from "../contexts/ThemeContext";
+import { useMemo } from "react";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -37,7 +39,6 @@ const MIDNIGHT = "#0F172A";
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
 const TEXT_3 = "#8193AC";
-const GOLD = "#4ADE80";
 
 export type PaywallReason =
   /** Aucun abonnement : la fonctionnalité entière est fermée. */
@@ -56,6 +57,8 @@ export function PaywallSheet({
   reason: PaywallReason | null;
   onClose: () => void;
 }) {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
   if (!reason) return null;
 
@@ -151,7 +154,8 @@ export function PaywallSheet({
   );
 }
 
-const s = StyleSheet.create({
+const makeS = (GOLD: string) =>
+  StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
   sheet: {
     // Bornée en hauteur : sans ça, une feuille plus haute que l'écran pousse
@@ -181,4 +185,4 @@ const s = StyleSheet.create({
   cta: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 15, alignItems: "center" },
   ctaText: { color: "#000", fontSize: 15, fontWeight: "800" },
   later: { color: TEXT_3, fontSize: 13, fontWeight: "600", textAlign: "center" },
-});
+  });
