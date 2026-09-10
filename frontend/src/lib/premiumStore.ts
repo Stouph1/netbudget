@@ -626,6 +626,10 @@ export type EventQuote = {
   price: number;
   date: string; // ISO
   source?: string; // site/prestataire (texte libre)
+  // Poste de dépense que ce relevé met à jour, s'il y en a un. Sans lui, un
+  // devis n'était qu'une note à côté du budget, et le total ne bougeait
+  // jamais — c'était le retour des testeurs : « ça ne prend pas en compte ».
+  itemId?: string;
 };
 
 export type EventProject = {

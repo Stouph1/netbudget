@@ -2,7 +2,7 @@
 //
 // Indépendant du Budget : il ne lit que des réglages device + le profil.
 import React from "react";
-import { ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { City, getCountry } from "../../src/constants/cities";
@@ -26,6 +26,8 @@ export default function SettingsScreen({
   lang,
   city,
   monthlyReminder,
+  tithePercent,
+  onChangeGiving,
   locationFromProfile,
   canDeleteAccount,
   t,
@@ -46,6 +48,9 @@ export default function SettingsScreen({
   lang: Lang;
   city: City;
   monthlyReminder: boolean;
+  /** Part des revenus réservée aux dons, en %. 0 = inactif. */
+  tithePercent: number;
+  onChangeGiving: (enabled: boolean, percent: number) => void;
   /** Un profil existe (`premiumUser?.id`) : la localisation vient du profil. */
   locationFromProfile: boolean;
   /** Une session existe (`premiumUser`) : le compte cloud est supprimable. */
@@ -76,6 +81,23 @@ export default function SettingsScreen({
   // En développement, le panneau est toujours là. En production, il faut être
   // marqué testeur côté serveur.
   const showTesterPanel = __DEV__ || isTester;
+
+  // Dons & cadeaux. Le pourcentage est saisi en texte : un clavier numérique
+  // sans validation intermédiaire, la valeur n'est poussée qu'au blur — sinon
+  // taper « 1 » puis « 5 » recalculerait le budget deux fois pour rien.
+  const givingOn = tithePercent > 0;
+  const [givingDraft, setGivingDraft] = React.useState(String(tithePercent || 10));
+  React.useEffect(() => {
+    if (tithePercent > 0) setGivingDraft(String(tithePercent));
+  }, [tithePercent]);
+  function commitGiving() {
+    const n = parseFloat(givingDraft.replace(",", "."));
+    if (!Number.isFinite(n) || n <= 0 || n > 100) {
+      setGivingDraft(String(tithePercent || 10));
+      return;
+    }
+    onChangeGiving(true, n);
+  }
   const tourNotifs = useTourTarget("settings:notifications");
   const tourScroll = useTourScroller("settings");
 
@@ -185,6 +207,62 @@ export default function SettingsScreen({
           <Feather name="info" size={14} color={TEXT_3} />
           <Text style={styles.infoRowText}>{t("info.indexHelp")}</Text>
         </TouchableOpacity>
+      </Section>
+
+      <Section title={t("signup.giving.title")}>
+        <View style={styles.toggleRow}>
+          <Feather
+            name="heart"
+            size={20}
+            color={givingOn ? GOLD : TEXT_3}
+            style={{ marginRight: 12 }}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.toggleLabel}>{t("signup.giving.title")}</Text>
+            <Text style={styles.infoRowText}>{t("signup.giving.hint")}</Text>
+          </View>
+          <Switch
+            value={givingOn}
+            onValueChange={(next) => {
+              if (!next) onChangeGiving(false, 0);
+              else {
+                const n = parseFloat(givingDraft.replace(",", "."));
+                onChangeGiving(true, Number.isFinite(n) && n > 0 && n <= 100 ? n : 10);
+              }
+            }}
+            trackColor={{ false: BORDER, true: GOLD }}
+            thumbColor="#fff"
+            ios_backgroundColor={BORDER}
+            testID="settings-giving-toggle"
+          />
+        </View>
+        {givingOn ? (
+          <View style={styles.toggleRow}>
+            <Text style={[styles.toggleLabel, { flex: 1 }]}>{t("signup.giving.share")}</Text>
+            <TextInput
+              value={givingDraft}
+              onChangeText={setGivingDraft}
+              onBlur={commitGiving}
+              onSubmitEditing={commitGiving}
+              keyboardType="decimal-pad"
+              returnKeyType="done"
+              style={{
+                minWidth: 64,
+                textAlign: "right",
+                color: "#FFFFFF",
+                fontSize: 16,
+                fontWeight: "700",
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: BORDER,
+              }}
+              testID="settings-giving-percent"
+            />
+            <Text style={[styles.toggleLabel, { marginLeft: 6 }]}>%</Text>
+          </View>
+        ) : null}
       </Section>
 
       <Section title={t("settings.notifications.title")}>

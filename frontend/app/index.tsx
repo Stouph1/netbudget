@@ -75,7 +75,7 @@ import {
   loadAdviceProfile,
   loadEvents,
 } from "../src/lib/premiumStore";
-import { loadProfileDetails } from "../src/lib/profile";
+import { loadProfileDetails, updateGiving } from "../src/lib/profile";
 import type { UserProfile } from "../src/types/advice";
 import {
   ensureMonthlyRemindersScheduled,
@@ -112,7 +112,7 @@ import {
   TYPE_DEFAULT_CHARGES,
   defaultIncomeSource,
 } from "../src/utils/income";
-import { loadState } from "../src/utils/storage";
+import { loadState, saveState } from "../src/utils/storage";
 
 import {
   DEFAULT_ITEMS,
@@ -447,8 +447,25 @@ export default function Index() {
   });
   // Source du dépôt pour la fête en cours : "birthday" | "child:Nom" | "pet:Nom"
   const [bdaySource, setBdaySource] = useState("birthday");
-  // Dîme (profil chrétien) : chargée depuis la table profiles. 0 = inactif.
+  // Dons & cadeaux : part des revenus réservée (dons, dîme, zakat, soutien
+  // familial). 0 = inactif. Avec un compte, la valeur vient du profil ; sans
+  // compte, du stockage local. Modifiable depuis les Réglages dans les deux cas.
   const [tithePercent, setTithePercent] = useState(0);
+  const setGiving = useCallback(
+    async (enabled: boolean, percent: number) => {
+      const pct = enabled ? Math.min(100, Math.max(0, percent)) : 0;
+      setTithePercent(pct); // optimiste : le budget se recalcule tout de suite
+      if (premiumUser?.id) {
+        const r = await updateGiving(premiumUser.id, enabled, enabled ? percent : 0);
+        if (!r.ok) notify(t("signup.giving.title"), r.error ?? t("signup.giving.pctError"));
+      }
+      // Toujours en local aussi : l'app doit retrouver le réglage hors ligne,
+      // et un utilisateur sans compte n'a que ça.
+      const stored = await loadState();
+      await saveState({ ...(stored ?? {}), titheEnabled: enabled, tithePercent: percent });
+    },
+    [premiumUser?.id, t],
+  );
   useEffect(() => {
     if (!premiumUser?.id) {
       setTabBadges((b) => ({ ...b, events: false }));
@@ -709,6 +726,11 @@ export default function Index() {
     (async () => {
       const stored = await loadState();
       if (stored) {
+        // Sans compte, c'est la seule source des dons. Avec compte, le profil
+        // écrasera cette valeur quand il aura répondu.
+        if (stored.titheEnabled && typeof stored.tithePercent === "number") {
+          setTithePercent(stored.tithePercent);
+        }
         if (Array.isArray(stored.incomes) && stored.incomes.length > 0) {
           setIncomes(stored.incomes as IncomeSource[]);
         } else if (stored.baseAnnual || stored.variableAnnual) {
@@ -1298,6 +1320,8 @@ export default function Index() {
             lang={lang}
             city={city}
             monthlyReminder={monthlyReminder}
+            tithePercent={tithePercent}
+            onChangeGiving={(enabled, pct) => void setGiving(enabled, pct)}
             locationFromProfile={!!premiumUser?.id}
             canDeleteAccount={!!premiumUser}
             t={t}

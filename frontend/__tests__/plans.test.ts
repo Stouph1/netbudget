@@ -84,7 +84,7 @@ describe("points forts affichés", () => {
   });
 
   it("annonce un seul événement pour Solo, illimité pour les autres", () => {
-    expect(keysOf("solo")).toContain("plan.feature.eventsOne");
+    expect(keysOf("solo")).toContain("plan.feature.eventsCount");
     expect(keysOf("duo")).toContain("plan.feature.eventsUnlimited");
     expect(keysOf("family")).toContain("plan.feature.eventsUnlimited");
   });

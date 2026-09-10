@@ -75,9 +75,15 @@ export const LIMITS: Record<Tier, Limits> = {
     advice: false,
     birthdays: false,
   },
-  // Solo : un seul événement à la fois, et pas le mariage.
+  // Solo : jusqu'à six événements en parallèle, et pas le mariage.
+  //
+  // Un seul à la fois — la limite d'origine — a été le premier retour des
+  // testeurs : un voyage, un anniversaire et une rentrée se préparent souvent
+  // en même temps, et devoir en clôturer un pour ouvrir l'autre rendait la
+  // formule inutilisable pour ce qu'elle promet. Six couvre une année chargée
+  // sans effacer l'écart avec Duo, qui reste sans limite.
   solo: {
-    maxEvents: 1,
+    maxEvents: 6,
     blockedEventTypes: ["wedding"],
     maxWorkspaces: 0,
     maxMembersPerWorkspace: 0,

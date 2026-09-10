@@ -189,3 +189,29 @@ export async function updateProfileDetails(
   }
   return { ok: true };
 }
+
+/**
+ * Dons & cadeaux, depuis les Réglages.
+ *
+ * POURQUOI UNE FONCTION À PART. `updateProfileDetails` exige le pseudo, parce
+ * qu'elle sert au formulaire complet. Les Réglages, eux, ne connaissent que
+ * l'interrupteur et le pourcentage : les forcer à recharger le profil entier
+ * pour changer deux colonnes serait fragile pour rien.
+ *
+ * C'était aussi le retour des testeurs : les dons ne s'activaient que dans le
+ * parcours « compléter mon profil », que personne ne retrouvait.
+ */
+export async function updateGiving(
+  userId: string,
+  enabled: boolean,
+  percent: number,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+    return { ok: false, error: "Le pourcentage doit être entre 0 et 100." };
+  }
+  const { error } = await supabase
+    .from("profiles")
+    .update({ tithe_enabled: enabled, tithe_percent: percent })
+    .eq("id", userId);
+  return error ? { ok: false, error: error.message } : { ok: true };
+}

@@ -22,8 +22,13 @@ describe("Solo", () => {
     expect(canCreateEvent("solo", 0, "travel")).toEqual({ allowed: true });
   });
 
-  it("refuse le deuxième", () => {
-    const d = canCreateEvent("solo", 1, "travel");
+  it("en accepte six en parallèle", () => {
+    expect(canCreateEvent("solo", 5, "travel")).toEqual({ allowed: true });
+  });
+
+  // Six, pas un : le premier retour des testeurs. Voir LIMITS.solo.
+  it("refuse le septième", () => {
+    const d = canCreateEvent("solo", 6, "travel");
     expect(d.allowed).toBe(false);
     expect(d.allowed === false && d.reason).toBe("eventLimit");
   });
@@ -42,14 +47,15 @@ describe("Solo", () => {
   });
 
   it("annonce ce qu'il reste", () => {
-    expect(remainingEvents("solo", 0)).toBe(1);
-    expect(remainingEvents("solo", 1)).toBe(0);
+    expect(remainingEvents("solo", 0)).toBe(6);
+    expect(remainingEvents("solo", 1)).toBe(5);
+    expect(remainingEvents("solo", 6)).toBe(0);
   });
 
   it("ne descend jamais sous zéro", () => {
     // Un abonné rétrogradé peut avoir plus d'événements que sa formule
     // n'autorise : on ne lui affiche pas « -2 restants ».
-    expect(remainingEvents("solo", 5)).toBe(0);
+    expect(remainingEvents("solo", 9)).toBe(0);
   });
 });
 

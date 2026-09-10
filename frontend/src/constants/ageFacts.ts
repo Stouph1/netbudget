@@ -13,7 +13,9 @@
 // ({ t, tp }) et composent depuis des clés `bdayCard.*`. Les jetons {name},
 // {age} et {region} sont interpolés par `tp`.
 
-import type { AdviceI18n, UserProfile } from "../types/advice";
+import { resolveBody, resolveTitle, type AdviceI18n, type UserProfile } from "../types/advice";
+import { matchAdvice } from "../lib/adviceEngine";
+import { ageToBracket } from "../utils/birthday";
 
 export type BirthdayTone = "good" | "gold" | "bad" | "neutral";
 
@@ -166,7 +168,29 @@ export function buildBirthdayCards(
     MA: africaFacts(age, "MA", i18n), SN: africaFacts(age, "SN", i18n), CM: africaFacts(age, "CM", i18n),
     CI: africaFacts(age, "CI", i18n), DZ: africaFacts(age, "DZ", i18n), TN: africaFacts(age, "TN", i18n),
   };
-  cards.push(...(byCountry[country] ?? []));
+  const facts = byCountry[country] ?? [];
+  cards.push(...facts);
+
+  // 6 bis. Les âges « creux ».
+  //
+  // Les faits par âge ne tombent que sur une quinzaine d'anniversaires précis :
+  // 18, 25, 30, 62… À 23, 29 ou 41 ans, il n'y avait que l'ouverture et la
+  // clôture — trois cartes pour une fête, et la question légitime des testeurs :
+  // « c'est vraiment personnalisé ? ». On complète avec les conseils du
+  // catalogue qui correspondent à la tranche d'âge ET au profil : ils sont
+  // sourcés, datés, et c'est exactement ce qu'un anniversaire est censé
+  // rappeler — ce qui change pour toi cette année.
+  if (facts.length < 3) {
+    const bracket = ageToBracket(age);
+    const seen = new Set(cards.map((c) => c.title));
+    const fromCatalog = matchAdvice({ ...profile, age: bracket })
+      .filter((c) => c.titleKey || c.title)
+      .slice(0, 6)
+      .map((c) => card("good", "💡", resolveTitle(c, i18n), resolveBody(c, profile, i18n), c.sources))
+      .filter((c) => c.title && !seen.has(c.title))
+      .slice(0, 3 - facts.length);
+    cards.push(...fromCatalog);
+  }
 
   // 7. Carte contextuelle (situation / lieu)
   if (profile.occupation === "self_employed") {

@@ -92,7 +92,9 @@ export function planFeatures(tier: Exclude<Tier, "free">): PlanFeature[] {
 
   // 2. Les projets.
   if (l.maxEvents === null) out.push({ key: "plan.feature.eventsUnlimited" });
-  else if (l.maxEvents === 1) out.push({ key: "plan.feature.eventsOne" });
+  else if (l.maxEvents > 0) {
+    out.push({ key: "plan.feature.eventsCount", params: { n: l.maxEvents } });
+  }
   if (!l.blockedEventTypes.includes("wedding")) {
     out.push({ key: "plan.feature.wedding" });
   }

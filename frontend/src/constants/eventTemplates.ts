@@ -24,7 +24,7 @@
 // texte français en dur : `resolveEventLabel()` les affiche tels quels.
 // ============================================================================
 
-import type { EventLineItem, EventMilestone, EventProject } from "../lib/premiumStore";
+import type { EventLineItem, EventMilestone, EventProject, EventQuote } from "../lib/premiumStore";
 
 export type EventTier = "low" | "mid" | "high";
 
@@ -407,6 +407,27 @@ export function buildEventMilestones(tpl: EventTemplate): EventMilestone[] {
 // Messages personnalisés : compare l'avancement du financement au temps
 // restant, et parle comme un coach — pas comme un tableur.
 // ============================================================================
+
+/**
+ * Enregistre un relevé de prix et, s'il vise un poste, aligne le budget prévu
+ * de ce poste sur le prix relevé.
+ *
+ * C'est ce lien qui manquait : les devis vivaient dans `quotes`, le total ne
+ * sommait que `items`, et ajouter un devis de 3 000 € pour le traiteur ne
+ * changeait rien au budget. Le relevé reste conservé tel quel dans
+ * l'historique — c'est lui qui montre l'évolution d'un prix dans le temps.
+ */
+export function applyQuote(ev: EventProject, quote: EventQuote): EventProject {
+  const quotes = [quote, ...(ev.quotes ?? [])];
+  if (!quote.itemId) return { ...ev, quotes };
+  return {
+    ...ev,
+    quotes,
+    items: ev.items.map((it) =>
+      it.id === quote.itemId ? { ...it, estimated: quote.price } : it,
+    ),
+  };
+}
 
 export function eventTotals(ev: EventProject): { planned: number; spent: number } {
   const planned = ev.items.reduce((s, it) => s + (it.estimated || 0), 0);

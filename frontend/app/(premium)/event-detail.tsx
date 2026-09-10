@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   eventMessage,
+  applyQuote,
   eventTotals,
   monthlyNeeded,
   monthsUntil,
@@ -82,6 +83,8 @@ export default function EventDetail() {
   const [quoteLabel, setQuoteLabel] = useState("");
   const [quotePrice, setQuotePrice] = useState("");
   const [quoteSource, setQuoteSource] = useState("");
+  // Poste mis à jour par le prochain relevé. Null = simple note de prix.
+  const [quoteItemId, setQuoteItemId] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useFocusEffect(
@@ -210,8 +213,11 @@ export default function EventDetail() {
       price,
       date: new Date().toISOString(),
       source: quoteSource.trim() || undefined,
+      itemId: quoteItemId ?? undefined,
     };
-    persist({ ...ev, quotes: [q, ...(ev.quotes ?? [])] });
+    // Le relevé peut mettre à jour le poste visé : c'est là que le budget
+    // prévu bouge. Voir applyQuote.
+    persist(applyQuote(ev, q));
     setQuoteLabel(q.label); // garder l'intitulé : on suit le MÊME prix dans le temps
     setQuotePrice("");
     setQuoteSource("");
@@ -582,6 +588,36 @@ export default function EventDetail() {
               <Feather name="plus" size={18} color="#000" />
             </TouchableOpacity>
           </View>
+          {/* Quel poste ce prix met-il à jour ? Sans ce choix, un devis restait
+              une note à côté du budget et le total ne bougeait jamais. */}
+          <Text style={styles.trackerHint}>{t("event.quote.applyTo")}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+            <TouchableOpacity
+              onPress={() => setQuoteItemId(null)}
+              style={[styles.quoteChip, quoteItemId === null && styles.quoteChipOn]}
+              activeOpacity={0.8}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: quoteItemId === null }}
+            >
+              <Text style={[styles.quoteChipText, quoteItemId === null && styles.quoteChipTextOn]}>
+                {t("event.quote.noItem")}
+              </Text>
+            </TouchableOpacity>
+            {ev.items.map((it) => (
+              <TouchableOpacity
+                key={it.id}
+                onPress={() => setQuoteItemId(it.id)}
+                style={[styles.quoteChip, quoteItemId === it.id && styles.quoteChipOn]}
+                activeOpacity={0.8}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: quoteItemId === it.id }}
+              >
+                <Text style={[styles.quoteChipText, quoteItemId === it.id && styles.quoteChipTextOn]}>
+                  {resolveEventLabel(it.label, t)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
         {(ev.quotes ?? []).map((q) => {
           const delta = quoteDelta(q);
@@ -592,6 +628,14 @@ export default function EventDetail() {
                 <Text style={styles.quoteMeta}>
                   {new Date(q.date).toLocaleDateString(lang)}
                   {q.source ? ` · ${q.source}` : ""}
+                  {q.itemId
+                    ? ` · ${tp("event.quote.linked", {
+                        item: resolveEventLabel(
+                          ev.items.find((it) => it.id === q.itemId)?.label ?? "",
+                          t,
+                        ),
+                      })}`
+                    : ""}
                 </Text>
               </View>
               <View style={{ alignItems: "flex-end" }}>
@@ -793,6 +837,17 @@ const styles = StyleSheet.create({
   styleTip: { color: TEXT_2, fontSize: 13, lineHeight: 19 },
   stylePlace: { color: TEXT_3, fontSize: 12, lineHeight: 17 },
   trackerHint: { color: TEXT_3, fontSize: 12, lineHeight: 17, marginBottom: 10 },
+  quoteChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: SURFACE,
+  },
+  quoteChipOn: { borderColor: "rgba(74,222,128,0.5)", backgroundColor: "rgba(74,222,128,0.10)" },
+  quoteChipText: { color: TEXT_2, fontSize: 12 },
+  quoteChipTextOn: { color: GOLD, fontWeight: "700" },
   quoteForm: { gap: 8, marginBottom: 10 },
   quoteInput: {
     backgroundColor: SURFACE,

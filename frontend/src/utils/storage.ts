@@ -26,6 +26,10 @@ export type PersistedState = {
   cityId?: string;
   currency?: string;
   lang?: string;
+  // Dons & cadeaux, pour l'usage SANS compte. Avec un compte, la valeur vit
+  // dans le profil et prime sur celle-ci.
+  titheEnabled?: boolean;
+  tithePercent?: number;
 };
 
 export async function loadState(): Promise<PersistedState | null> {
