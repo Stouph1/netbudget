@@ -29,7 +29,9 @@ export default {
         text: {
           1: "#FAFAFA",
           2: "#A1A1AA",
-          3: "#71717A",
+          // 4,09:1 avant — sous le seuil AA de 4,5 pour du texte, et c'est la
+          // couleur des plus PETITS textes du site. Remontée à ~5,6:1.
+          3: "#8E8E99",
         },
       },
       fontFamily: {

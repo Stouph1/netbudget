@@ -30,7 +30,7 @@ const t = useTranslations(locale);
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram NETbudget"
-            class="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-text-2 transition hover:border-mint-500/40 hover:text-mint-400"
+            class="group inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-text-2 transition hover:border-mint-500/40 hover:text-mint-400"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -41,7 +41,7 @@ const t = useTranslations(locale);
           <a
             href="mailto:contact@netbudget.app"
             aria-label="Email"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-text-2 transition hover:border-mint-500/40 hover:text-mint-400"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-text-2 transition hover:border-mint-500/40 hover:text-mint-400"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -52,23 +52,23 @@ const t = useTranslations(locale);
       </div>
 
       <div>
-        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.links")}</h4>
-        <ul class="mt-4 space-y-2 text-sm">
-          <li><a href={localizedPath(locale, "/privacy/")} class="text-text-2 hover:text-text-1 transition">{t("footer.privacy")}</a></li>
-          <li><a href={localizedPath(locale, "/terms/")} class="text-text-2 hover:text-text-1 transition">{t("footer.terms")}</a></li>
-          <li><a href="mailto:contact@netbudget.app" class="text-text-2 hover:text-text-1 transition">{t("footer.contact")}</a></li>
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.links")}</p>
+        <ul class="mt-2 text-sm">
+          <li><a href={localizedPath(locale, "/privacy/")} class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.privacy")}</a></li>
+          <li><a href={localizedPath(locale, "/terms/")} class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.terms")}</a></li>
+          <li><a href="mailto:contact@netbudget.app" class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.contact")}</a></li>
         </ul>
       </div>
 
       <div>
-        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.follow")}</h4>
-        <ul class="mt-4 space-y-2 text-sm">
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.follow")}</p>
+        <ul class="mt-2 text-sm">
           <li>
             <a
               href="https://www.instagram.com/netbudget.app"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 text-text-2 hover:text-text-1 transition"
+              class="inline-flex min-h-11 items-center gap-2 text-text-2 hover:text-text-1 transition"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -83,7 +83,7 @@ const t = useTranslations(locale);
               href="https://apps.apple.com/app/netbudget/id6763551701"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 text-text-2 hover:text-text-1 transition"
+              class="inline-flex min-h-11 items-center gap-2 text-text-2 hover:text-text-1 transition"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M17.05 14.44c.02 2.15 1.94 2.76 1.95 2.78-.02.05-.33 1.13-1.08 2.24-.64.95-1.31 1.9-2.37 1.92-1.07.02-1.38-.65-2.59-.65-1.21 0-1.56.63-2.57.67-1.03.04-1.81-1.03-2.46-1.97C6.59 16.48 5.59 12.99 6.97 10.61c.69-1.17 1.92-1.92 3.25-1.95 1.02-.02 1.97.69 2.59.69.62 0 1.78-.85 3-.72.5.02 1.94.21 2.85 1.54-.07.05-1.71.96-1.69 3.27zM14.77 7.34c.55-.67.91-1.6.81-2.51-.78.03-1.73.52-2.29 1.2-.52.6-.96 1.54-.85 2.43.88.07 1.77-.47 2.33-1.12z"/>
@@ -96,7 +96,7 @@ const t = useTranslations(locale);
               href="https://play.google.com/store/apps/details?id=com.stouph.netbudget"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 text-text-2 hover:text-text-1 transition"
+              class="inline-flex min-h-11 items-center gap-2 text-text-2 hover:text-text-1 transition"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M3 20.5V3.5c0-.59.34-1.11.84-1.35L13.69 12 3.84 21.85A1.53 1.53 0 0 1 3 20.5zm13.81-5.38L6.05 21.34l8.49-8.49 2.27 2.27zm3.35-4.31c.34.27.59.69.59 1.19s-.25.92-.59 1.19l-2.27 1.31L15.39 12l2.5-2.5 2.27 1.31zM6.05 2.66l10.76 6.22-2.27 2.27L6.05 2.66z"/>
@@ -108,13 +108,13 @@ const t = useTranslations(locale);
       </div>
 
       <div>
-        <h4 class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.lang")}</h4>
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-text-3">{t("footer.lang")}</p>
         <div class="mt-4 flex flex-wrap gap-2">
           {LOCALES.map((l) => (
             <a
               href={localizedPath(l.code, "/")}
               class:list={[
-                "rounded-full border px-2.5 py-1 text-xs transition",
+                "inline-flex min-h-11 items-center rounded-full border px-3 text-sm transition",
                 l.code === locale
                   ? "border-mint-500/40 bg-mint-500/10 text-mint-400"
                   : "border-white/10 bg-white/[0.03] text-text-2 hover:text-text-1",
@@ -136,7 +136,7 @@ const t = useTranslations(locale);
           href="https://www.linkedin.com/in/stephane-p-aa6122186/"
           target="_blank"
           rel="noopener noreferrer"
-          class="font-medium text-text-2 hover:text-mint-400 transition"
+          class="inline-flex min-h-11 items-center font-medium text-text-2 hover:text-mint-400 transition"
         >
           Stéphane Pizeuil
         </a>

@@ -13,7 +13,39 @@
       radial-gradient(1200px 600px at 80% -10%, rgba(52, 211, 153, 0.10), transparent 60%),
       radial-gradient(900px 500px at -10% 20%, rgba(15, 30, 61, 0.55), transparent 60%),
       radial-gradient(800px 600px at 50% 110%, rgba(34, 211, 238, 0.06), transparent 60%);
-    background-attachment: fixed;
+    /* Pas de `background-attachment: fixed` : Safari iOS l'ignore et, sur
+       ordinateur, il force un recalcul du fond à chaque défilement. */
+  }
+
+  /* FOCUS VISIBLE. Aucun élément interactif n'avait d'anneau de focus : au
+     clavier, on ne savait pas où l'on était. Un seul style, cohérent, qui
+     n'apparaît qu'à la navigation clavier (focus-visible), jamais au clic. */
+  :focus-visible {
+    outline: 2px solid theme("colors.mint.400");
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  /* MOUVEMENT RÉDUIT. Réglage système « Réduire les animations » : on coupe
+     tout ce qui bouge sans être demandé — flottement, défilement infini des
+     avis, fondus d'apparition, défilement doux — et le contenu masqué en
+     attente d'animation devient visible tout de suite. C'est une exigence
+     d'accessibilité, pas une préférence esthétique. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
   }
   ::selection {
     @apply bg-mint-500 text-ink-900;
@@ -24,17 +56,19 @@
   .container-app {
     @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
   }
+  /* 44 px minimum : la cible tactile recommandée. `min-h-11` la garantit
+     quelle que soit la taille du texte. */
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-full bg-mint-500 px-6 py-3 text-sm font-semibold text-ink-900 transition hover:bg-mint-400 active:scale-95;
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full bg-mint-500 px-6 py-3 text-sm font-semibold text-ink-900 transition hover:bg-mint-400 active:scale-95;
   }
   .btn-secondary {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-text-1 backdrop-blur transition hover:bg-white/10;
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-text-1 backdrop-blur transition hover:bg-white/10;
   }
   .card {
     @apply rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.06];
   }
   .eyebrow {
-    @apply inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-text-2;
+    @apply inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-text-2;
   }
   .heading-1 {
     @apply text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl;

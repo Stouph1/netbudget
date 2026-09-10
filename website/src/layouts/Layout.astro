@@ -147,6 +147,15 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body class="font-sans">
+    {/* Lien d'évitement : premier élément focusable, visible seulement au
+        clavier. Sans lui, chaque page commence par traverser toute la barre
+        de navigation avant d'atteindre le contenu. */}
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-full focus:bg-mint-500 focus:px-5 focus:text-sm focus:font-semibold focus:text-ink-900"
+    >
+      {t("a11y.skip")}
+    </a>
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-mint-500 focus:px-3 focus:py-2 focus:text-ink-900"

@@ -21,6 +21,9 @@ const fr: Catalog = {
   "nav.privacyPromise": "Vie privée",
   "nav.faq": "FAQ",
   "nav.legal": "Légal",
+  "a11y.skip": "Aller au contenu",
+  "hero.video.pause": "Mettre l\'animation en pause",
+  "hero.video.play": "Lancer l\'animation",
   "nav.label": "Navigation principale",
   "nav.download": "Télécharger",
 
@@ -384,6 +387,9 @@ const en: Catalog = {
   "nav.privacyPromise": "Privacy",
   "nav.faq": "FAQ",
   "nav.legal": "Legal",
+  "a11y.skip": "Skip to content",
+  "hero.video.pause": "Pause the animation",
+  "hero.video.play": "Play the animation",
   "nav.label": "Main navigation",
   "nav.download": "Download",
 
