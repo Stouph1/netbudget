@@ -16,8 +16,8 @@ import type { UserProfile } from "../types/advice";
 const ids = (p: UserProfile) => matchAdvice(p).map((c) => c.id);
 
 describe("intégrité du catalogue", () => {
-  it("contient les 255 cartes attendues", () => {
-    expect(ADVICE_CATALOG_FR).toHaveLength(255);
+  it("contient les 278 cartes attendues", () => {
+    expect(ADVICE_CATALOG_FR).toHaveLength(278);
   });
 
   it("n'a aucun identifiant en double", () => {
@@ -243,5 +243,30 @@ describe("déclaration de revenus", () => {
   it("adresse la ligne micro aux seuls indépendants", () => {
     expect(ids({ country: "FR", age: "26-35", occupation: "self_employed" })).toContain("impots-micro-2042cpro");
     expect(ids({ country: "FR", age: "26-35", occupation: "employee" })).not.toContain("impots-micro-2042cpro");
+  });
+});
+
+describe("international : portails et véhicule", () => {
+  const ids = (p: Parameters<typeof matchAdvice>[0]) => matchAdvice(p).map((c) => c.id);
+
+  it("donne à chaque pays couvert son portail de déclaration, et rien d'autre", () => {
+    expect(ids({ country: "BE", age: "26-35" })).toContain("tax-portal-be");
+    expect(ids({ country: "BE", age: "26-35" })).not.toContain("tax-portal-gb");
+    expect(ids({ country: "FR", age: "26-35" })).not.toContain("tax-portal-be");
+  });
+
+  // Sénégal et Algérie : aucune page officielle joignable au moment de l'écriture.
+  // On préfère l'absence à une adresse qu'on n'a pas vue répondre.
+  it("ne fabrique pas de portail pour les pays non vérifiés", () => {
+    expect(ids({ country: "SN", age: "26-35" }).some((i) => i.startsWith("tax-portal-"))).toBe(false);
+    expect(ids({ country: "DZ", age: "26-35" }).some((i) => i.startsWith("tax-portal-"))).toBe(false);
+  });
+
+  it("adapte les cartes véhicule à l'énergie", () => {
+    expect(ids({ country: "BE", age: "26-35", vehicle: "petrol" })).toEqual(
+      expect.arrayContaining(["veh-be-assurance", "veh-be-tarif-carburant"]),
+    );
+    expect(ids({ country: "BE", age: "26-35", vehicle: "electric" })).not.toContain("veh-be-tarif-carburant");
+    expect(ids({ country: "US", age: "26-35", vehicle: "electric" })).toContain("veh-us-fueleconomy");
   });
 });
