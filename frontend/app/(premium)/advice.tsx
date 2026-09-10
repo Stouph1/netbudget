@@ -47,6 +47,7 @@ import {
   resolveBody,
   resolveFigures,
   resolveTitle,
+  normalizeVehicle,
 } from "../../src/types/advice";
 import type {
   AdviceCard,
@@ -183,15 +184,29 @@ type OnboardingConfig = {
   vehicleLabel: string;
 };
 
-// Énergie du véhicule principal. « Aucun » est une réponse à part entière :
-// les cartes d'achat et d'aides s'adressent aussi à qui envisage d'en prendre.
+// Comment on se déplace. « Aucun » est une réponse à part entière : les cartes
+// d'achat et d'aides s'adressent aussi à qui envisage de prendre une voiture.
+// Vélo, trottinette, moto, voiture : chacun a ses obligations et ses cartes.
 const vehicleOptions = (t: Translate): { value: NonNullable<UserProfile["vehicle"]>; label: string }[] => [
   { value: "none", label: t("coach.vehicle.none") },
+  { value: "bike", label: t("coach.vehicle.bike") },
+  { value: "scooter", label: t("coach.vehicle.scooter") },
+  { value: "moto", label: t("coach.vehicle.moto") },
+  { value: "car", label: t("coach.vehicle.car") },
+];
+
+// La motorisation ne se demande que pour ce qui a un moteur et un réservoir à
+// remplir — ou pas : c'est elle qui décide des cartes carburant.
+const vehicleEnergyOptions = (t: Translate): { value: NonNullable<UserProfile["vehicleEnergy"]>; label: string }[] => [
   { value: "petrol", label: t("coach.vehicle.petrol") },
   { value: "diesel", label: t("coach.vehicle.diesel") },
   { value: "hybrid", label: t("coach.vehicle.hybrid") },
   { value: "electric", label: t("coach.vehicle.electric") },
 ];
+
+function needsEnergy(p: UserProfile): boolean {
+  return p.vehicle === "car" || p.vehicle === "moto";
+}
 
 const onboardingConfig = (
   t: Translate,
@@ -346,6 +361,7 @@ function profileCompleteness(
   }
   if (cfg.askPets) optional.push(p.hasPets === undefined ? undefined : true);
   if (cfg.askVehicle) optional.push(p.vehicle === undefined ? undefined : true);
+  if (cfg.askVehicle && needsEnergy(p)) optional.push(p.vehicleEnergy);
   const filled = optional.filter((v) => v !== undefined && v !== null).length;
   return { filled, total: optional.length };
 }
@@ -509,7 +525,8 @@ export default function AdviceScreen() {
     }
     (async () => {
       setLoading(true);
-      const loaded = await loadAdviceProfile(user.id, workspaceId);
+      // Profils d'avant la question « quel véhicule ? » : lus au nouveau format.
+      const loaded = normalizeVehicle(await loadAdviceProfile(user.id, workspaceId));
       setProfile(loaded);
       // Onboarding forcé seulement si le minimum du mode n'est pas rempli
       // (asso : rien d'obligatoire → direct sur les conseils).
@@ -570,6 +587,8 @@ export default function AdviceScreen() {
       out.push(t("coach.missing.pets"));
     if (cfg.askVehicle && profile.vehicle === undefined)
       out.push(t("coach.missing.vehicle"));
+    if (cfg.askVehicle && needsEnergy(profile) && !profile.vehicleEnergy)
+      out.push(t("coach.missing.vehicleEnergy"));
     return out;
   }, [profile, cfg, t]);
 
@@ -732,7 +751,26 @@ export default function AdviceScreen() {
               label={cfg.vehicleLabel}
               options={vehicleOptions(t)}
               value={profile.vehicle}
-              onSelect={(v) => updateField("vehicle", v)}
+              onSelect={(v) =>
+                // Changer de type efface la motorisation quand elle n'a plus
+                // de sens : un vélo n'est ni essence ni diesel.
+                persist({
+                  ...profile,
+                  vehicle: v,
+                  vehicleEnergy:
+                    v === "car" || v === "moto" ? profile.vehicleEnergy : undefined,
+                })
+              }
+              allowDeselect
+            />
+          ) : null}
+
+          {cfg.askVehicle && needsEnergy(profile) ? (
+            <QuestionBlock
+              label={t("coach.vehicle.energyLabel")}
+              options={vehicleEnergyOptions(t)}
+              value={profile.vehicleEnergy}
+              onSelect={(v) => updateField("vehicleEnergy", v)}
               allowDeselect
             />
           ) : null}

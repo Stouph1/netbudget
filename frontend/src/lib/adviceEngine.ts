@@ -19,7 +19,7 @@ import type {
   PetSpecies,
   UserProfile,
 } from "../types/advice";
-import { ADVICE_GROUPS, hasAnyKids, hasChildrenIn } from "../types/advice";
+import { ADVICE_GROUPS, hasAnyKids, hasChildrenIn, normalizeVehicle } from "../types/advice";
 
 // ============================================================================
 // Helpers de prédicat
@@ -63,13 +63,21 @@ const or =
   (p) =>
     preds.some((f) => f(p));
 
-// Véhicule du foyer. `hasVehicle` = a répondu autre chose que « aucun ».
-const vehicleIs =
-  (...energies: NonNullable<UserProfile["vehicle"]>[]): AdvicePredicate =>
+// Véhicule du foyer. Le TYPE décide des cartes ; l'énergie n'affine que pour
+// les véhicules à moteur (voiture, moto).
+const rides =
+  (...types: NonNullable<UserProfile["vehicle"]>[]): AdvicePredicate =>
   (p) =>
-    !!p.vehicle && energies.includes(p.vehicle);
-const hasVehicle: AdvicePredicate = (p) => !!p.vehicle && p.vehicle !== "none";
+    !!p.vehicle && types.includes(p.vehicle);
+// Véhicule terrestre à moteur : assurance obligatoire, carburant, frais réels.
+const hasVehicle: AdvicePredicate = rides("car", "moto");
+// Fait le plein : voiture ou moto dont la motorisation brûle du carburant.
+// Motorisation inconnue = on ne suppose rien, la question reste posée.
+const usesFuel: AdvicePredicate = (p) =>
+  hasVehicle(p) && !!p.vehicleEnergy && p.vehicleEnergy !== "electric";
 const answeredVehicle: AdvicePredicate = (p) => p.vehicle !== undefined;
+// Concerné par l'achat d'une voiture : en a une, ou n'a rien et y pense.
+const carMinded: AdvicePredicate = rides("none", "car");
 
 // Cadre de vie / logement / situation pro
 const zoneIs =
@@ -3950,7 +3958,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     action: { link: "https://carlabelling.ademe.fr/" },
     // Qui a un véhicule finira par le remplacer ; qui n'en a pas envisage
     // peut-être d'en prendre un. Les deux ont besoin du comparateur.
-    appliesWhen: answeredVehicle,
+    appliesWhen: carMinded,
     priority: 82,
     figures: [{ label: "adv.veh-comparer-ademe.fig.0.label", value: "3 451" }],
     sources: ["https://carlabelling.ademe.fr/"],
@@ -3964,7 +3972,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     bodyKey: "adv.veh-prix-carburants.body",
     actionLabelKey: "adv.veh-prix-carburants.action",
     action: { link: "https://www.prix-carburants.gouv.fr/" },
-    appliesWhen: vehicleIs("petrol", "diesel", "hybrid"),
+    appliesWhen: usesFuel,
     priority: 78,
     sources: ["https://www.prix-carburants.gouv.fr/"],
     lastVerified: "2026-09-10",
@@ -3995,7 +4003,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     bodyKey: "adv.veh-aides-achat.body",
     actionLabelKey: "adv.veh-aides-achat.action",
     action: { link: "https://www.primealaconversion.gouv.fr/" },
-    appliesWhen: answeredVehicle,
+    appliesWhen: carMinded,
     priority: 74,
     // Aucun montant : la page officielle renvoie aux barèmes PDF et n'en
     // affiche pas. On ne recopie pas un chiffre qu'on n'a pas lu.
@@ -4003,6 +4011,77 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     lastVerified: "2026-09-10",
   },
 
+
+  // Deux-roues et engins : d'autres obligations, d'autres postes. Chaque
+  // chiffre vient de la fiche citée, lue à la date indiquée.
+  {
+    id: "veh-trottinette-regles",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-trottinette-regles.title",
+    bodyKey: "adv.veh-trottinette-regles.body",
+    actionLabelKey: "adv.veh-trottinette-regles.action",
+    action: { link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F308" },
+    appliesWhen: rides("scooter"),
+    priority: 86,
+    figures: [
+      { label: "adv.veh-trottinette-regles.fig.0.label", value: "25 km/h" },
+      { label: "adv.veh-trottinette-regles.fig.1.label", value: "135 €" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F308"],
+    lastVerified: "2026-08-11",
+  },
+  {
+    id: "veh-moto-controle-technique",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-moto-controle-technique.title",
+    bodyKey: "adv.veh-moto-controle-technique.body",
+    actionLabelKey: "adv.veh-moto-controle-technique.action",
+    action: { link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F37538" },
+    appliesWhen: rides("moto"),
+    priority: 84,
+    figures: [
+      { label: "adv.veh-moto-controle-technique.fig.0.label", value: "3 ans" },
+      { label: "adv.veh-moto-controle-technique.fig.1.label", value: "750 €" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F37538"],
+    lastVerified: "2026-01-01",
+  },
+  {
+    id: "veh-velo-equipements",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-velo-equipements.title",
+    bodyKey: "adv.veh-velo-equipements.body",
+    actionLabelKey: "adv.veh-velo-equipements.action",
+    action: { link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F34169" },
+    appliesWhen: rides("bike"),
+    priority: 80,
+    figures: [
+      { label: "adv.veh-velo-equipements.fig.0.label", value: "12 ans" },
+      { label: "adv.veh-velo-equipements.fig.1.label", value: "135 €" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F34169"],
+    lastVerified: "2026-06-10",
+  },
+  {
+    id: "veh-vae-immatriculation",
+    category: "vehicle",
+    countries: ["FR"],
+    titleKey: "adv.veh-vae-immatriculation.title",
+    bodyKey: "adv.veh-vae-immatriculation.body",
+    actionLabelKey: "adv.veh-vae-immatriculation.action",
+    action: { link: "https://www.service-public.gouv.fr/particuliers/vosdroits/F32294" },
+    appliesWhen: rides("bike"),
+    priority: 72,
+    figures: [
+      { label: "adv.veh-vae-immatriculation.fig.0.label", value: "250 W" },
+      { label: "adv.veh-vae-immatriculation.fig.1.label", value: "25 km/h" },
+    ],
+    sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F32294"],
+    lastVerified: "2024-06-25",
+  },
   // ==========================================================================
   // DÉCLARATION DE REVENUS — guide instructif. Vérifié 2026-09-10 sur
   // service-public F358 (05/06/2026), F1989 (15/04/2026), F23267 (13/05/2026).
@@ -4281,7 +4360,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     bodyKey: "adv.veh-be-tarif-carburant.body",
     actionLabelKey: "adv.veh-be-tarif-carburant.action",
     action: { link: "https://economie.fgov.be/fr/themes/energie/prix-de-lenergie/prix-maximum-des-produits/tarif-officiel-des-produits" },
-    appliesWhen: vehicleIs("petrol", "diesel", "hybrid"),
+    appliesWhen: usesFuel,
     priority: 78,
     sources: ["https://economie.fgov.be/fr/themes/energie/prix-de-lenergie/prix-maximum-des-produits/tarif-officiel-des-produits"],
     lastVerified: "2026-09-10",
@@ -4333,7 +4412,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     bodyKey: "adv.veh-es-geoportal.body",
     actionLabelKey: "adv.veh-es-geoportal.action",
     action: { link: "https://geoportalgasolineras.es/" },
-    appliesWhen: vehicleIs("petrol", "diesel", "hybrid"),
+    appliesWhen: usesFuel,
     priority: 78,
     sources: ["https://geoportalgasolineras.es/"],
     lastVerified: "2026-09-10",
@@ -4346,7 +4425,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     bodyKey: "adv.veh-it-osservaprezzi.body",
     actionLabelKey: "adv.veh-it-osservaprezzi.action",
     action: { link: "https://carburanti.mise.gov.it/ospzSearch/home" },
-    appliesWhen: vehicleIs("petrol", "diesel", "hybrid"),
+    appliesWhen: usesFuel,
     priority: 78,
     sources: ["https://carburanti.mise.gov.it/ospzSearch/home"],
     lastVerified: "2026-09-10",
@@ -4359,7 +4438,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     bodyKey: "adv.veh-pt-dgeg.body",
     actionLabelKey: "adv.veh-pt-dgeg.action",
     action: { link: "https://precoscombustiveis.dgeg.gov.pt/" },
-    appliesWhen: vehicleIs("petrol", "diesel", "hybrid"),
+    appliesWhen: usesFuel,
     priority: 78,
     sources: ["https://precoscombustiveis.dgeg.gov.pt/"],
     lastVerified: "2026-09-10",
@@ -4372,7 +4451,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     bodyKey: "adv.veh-de-mtsk.body",
     actionLabelKey: "adv.veh-de-mtsk.action",
     action: { link: "https://www.bundeskartellamt.de/DE/Aufgaben/MarkttransparenzstelleFuerKraftstoffe/markttransparenzstellefuerkraftstoffe_node.html" },
-    appliesWhen: vehicleIs("petrol", "diesel", "hybrid"),
+    appliesWhen: usesFuel,
     priority: 78,
     sources: ["https://www.bundeskartellamt.de/DE/Aufgaben/MarkttransparenzstelleFuerKraftstoffe/markttransparenzstellefuerkraftstoffe_node.html"],
     lastVerified: "2026-09-10",
@@ -5433,10 +5512,13 @@ export function effectivePriority(card: AdviceCard, inflationPct?: number): numb
  * tests du catalogue, de garder un ordre stable et prévisible.
  */
 export function matchAdvice(
-  profile: UserProfile,
+  rawProfile: UserProfile,
   catalog: AdviceCard[] = ADVICE_CATALOG_FR,
   inflationPct?: number,
 ): AdviceCard[] {
+  // Les profils enregistrés avant la question « quel véhicule ? » portent
+  // encore l'énergie dans `vehicle` : on les lit au nouveau format.
+  const profile = normalizeVehicle(rawProfile);
   return catalog
     .filter(
       (card) =>

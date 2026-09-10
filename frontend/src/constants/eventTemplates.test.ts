@@ -12,6 +12,7 @@ import {
   EVENT_TEMPLATES,
   EVENT_TIERS,
   eventTotals,
+  linkQuote,
   monthlyNeeded,
   monthsUntil,
   resolveEventLabel,
@@ -241,5 +242,33 @@ describe("buildEventMilestones", () => {
   it("attribue des identifiants uniques", () => {
     const ms = buildEventMilestones(templateFor("travel")!);
     expect(new Set(ms.map((m) => m.id)).size).toBe(ms.length);
+  });
+});
+
+describe("linkQuote", () => {
+  // Le cas vu en test : on note 500 €, on appuie sur +, et on découvre ensuite
+  // les postes. Rattacher après coup doit faire bouger le budget prévu.
+  const base = {
+    id: "e1", type: "party", title: "Fête", date: "2026-12-06", guests: 25,
+    items: [
+      { id: "food", label: "Nourriture", estimated: 250 },
+      { id: "gifts", label: "Invitations", estimated: 30 },
+    ],
+    milestones: [],
+    saved: 0,
+    quotes: [{ id: "q1", label: "Voiture porsche hotwheels", price: 500, date: "2026-09-11T00:00:00.000Z" }],
+  } as unknown as Parameters<typeof linkQuote>[0];
+
+  it("rattache le relevé et aligne le poste sur son prix", () => {
+    const out = linkQuote(base, "q1", "gifts");
+    expect(out.quotes?.[0].itemId).toBe("gifts");
+    expect(out.items.find((i) => i.id === "gifts")?.estimated).toBe(500);
+    expect(out.items.find((i) => i.id === "food")?.estimated).toBe(250);
+    expect(eventTotals(out).planned).toBe(750);
+  });
+
+  it("ne touche à rien si le relevé ou le poste n'existe pas", () => {
+    expect(linkQuote(base, "zz", "gifts")).toBe(base);
+    expect(linkQuote(base, "q1", "zz")).toBe(base);
   });
 });

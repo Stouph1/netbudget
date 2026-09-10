@@ -25,11 +25,30 @@ export type HousingStatus = "renter" | "owner" | "accessor" | "free_housing";
 export type HousingType = "apartment" | "house"; // copropriété vs entretien intégral
 
 /**
- * Énergie du véhicule principal du foyer. « none » = pas de véhicule, valeur
- * utile en soi : les conseils d'achat et d'aides s'adressent aussi à qui
- * envisage d'en prendre un.
+ * Comment on se déplace au quotidien. « none » = pas de véhicule, valeur utile
+ * en soi : les conseils d'achat et d'aides s'adressent aussi à qui envisage
+ * d'en prendre un. Vélo, trottinette, moto et voiture n'ont ni les mêmes
+ * obligations ni les mêmes postes de budget : c'est le type qui décide des
+ * cartes, l'énergie n'affine que pour les véhicules à moteur.
  */
-export type VehicleEnergy = "none" | "petrol" | "diesel" | "hybrid" | "electric";
+export type VehicleType = "none" | "bike" | "scooter" | "moto" | "car";
+
+/** Motorisation d'une voiture ou d'une moto. Demandée seulement pour elles. */
+export type VehicleEnergy = "petrol" | "diesel" | "hybrid" | "electric";
+
+/** Valeurs historiques du champ `vehicle`, quand il portait l'énergie. */
+const LEGACY_VEHICLE_ENERGIES: readonly string[] = ["petrol", "diesel", "hybrid", "electric"];
+
+/**
+ * Migre un profil enregistré avant la question « quel véhicule ? », quand
+ * `vehicle` valait « essence » ou « diesel » : c'était forcément une voiture.
+ * Idempotent, sans effet sur un profil déjà au nouveau format.
+ */
+export function normalizeVehicle(p: UserProfile): UserProfile {
+  const raw = p.vehicle as string | undefined;
+  if (raw === undefined || !LEGACY_VEHICLE_ENERGIES.includes(raw)) return p;
+  return { ...p, vehicle: "car", vehicleEnergy: p.vehicleEnergy ?? (raw as VehicleEnergy) };
+}
 
 export type Occupation =
   | "student"
@@ -108,7 +127,8 @@ export type UserProfile = {
   caregiver?: boolean;               // aide un proche (hors enfant du foyer)
   // Véhicule : assurance, carburant, frais réels, aides à l'achat — un vrai
   // poste de budget, partout. Absent = question non posée.
-  vehicle?: VehicleEnergy;
+  vehicle?: VehicleType;
+  vehicleEnergy?: VehicleEnergy;
 };
 
 // ============================================================================

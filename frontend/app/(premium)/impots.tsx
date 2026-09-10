@@ -14,7 +14,8 @@ import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { goBack } from "../../src/lib/nav";
 import { loadAdviceProfile } from "../../src/lib/premiumStore";
-import { stepsFor } from "../../src/lib/taxGuide";
+import { loadProfileDetails } from "../../src/lib/profile";
+import { audiencesOf, stepsFor, type TaxProfile } from "../../src/lib/taxGuide";
 import { openExternal } from "../../src/utils/openExternal";
 
 const MIDNIGHT = "#0F172A";
@@ -28,21 +29,31 @@ const BORDER = "rgba(255,255,255,0.10)";
 export default function ImpotsScreen() {
   const { t, lang } = useLang();
   const { user } = useSession();
-  const [occupation, setOccupation] = useState<string | undefined>(undefined);
+  const [taxProfile, setTaxProfile] = useState<TaxProfile>({});
   const [done, setDone] = useState<string[]>([]);
 
+  // Le guide lit deux choses : le profil Coach (situation, enfants) et le
+  // réglage « Dons & cadeaux ». Rien d'autre — pas de montant, pas de revenu.
   useEffect(() => {
     if (!user?.id) return;
     let alive = true;
-    loadAdviceProfile(user.id, null).then((p) => {
-      if (alive) setOccupation(p.occupation);
-    });
+    Promise.all([loadAdviceProfile(user.id, null), loadProfileDetails(user.id)]).then(
+      ([p, details]) => {
+        if (!alive) return;
+        setTaxProfile({
+          occupation: p.occupation ?? details.occupation_status ?? undefined,
+          gives: details.tithe_enabled && details.tithe_percent > 0,
+          youngKids: !!p.children?.includes("0-6"),
+        });
+      },
+    );
     return () => {
       alive = false;
     };
   }, [user?.id]);
 
-  const steps = useMemo(() => stepsFor(occupation), [occupation]);
+  const steps = useMemo(() => stepsFor(taxProfile), [taxProfile]);
+  const audiences = useMemo(() => audiencesOf(taxProfile), [taxProfile]);
   const fmtDate = (iso: string) => {
     try {
       return new Intl.DateTimeFormat(lang, { dateStyle: "long" }).format(new Date(iso));
@@ -62,6 +73,16 @@ export default function ImpotsScreen() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         <Text style={s.intro}>{t("impots.intro")}</Text>
+        {/* Pourquoi CES étapes : la personne voit ce que le guide a retenu
+            d'elle, et peut corriger dans son profil si c'est faux. */}
+        <View style={s.audRow}>
+          <Text style={s.audLead}>{t("impots.for.lead")}</Text>
+          {audiences.map((a) => (
+            <View key={a} style={s.audChip}>
+              <Text style={s.audChipText}>{t(`impots.for.${a}`)}</Text>
+            </View>
+          ))}
+        </View>
         <Text style={s.progress}>
           {done.filter((d) => steps.some((st) => st.id === d)).length} / {steps.length}
         </Text>
@@ -116,6 +137,10 @@ const s = StyleSheet.create({
   title: { color: TEXT_1, fontSize: 18, fontWeight: "800" },
   intro: { color: TEXT_2, fontSize: 14, lineHeight: 20, marginBottom: 8 },
   progress: { color: GOLD, fontSize: 13, fontWeight: "800", marginBottom: 14 },
+  audRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, marginBottom: 10 },
+  audLead: { color: TEXT_3, fontSize: 12 },
+  audChip: { borderRadius: 999, borderWidth: 1, borderColor: "rgba(74,222,128,0.35)", backgroundColor: "rgba(74,222,128,0.08)", paddingHorizontal: 9, paddingVertical: 3 },
+  audChipText: { color: GOLD, fontSize: 12, fontWeight: "700" },
   card: { padding: 14, borderRadius: 14, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE, marginBottom: 10 },
   cardOn: { borderColor: "rgba(74,222,128,0.35)" },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 11 },

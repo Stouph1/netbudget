@@ -429,6 +429,23 @@ export function applyQuote(ev: EventProject, quote: EventQuote): EventProject {
   };
 }
 
+/**
+ * Rattache après coup un relevé à un poste, et aligne ce poste sur son prix.
+ *
+ * Le cas réel : on note un prix, on appuie sur « + », et l'on découvre ensuite
+ * la liste des postes. Sans cette fonction, le relevé restait orphelin et il
+ * fallait le supprimer puis le ressaisir pour que le budget bouge.
+ */
+export function linkQuote(ev: EventProject, quoteId: string, itemId: string): EventProject {
+  const quote = (ev.quotes ?? []).find((q) => q.id === quoteId);
+  if (!quote || !ev.items.some((it) => it.id === itemId)) return ev;
+  return {
+    ...ev,
+    quotes: (ev.quotes ?? []).map((q) => (q.id === quoteId ? { ...q, itemId } : q)),
+    items: ev.items.map((it) => (it.id === itemId ? { ...it, estimated: quote.price } : it)),
+  };
+}
+
 export function eventTotals(ev: EventProject): { planned: number; spent: number } {
   const planned = ev.items.reduce((s, it) => s + (it.estimated || 0), 0);
   const spent = ev.items.reduce((s, it) => s + (it.actual ?? 0), 0);

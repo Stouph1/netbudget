@@ -4,6 +4,7 @@
 // français à un Japonais, ou les droits handicap à quelqu'un qui n'est pas
 // concerné. C'est ce que cette suite verrouille.
 
+import { normalizeVehicle } from "../types/advice";
 import {
   ADVICE_CATALOG_FR,
   computeBudgetSplit,
@@ -16,8 +17,8 @@ import type { UserProfile } from "../types/advice";
 const ids = (p: UserProfile) => matchAdvice(p).map((c) => c.id);
 
 describe("intégrité du catalogue", () => {
-  it("contient les 278 cartes attendues", () => {
-    expect(ADVICE_CATALOG_FR).toHaveLength(278);
+  it("contient les 282 cartes attendues", () => {
+    expect(ADVICE_CATALOG_FR).toHaveLength(282);
   });
 
   it("n'a aucun identifiant en double", () => {
@@ -205,7 +206,7 @@ describe("véhicule", () => {
   });
 
   it("parle assurance et carburant à qui roule à l'essence", () => {
-    const got = ids({ country: "FR", age: "26-35", vehicle: "petrol" });
+    const got = ids({ country: "FR", age: "26-35", vehicle: "car", vehicleEnergy: "petrol" });
     expect(got).toContain("veh-assurance-obligatoire");
     expect(got).toContain("veh-prix-carburants");
     expect(got).toContain("veh-comparer-ademe");
@@ -213,7 +214,7 @@ describe("véhicule", () => {
 
   // L'électrique n'a pas de plein à comparer, mais reste assuré et éligible aux aides.
   it("épargne les prix carburant à l'électrique", () => {
-    const got = ids({ country: "FR", age: "26-35", vehicle: "electric" });
+    const got = ids({ country: "FR", age: "26-35", vehicle: "car", vehicleEnergy: "electric" });
     expect(got).not.toContain("veh-prix-carburants");
     expect(got).toContain("veh-assurance-obligatoire");
     expect(got).toContain("veh-aides-achat");
@@ -227,9 +228,43 @@ describe("véhicule", () => {
     expect(got).not.toContain("veh-assurance-obligatoire");
   });
 
+  // Chaque façon de se déplacer a ses obligations : on ne parle pas de plein à
+  // un cycliste, ni de contrôle technique à une trottinette.
+  it("parle équipement et seuils VAE au cycliste, rien d'autre", () => {
+    const got = ids({ country: "FR", age: "26-35", vehicle: "bike" });
+    expect(got).toEqual(expect.arrayContaining(["veh-velo-equipements", "veh-vae-immatriculation"]));
+    for (const id of ["veh-assurance-obligatoire", "veh-prix-carburants", "veh-comparer-ademe", "veh-trottinette-regles", "veh-moto-controle-technique"])
+      expect(got).not.toContain(id);
+  });
+
+  it("donne ses règles à la trottinette, le contrôle technique à la moto", () => {
+    const scooter = ids({ country: "FR", age: "26-35", vehicle: "scooter" });
+    expect(scooter).toContain("veh-trottinette-regles");
+    expect(scooter).not.toContain("veh-assurance-obligatoire");
+    const moto = ids({ country: "FR", age: "26-35", vehicle: "moto", vehicleEnergy: "petrol" });
+    expect(moto).toEqual(expect.arrayContaining(["veh-moto-controle-technique", "veh-assurance-obligatoire", "veh-prix-carburants"]));
+    expect(moto).not.toContain("veh-comparer-ademe");
+  });
+
+  // Motorisation inconnue : on ne suppose pas un réservoir.
+  it("attend la motorisation avant de parler carburant", () => {
+    expect(ids({ country: "FR", age: "26-35", vehicle: "car" })).not.toContain("veh-prix-carburants");
+    expect(ids({ country: "FR", age: "26-35", vehicle: "car" })).toContain("veh-assurance-obligatoire");
+  });
+
+  // Les profils enregistrés avant la question portaient l'énergie dans
+  // `vehicle` : ils doivent continuer à recevoir leurs cartes.
+  it("lit un ancien profil « diesel » comme une voiture diesel", () => {
+    const got = ids({ country: "FR", age: "26-35", vehicle: "diesel" as never });
+    expect(got).toEqual(expect.arrayContaining(["veh-assurance-obligatoire", "veh-prix-carburants"]));
+    expect(normalizeVehicle({ vehicle: "hybrid" as never })).toEqual({ vehicle: "car", vehicleEnergy: "hybrid" });
+    expect(normalizeVehicle({ vehicle: "bike" })).toEqual({ vehicle: "bike" });
+    expect(normalizeVehicle({})).toEqual({});
+  });
+
   it("réserve les frais réels kilométriques aux salariés", () => {
-    expect(ids({ country: "FR", age: "26-35", vehicle: "diesel", occupation: "employee" })).toContain("veh-frais-reels-km");
-    expect(ids({ country: "FR", age: "26-35", vehicle: "diesel", occupation: "retired" })).not.toContain("veh-frais-reels-km");
+    expect(ids({ country: "FR", age: "26-35", vehicle: "car", vehicleEnergy: "diesel", occupation: "employee" })).toContain("veh-frais-reels-km");
+    expect(ids({ country: "FR", age: "26-35", vehicle: "car", vehicleEnergy: "diesel", occupation: "retired" })).not.toContain("veh-frais-reels-km");
   });
 });
 
@@ -263,10 +298,10 @@ describe("international : portails et véhicule", () => {
   });
 
   it("adapte les cartes véhicule à l'énergie", () => {
-    expect(ids({ country: "BE", age: "26-35", vehicle: "petrol" })).toEqual(
+    expect(ids({ country: "BE", age: "26-35", vehicle: "car", vehicleEnergy: "petrol" })).toEqual(
       expect.arrayContaining(["veh-be-assurance", "veh-be-tarif-carburant"]),
     );
-    expect(ids({ country: "BE", age: "26-35", vehicle: "electric" })).not.toContain("veh-be-tarif-carburant");
-    expect(ids({ country: "US", age: "26-35", vehicle: "electric" })).toContain("veh-us-fueleconomy");
+    expect(ids({ country: "BE", age: "26-35", vehicle: "car", vehicleEnergy: "electric" })).not.toContain("veh-be-tarif-carburant");
+    expect(ids({ country: "US", age: "26-35", vehicle: "car", vehicleEnergy: "electric" })).toContain("veh-us-fueleconomy");
   });
 });

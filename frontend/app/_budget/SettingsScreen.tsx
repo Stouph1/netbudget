@@ -18,7 +18,7 @@ import {
 } from "../../src/components/tour/TourContext";
 import { TierUnlock } from "../../src/components/TierUnlock";
 import { TierGlyph } from "../../src/components/TierBadge";
-import type { Tier } from "../../src/lib/entitlements";
+import { limitsFor, type Tier } from "../../src/lib/entitlements";
 import type { Translate } from "./types";
 
 export default function SettingsScreen({
@@ -43,6 +43,8 @@ export default function SettingsScreen({
   onReplayBirthday,
   forcedTier,
   onForceTier,
+  tier,
+  occupation,
 }: {
   currency: CurrencyCode;
   lang: Lang;
@@ -72,6 +74,10 @@ export default function SettingsScreen({
   /** Palier actuellement forcé, ou null. */
   forcedTier: Tier | null;
   onForceTier: (tier: Tier | null) => void;
+  /** Palier effectif (forcé ou réel) : ouvre ou verrouille les guides. */
+  tier: Tier;
+  /** Situation professionnelle du profil ; la ligne ACRE n'a de sens qu'en indépendant. */
+  occupation: string | null;
 }) {
   // Aperçu de l'écran de déverrouillage, en développement uniquement.
   const [previewTier, setPreviewTier] = React.useState<
@@ -263,6 +269,40 @@ export default function SettingsScreen({
             <Text style={[styles.toggleLabel, { marginLeft: 6 }]}>%</Text>
           </View>
         ) : null}
+      </Section>
+
+      {/* Impôts et démarches. Les guides vivent dans le Coach (Solo et plus) ;
+          les mettre ici, c'est les rendre trouvables sans passer par les
+          conseils. Verrouillé : la ligne dit ce qu'elle attend et mène aux
+          formules, elle ne disparaît pas. */}
+      <Section title={t("settings.tax.title")} subtitle={t("settings.tax.hint")}>
+        {[
+          { key: "declare", icon: "file-text" as const, route: "/(premium)/impots", show: true },
+          { key: "acre", icon: "briefcase" as const, route: "/(premium)/acre", show: occupation === "self_employed" },
+        ]
+          .filter((r) => r.show)
+          .map((r) => {
+            const open = limitsFor(tier).advice;
+            return (
+              <TouchableOpacity
+                key={r.key}
+                style={styles.profileLocNote}
+                activeOpacity={0.85}
+                onPress={() => router.push((open ? r.route : "/plans") as never)}
+                accessibilityRole="button"
+                testID={`settings-tax-${r.key}`}
+              >
+                <Feather name={open ? r.icon : "lock"} size={15} color={open ? GOLD : TEXT_3} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.profileLocNoteText}>{t(`settings.tax.${r.key}`)}</Text>
+                  <Text style={styles.infoRowText}>
+                    {open ? t(`settings.tax.${r.key}Hint`) : t("settings.tax.locked")}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={TEXT_3} />
+              </TouchableOpacity>
+            );
+          })}
       </Section>
 
       <Section title={t("settings.notifications.title")}>

@@ -398,6 +398,8 @@ export default function Index() {
   // Prénom du profil, pour ne pas faire ressaisir au testeur ce qu'on sait
   // déjà. Il reste modifiable : c'est son nom complet qu'on lui demande.
   const [premiumProfileName, setPremiumProfileName] = useState<string | null>(null);
+  // Situation professionnelle du profil : décide si la ligne ACRE a un sens.
+  const [profileOccupation, setProfileOccupation] = useState<string | null>(null);
   // Palier réel, utilisé par l'écran d'approbation pour nommer la formule
   // testée dans le texte du contrat.
   const [testerTier, setTesterTier] = useState<Tier>("free");
@@ -500,6 +502,7 @@ export default function Index() {
     // perso est neutralisé (mix 50/30/20 par défaut).
     setPremiumProfile(deriveMatchingProfile(p, activeWorkspaceKind));
     setTithePercent(details.tithe_enabled ? details.tithe_percent : 0);
+    setProfileOccupation(p.occupation ?? details.occupation_status ?? null);
     // La ville saisie dans le profil est la donnée la PLUS précise sur « où je
     // vis » : elle bat la région pour choisir l'indice de coût de la vie.
     setProfileCity(details.city ?? null);
@@ -1341,6 +1344,8 @@ export default function Index() {
             isTester={isTester}
             onReplayBirthday={(kind) => void replayBirthday(kind)}
             forcedTier={forcedTier}
+            tier={forcedTier ?? testerTier}
+            occupation={profileOccupation}
             onForceTier={(tier) => {
               void setTierOverride(tier).then(() => {
                 setForcedTier(tier);

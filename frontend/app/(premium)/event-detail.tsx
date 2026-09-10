@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   eventMessage,
   applyQuote,
+  linkQuote,
   eventTotals,
   monthlyNeeded,
   monthsUntil,
@@ -85,6 +86,8 @@ export default function EventDetail() {
   const [quoteSource, setQuoteSource] = useState("");
   // Poste mis à jour par le prochain relevé. Null = simple note de prix.
   const [quoteItemId, setQuoteItemId] = useState<string | null>(null);
+  // Relevé déjà enregistré qu'on est en train de rattacher à un poste.
+  const [relinkingId, setRelinkingId] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useFocusEffect(
@@ -558,6 +561,37 @@ export default function EventDetail() {
         <Text style={styles.sectionTitle}>{t("event.section.priceTracking")}</Text>
         <Text style={styles.trackerHint}>{t("event.tracker.hint")}</Text>
         <View style={styles.quoteForm}>
+          {/* Quel poste ce prix met-il à jour ? Sans ce choix, un devis restait
+              une note à côté du budget et le total ne bougeait jamais. */}
+          <Text style={styles.quoteApplyTitle}>{t("event.quote.applyTo")}</Text>
+          <Text style={styles.trackerHint}>{t("event.quote.applyHint")}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+            <TouchableOpacity
+              onPress={() => setQuoteItemId(null)}
+              style={[styles.quoteChip, quoteItemId === null && styles.quoteChipOn]}
+              activeOpacity={0.8}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: quoteItemId === null }}
+            >
+              <Text style={[styles.quoteChipText, quoteItemId === null && styles.quoteChipTextOn]}>
+                {t("event.quote.noItem")}
+              </Text>
+            </TouchableOpacity>
+            {ev.items.map((it) => (
+              <TouchableOpacity
+                key={it.id}
+                onPress={() => setQuoteItemId(it.id)}
+                style={[styles.quoteChip, quoteItemId === it.id && styles.quoteChipOn]}
+                activeOpacity={0.8}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: quoteItemId === it.id }}
+              >
+                <Text style={[styles.quoteChipText, quoteItemId === it.id && styles.quoteChipTextOn]}>
+                  {resolveEventLabel(it.label, t)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
           <TextInput
             style={styles.quoteInput}
             value={quoteLabel}
@@ -588,41 +622,12 @@ export default function EventDetail() {
               <Feather name="plus" size={18} color="#000" />
             </TouchableOpacity>
           </View>
-          {/* Quel poste ce prix met-il à jour ? Sans ce choix, un devis restait
-              une note à côté du budget et le total ne bougeait jamais. */}
-          <Text style={styles.trackerHint}>{t("event.quote.applyTo")}</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-            <TouchableOpacity
-              onPress={() => setQuoteItemId(null)}
-              style={[styles.quoteChip, quoteItemId === null && styles.quoteChipOn]}
-              activeOpacity={0.8}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: quoteItemId === null }}
-            >
-              <Text style={[styles.quoteChipText, quoteItemId === null && styles.quoteChipTextOn]}>
-                {t("event.quote.noItem")}
-              </Text>
-            </TouchableOpacity>
-            {ev.items.map((it) => (
-              <TouchableOpacity
-                key={it.id}
-                onPress={() => setQuoteItemId(it.id)}
-                style={[styles.quoteChip, quoteItemId === it.id && styles.quoteChipOn]}
-                activeOpacity={0.8}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: quoteItemId === it.id }}
-              >
-                <Text style={[styles.quoteChipText, quoteItemId === it.id && styles.quoteChipTextOn]}>
-                  {resolveEventLabel(it.label, t)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
         {(ev.quotes ?? []).map((q) => {
           const delta = quoteDelta(q);
           return (
             <View key={q.id} style={styles.quoteRow}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.quoteLabel}>{q.label}</Text>
                 <Text style={styles.quoteMeta}>
@@ -650,6 +655,39 @@ export default function EventDetail() {
               <TouchableOpacity onPress={() => removeQuote(q.id)} hitSlop={8}>
                 <Feather name="x" size={15} color={TEXT_3} />
               </TouchableOpacity>
+              </View>
+              {/* Un relevé sans poste ne change rien au budget : on le dit, et
+                  on offre de le rattacher ici plutôt que de le ressaisir. */}
+              {!q.itemId ? (
+                <View style={styles.quoteLinkRow}>
+                  <Text style={styles.quoteUnlinked}>{t("event.quote.unlinked")}</Text>
+                  <TouchableOpacity
+                    onPress={() => setRelinkingId(relinkingId === q.id ? null : q.id)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.quoteLinkAction}>{t("event.quote.linkNow")}</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+              {relinkingId === q.id ? (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                  {ev.items.map((it) => (
+                    <TouchableOpacity
+                      key={it.id}
+                      onPress={() => {
+                        persist(linkQuote(ev, q.id, it.id));
+                        setRelinkingId(null);
+                      }}
+                      style={styles.quoteChip}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.quoteChipText}>{resolveEventLabel(it.label, t)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
             </View>
           );
         })}
@@ -879,6 +917,10 @@ const styles = StyleSheet.create({
   },
   quoteLabel: { color: TEXT_1, fontSize: 13.5, fontWeight: "600" },
   quoteMeta: { color: TEXT_3, fontSize: 11.5, marginTop: 2 },
+  quoteApplyTitle: { color: TEXT_2, fontSize: 13, fontWeight: "700", marginBottom: 4 },
+  quoteLinkRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
+  quoteUnlinked: { color: "#FBBF24", fontSize: 12 },
+  quoteLinkAction: { color: GOLD, fontSize: 12, fontWeight: "700" },
   quotePrice: { color: TEXT_1, fontSize: 14, fontWeight: "700" },
   quoteDelta: { fontSize: 11.5, fontWeight: "700", marginTop: 1 },
   destBox: {
