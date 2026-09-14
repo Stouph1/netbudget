@@ -2,7 +2,8 @@
 //
 // Aucune dépendance à react-native ni à React : ce module est testable hors
 // bundler Metro (voir helpers.test.ts).
-import { computeLoanMonthlyPayment, parseNumber } from "../../src/utils/finance";
+import { parseNumber } from "../../src/utils/finance";
+import { firstPayment } from "../../src/utils/loanSchedule";
 import { convert } from "../../src/utils/exchangeRates";
 import type { CurrencyCode } from "../../src/utils/currency";
 import { DEFAULT_ITEMS } from "./constants";
@@ -35,12 +36,29 @@ export function isoToMonthInput(iso: string | undefined): string {
   return m ? `${m[2]}/${m[1]}` : "";
 }
 
+/** Durée totale en mois, quelle que soit l'unité de saisie. */
+export function loanTermMonths(l: Pick<Loan, "years" | "durationUnit">): number {
+  const n = parseNumber(l.years);
+  return l.durationUnit === "months" ? Math.round(n) : Math.round(n * 12);
+}
+
+/** Durée en années (fractionnaire si saisie en mois) — pour les calculs existants. */
+export function loanTermYears(l: Pick<Loan, "years" | "durationUnit">): number {
+  return loanTermMonths(l) / 12;
+}
+
+/**
+ * Mensualité de la première échéance. Constante pour un prêt classique ; pour
+ * un amortissement constant ou un in fine, c'est la plus élevée (ou la seule
+ * avant le remboursement final) — celle qu'il faut prévoir au budget.
+ */
 export function loanMonthlyPayment(l: Loan): number {
   if (l.mode === "direct") return parseNumber(l.directMonthly || "0");
-  return computeLoanMonthlyPayment(
+  return firstPayment(
     parseNumber(l.principal),
     parseNumber(l.ratePercent),
-    parseNumber(l.years)
+    loanTermMonths(l),
+    l.repayment ?? "annuity",
   );
 }
 

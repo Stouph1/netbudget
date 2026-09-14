@@ -22,7 +22,8 @@ import {
 import type { UserProfile } from "../types/advice";
 import type { SavingsGoal } from "../types/premium";
 import type { CurrencyCode } from "./currency";
-import { computeLoanMonthlyPayment, parseNumber } from "./finance";
+import { parseNumber } from "./finance";
+import { firstPayment, type LoanRepayment } from "./loanSchedule";
 import {
   isBudgetFilledThisMonth,
   splitByWindow,
@@ -45,6 +46,8 @@ type RawLoan = {
   principal?: string;
   ratePercent?: string;
   years?: string;
+  durationUnit?: "years" | "months";
+  repayment?: LoanRepayment;
   directMonthly?: string;
   startDate?: string;
 };
@@ -63,11 +66,14 @@ export function parseStoredLoans(raw: unknown[]): LoanInput[] {
     if (!l.id) continue;
     const principal = parseNumber(l.principal ?? "0");
     const ratePercent = parseNumber(l.ratePercent ?? "0");
-    const years = parseNumber(l.years ?? "0");
+    const rawTerm = parseNumber(l.years ?? "0");
+    const months = l.durationUnit === "months" ? Math.round(rawTerm) : Math.round(rawTerm * 12);
+    const years = months / 12;
+    const repayment = l.repayment ?? "annuity";
     const monthlyPayment =
       l.mode === "direct"
         ? parseNumber(l.directMonthly ?? "0")
-        : computeLoanMonthlyPayment(principal, ratePercent, years);
+        : firstPayment(principal, ratePercent, months, repayment);
     out.push({
       id: l.id,
       name: l.name || "",
@@ -76,6 +82,7 @@ export function parseStoredLoans(raw: unknown[]): LoanInput[] {
       years,
       startDate: l.startDate,
       monthlyPayment,
+      repayment,
     });
   }
   return out;

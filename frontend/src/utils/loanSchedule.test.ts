@@ -3,6 +3,7 @@
 
 import {
   amortizationSchedule,
+  firstPayment,
   loanProgress,
   monthsBetween,
   remainingParts,
@@ -131,5 +132,65 @@ describe("amortizationSchedule", () => {
 
   it("renvoie un échéancier vide sans date de départ", () => {
     expect(amortizationSchedule(P, RATE, YEARS, undefined, MONTHLY)).toEqual([]);
+  });
+});
+
+// Trois façons de rembourser. Le total de capital est toujours le capital
+// emprunté ; ce qui change, c'est le rythme — et donc les intérêts.
+describe("types de remboursement", () => {
+  const now = new Date("2026-04-15T12:00:00");
+  const sum = (rows: { principal: number; interest: number; payment: number }[], k: "principal" | "interest" | "payment") =>
+    rows.reduce((s, r) => s + r[k], 0);
+
+  it("amortissement constant : même capital chaque mois, mensualités qui baissent", () => {
+    const first = firstPayment(12_000, 6, 12, "linear");
+    expect(first).toBeCloseTo(1000 + 60, 2);
+    const rows = amortizationSchedule(12_000, 6, 1, START, first, now, "linear").flatMap((y) => y.rows);
+    expect(rows).toHaveLength(12);
+    for (const r of rows) expect(r.principal).toBeCloseTo(1000, 2);
+    expect(rows[0].payment).toBeGreaterThan(rows[11].payment);
+    expect(sum(rows, "principal")).toBeCloseTo(12_000, 2);
+    expect(rows[11].balance).toBeCloseTo(0, 6);
+  });
+
+  it("in fine : intérêts seuls, puis tout le capital à la dernière échéance", () => {
+    const first = firstPayment(12_000, 6, 12, "bullet");
+    expect(first).toBeCloseTo(60, 6);
+    const rows = amortizationSchedule(12_000, 6, 1, START, first, now, "bullet").flatMap((y) => y.rows);
+    for (const r of rows.slice(0, -1)) {
+      expect(r.principal).toBe(0);
+      expect(r.payment).toBeCloseTo(60, 6);
+    }
+    expect(rows[11].principal).toBeCloseTo(12_000, 6);
+    expect(rows[11].payment).toBeCloseTo(12_060, 6);
+    // Plus d'intérêts que l'annuité : le capital reste dû tout le temps.
+    const annuity = amortizationSchedule(12_000, 6, 1, START, firstPayment(12_000, 6, 12), now).flatMap((y) => y.rows);
+    expect(sum(rows, "interest")).toBeGreaterThan(sum(annuity, "interest"));
+  });
+
+  it("la colonne mensualité vaut capital + intérêts, constante pour l'annuité", () => {
+    const m = firstPayment(P, RATE, YEARS * 12);
+    const rows = amortizationSchedule(P, RATE, YEARS, START, m, now).flatMap((y) => y.rows);
+    for (const r of rows.slice(0, -1)) expect(r.payment).toBeCloseTo(m, 6);
+    expect(rows[0].payment).toBeCloseTo(rows[0].principal + rows[0].interest, 9);
+  });
+
+  it("l'avancement suit le type de remboursement", () => {
+    const later = new Date("2026-10-15T12:00:00"); // 6 mensualités payées
+    const lin = loanProgress(12_000, 6, 1, START, firstPayment(12_000, 6, 12, "linear"), later, "linear");
+    expect(lin?.paidMonths).toBe(6);
+    expect(lin?.remainingPrincipal).toBeCloseTo(6000, 2);
+    expect(lin?.nextPrincipal).toBeCloseTo(1000, 2);
+    const bul = loanProgress(12_000, 6, 1, START, 60, later, "bullet");
+    expect(bul?.remainingPrincipal).toBeCloseTo(12_000, 6);
+    expect(bul?.repaidPrincipal).toBe(0);
+    // In fine à taux nul : rien à payer avant la fin, et c'est valide.
+    expect(loanProgress(12_000, 0, 1, START, 0, later, "bullet")?.remainingMonths).toBe(6);
+  });
+
+  it("firstPayment retrouve l'annuité classique", () => {
+    expect(firstPayment(P, RATE, YEARS * 12)).toBeCloseTo(MONTHLY, 1);
+    expect(firstPayment(1200, 0, 12)).toBe(100);
+    expect(firstPayment(0, 3, 12)).toBe(0);
   });
 });

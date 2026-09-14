@@ -40,7 +40,7 @@ import {
   TEXT_2,
   TEXT_3,
 } from "./constants";
-import { displayItemLabel, loanMonthlyPayment } from "./helpers";
+import { displayItemLabel, loanMonthlyPayment, loanTermYears } from "./helpers";
 import { styles } from "./styles";
 import { Field, Section } from "./ui";
 import { useTourScroller, useTourTarget } from "../../src/components/tour/TourContext";
@@ -468,9 +468,11 @@ export default function BudgetScreen({
               : loanProgress(
                   parseNumber(l.principal),
                   parseNumber(l.ratePercent),
-                  parseNumber(l.years),
+                  loanTermYears(l),
                   l.startDate,
                   m,
+                  new Date(),
+                  l.repayment ?? "annuity",
                 );
             return (
               <TouchableOpacity
@@ -488,7 +490,7 @@ export default function BudgetScreen({
                   <Text style={styles.loanMeta}>
                     {isDirect
                       ? t("label.loanDirect")
-                      : `${fmt(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ${t("label.years")}`}
+                      : `${fmt(parseNumber(l.principal))} · ${l.ratePercent || "0"}% · ${l.years || "0"} ${t(l.durationUnit === "months" ? "label.months" : "label.years")}`}
                   </Text>
 
                   {!isDirect ? (

@@ -7,6 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import { GOLD, TEXT_3 } from "./constants";
 import { styles } from "./styles";
 import type { DropdownOption } from "./types";
+import { InfoTip, type InfoContent } from "../../src/components/InfoTip";
 
 export function Section({
   title,
@@ -48,8 +49,11 @@ export function Field({
   maxLength,
   keepEmpty,
   deleteA11yLabel,
+  info,
 }: {
   label: string;
+  /** Bulle « i » : ce que ce champ veut dire et ce qu'on attend. */
+  info?: InfoContent;
   icon?: React.ReactNode;
   right?: string;
   value: string;
@@ -97,7 +101,10 @@ export function Field({
               testID={testID ? `${testID}-label` : undefined}
             />
           ) : (
-            <Text style={styles.inputLabel}>{label}</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.inputLabel}>{label}</Text>
+              {info ? <InfoTip {...info} testID={testID ? `${testID}-info` : undefined} /> : null}
+            </View>
           )}
           <TextInput
             style={styles.inputField}
@@ -140,6 +147,7 @@ export function Dropdown<T extends string>({
   onChange,
   icon,
   testID,
+  info,
 }: {
   label: string;
   value: T;
@@ -147,6 +155,8 @@ export function Dropdown<T extends string>({
   onChange: (next: T) => void;
   icon?: React.ReactNode;
   testID?: string;
+  /** Bulle « i » : ce que ce choix change. */
+  info?: InfoContent;
 }) {
   const { styles, GOLD } = useBudgetTheme();
   const [open, setOpen] = useState(false);
@@ -161,7 +171,10 @@ export function Dropdown<T extends string>({
       >
         {icon && <View style={styles.inputIcon}>{icon}</View>}
         <View style={{ flex: 1 }}>
-          <Text style={styles.inputLabel}>{label}</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.inputLabel}>{label}</Text>
+            {info ? <InfoTip {...info} testID={testID ? `${testID}-info` : undefined} /> : null}
+          </View>
           <Text style={styles.inputValue}>{current?.label ?? "—"}</Text>
         </View>
         <Feather name="chevron-down" size={20} color={TEXT_3} />

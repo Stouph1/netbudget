@@ -27,6 +27,8 @@
 // affaiblir sous prétexte que le contenu est chiffré : les métadonnées
 // (qui possède quoi, quand) ne le sont pas.
 
+import { budgetTotalOf } from "./workspaceActivity";
+import { noteOwnWorkspaceWrite } from "./workspaceSnapshots";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { UserProfile } from "../types/advice";
 import { EMPTY_S1_PAYLOAD, type S1Payload } from "../types/premium";
@@ -387,9 +389,11 @@ export async function saveS1(
     (d, from, to, rates) => convertGoals(d as Record<string, unknown>, from, to, rates) as S1Payload,
     "toStored",
   );
-  return writePayload<S1Payload & CurrencyStamped>(
+  const res = await writePayload<S1Payload & CurrencyStamped>(
     "s1", userId, { ...back, currency: stamped }, workspaceId,
   );
+  if (res.ok && workspaceId) void noteOwnWorkspaceWrite(workspaceId, { goalsCount: payload.goals.length });
+  return res;
 }
 
 // ============================================================================
@@ -421,7 +425,10 @@ export async function saveBudget(
   payload: BudgetPayload,
   workspaceId: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  return writePayload<BudgetPayload>("budget", userId, payload, workspaceId);
+  const res = await writePayload<BudgetPayload>("budget", userId, payload, workspaceId);
+  // Ma propre écriture ne doit pas me revenir en notification « le budget a changé ».
+  if (res.ok) void noteOwnWorkspaceWrite(workspaceId, { budgetTotal: budgetTotalOf(payload) });
+  return res;
 }
 
 // ============================================================================

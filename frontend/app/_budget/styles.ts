@@ -22,6 +22,8 @@ export const SCREEN_H = Dimensions.get("window").height;
 
 export const makeBudgetStyles = (GOLD: string) =>
   StyleSheet.create({
+  // Libellé + bulle « i » sur la même ligne.
+  labelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   // Panneau de test (voir SettingsScreen). Absent de l'app publiée pour tout
   // compte non marqué testeur.
   testTile: {

@@ -20,10 +20,10 @@ import { parseNumber } from "../../../src/utils/finance";
 import { loanProgress, remainingParts } from "../../../src/utils/loanSchedule";
 import { interpolate } from "../../../src/utils/advice";
 import { GOLD, TEXT_2 } from "../constants";
-import { formatMonthInput, loanMonthlyPayment, monthInputToIso } from "../helpers";
+import { formatMonthInput, loanMonthlyPayment, loanTermYears, monthInputToIso } from "../helpers";
 import { styles } from "../styles";
 import { Dropdown, Field } from "../ui";
-import type { Loan, LoanMode, Translate } from "../types";
+import type { Loan, LoanDurationUnit, LoanMode, LoanRepayment, Translate } from "../types";
 
 export default function LoanModal({
   visible,
@@ -105,6 +105,7 @@ export default function LoanModal({
 
               <Dropdown<LoanMode>
                 label={t("label.loanMode")}
+                info={{ title: t("help.loanMode.title"), body: t("help.loanMode.body") }}
                 icon={<Feather name="sliders" size={18} color={GOLD} />}
                 value={form.mode ?? "computed"}
                 options={[
@@ -118,6 +119,7 @@ export default function LoanModal({
               {(form.mode ?? "computed") === "direct" ? (
                 <Field
                   label={t("label.loanMonthly")}
+                  info={{ title: t("help.loanDirect.title"), body: t("help.loanDirect.body") }}
                   icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
                   right={`${getCurrency(currency).symbol} ${t("label.perMonth")}`}
                   value={form.directMonthly ?? "0"}
@@ -131,6 +133,7 @@ export default function LoanModal({
                 <>
                   <Field
                     label={t("label.loanPrincipal")}
+                    info={{ title: t("help.loanPrincipal.title"), body: t("help.loanPrincipal.body") }}
                     icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
                     right={getCurrency(currency).symbol}
                     value={form.principal}
@@ -141,6 +144,7 @@ export default function LoanModal({
                   />
                   <Field
                     label={t("label.loanRate")}
+                    info={{ title: t("help.loanRate.title"), body: t("help.loanRate.body") }}
                     icon={<Feather name="percent" size={18} color={GOLD} />}
                     right="%"
                     value={form.ratePercent}
@@ -149,18 +153,46 @@ export default function LoanModal({
                     placeholder="0"
                     testID="loan-rate-input"
                   />
+                  <Dropdown<LoanRepayment>
+                    label={t("label.loanRepayment")}
+                    info={{ title: t("help.loanRepayment.title"), body: t("help.loanRepayment.body") }}
+                    icon={<Feather name="trending-down" size={18} color={GOLD} />}
+                    value={form.repayment ?? "annuity"}
+                    options={[
+                      { value: "annuity", label: t("label.repay.annuity"), hint: t("label.repay.annuityHint") },
+                      { value: "linear", label: t("label.repay.linear"), hint: t("label.repay.linearHint") },
+                      { value: "bullet", label: t("label.repay.bullet"), hint: t("label.repay.bulletHint") },
+                    ]}
+                    onChange={(next) => setForm({ ...form, repayment: next })}
+                    testID="loan-repayment-dropdown"
+                  />
                   <Field
                     label={t("label.loanDuration")}
+                    info={{ title: t("help.loanDuration.title"), body: t("help.loanDuration.body") }}
                     icon={<Feather name="calendar" size={18} color={GOLD} />}
-                    right={t("label.years")}
+                    right={t((form.durationUnit ?? "years") === "months" ? "label.months" : "label.years")}
                     value={form.years}
                     onChangeText={(v) => setForm({ ...form, years: v })}
                     keyboardType="decimal-pad"
                     placeholder="0"
                     testID="loan-years-input"
                   />
+                  {/* Beaucoup de contrats parlent en mois (« 48 mois ») : on
+                      laisse saisir dans l'unité du contrat, on convertit. */}
+                  <Dropdown<LoanDurationUnit>
+                    label={t("label.durationUnit")}
+                    icon={<Feather name="hash" size={18} color={GOLD} />}
+                    value={form.durationUnit ?? "years"}
+                    options={[
+                      { value: "years", label: t("label.years") },
+                      { value: "months", label: t("label.months") },
+                    ]}
+                    onChange={(next) => setForm({ ...form, durationUnit: next })}
+                    testID="loan-duration-unit"
+                  />
                   <Field
                     label={t("loan.startLabel")}
+                    info={{ title: t("help.loanStart.title"), body: t("help.loanStart.body") }}
                     icon={<Feather name="clock" size={18} color={GOLD} />}
                     value={loanStartText}
                     onChangeText={(v) => {
@@ -186,9 +218,11 @@ export default function LoanModal({
                       const pr = loanProgress(
                         parseNumber(form.principal),
                         parseNumber(form.ratePercent),
-                        parseNumber(form.years),
+                        loanTermYears(form),
                         form.startDate,
                         loanMonthlyPayment(form),
+                        new Date(),
+                        form.repayment ?? "annuity",
                       );
                       if (!pr) return null;
                       return (

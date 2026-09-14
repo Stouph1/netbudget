@@ -32,6 +32,12 @@ export type IncomeSource = {
   // Dîme (utilisateurs chrétiens, Premium) : si true, le pourcentage de dîme
   // du profil est déduit du net de CETTE source. Optionnel — rétrocompatible.
   titheApplied?: boolean;
+  /**
+   * Base du don : sur le brut (avant charges) ou sur le net (après). Absent =
+   * net, le comportement d'origine. Beaucoup de donateurs raisonnent sur le
+   * brut : c'est une conviction, pas une erreur, et l'app doit suivre.
+   */
+  titheBase?: "gross" | "net";
 };
 
 // Estimations de charges par type — sources : service-public.fr, urssaf.fr.
@@ -124,7 +130,8 @@ export function monthlyNetForSource(
   const charges = Math.max(0, Math.min(60, parseNumber(s.chargesPercent)));
   let net = amount * (1 - charges / 100);
   if (s.titheApplied && tithePercent > 0) {
-    net = net * (1 - Math.min(100, tithePercent) / 100);
+    const base = s.titheBase === "gross" ? amount : net;
+    net = Math.max(0, net - base * (Math.min(100, tithePercent) / 100));
   }
   return net * frequencyFactorMonthly(s, monthIndex);
 }
@@ -139,9 +146,8 @@ export function averageMonthlyTithe(
   for (let i = 0; i < 12; i++) {
     for (const s of sources) {
       if (!s.titheApplied) continue;
-      // net avant dîme − net après dîme
-      const before = monthlyNetForSource({ ...s, titheApplied: false }, i, 0);
-      sum += before * (Math.min(100, tithePercent) / 100);
+      // net avant dîme − net après dîme : vaut pour une base brute comme nette.
+      sum += monthlyNetForSource(s, i, 0) - monthlyNetForSource(s, i, tithePercent);
     }
   }
   return sum / 12;
@@ -206,7 +212,10 @@ export function defaultIncomeSource(): IncomeSource {
     label: "",
     type: "salaire",
     amount: "0",
-    frequency: "annual",
+    // Mensuel : c'est le chiffre que les gens ont en tête. En annuel par défaut,
+    // beaucoup saisissaient leur salaire mensuel et voyaient un budget divisé
+    // par douze.
+    frequency: "monthly",
     chargesPercent: String(STATUS_DEFAULT_CHARGES["non-cadre"]),
     proStatus: "non-cadre",
     timeMode: "plein",

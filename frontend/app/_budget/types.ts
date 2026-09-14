@@ -9,6 +9,9 @@ import type { CurrencyCode } from "../../src/utils/currency";
 export type Translate = (key: string) => string;
 
 export type LoanMode = "computed" | "direct";
+export type { LoanRepayment } from "../../src/utils/loanSchedule";
+/** Unité dans laquelle `years` est exprimé. Absent = années (rétrocompat). */
+export type LoanDurationUnit = "years" | "months";
 
 export type Loan = {
   id: string;
@@ -16,7 +19,11 @@ export type Loan = {
   mode?: LoanMode; // undefined = "computed" (rétrocompat v1.2.x)
   principal: string;
   ratePercent: string;
+  /** Durée, dans l'unité de `durationUnit` (années par défaut). */
   years: string;
+  durationUnit?: LoanDurationUnit;
+  /** Type de remboursement ; absent = mensualités constantes. */
+  repayment?: import("../../src/utils/loanSchedule").LoanRepayment;
   directMonthly?: string;
   startDate?: string; // "AAAA-MM-JJ" — 1re échéance, pour le suivi dans le temps
 };

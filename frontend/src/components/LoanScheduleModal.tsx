@@ -29,6 +29,7 @@ import {
   type ScheduleYear,
   loanProgress,
   type LoanProgress,
+  type LoanRepayment,
 } from "../utils/loanSchedule";
 
 const MIDNIGHT = "#0F172A";
@@ -49,6 +50,8 @@ type Props = {
   years: number;
   startIso?: string;
   monthlyPayment: number;
+  /** Type de remboursement ; absent = mensualités constantes. */
+  repayment?: LoanRepayment;
   /** Formateur de montant fourni par l'appelant (devise de l'app). */
   format: (n: number) => string;
 };
@@ -62,6 +65,7 @@ export default function LoanScheduleModal({
   years,
   startIso,
   monthlyPayment,
+  repayment = "annuity",
   format,
 }: Props) {
   const GOLD = useAccent().main;
@@ -95,12 +99,14 @@ export default function LoanScheduleModal({
         years,
         startIso,
         monthlyPayment,
+        new Date(),
+        repayment,
       ),
-    [principal, ratePercent, years, startIso, monthlyPayment],
+    [principal, ratePercent, years, startIso, monthlyPayment, repayment],
   );
   const progress = useMemo(
-    () => loanProgress(principal, ratePercent, years, startIso, monthlyPayment),
-    [principal, ratePercent, years, startIso, monthlyPayment],
+    () => loanProgress(principal, ratePercent, years, startIso, monthlyPayment, new Date(), repayment),
+    [principal, ratePercent, years, startIso, monthlyPayment, repayment],
   );
 
   const totalInterest = useMemo(
@@ -211,7 +217,7 @@ export default function LoanScheduleModal({
           <View style={styles.monthsBox}>
             <View style={styles.monthHead}>
               <Text
-                style={[styles.monthCell, styles.monthHeadText, { flex: 1.1 }]}
+                style={[styles.monthCell, styles.monthHeadText, { flex: 0.9, textAlign: "left" }]}
               >
                 {t("schedule.col.month")}
               </Text>
@@ -220,6 +226,9 @@ export default function LoanScheduleModal({
               </Text>
               <Text style={[styles.monthCell, styles.monthHeadText]}>
                 {t("schedule.col.interest")}
+              </Text>
+              <Text style={[styles.monthCell, styles.monthHeadText, { flex: 1.15 }]}>
+                {t("schedule.col.payment")}
               </Text>
               <Text
                 style={[styles.monthCell, styles.monthHeadText, { flex: 1.2 }]}
@@ -230,7 +239,7 @@ export default function LoanScheduleModal({
             {y.rows.map((r) => (
               <View key={r.index} style={styles.monthRow}>
                 <Text
-                  style={[styles.monthCell, styles.monthText, { flex: 1.1 }]}
+                  style={[styles.monthCell, styles.monthText, { flex: 0.9, textAlign: "left" }]}
                 >
                   {monthShort(r.date)}
                 </Text>
@@ -251,6 +260,13 @@ export default function LoanScheduleModal({
                   ]}
                 >
                   {format(r.interest)}
+                </Text>
+                {/* Ce qu'on paie ce mois-là, capital + intérêts : le chiffre à
+                    avoir sous les yeux pour faire le virement sans quitter l'app. */}
+                <Text
+                  style={[styles.monthCell, styles.monthText, styles.monthPayment, { flex: 1.15 }]}
+                >
+                  {format(r.payment)}
                 </Text>
                 <Text
                   style={[styles.monthCell, styles.monthText, { flex: 1.2 }]}
@@ -532,8 +548,9 @@ const makeStyles = (GOLD: string) =>
     textTransform: "uppercase",
   },
   monthRow: { flexDirection: "row", paddingVertical: 4 },
-  monthCell: { flex: 1, fontSize: 11, textAlign: "right" },
+  monthCell: { flex: 1, fontSize: 10.5, textAlign: "right" },
   monthText: { color: TEXT_2, fontVariant: ["tabular-nums"] },
+  monthPayment: { color: TEXT_1, fontWeight: "700" },
   footnote: {
     color: TEXT_3,
     fontSize: 11.5,

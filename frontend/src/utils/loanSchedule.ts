@@ -7,6 +7,65 @@
 // composition : au début on paie surtout des intérêts, à la fin surtout du
 // capital. C'est ça qu'on montre — le vrai « je vois les choses nettement ».
 
+/**
+ * Comment le capital se rembourse.
+ *
+ * - annuity : mensualités constantes — le cas courant (immobilier, conso).
+ *   Les intérêts pèsent lourd au début, le capital à la fin.
+ * - linear : amortissement constant — même part de capital chaque mois, donc
+ *   des mensualités qui baissent. Fréquent en prêt professionnel.
+ * - bullet : in fine — on ne paie que les intérêts, le capital d'un coup à la
+ *   dernière échéance. Investissement locatif, prêt relais.
+ *
+ * Absent = annuity, le comportement d'origine de l'app.
+ */
+export type LoanRepayment = "annuity" | "linear" | "bullet";
+
+/** Mensualité de la PREMIÈRE échéance : la seule constante pour les trois types. */
+export function firstPayment(
+  principal: number,
+  annualRatePercent: number,
+  totalMonths: number,
+  repayment: LoanRepayment = "annuity",
+): number {
+  if (!(principal > 0) || !(totalMonths > 0)) return 0;
+  const i = annualRatePercent / 100 / 12;
+  switch (repayment) {
+    case "linear":
+      return principal / totalMonths + principal * i;
+    case "bullet":
+      return principal * i;
+    default:
+      if (i === 0) return principal / totalMonths;
+      return (principal * i) / (1 - Math.pow(1 + i, -totalMonths));
+  }
+}
+
+/** Part de capital de l'échéance n (1-based), selon le type de remboursement. */
+function principalPartAt(
+  n: number,
+  totalMonths: number,
+  balance: number,
+  interest: number,
+  monthlyPayment: number,
+  principal: number,
+  repayment: LoanRepayment,
+): number {
+  if (n === totalMonths) return balance; // dernière : on solde, quoi qu'il arrive
+  let part: number;
+  switch (repayment) {
+    case "linear":
+      part = principal / totalMonths;
+      break;
+    case "bullet":
+      part = 0;
+      break;
+    default:
+      part = monthlyPayment - interest;
+  }
+  return Math.min(balance, Math.max(0, part));
+}
+
 export type LoanProgress = {
   /** Mensualités déjà payées (bornées à la durée totale). */
   paidMonths: number;
@@ -54,8 +113,13 @@ export function loanProgress(
   startIso: string | undefined,
   monthlyPayment: number,
   now: Date = new Date(),
+  repayment: LoanRepayment = "annuity",
 ): LoanProgress | null {
-  if (!startIso || !(principal > 0) || !(years > 0) || !(monthlyPayment > 0)) return null;
+  // In fine à taux nul : rien à payer avant la fin, la mensualité vaut 0 et
+  // c'est légitime. Pour les autres types, une mensualité nulle est une saisie
+  // incomplète.
+  const paymentOk = repayment === "bullet" ? monthlyPayment >= 0 : monthlyPayment > 0;
+  if (!startIso || !(principal > 0) || !(years > 0) || !paymentOk) return null;
   const start = new Date(startIso + "T12:00:00");
   if (Number.isNaN(start.getTime())) return null;
 
@@ -65,6 +129,34 @@ export function loanProgress(
   const remainingMonths = Math.max(0, totalMonths - paidMonths);
 
   const i = annualRatePercent / 100 / 12; // taux mensuel
+
+  if (repayment !== "annuity") {
+    // Pas de forme fermée simple : on déroule l'échéancier (≤ 480 lignes).
+    const rows = amortizationSchedule(principal, annualRatePercent, years, startIso, monthlyPayment, now, repayment)
+      .flatMap((y) => y.rows);
+    const paid = rows.slice(0, paidMonths);
+    const next = rows[paidMonths];
+    const remainingPrincipal = paidMonths === 0 ? principal : paid[paid.length - 1].balance;
+    const totalInterest = rows.reduce((s, r) => s + r.interest, 0);
+    const interestPaid = paid.reduce((s, r) => s + r.interest, 0);
+    const endDate = new Date(start);
+    endDate.setMonth(endDate.getMonth() + totalMonths);
+    return {
+      paidMonths,
+      remainingMonths,
+      totalMonths,
+      percentElapsed: totalMonths > 0 ? (paidMonths / totalMonths) * 100 : 0,
+      remainingPrincipal,
+      repaidPrincipal: Math.max(0, principal - remainingPrincipal),
+      nextInterest: next?.interest ?? 0,
+      nextPrincipal: next?.principal ?? 0,
+      interestPaid,
+      interestRemaining: Math.max(0, totalInterest - interestPaid),
+      totalInterest,
+      endDate,
+      finished: remainingMonths === 0,
+    };
+  }
 
   // Capital restant dû après n mensualités.
   // Taux nul : amortissement linéaire.
@@ -138,6 +230,8 @@ export type ScheduleRow = {
   balance: number;
   /** Cumul des intérêts versés jusqu'ici. */
   cumulativeInterest: number;
+  /** Ce qu'on paie ce mois-là : capital + intérêts. */
+  payment: number;
 };
 
 export type ScheduleYear = {
@@ -165,8 +259,10 @@ export function amortizationSchedule(
   startIso: string | undefined,
   monthlyPayment: number,
   now: Date = new Date(),
+  repayment: LoanRepayment = "annuity",
 ): ScheduleYear[] {
-  if (!startIso || !(principal > 0) || !(years > 0) || !(monthlyPayment > 0)) return [];
+  const paymentOk = repayment === "bullet" ? monthlyPayment >= 0 : monthlyPayment > 0;
+  if (!startIso || !(principal > 0) || !(years > 0) || !paymentOk) return [];
   const start = new Date(startIso + "T12:00:00");
   if (Number.isNaN(start.getTime())) return [];
 
@@ -181,10 +277,7 @@ export function amortizationSchedule(
     date.setMonth(date.getMonth() + (n - 1));
 
     const interest = balance * i;
-    // Dernière échéance : on solde le capital restant, quoi qu'il arrive.
-    let principalPart = n === totalMonths ? balance : monthlyPayment - interest;
-    if (principalPart > balance) principalPart = balance;
-    if (principalPart < 0) principalPart = 0;
+    const principalPart = principalPartAt(n, totalMonths, balance, interest, monthlyPayment, principal, repayment);
 
     balance = Math.max(0, balance - principalPart);
     cumulativeInterest += interest;
@@ -212,6 +305,7 @@ export function amortizationSchedule(
       interest,
       balance,
       cumulativeInterest,
+      payment: principalPart + interest,
     });
   }
 

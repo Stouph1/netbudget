@@ -3,6 +3,7 @@
 
 import { alpha } from "../../src/theme/accents";
 import { useAccent } from "../../src/contexts/ThemeContext";
+import { InfoTip } from "../../src/components/InfoTip";
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { goBack } from "../../src/lib/nav";
@@ -560,14 +561,52 @@ export default function EventDetail() {
           );
         })}
 
-        {/* Suivi des prix — vols, hôtels, prestataires : on note, on compare */}
-        <Text style={styles.sectionTitle}>{t("event.section.priceTracking")}</Text>
+        {/* Suivi des prix — vols, hôtels, prestataires : on note, on compare.
+            Le formulaire se lit de haut en bas comme on s'en sert : quoi,
+            combien, où, quel poste ça met à jour, puis un seul bouton. */}
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0 }]}>{t("event.section.priceTracking")}</Text>
+          <InfoTip title={t("help.priceTracking.title")} body={t("help.priceTracking.body")} />
+        </View>
         <Text style={styles.trackerHint}>{t("event.tracker.hint")}</Text>
-        <View style={styles.quoteForm}>
+        <View style={styles.quoteCard}>
+          <Text style={styles.quoteCardTitle}>{t("event.quote.formTitle")}</Text>
+
+          <Text style={styles.quoteFieldLabel}>{t("event.quote.nameLabel")}</Text>
+          <TextInput
+            style={styles.quoteInput}
+            value={quoteLabel}
+            onChangeText={setQuoteLabel}
+            placeholder={t("event.quote.whatPlaceholder")}
+            placeholderTextColor={TEXT_3}
+          />
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.quoteFieldLabel}>{t("event.quote.priceLabel")}</Text>
+              <TextInput
+                style={styles.quoteInput}
+                value={quotePrice}
+                onChangeText={setQuotePrice}
+                placeholder="0"
+                placeholderTextColor={TEXT_3}
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={{ flex: 1.4 }}>
+              <Text style={styles.quoteFieldLabel}>{t("event.quote.whereLabel")}</Text>
+              <TextInput
+                style={styles.quoteInput}
+                value={quoteSource}
+                onChangeText={setQuoteSource}
+                placeholder={t("event.quote.wherePlaceholder")}
+                placeholderTextColor={TEXT_3}
+              />
+            </View>
+          </View>
+
           {/* Quel poste ce prix met-il à jour ? Sans ce choix, un devis restait
               une note à côté du budget et le total ne bougeait jamais. */}
-          <Text style={styles.quoteApplyTitle}>{t("event.quote.applyTo")}</Text>
-          <Text style={styles.trackerHint}>{t("event.quote.applyHint")}</Text>
+          <Text style={styles.quoteFieldLabel}>{t("event.quote.applyTo")}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
             <TouchableOpacity
               onPress={() => setQuoteItemId(null)}
@@ -595,37 +634,27 @@ export default function EventDetail() {
               </TouchableOpacity>
             ))}
           </View>
-          <TextInput
-            style={styles.quoteInput}
-            value={quoteLabel}
-            onChangeText={setQuoteLabel}
-            placeholder={t("event.quote.whatPlaceholder")}
-            placeholderTextColor={TEXT_3}
-          />
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <TextInput
-              style={[styles.quoteInput, { flex: 1 }]}
-              value={quotePrice}
-              onChangeText={setQuotePrice}
-              placeholder={t("event.quote.pricePlaceholder")}
-              placeholderTextColor={TEXT_3}
-              keyboardType="decimal-pad"
-            />
-            <TextInput
-              style={[styles.quoteInput, { flex: 1.4 }]}
-              value={quoteSource}
-              onChangeText={setQuoteSource}
-              placeholder={t("event.quote.wherePlaceholder")}
-              placeholderTextColor={TEXT_3}
-            />
-            <TouchableOpacity
-              hitSlop={10}
-              accessibilityRole="button"
-              accessibilityLabel={t("event.a11y.add")} style={styles.quoteAddBtn} onPress={addQuote} activeOpacity={0.85}>
-              <Feather name="plus" size={18} color="#000" />
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.trackerHint}>
+            {quoteItemId === null ? t("event.quote.applyHint") : t("event.quote.applyLinkedHint")}
+          </Text>
+
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t("event.quote.add")}
+            style={[styles.quoteAddBtn, !(quoteLabel.trim() && safeAmount(quotePrice)) && styles.quoteAddBtnOff]}
+            onPress={addQuote}
+            activeOpacity={0.85}
+          >
+            <Feather name="plus" size={16} color="#000" />
+            <Text style={styles.quoteAddText}>{t("event.quote.add")}</Text>
+          </TouchableOpacity>
         </View>
+
+        {(ev.quotes ?? []).length > 0 ? (
+          <Text style={styles.quoteFieldLabel}>
+            {tp("event.quote.listTitle", { n: (ev.quotes ?? []).length })}
+          </Text>
+        ) : null}
         {(ev.quotes ?? []).map((q) => {
           const delta = quoteDelta(q);
           return (
@@ -890,7 +919,28 @@ const makeStyles = (GOLD: string) =>
   quoteChipOn: { borderColor: alpha(GOLD, 0.5), backgroundColor: alpha(GOLD, 0.10) },
   quoteChipText: { color: TEXT_2, fontSize: 12 },
   quoteChipTextOn: { color: GOLD, fontWeight: "700" },
-  quoteForm: { gap: 8, marginBottom: 10 },
+  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 22, marginBottom: 10 },
+  quoteCard: {
+    gap: 8,
+    marginBottom: 14,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: alpha(GOLD, 0.04),
+  },
+  quoteCardTitle: { color: TEXT_1, fontSize: 15, fontWeight: "800", marginBottom: 2 },
+  quoteFieldLabel: {
+    color: TEXT_3,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  quoteAddBtnOff: { opacity: 0.45 },
+  quoteAddText: { color: "#000", fontSize: 14, fontWeight: "800" },
   quoteInput: {
     backgroundColor: SURFACE,
     color: TEXT_1,
@@ -902,16 +952,18 @@ const makeStyles = (GOLD: string) =>
     fontSize: 14,
   },
   quoteAddBtn: {
-    backgroundColor: GOLD,
-    borderRadius: 10,
-    width: 42,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quoteRow: {
+    marginTop: 6,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: GOLD,
+    borderRadius: 12,
+    minHeight: 46,
+  },
+  quoteRow: {
+    flexDirection: "column",
+    alignItems: "stretch",
     backgroundColor: SURFACE,
     borderRadius: 12,
     borderWidth: 1,

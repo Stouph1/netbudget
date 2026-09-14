@@ -30,6 +30,8 @@ import { CurrencyCode, getCurrency } from "../../../src/utils/currency";
 import { BORDER, GOLD, MONTH_KEYS_SHORT, TEXT_2, TEXT_3 } from "../constants";
 import { styles } from "../styles";
 import { Dropdown, Field } from "../ui";
+import { InfoTip } from "../../../src/components/InfoTip";
+import { interpolate } from "../../../src/utils/advice";
 import type { Translate } from "../types";
 
 export default function IncomeModal({
@@ -100,6 +102,7 @@ export default function IncomeModal({
             >
               <Dropdown<IncomeType>
                 label={t("income.type")}
+                info={{ title: t("help.incomeType.title"), body: t("help.incomeType.body") }}
                 icon={
                   <Feather
                     name={TYPE_ICON[incomeForm.type] as keyof typeof Feather.glyphMap}
@@ -128,6 +131,7 @@ export default function IncomeModal({
 
               <Field
                 label={t("income.amount")}
+                info={{ title: t("help.incomeAmount.title"), body: t("help.incomeAmount.body") }}
                 icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
                 right={getCurrency(currency).symbol}
                 value={incomeForm.amount}
@@ -139,6 +143,7 @@ export default function IncomeModal({
 
               <Dropdown<IncomeFrequency>
                 label={t("income.frequency")}
+                info={{ title: t("help.incomeFrequency.title"), body: t("help.incomeFrequency.body") }}
                 icon={<Feather name="calendar" size={18} color={GOLD} />}
                 value={incomeForm.frequency}
                 options={[
@@ -196,6 +201,7 @@ export default function IncomeModal({
                 <>
                   <Dropdown<ProStatus>
                     label={t("income.status")}
+                    info={{ title: t("help.proStatus.title"), body: t("help.proStatus.body") }}
                     icon={<Feather name="briefcase" size={18} color={GOLD} />}
                     value={incomeForm.proStatus ?? "non-cadre"}
                     options={(Object.keys(STATUS_LABEL) as ProStatus[]).map((s) => ({
@@ -208,6 +214,7 @@ export default function IncomeModal({
                   />
                   <Dropdown<"plein" | "partiel">
                     label={t("income.timeMode")}
+                    info={{ title: t("help.timeMode.title"), body: t("help.timeMode.body") }}
                     icon={<Feather name="clock" size={18} color={GOLD} />}
                     value={incomeForm.timeMode ?? "plein"}
                     options={[
@@ -222,6 +229,7 @@ export default function IncomeModal({
 
               <Field
                 label={t("income.charges")}
+                info={{ title: t("help.charges.title"), body: t("help.charges.body") }}
                 icon={<Feather name="percent" size={18} color={GOLD} />}
                 right="%"
                 value={incomeForm.chargesPercent}
@@ -242,11 +250,14 @@ export default function IncomeModal({
                     style={{ marginRight: 12 }}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.toggleLabel}>
-                      Réserver {tithePercent} % pour les dons
-                    </Text>
+                    <View style={styles.labelRow}>
+                      <Text style={styles.toggleLabel}>
+                        {interpolate(t("income.titheToggle"), { pct: tithePercent })}
+                      </Text>
+                      <InfoTip title={t("help.tithe.title")} body={t("help.tithe.body")} testID="income-tithe-info" />
+                    </View>
                     <Text style={{ color: TEXT_3, fontSize: 12, marginTop: 2 }}>
-                      Déduite du net de ce revenu.
+                      {t("income.titheHint")}
                     </Text>
                   </View>
                   <Switch
@@ -258,6 +269,31 @@ export default function IncomeModal({
                     thumbColor="#fff"
                     ios_backgroundColor={BORDER}
                   />
+                </View>
+              ) : null}
+              {tithePercent > 0 && incomeForm.titheApplied ? (
+                // Sur quoi porte le don : le brut (avant charges) ou le net.
+                // Ce n'est pas un détail comptable, c'est une conviction — on
+                // laisse choisir, en net par défaut comme avant.
+                <View style={[styles.toggleRow, { paddingTop: 0 }]}>
+                  <Text style={[styles.toggleLabel, { flex: 1 }]}>{t("income.titheBase")}</Text>
+                  {(["net", "gross"] as const).map((b) => {
+                    const on = (incomeForm.titheBase ?? "net") === b;
+                    return (
+                      <TouchableOpacity
+                        key={b}
+                        onPress={() => setIncomeForm((f) => ({ ...f, titheBase: b }))}
+                        style={[styles.distribPill, on && styles.distribPillActive, { marginLeft: 6 }]}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: on }}
+                        testID={`income-tithe-base-${b}`}
+                      >
+                        <Text style={[styles.distribPillText, on && styles.distribPillTextActive]}>
+                          {t(`income.titheBase.${b}`)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               ) : null}
             </ScrollView>

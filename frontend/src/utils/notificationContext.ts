@@ -12,7 +12,7 @@
 import type { AdviceCard } from "../types/advice";
 import type { BudgetHistoryPoint, EventProject } from "../lib/premiumStore";
 import type { SavingsGoal } from "../types/premium";
-import { loanProgress } from "./loanSchedule";
+import { loanProgress, type LoanRepayment } from "./loanSchedule";
 import type { NotifContext } from "./notificationEngine";
 
 /** Soustrait des mois en gardant une date valide (31 mars − 1 mois = 28/29 févr.). */
@@ -110,6 +110,7 @@ export type LoanInput = {
   years: number;
   startDate?: string;
   monthlyPayment: number;
+  repayment?: LoanRepayment;
 };
 
 /**
@@ -129,6 +130,7 @@ export function toNotifLoans(loans: LoanInput[], now: Date): NotifContext["loans
       l.startDate,
       l.monthlyPayment,
       now,
+      l.repayment ?? "annuity",
     );
     if (!p || p.finished) continue;
     out.push({

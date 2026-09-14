@@ -132,6 +132,7 @@ import {
   convertOne,
   isoToMonthInput,
   loanMonthlyPayment,
+  loanTermYears,
 } from "./_budget/helpers";
 import { SCREEN_H, styles } from "./_budget/styles";
 import SettingsScreen from "./_budget/SettingsScreen";
@@ -968,7 +969,7 @@ export default function Index() {
       }
     } else {
       const principal = parseNumber(form.principal);
-      const years = parseNumber(form.years);
+      const years = loanTermYears(form);
       if (principal <= 0 || years <= 0) {
         setConfirm({
           open: true,
@@ -1007,7 +1008,7 @@ export default function Index() {
       label: "",
       type: "salaire",
       amount: "0",
-      frequency: "annual",
+      frequency: "monthly",
       chargesPercent: String(TYPE_DEFAULT_CHARGES["salaire"]),
       proStatus: "non-cadre",
       timeMode: "plein",
@@ -1491,9 +1492,10 @@ export default function Index() {
           loanName={scheduleLoan.name || t("loan.defaultName")}
           principal={parseNumber(scheduleLoan.principal)}
           ratePercent={parseNumber(scheduleLoan.ratePercent)}
-          years={parseNumber(scheduleLoan.years)}
+          years={loanTermYears(scheduleLoan)}
           startIso={scheduleLoan.startDate}
           monthlyPayment={loanMonthlyPayment(scheduleLoan)}
+          repayment={scheduleLoan.repayment ?? "annuity"}
           format={fmt}
         />
       ) : null}
