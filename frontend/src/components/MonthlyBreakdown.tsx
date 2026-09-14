@@ -1,7 +1,8 @@
 import { alpha } from "../theme/accents";
 import { useAccent } from "../contexts/ThemeContext";
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { CurrencyCode, formatCurrency } from "../utils/currency";
 
 export type MonthRow = {
@@ -29,6 +30,10 @@ type Props = {
   annualIncome: number;
   annualExpenses: number;
   currency: CurrencyCode;
+  /** Tap sur un mois : ouvre l'éditeur de ses revenus. */
+  onPressMonth?: (monthIndex: number) => void;
+  /** Mois dont au moins un revenu a été retouché ou coupé. */
+  editedMonths?: number[];
   labels: {
     netSmall: string;
     colMonth: string;
@@ -49,6 +54,8 @@ export default function MonthlyBreakdown({
   currency,
   annualIncome,
   annualExpenses,
+  onPressMonth,
+  editedMonths = [],
   labels,
 }: Props) {
   const GOLD = useAccent().main;
@@ -68,15 +75,23 @@ export default function MonthlyBreakdown({
           const positive = m.remaining >= 0;
           const isCurrent = m.index === currentMonthIndex;
           const ratio = Math.min(1, Math.abs(m.remaining) / max);
+          const edited = editedMonths.includes(m.index);
           return (
-            <View
+            <TouchableOpacity
               key={m.index}
               style={[styles.monthCard, isCurrent && styles.monthCardCurrent]}
               testID={`month-card-${m.index}`}
+              onPress={onPressMonth ? () => onPressMonth(m.index) : undefined}
+              disabled={!onPressMonth}
+              activeOpacity={0.8}
+              accessibilityRole={onPressMonth ? "button" : undefined}
             >
-              <Text style={[styles.monthName, isCurrent && { color: GOLD }]}>
-                {m.shortName.toUpperCase()}
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <Text style={[styles.monthName, isCurrent && { color: GOLD }]}>
+                  {m.shortName.toUpperCase()}
+                </Text>
+                {edited ? <View style={[styles.editedDot, { backgroundColor: GOLD }]} /> : null}
+              </View>
               <Text
                 style={[
                   styles.monthValue,
@@ -97,7 +112,7 @@ export default function MonthlyBreakdown({
                   ]}
                 />
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -120,17 +135,22 @@ export default function MonthlyBreakdown({
         {months.map((m) => {
           const positive = m.remaining >= 0;
           const isCurrent = m.index === currentMonthIndex;
+          const edited = editedMonths.includes(m.index);
           return (
-            <View
+            <TouchableOpacity
               key={m.index}
               style={[styles.tableRow, isCurrent && styles.tableRowCurrent]}
               testID={`month-row-${m.index}`}
+              onPress={onPressMonth ? () => onPressMonth(m.index) : undefined}
+              disabled={!onPressMonth}
+              activeOpacity={0.7}
             >
               <View style={{ flex: 1.1, flexDirection: "row", alignItems: "center" }}>
                 {isCurrent && <View style={styles.dot} />}
                 <Text style={[styles.td, isCurrent && { color: GOLD, fontWeight: "700" }]}>
                   {m.name}
                 </Text>
+                {edited ? <Feather name="edit-2" size={10} color={GOLD} style={{ marginLeft: 5 }} /> : null}
               </View>
               <Text style={[styles.tdNum, { flex: 1.4 }]}>
                 {fmt(m.income)}
@@ -150,7 +170,7 @@ export default function MonthlyBreakdown({
               >
                 {fmt(m.remaining)}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
 
@@ -191,6 +211,7 @@ export default function MonthlyBreakdown({
 const makeStyles = (GOLD: string) =>
   StyleSheet.create({
   cardsRow: { paddingVertical: 4, paddingRight: 12, gap: 10 },
+  editedDot: { width: 6, height: 6, borderRadius: 3 },
   monthCard: {
     width: 120,
     padding: 14,

@@ -412,7 +412,19 @@ export const makeBudgetStyles = (GOLD: string) =>
   inputLabel: {
     color: TEXT_3, fontSize: 11, letterSpacing: 0.8,
     textTransform: "uppercase", fontWeight: "600", marginBottom: 2,
+    // Dans une rangée avec la bulle « i » : le texte se replie, la bulle
+    // reste collée au dernier mot au lieu de chevaucher l'unité à droite.
+    flexShrink: 1,
   },
+  // Sélecteur à deux segments égaux (ex. don calculé sur le net / le brut).
+  segmentRow: {
+    flexDirection: "row", gap: 6, marginTop: 12, padding: 4,
+    borderRadius: 12, backgroundColor: BG, borderWidth: 1, borderColor: BORDER,
+  },
+  segment: { flex: 1, paddingVertical: 9, borderRadius: 9, alignItems: "center" },
+  segmentOn: { backgroundColor: GOLD },
+  segmentText: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
+  segmentTextOn: { color: "#000", fontWeight: "800" },
   inputLabelEditable: { padding: 0, margin: 0, marginBottom: 2 },
   euroIcon: { color: GOLD, fontSize: 18, fontWeight: "800" },
   dismissKbBtn: {

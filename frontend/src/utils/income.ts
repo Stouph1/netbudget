@@ -38,7 +38,31 @@ export type IncomeSource = {
    * brut : c'est une conviction, pas une erreur, et l'app doit suivre.
    */
   titheBase?: "gross" | "net";
+  /**
+   * Mois (0-11) où ce revenu est perçu. Absent = les douze. Une bourse sur dix
+   * mois, un salaire saisonnier, un loyer d'été : le montant n'arrive pas
+   * chaque mois, et le budget doit le voir.
+   */
+  activeMonths?: number[];
+  /**
+   * Brut d'un mois précis, saisi à la main (clé = index du mois, valeur =
+   * montant brut). Remplace le montant calculé pour ce mois seulement : un
+   * mois avec prime, un mois à mi-temps, un mois sans mission.
+   */
+  monthOverrides?: Record<string, string>;
 };
+
+/** Ce revenu est-il perçu ce mois-là ? */
+export function isMonthActive(s: IncomeSource, monthIndex: number): boolean {
+  if (s.frequency === "monthOnce") return s.variableMonth === monthIndex;
+  return !s.activeMonths || s.activeMonths.includes(monthIndex);
+}
+
+/** Nombre de mois perçus (12 par défaut, 1 pour un versement unique). */
+export function activeMonthCount(s: IncomeSource): number {
+  if (s.frequency === "monthOnce") return 1;
+  return s.activeMonths ? s.activeMonths.length : 12;
+}
 
 // Estimations de charges par type — sources : service-public.fr, urssaf.fr.
 export const STATUS_LABEL: Record<ProStatus, string> = {
@@ -102,16 +126,20 @@ function frequencyFactorMonthly(
 ): number {
   switch (s.frequency) {
     case "monthly":
-      return 1;
-    case "annual":
-      return 1 / 12;
+      return isMonthActive(s, monthIndex) ? 1 : 0;
+    case "annual": {
+      // Un montant annuel se répartit sur les mois où il tombe : dix mois de
+      // bourse, c'est le total divisé par dix, pas par douze.
+      if (!isMonthActive(s, monthIndex)) return 0;
+      return 1 / Math.max(1, activeMonthCount(s));
+    }
     case "monthOnce":
       // versé une seule fois dans l'année, sur un mois précis
       return s.variableMonth === monthIndex ? 1 : 0;
     case "daily":
       // TJM × jours facturés dans le mois. Sans nombre de jours, rien : on ne
       // suppose pas un mois plein à la place de l'utilisateur.
-      return Math.max(0, s.daysPerMonth ?? 0);
+      return isMonthActive(s, monthIndex) ? Math.max(0, s.daysPerMonth ?? 0) : 0;
     default:
       return 0;
   }
@@ -120,20 +148,37 @@ function frequencyFactorMonthly(
 // Net mensuel attendu pour une source à un mois donné (0–11).
 // `tithePercent` : pourcentage de dîme du profil (0 si non applicable) —
 // déduit du net UNIQUEMENT si la source a titheApplied.
+/**
+ * Brut d'un mois donné, tel que le budget le calcule : le montant saisi × la
+ * part du mois, ou le montant du mois si la personne l'a fixé à la main.
+ */
+export function grossForMonth(s: IncomeSource, monthIndex: number): number {
+  const override = s.monthOverrides?.[String(monthIndex)];
+  if (override !== undefined && override !== "") return Math.max(0, parseNumber(override));
+  const amount = parseNumber(s.amount);
+  if (amount <= 0) return 0;
+  return amount * frequencyFactorMonthly(s, monthIndex);
+}
+
+/** Brut du mois AVANT toute retouche manuelle — ce que le formulaire propose. */
+export function defaultGrossForMonth(s: IncomeSource, monthIndex: number): number {
+  return grossForMonth({ ...s, monthOverrides: undefined }, monthIndex);
+}
+
 export function monthlyNetForSource(
   s: IncomeSource,
   monthIndex: number,
   tithePercent: number = 0,
 ): number {
-  const amount = parseNumber(s.amount);
-  if (amount <= 0) return 0;
+  const gross = grossForMonth(s, monthIndex);
+  if (gross <= 0) return 0;
   const charges = Math.max(0, Math.min(60, parseNumber(s.chargesPercent)));
-  let net = amount * (1 - charges / 100);
+  let net = gross * (1 - charges / 100);
   if (s.titheApplied && tithePercent > 0) {
-    const base = s.titheBase === "gross" ? amount : net;
+    const base = s.titheBase === "gross" ? gross : net;
     net = Math.max(0, net - base * (Math.min(100, tithePercent) / 100));
   }
-  return net * frequencyFactorMonthly(s, monthIndex);
+  return net;
 }
 
 // Montant mensuel moyen de la dîme (pour affichage récap).
@@ -165,26 +210,26 @@ export function averageMonthlyNet(
   return sum / 12;
 }
 
-// Brut annuel total (avant charges) — utile pour l'affichage récap.
+// Brut annuel total (avant charges) — la somme des douze bruts mensuels, mois
+// perçus et retouches comprises.
 export function annualGross(sources: IncomeSource[]): number {
   let sum = 0;
+  for (const s of sources) for (let i = 0; i < 12; i++) sum += grossForMonth(s, i);
+  return sum;
+}
+
+/** Mois où au moins une source a été retouchée à la main ou coupée. */
+export function editedMonths(sources: IncomeSource[]): number[] {
+  const out = new Set<number>();
   for (const s of sources) {
-    const amount = parseNumber(s.amount);
-    if (amount <= 0) continue;
-    switch (s.frequency) {
-      case "monthly":
-        sum += amount * 12;
-        break;
-      case "annual":
-      case "monthOnce":
-        sum += amount;
-        break;
-      case "daily":
-        sum += amount * Math.max(0, s.daysPerMonth ?? 0) * 12;
-        break;
+    for (const k of Object.keys(s.monthOverrides ?? {})) {
+      if (s.monthOverrides?.[k] !== "") out.add(Number(k));
+    }
+    if (s.activeMonths && s.frequency !== "monthOnce") {
+      for (let i = 0; i < 12; i++) if (!s.activeMonths.includes(i)) out.add(i);
     }
   }
-  return sum;
+  return [...out].sort((a, b) => a - b);
 }
 
 // Net annuel total (après charges).

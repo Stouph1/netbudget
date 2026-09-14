@@ -95,12 +95,21 @@ describe("validation de la phrase", () => {
 
   it("détecte un ordre faux par la somme de contrôle", () => {
     // Tous les mots existent, mais deux sont échangés : seule la somme de
-    // contrôle peut le voir.
+    // contrôle peut le voir. Elle tient sur quatre bits : UN échange donné
+    // passe par hasard une fois sur seize. On essaie donc chaque paire
+    // adjacente et l'on exige qu'au moins l'une soit refusée pour la bonne
+    // raison — les onze passer toutes serait une chance sur 16^11.
     const words = PHRASE.split(" ");
-    [words[0], words[1]] = [words[1], words[0]];
-    const out = checkPhrase(words.join(" "));
-    expect(out.ok).toBe(false);
-    expect(out.ok === false && out.reason).toBe("checksum");
+    const refused = [];
+    for (let i = 0; i + 1 < words.length; i++) {
+      const swapped = [...words];
+      [swapped[i], swapped[i + 1]] = [swapped[i + 1], swapped[i]];
+      if (swapped[i] === swapped[i + 1]) continue;
+      const out = checkPhrase(swapped.join(" "));
+      if (!out.ok) refused.push(out.reason);
+    }
+    expect(refused.length).toBeGreaterThan(0);
+    expect(new Set(refused)).toEqual(new Set(["checksum"]));
   });
 
   it("refuse une phrase vide", () => {

@@ -1791,6 +1791,7 @@ const makeStyles = (GOLD: string) =>
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    flexShrink: 1,
   },
   qHint: {
     color: TEXT_3,

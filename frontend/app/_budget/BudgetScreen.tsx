@@ -26,7 +26,7 @@ import { CurrencyCode, getCurrency } from "../../src/utils/currency";
 import { parseNumber } from "../../src/utils/finance";
 import { loanProgress, remainingParts } from "../../src/utils/loanSchedule";
 import { AdviceItem, interpolate } from "../../src/utils/advice";
-import { averageMonthlyNet, IncomeSource, TYPE_ICON } from "../../src/utils/income";
+import { averageMonthlyNet, IncomeSource, TYPE_ICON, editedMonths } from "../../src/utils/income";
 import { getBudgetMixProfile } from "../../src/lib/adviceEngine";
 import type { UserProfile } from "../../src/types/advice";
 import {
@@ -99,6 +99,7 @@ export default function BudgetScreen({
   onAddIncome,
   onEditIncome,
   onDeleteIncome,
+  onPressMonth,
   onRentChange,
   onAddLoan,
   onEditLoan,
@@ -155,6 +156,8 @@ export default function BudgetScreen({
   onAddIncome: () => void;
   onEditIncome: (src: IncomeSource) => void;
   onDeleteIncome: (id: string) => void;
+  /** Tap sur un mois du budget mois par mois. */
+  onPressMonth: (monthIndex: number) => void;
   onRentChange: (next: string) => void;
   onAddLoan: () => void;
   onEditLoan: (loan: Loan) => void;
@@ -640,6 +643,8 @@ export default function BudgetScreen({
           annualIncome={annualIncome}
           annualExpenses={annualExpenses}
           currency={currency}
+          onPressMonth={onPressMonth}
+          editedMonths={editedMonths(incomes)}
           labels={{
             netSmall: t("monthly.netSmall"),
             colMonth: t("monthly.col.month"),

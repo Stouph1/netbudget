@@ -18,6 +18,8 @@ import { goBack } from "../../src/lib/nav";
 import { loadAdviceProfile } from "../../src/lib/premiumStore";
 import { loadProfileDetails } from "../../src/lib/profile";
 import { audiencesOf, stepsFor, type TaxProfile } from "../../src/lib/taxGuide";
+import { ADVICE_CATALOG_FR } from "../../src/lib/adviceEngine";
+import type { Country } from "../../src/types/advice";
 import { openExternal } from "../../src/utils/openExternal";
 
 const MIDNIGHT = "#0F172A";
@@ -33,6 +35,7 @@ export default function ImpotsScreen() {
   const { t, lang } = useLang();
   const { user } = useSession();
   const [taxProfile, setTaxProfile] = useState<TaxProfile>({});
+  const [country, setCountry] = useState<Country | undefined>(undefined);
   const [done, setDone] = useState<string[]>([]);
 
   // Le guide lit deux choses : le profil Coach (situation, enfants) et le
@@ -43,6 +46,7 @@ export default function ImpotsScreen() {
     Promise.all([loadAdviceProfile(user.id, null), loadProfileDetails(user.id)]).then(
       ([p, details]) => {
         if (!alive) return;
+        setCountry(p.country);
         setTaxProfile({
           occupation: p.occupation ?? details.occupation_status ?? undefined,
           gives: details.tithe_enabled && details.tithe_percent > 0,
@@ -57,6 +61,15 @@ export default function ImpotsScreen() {
 
   const steps = useMemo(() => stepsFor(taxProfile), [taxProfile]);
   const audiences = useMemo(() => audiencesOf(taxProfile), [taxProfile]);
+  // Hors de France, le pas-à-pas n'a pas de sens : chaque pays a ses
+  // formulaires. On montre la fiche « portail officiel » du pays quand elle
+  // existe dans le catalogue (vérifiée, datée), et rien d'inventé sinon.
+  const foreign = !!country && country !== "FR";
+  const portal = useMemo(
+    () => (foreign ? ADVICE_CATALOG_FR.find((c) => c.id.startsWith("tax-portal-") && c.countries?.includes(country)) : undefined),
+    [foreign, country],
+  );
+  const portalLink = portal && typeof portal.action === "object" ? portal.action.link : undefined;
   const fmtDate = (iso: string) => {
     try {
       return new Intl.DateTimeFormat(lang, { dateStyle: "long" }).format(new Date(iso));
@@ -75,6 +88,30 @@ export default function ImpotsScreen() {
         <View style={{ width: 22 }} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+        {foreign ? (
+          <>
+            <View style={s.card}>
+              <Text style={s.stepTitle}>{portal ? t(portal.titleKey ?? "") : t("impots.other.title")}</Text>
+              <Text style={[s.stepBody, { marginLeft: 0 }]}>
+                {portal ? t(portal.bodyKey ?? "") : t("impots.other.none")}
+              </Text>
+              {portalLink ? (
+                <TouchableOpacity onPress={() => openExternal(portalLink)} style={s.cta} accessibilityRole="link">
+                  <Feather name="external-link" size={16} color="#04140B" />
+                  <Text style={s.ctaText}>{t(portal?.actionLabelKey ?? "impots.other.open")}</Text>
+                </TouchableOpacity>
+              ) : null}
+              {portal ? (
+                <Text style={[s.source, { marginTop: 8 }]}>
+                  {t("impots.source")} · {t("impots.verified")} {fmtDate(portal.lastVerified ?? "")}
+                </Text>
+              ) : null}
+            </View>
+            <Text style={s.foot}>{t("impots.other.frOnly")}</Text>
+          </>
+        ) : null}
+        {foreign ? null : (
+        <>
         <Text style={s.intro}>{t("impots.intro")}</Text>
         {/* Pourquoi CES étapes : la personne voit ce que le guide a retenu
             d'elle, et peut corriger dans son profil si c'est faux. */}
@@ -114,6 +151,15 @@ export default function ImpotsScreen() {
                 </View>
               </TouchableOpacity>
               <Text style={s.stepBody}>{t(`impots.step.${step.id}.body`)}</Text>
+              {/* Où, concrètement : le formulaire, la rubrique, la case quand la
+                  source officielle la donne — sinon on le dit. */}
+              <View style={s.whereRow}>
+                <Feather name="map-pin" size={12} color={GOLD} style={{ marginTop: 3 }} />
+                <Text style={s.where}>
+                  <Text style={s.whereLead}>{t("impots.where.lead")} </Text>
+                  {t(`impots.step.${step.id}.where`)}
+                </Text>
+              </View>
               <TouchableOpacity
                 onPress={() => openExternal(step.sourceUrl)}
                 accessibilityRole="link"
@@ -129,6 +175,8 @@ export default function ImpotsScreen() {
         })}
 
         <Text style={s.foot}>{t("impots.disclaimer")}</Text>
+        </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -156,4 +204,9 @@ const makeS = (GOLD: string) =>
   sourceRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8, marginLeft: 33 },
   source: { color: TEXT_3, fontSize: 11, textDecorationLine: "underline" },
   foot: { color: TEXT_3, fontSize: 11.5, lineHeight: 16, marginTop: 14 },
+  whereRow: { flexDirection: "row", gap: 6, marginTop: 8, marginLeft: 33, padding: 9, borderRadius: 10, backgroundColor: alpha(GOLD, 0.07), borderWidth: 1, borderColor: alpha(GOLD, 0.25) },
+  where: { flex: 1, color: TEXT_2, fontSize: 12.5, lineHeight: 18 },
+  whereLead: { color: GOLD, fontWeight: "800" },
+  cta: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: GOLD, borderRadius: 12, paddingVertical: 12, marginTop: 12 },
+  ctaText: { color: "#04140B", fontSize: 14, fontWeight: "800" },
   });

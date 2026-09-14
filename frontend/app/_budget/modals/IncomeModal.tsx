@@ -176,6 +176,56 @@ export default function IncomeModal({
                   testID="income-days"
                 />
               )}
+              {incomeForm.frequency !== "monthOnce" ? (
+                // Mois perçus. Une bourse court sur dix mois, un salaire saisonnier
+                // sur quatre : sans ce choix, l'app étalait sur douze et le budget
+                // mentait deux mois par an.
+                <View style={[styles.toggleRow, { flexDirection: "column", alignItems: "stretch" }]}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <View style={[styles.labelRow, { flex: 1 }]}>
+                      <Text style={[styles.toggleLabel, { flexShrink: 1 }]}>{t("income.activeMonths")}</Text>
+                      <InfoTip title={t("help.activeMonths.title")} body={t("help.activeMonths.body")} testID="income-months-info" />
+                    </View>
+                    <Text style={{ color: TEXT_2, fontSize: 13, fontWeight: "700" }}>
+                      {interpolate(t("income.activeMonthsCount"), { n: incomeForm.activeMonths ? incomeForm.activeMonths.length : 12 })}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                    {MONTH_KEYS_SHORT.map((key, i) => {
+                      const on = !incomeForm.activeMonths || incomeForm.activeMonths.includes(i);
+                      return (
+                        <TouchableOpacity
+                          key={i}
+                          onPress={() =>
+                            setIncomeForm((f) => {
+                              const cur = f.activeMonths ?? Array.from({ length: 12 }, (_, k) => k);
+                              const next = cur.includes(i) ? cur.filter((m) => m !== i) : [...cur, i].sort((a, b) => a - b);
+                              // Aucun mois coché : on refuse, un revenu jamais perçu n'existe pas.
+                              if (next.length === 0) return f;
+                              return { ...f, activeMonths: next.length === 12 ? undefined : next };
+                            })
+                          }
+                          style={[styles.distribPill, on && styles.distribPillActive, { paddingHorizontal: 11 }]}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: on }}
+                          testID={`income-active-month-${i}`}
+                        >
+                          <Text style={[styles.distribPillText, on && styles.distribPillTextActive]}>{t(key)}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  {incomeForm.activeMonths ? (
+                    <TouchableOpacity
+                      onPress={() => setIncomeForm((f) => ({ ...f, activeMonths: undefined }))}
+                      style={{ alignSelf: "flex-start", marginTop: 8 }}
+                      accessibilityRole="button"
+                    >
+                      <Text style={{ color: GOLD, fontSize: 13, fontWeight: "700" }}>{t("income.activeMonthsAll")}</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : null}
               {incomeForm.frequency === "monthOnce" && (
                 <ScrollView
                   horizontal
@@ -240,60 +290,60 @@ export default function IncomeModal({
                 testID="income-charges"
               />
 
-              {/* Dîme — visible seulement si activée dans le profil (Premium) */}
+              {/* Dons — visible seulement si activé dans le profil. Une seule
+                  carte : le choix du montant (interrupteur) et, dessous, la base
+                  de calcul — net ou brut — en deux segments égaux. */}
               {tithePercent > 0 ? (
-                <View style={styles.toggleRow}>
-                  <Feather
-                    name="heart"
-                    size={20}
-                    color={incomeForm.titheApplied ? GOLD : TEXT_3}
-                    style={{ marginRight: 12 }}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.labelRow}>
-                      <Text style={styles.toggleLabel}>
-                        {interpolate(t("income.titheToggle"), { pct: tithePercent })}
-                      </Text>
-                      <InfoTip title={t("help.tithe.title")} body={t("help.tithe.body")} testID="income-tithe-info" />
-                    </View>
-                    <Text style={{ color: TEXT_3, fontSize: 12, marginTop: 2 }}>
-                      {t("income.titheHint")}
-                    </Text>
-                  </View>
-                  <Switch
-                    value={incomeForm.titheApplied ?? false}
-                    onValueChange={(v) =>
-                      setIncomeForm((f) => ({ ...f, titheApplied: v }))
-                    }
-                    trackColor={{ false: BORDER, true: GOLD }}
-                    thumbColor="#fff"
-                    ios_backgroundColor={BORDER}
-                  />
-                </View>
-              ) : null}
-              {tithePercent > 0 && incomeForm.titheApplied ? (
-                // Sur quoi porte le don : le brut (avant charges) ou le net.
-                // Ce n'est pas un détail comptable, c'est une conviction — on
-                // laisse choisir, en net par défaut comme avant.
-                <View style={[styles.toggleRow, { paddingTop: 0 }]}>
-                  <Text style={[styles.toggleLabel, { flex: 1 }]}>{t("income.titheBase")}</Text>
-                  {(["net", "gross"] as const).map((b) => {
-                    const on = (incomeForm.titheBase ?? "net") === b;
-                    return (
-                      <TouchableOpacity
-                        key={b}
-                        onPress={() => setIncomeForm((f) => ({ ...f, titheBase: b }))}
-                        style={[styles.distribPill, on && styles.distribPillActive, { marginLeft: 6 }]}
-                        accessibilityRole="radio"
-                        accessibilityState={{ selected: on }}
-                        testID={`income-tithe-base-${b}`}
-                      >
-                        <Text style={[styles.distribPillText, on && styles.distribPillTextActive]}>
-                          {t(`income.titheBase.${b}`)}
+                <View style={[styles.toggleRow, { flexDirection: "column", alignItems: "stretch" }]}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    <Feather
+                      name="heart"
+                      size={20}
+                      color={incomeForm.titheApplied ? GOLD : TEXT_3}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.labelRow}>
+                        <Text style={[styles.toggleLabel, { flexShrink: 1 }]}>
+                          {interpolate(t("income.titheToggle"), { pct: tithePercent })}
                         </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                        <InfoTip title={t("help.tithe.title")} body={t("help.tithe.body")} testID="income-tithe-info" />
+                      </View>
+                      <Text style={{ color: TEXT_3, fontSize: 12, marginTop: 2 }}>
+                        {t("income.titheHint")}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={incomeForm.titheApplied ?? false}
+                      onValueChange={(v) =>
+                        setIncomeForm((f) => ({ ...f, titheApplied: v }))
+                      }
+                      trackColor={{ false: BORDER, true: GOLD }}
+                      thumbColor="#fff"
+                      ios_backgroundColor={BORDER}
+                    />
+                  </View>
+                  {incomeForm.titheApplied ? (
+                    <View style={styles.segmentRow} accessibilityRole="radiogroup">
+                      {(["net", "gross"] as const).map((b) => {
+                        const on = (incomeForm.titheBase ?? "net") === b;
+                        return (
+                          <TouchableOpacity
+                            key={b}
+                            onPress={() => setIncomeForm((f) => ({ ...f, titheBase: b }))}
+                            style={[styles.segment, on && styles.segmentOn]}
+                            accessibilityRole="radio"
+                            accessibilityState={{ selected: on }}
+                            testID={`income-tithe-base-${b}`}
+                            activeOpacity={0.85}
+                          >
+                            <Text style={[styles.segmentText, on && styles.segmentTextOn]}>
+                              {t(`income.titheBase.${b}Full`)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  ) : null}
                 </View>
               ) : null}
             </ScrollView>

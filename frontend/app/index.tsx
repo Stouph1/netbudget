@@ -154,6 +154,7 @@ import CityPickerModal from "./_budget/modals/CityPickerModal";
 import CityInfoModal from "./_budget/modals/CityInfoModal";
 import RatioInfoModal from "./_budget/modals/RatioInfoModal";
 import IncomeModal from "./_budget/modals/IncomeModal";
+import MonthEditorModal from "./_budget/modals/MonthEditorModal";
 import AddItemModal from "./_budget/modals/AddItemModal";
 import LoanModal from "./_budget/modals/LoanModal";
 import ConfirmModal from "./_budget/modals/ConfirmModal";
@@ -335,6 +336,8 @@ export default function Index() {
 
   // Modal d'édition d'une source de revenu
   const [incomeModalOpen, setIncomeModalOpen] = useState(false);
+  // Mois ouvert dans l'éditeur « revenus de ce mois » ; null = fermé.
+  const [monthEditor, setMonthEditor] = useState<number | null>(null);
   const [editingIncome, setEditingIncome] = useState<IncomeSource | null>(null);
   const [incomeForm, setIncomeForm] = useState<IncomeSource>(defaultIncomeSource());
 
@@ -1255,6 +1258,7 @@ export default function Index() {
           resolvedScopeLabel={resolvedScopeLabel}
           scopeSwitching={budgetScope !== budgetScopeTarget}
           budgetSwitcherOpen={budgetSwitcherOpen}
+          onPressMonth={setMonthEditor}
           incomes={incomes}
           tithePercent={tithePercent}
           totalBrutAnnuel={totalBrutAnnuel}
@@ -1570,6 +1574,19 @@ export default function Index() {
         onChangeProStatus={changeIncomeProStatus}
         onSave={saveIncome}
         onClose={() => setIncomeModalOpen(false)}
+      />
+
+      {/* Revenus d'un mois précis */}
+      <MonthEditorModal
+        monthIndex={monthEditor}
+        incomes={incomes}
+        tithePercent={tithePercent}
+        currency={currency}
+        sheetHeight={sheetHeight}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        t={t}
+        onChange={setIncomes}
+        onClose={() => setMonthEditor(null)}
       />
 
       {/* Add Custom Expense Item Modal */}
