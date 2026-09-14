@@ -114,6 +114,12 @@ const jsonLd = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0A0A0C" />
+    {/* Mesure d'audience Vercel : pages vues, pays, appareil, agrégés. Sans
+        cookie ni identifiant permanent — c'est ce qui la rend compatible avec
+        « aucun traceur » et la dispense de bannière. Le script n'existe que si
+        l'analyse est activée sur le projet Vercel ; ailleurs, il répond 404 et
+        le navigateur passe. Déclaré dans la politique de confidentialité. */}
+    <script defer src="/_vercel/insights/script.js"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/logo.png" />
 
