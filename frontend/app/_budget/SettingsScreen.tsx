@@ -16,6 +16,7 @@ import { interpolate } from "../../src/utils/advice";
 import { BORDER, DANGER, GOLD, TEXT_3 } from "./constants";
 import { styles } from "./styles";
 import { Section } from "./ui";
+import { openExternal } from "../../src/utils/openExternal";
 import {
   useTourScroller,
   useTourTarget,
@@ -539,6 +540,32 @@ export default function SettingsScreen({
           onClose={() => setPreviewTier(null)}
         />
       ) : null}
+
+      {/* À propos : le site, les documents, le compte Instagram. Les règles
+          de confidentialité et les CGU doivent être trouvables DANS l'app,
+          pas seulement au moment de l'inscription. */}
+      <Section title={t("settings.about.title")} subtitle={t("settings.about.hint")}>
+        {[
+          { key: "site", icon: "globe" as const, url: "https://www.netbudget.app/" },
+          { key: "instagram", icon: "instagram" as const, url: "https://www.instagram.com/netbudget.app" },
+          { key: "privacy", icon: "shield" as const, url: "https://www.netbudget.app/privacy" },
+          { key: "terms", icon: "file-text" as const, url: "https://www.netbudget.app/terms" },
+          { key: "contact", icon: "mail" as const, url: "mailto:contact@netbudget.app" },
+        ].map((r) => (
+          <TouchableOpacity
+            key={r.key}
+            style={styles.profileLocNote}
+            activeOpacity={0.85}
+            onPress={() => void openExternal(r.url)}
+            accessibilityRole="link"
+            testID={`settings-about-${r.key}`}
+          >
+            <Feather name={r.icon} size={15} color={GOLD} />
+            <Text style={[styles.profileLocNoteText, { flex: 1 }]}>{t(`settings.about.${r.key}`)}</Text>
+            <Feather name="external-link" size={14} color={TEXT_3} />
+          </TouchableOpacity>
+        ))}
+      </Section>
 
       <Section title={t("settings.danger.title")}>
         <TouchableOpacity

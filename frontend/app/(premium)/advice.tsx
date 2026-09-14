@@ -1,6 +1,7 @@
 // Écran Conseils personnalisés Premium.
 import { alpha } from "../../src/theme/accents";
 import { useAccent } from "../../src/contexts/ThemeContext";
+import { InfoTip, type InfoContent } from "../../src/components/InfoTip";
 import { openExternal } from "../../src/utils/openExternal";
 //
 // Flow :
@@ -480,11 +481,10 @@ export default function AdviceScreen() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
-  // Set des group.key expanded. Par défaut : Budget & Épargne + Budget à
-  // plusieurs + Association (ces derniers n'apparaissent que dans le bon scope).
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(["budget", "shared", "association"]),
-  );
+  // Set des group.key expanded. Tout replié par défaut : la page se lit
+  // d'abord comme un sommaire — titres et nombre de conseils — et l'on
+  // ouvre ce qui intéresse. Tout déplié, c'était un mur de cartes.
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const mode = modeFor(workspaceKind);
   const cfg = useMemo(() => onboardingConfig(t)[mode], [t, mode]);
@@ -743,6 +743,7 @@ export default function AdviceScreen() {
           {cfg.askAge && (!basicsKnown || editBasics) ? (
             <QuestionBlock
               label={cfg.ageLabel}
+              info={{ title: t("coach.help.age.title"), body: t("coach.help.age.body") }}
               options={ageOptions(t)}
               value={profile.age}
               onSelect={(v) => updateField("age", v)}
@@ -752,6 +753,7 @@ export default function AdviceScreen() {
           {cfg.askVehicle ? (
             <QuestionBlock
               label={cfg.vehicleLabel}
+              info={{ title: t("coach.help.vehicle.title"), body: t("coach.help.vehicle.body") }}
               options={vehicleOptions(t)}
               value={profile.vehicle}
               onSelect={(v) =>
@@ -771,6 +773,7 @@ export default function AdviceScreen() {
           {cfg.askVehicle && needsEnergy(profile) ? (
             <QuestionBlock
               label={t("coach.vehicle.energyLabel")}
+              info={{ title: t("coach.help.energy.title"), body: t("coach.help.energy.body") }}
               options={vehicleEnergyOptions(t)}
               value={profile.vehicleEnergy}
               onSelect={(v) => updateField("vehicleEnergy", v)}
@@ -781,6 +784,7 @@ export default function AdviceScreen() {
           {cfg.askFamily ? (
             <QuestionBlock
               label={t("coach.familyLabel")}
+              info={{ title: t("coach.help.family.title"), body: t("coach.help.family.body") }}
               options={familyOptions(t)}
               value={profile.family}
               onSelect={(v) => {
@@ -797,6 +801,7 @@ export default function AdviceScreen() {
           {cfg.askFoyer ? (
             <QuestionBlock
               label={t("coach.foyerLabel")}
+              info={{ title: t("coach.help.foyer.title"), body: t("coach.help.foyer.body") }}
               options={foyerOptions(t)}
               value={profile.family}
               onSelect={(v) => updateField("family", v)}
@@ -807,6 +812,7 @@ export default function AdviceScreen() {
           (cfg.askKids === "auto" && hasKids(profile.family)) ? (
             <ChildrenBlock
               label={cfg.kidsLabel}
+              info={{ title: t("coach.help.kids.title"), body: t("coach.help.kids.body") }}
               value={profile.children ?? []}
               onToggle={toggleChild}
             />
@@ -825,6 +831,7 @@ export default function AdviceScreen() {
           {cfg.askCountry && (!basicsKnown || editBasics) ? (
             <ChipsBlock
               label={cfg.countryLabel}
+              info={{ title: t("coach.help.country.title"), body: t("coach.help.country.body") }}
               hint={t("coach.country.hint")}
               options={COUNTRY_OPTIONS}
               value={profile.country}
@@ -840,6 +847,7 @@ export default function AdviceScreen() {
                   ? t("coach.region.labelPerso")
                   : t("coach.region.labelShared")
               }
+                  info={{ title: t("coach.help.region.title"), body: t("coach.help.region.body") }}
               hint={t("coach.region.hint")}
               options={FR_REGIONS.map((r) => ({ value: r, label: r }))}
               value={profile.region}
@@ -849,6 +857,7 @@ export default function AdviceScreen() {
           {cfg.askHousing ? (
             <QuestionBlock
               label={cfg.housingLabel}
+              info={{ title: t("coach.help.housing.title"), body: t("coach.help.housing.body") }}
               options={housingOptions(t)}
               value={profile.housing}
               onSelect={(v) => updateField("housing", v)}
@@ -860,6 +869,7 @@ export default function AdviceScreen() {
             <>
               <ChipsBlock
                 label={t("coach.housingType.label")}
+                info={{ title: t("coach.help.housingType.title"), body: t("coach.help.housingType.body") }}
                 hint={t("coach.housingType.hint")}
                 options={[
                   {
@@ -873,6 +883,7 @@ export default function AdviceScreen() {
               />
               <ChipsBlock
                 label={t("coach.propertyCount.label")}
+                info={{ title: t("coach.help.propertyCount.title"), body: t("coach.help.propertyCount.body") }}
                 hint={t("coach.propertyCount.hint")}
                 options={[
                   { value: "1", label: "1" },
@@ -897,6 +908,7 @@ export default function AdviceScreen() {
                   ? t("coach.zone.labelPerso")
                   : t("coach.zone.labelShared")
               }
+                  info={{ title: t("coach.help.zone.title"), body: t("coach.help.zone.body") }}
               hint={t("coach.zone.hint")}
               options={[
                 { value: "big_city", label: t("coach.zone.bigCity") },
@@ -912,6 +924,7 @@ export default function AdviceScreen() {
           {cfg.askTmi ? (
             <QuestionBlock
               label={cfg.tmiLabel}
+              info={{ title: t("coach.help.tmi.title"), body: t("coach.help.tmi.body") }}
               hint={t("coach.tmi.hint")}
               options={tmiOptions(t)}
               value={profile.tmi}
@@ -922,6 +935,7 @@ export default function AdviceScreen() {
           {cfg.askSavings ? (
             <QuestionBlock
               label={cfg.savingsLabel}
+              info={{ title: t("coach.help.savings.title"), body: t("coach.help.savings.body") }}
               hint={cfg.savingsHint}
               options={savingsOptions(t)}
               value={profile.monthlySavingsCapacity}
@@ -932,7 +946,10 @@ export default function AdviceScreen() {
 
           {cfg.askPets ? (
             <>
-              <Text style={styles.qLabel}>{cfg.petsLabel}</Text>
+              <View style={styles.qLabelRow}>
+                <Text style={styles.qLabel}>{cfg.petsLabel}</Text>
+                <InfoTip title={t("coach.help.pets.title")} body={t("coach.help.pets.body")} />
+              </View>
               <View
                 style={{
                   flexDirection: "row",
@@ -1021,8 +1038,10 @@ export default function AdviceScreen() {
           {/* Situation de handicap — question facultative, formulée en termes de
               DROITS. Trois cases indépendantes : un adulte concerné, un parent
               et un aidant n'ont pas du tout les mêmes démarches. */}
-          <Text style={styles.qLabel}>{t("coach.disability.label")}</Text>
-          <Text style={styles.qHint}>{t("coach.disability.hint")}</Text>
+          <View style={styles.qLabelRow}>
+            <Text style={styles.qLabel}>{t("coach.disability.label")}</Text>
+            <InfoTip title={t("coach.help.disability.title")} body={t("coach.help.disability.body")} />
+          </View>
           <View style={{ gap: 8, marginTop: 8, marginBottom: 4 }}>
             {(
               [
@@ -1335,6 +1354,7 @@ export default function AdviceScreen() {
 function QuestionBlock<T extends string>({
   label,
   hint,
+  info,
   options,
   value,
   onSelect,
@@ -1342,6 +1362,8 @@ function QuestionBlock<T extends string>({
 }: {
   label: string;
   hint?: string;
+  /** Bulle « i » : remplace le petit texte gris, que personne ne lit. */
+  info?: InfoContent;
   options: { value: T; label: string }[];
   value: T | undefined;
   onSelect: (v: T | undefined) => void;
@@ -1351,8 +1373,11 @@ function QuestionBlock<T extends string>({
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={styles.qLabel}>{label}</Text>
-      {hint ? <Text style={styles.qHint}>{hint}</Text> : null}
+      <View style={styles.qLabelRow}>
+        <Text style={styles.qLabel}>{label}</Text>
+        {info ? <InfoTip {...info} /> : null}
+      </View>
+      {hint && !info ? <Text style={styles.qHint}>{hint}</Text> : null}
       <View style={{ gap: 8, marginTop: 8 }}>
         {options.map((opt) => {
           const active = opt.value === value;
@@ -1392,12 +1417,15 @@ function QuestionBlock<T extends string>({
 function ChipsBlock<T extends string>({
   label,
   hint,
+  info,
   options,
   value,
   onSelect,
 }: {
   label: string;
   hint?: string;
+  /** Bulle « i » : remplace le petit texte gris, que personne ne lit. */
+  info?: InfoContent;
   options: { value: T; label: string }[];
   value: T | undefined;
   onSelect: (v: T | undefined) => void;
@@ -1406,8 +1434,11 @@ function ChipsBlock<T extends string>({
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={styles.qLabel}>{label}</Text>
-      {hint ? <Text style={styles.qHint}>{hint}</Text> : null}
+      <View style={styles.qLabelRow}>
+        <Text style={styles.qLabel}>{label}</Text>
+        {info ? <InfoTip {...info} /> : null}
+      </View>
+      {hint && !info ? <Text style={styles.qHint}>{hint}</Text> : null}
       <View
         style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}
       >
@@ -1445,8 +1476,10 @@ function PetsBlock({
   const { t } = useLang();
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={styles.qLabel}>{t("coach.pets.label")}</Text>
-      <Text style={styles.qHint}>{t("coach.pets.hint")}</Text>
+      <View style={styles.qLabelRow}>
+        <Text style={styles.qLabel}>{t("coach.pets.label")}</Text>
+        <InfoTip title={t("coach.help.petsList.title")} body={t("coach.pets.hint")} />
+      </View>
       <View style={{ gap: 8, marginTop: 8 }}>
         {petOptions(t).map((opt) => {
           const pet = pets.find((p) => p.species === opt.value);
@@ -1508,10 +1541,12 @@ function PetsBlock({
 
 function ChildrenBlock({
   label,
+  info,
   value,
   onToggle,
 }: {
   label: string;
+  info?: InfoContent;
   value: ChildAgeBracket[];
   onToggle: (b: ChildAgeBracket) => void;
 }) {
@@ -1520,8 +1555,11 @@ function ChildrenBlock({
   const { t } = useLang();
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={styles.qLabel}>{label}</Text>
-      <Text style={styles.qHint}>{t("coach.children.hint")}</Text>
+      <View style={styles.qLabelRow}>
+        <Text style={styles.qLabel}>{label}</Text>
+        {info ? <InfoTip {...info} /> : null}
+      </View>
+      {info ? null : <Text style={styles.qHint}>{t("coach.children.hint")}</Text>}
       <View style={{ gap: 8, marginTop: 8 }}>
         {childrenOptions(t).map((opt) => {
           const active = value.includes(opt.value);
@@ -1746,6 +1784,7 @@ const makeStyles = (GOLD: string) =>
     borderTopColor: BORDER,
   },
 
+  qLabelRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   qLabel: {
     color: TEXT_2,
     fontSize: 11,
