@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>NETbudget en chiffres — août 2026</title>
+  <link rel="icon" href="/favicon.svg">
+<style>
+  :root {
+    --bg: #F4F6F3;
+    --surface: #FFFFFF;
+    --surface-2: #EDF1EC;
+    --line: #D9DFD8;
+    --text: #12181C;
+    --muted: #5A6570;
+    --faint: #8A949C;
+    --accent: #15803D;
+    --accent-soft: #DCFCE7;
+    --apple: #1F2937;
+    --google: #16A34A;
+    --search: #2F6FB0;
+    --warn: #B45309;
+    --warn-soft: #FEF3C7;
+    --grid: #E5EAE4;
+    --display: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0B1017; --surface: #121A24; --surface-2: #182230; --line: #26313F;
+      --text: #F2F5F3; --muted: #A4AEB8; --faint: #6E7A86;
+      --accent: #4ADE80; --accent-soft: #143A26;
+      --apple: #E5E9EE; --google: #4ADE80; --search: #6BA6E8;
+      --warn: #FBBF24; --warn-soft: #3A2C0A; --grid: #1E2833;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B1017; --surface: #121A24; --surface-2: #182230; --line: #26313F;
+    --text: #F2F5F3; --muted: #A4AEB8; --faint: #6E7A86;
+    --accent: #4ADE80; --accent-soft: #143A26;
+    --apple: #E5E9EE; --google: #4ADE80; --search: #6BA6E8;
+    --warn: #FBBF24; --warn-soft: #3A2C0A; --grid: #1E2833;
+  }
+
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+  .page { max-width: 1040px; margin: 0 auto; padding: 40px 24px 72px; display: grid; gap: 40px; }
+  h1, h2, h3, .num { font-family: var(--display); }
+  h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  h3 { font-size: 15px; font-weight: 700; margin: 0; }
+  p { margin: 0; max-width: 68ch; }
+  .muted { color: var(--muted); }
+  .eyebrow { font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .num { font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  header { display: grid; gap: 10px; }
+  .period { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+  .period b { color: var(--text); font-weight: 600; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 18px 16px; display: grid; gap: 6px; }
+  .kpi .label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .kpi .value { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+  .kpi .sub { font-size: 13px; color: var(--muted); }
+  .kpi.lead { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 70%); }
+
+  section { display: grid; gap: 16px; }
+  .section-head { display: grid; gap: 4px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .panel-head .num { font-size: 22px; font-weight: 800; }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .chart { width: 100%; overflow-x: auto; }
+  svg { display: block; width: 100%; height: auto; }
+  svg text { font-family: var(--display); font-size: 11px; fill: var(--faint); font-variant-numeric: tabular-nums; }
+  .grid-line { stroke: var(--grid); stroke-width: 1; }
+  .axis { stroke: var(--line); stroke-width: 1; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-family: var(--display); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  td { padding: 8px 8px; border-bottom: 1px solid var(--grid); }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  .bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; min-width: 90px; }
+  .bar > i { display: block; height: 100%; background: var(--accent); }
+  .bar.google > i { background: var(--google); }
+  .bar.search > i { background: var(--search); }
+  .table-wrap { overflow-x: auto; }
+
+  .note { display: grid; grid-template-columns: 4px 1fr; gap: 12px; background: var(--warn-soft); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+  .note::before { content: ""; background: var(--warn); border-radius: 2px; }
+  .note b { color: var(--text); }
+
+  .method { display: grid; gap: 8px; font-size: 13.5px; color: var(--muted); }
+  .method li { margin: 0 0 0 18px; }
+
+  @media (max-width: 760px) {
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .split { grid-template-columns: 1fr; }
+    h1 { font-size: 28px; }
+    .kpi .value { font-size: 30px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="page">
+  <header>
+    <span class="eyebrow">Rapport d'activité</span>
+    <h1>NETbudget en chiffres</h1>
+    <div class="period">Période : <b>1er au 31 août 2026</b> · App Store, Google Play, Instagram, recherche Google, hébergement Vercel</div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi lead">
+      <span class="label">Nouveaux utilisateurs</span>
+      <span class="value num" id="k-total">—</span>
+      <span class="sub">Apple + Google, en août · <span class="num" id="k-perday">—</span> par jour en moyenne</span>
+    </div>
+    <div class="kpi">
+      <span class="label">App Store</span>
+      <span class="value num" id="k-apple">—</span>
+      <span class="sub">téléchargements totaux · <span class="num" id="k-apple-share">—</span> du total</span>
+    </div>
+    <div class="kpi">
+      <span class="label">Google Play</span>
+      <span class="value num" id="k-google">—</span>
+      <span class="sub">nouveaux utilisateurs · <span class="num" id="k-active">—</span> appareils actifs au 31 août</span>
+    </div>
+    <div class="kpi">
+      <span class="label">Arrivées mesurées sur le site</span>
+      <span class="value num">90</span>
+      <span class="sub">73 depuis Instagram + <span class="num" id="k-clicks">—</span> depuis Google (<span class="num" id="k-impr">—</span> apparitions) · ≈ 400–700 pages vues au total (estimation)</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="section-head">
+      <h2>Chaque jour d'août</h2>
+      <p class="muted">Téléchargements App Store et nouveaux utilisateurs Google Play, empilés. Le pic des 3–4 août (28 sur deux jours) porte le mois ; côté Google, la seconde vague commence le 20.</p>
+    </div>
+    <div class="panel">
+      <div class="legend"><span><i style="background:var(--apple)"></i>App Store</span><span><i style="background:var(--google)"></i>Google Play</span></div>
+      <div class="chart" id="chart-daily"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Google Play : la base installée grandit</h2>
+      <p class="muted">Appareils actifs ayant l'app, jour par jour. De 11 le 1er août à 43 le 31 : la base a presque quadruplé, et l'essentiel s'est joué dans les douze derniers jours.</p>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head"><h3>Appareils actifs</h3><span class="num">11 → 43</span></div>
+        <div class="chart" id="chart-active"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Nouveaux utilisateurs par pays</h3><span class="num" id="g-country-total">—</span></div>
+        <div class="table-wrap"><table id="t-google-countries"><thead><tr><th>Pays</th><th class="n">Août</th><th></th><th class="n">Actifs au 31/08</th></tr></thead><tbody></tbody></table></div>
+        <p class="muted" style="font-size:13px">Variation des appareils actifs sur le mois : France +25, Suisse +2, Belgique +2, Canada +1, Togo −1, autres +3.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Le site dans la recherche Google</h2>
+      <p class="muted">Ce que la Search Console voit : les fois où netbudget.app est apparu dans les résultats Google et les clics reçus. Ce n'est pas le trafic total du site — voir la note en bas.</p>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head"><h3>Clics et apparitions, par jour</h3><span class="num" id="s-ctr">—</span></div>
+        <div class="legend"><span><i style="background:var(--search)"></i>Apparitions</span><span><i style="background:var(--text)"></i>Clics</span></div>
+        <div class="chart" id="chart-search"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Requêtes tapées</h3><span class="muted" style="font-size:13px">position moyenne</span></div>
+        <div class="table-wrap"><table id="t-queries"><thead><tr><th>Requête</th><th class="n">Appar.</th><th class="n">Clics</th><th class="n">Pos.</th></tr></thead><tbody></tbody></table></div>
+        <p class="muted" style="font-size:13px">« intent prix / budget » et « netbase pricing » n'ont rien à voir avec l'app : Google confond encore la marque avec des termes génériques.</p>
+      </div>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head"><h3>Par appareil</h3></div>
+        <div class="table-wrap"><table id="t-devices"><thead><tr><th>Appareil</th><th class="n">Appar.</th><th class="n">Clics</th><th class="n">CTR</th><th class="n">Pos.</th></tr></thead><tbody></tbody></table></div>
+        <p class="muted" style="font-size:13px">Sur mobile, un résultat sur sept est cliqué et la page est en position 4 ; sur ordinateur, position 26 et 2 % de clics. Le public qui cherche une app de budget est sur son téléphone.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Pays d'où l'on cherche</h3></div>
+        <div class="table-wrap"><table id="t-search-countries"><thead><tr><th>Pays</th><th class="n">Appar.</th><th class="n">Clics</th></tr></thead><tbody></tbody></table></div>
+        <p class="muted" style="font-size:13px">41 pays au total ; hors de ce tableau, aucun clic. La page anglaise apparaît 228 fois pour 4 clics (1,8 %) contre 10,4 % pour la française.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Le site en août : une estimation, pas une mesure</h2>
+      <p class="muted">Aucun compteur de visites ne tournait en août. Ce qui reste, c'est le journal d'hébergement Vercel : le nombre de fichiers servis, jour par jour. On en tire un ordre de grandeur, pas un chiffre.</p>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head"><h3>Instagram @netbudget.app, août</h3><span class="num">73 clics vers le site</span></div>
+        <table>
+          <tbody>
+            <tr><td>Appuis sur le lien de la bio (vers netbudget.app)</td><td class="n num"><b>73</b></td><td class="n muted">+1 117 % vs juillet</td></tr>
+            <tr><td>Visites du profil</td><td class="n num">482</td><td class="n muted">+560 %</td></tr>
+            <tr><td>Activité du profil, total</td><td class="n num">555</td><td class="n muted">+603 %</td></tr>
+            <tr><td>Reel le plus vu — 3 août, « L'app qui te sort du découvert »</td><td class="n num">6 000 vues</td><td class="n muted"></td></tr>
+            <tr><td>Trois autres publications (4, 5, 7 août)</td><td class="n num">1 200 à 1 300 vues chacune</td><td class="n muted"></td></tr>
+          </tbody>
+        </table>
+        <div class="note"><div><b>Le lien avec les téléchargements.</b> Le reel du 3 août (6 000 vues) tombe exactement sur le pic App Store des 3–4 août : 23 téléchargements en deux jours, contre 1 à 5 les jours ordinaires. Instagram est, à ce jour, le canal qui a le plus visiblement déclenché des installations.</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Requêtes servies par Vercel</h3><span class="num">9 743</span></div>
+        <div class="chart" id="chart-vercel"></div>
+        <p class="muted" style="font-size:13px">Valeurs par jour lues sur le graphique Vercel, à ±10 %. Le total, lui, est exact.</p>
+      </div>
+      <div class="panel">
+        <h3>Comment lire ce nombre</h3>
+        <table>
+          <tbody>
+            <tr><td>Fichiers demandés par une page d'accueil complète</td><td class="n num">9</td></tr>
+            <tr><td>Si chaque requête venait d'un visiteur</td><td class="n num">≈ 1 080 pages vues</td></tr>
+            <tr><td>Part habituelle des robots (Google, Bing, scanners)</td><td class="n num">un tiers à deux tiers</td></tr>
+            <tr><td><b>Ordre de grandeur retenu</b></td><td class="n num"><b>400 à 700 pages vues</b></td></tr>
+            <tr><td>Dont arrivées mesurées (Instagram 73 + Google 17)</td><td class="n num">90</td></tr>
+          </tbody>
+        </table>
+        <div class="note"><div><b>Pourquoi une fourchette.</b> Un robot ne charge que la page (1 requête), un humain la page et ses images (9). Le journal ne distingue pas les deux. Les pics du 10 et des 13–14 août ne coïncident avec aucun pic de téléchargement : ce sont probablement des passages de robots.</div></div>
+        <p class="muted" style="font-size:13px">Depuis le 14 septembre 2026, Vercel Web Analytics compte les visiteurs réels, sans cookie. Septembre sera le premier mois mesuré.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Vue d'ensemble</h2>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <h3>Ce que l'on sait au 31 août</h3>
+        <table>
+          <tbody>
+            <tr><td>Nouveaux utilisateurs en août (Apple + Google)</td><td class="n num" id="o-total">—</td></tr>
+            <tr><td>Part Apple / Google</td><td class="n num" id="o-share">—</td></tr>
+            <tr><td>Appareils Android actifs (toute la vie de l'app)</td><td class="n num">43</td></tr>
+            <tr><td>Pays Google Play avec au moins un actif</td><td class="n num">5 + autres</td></tr>
+            <tr><td>Arrivées mesurées sur le site (Instagram + Google)</td><td class="n num">90</td></tr>
+            <tr><td>Nouveaux abonnés Instagram (15 août – 13 sept.)</td><td class="n num">21</td></tr>
+            <tr><td>Meilleur jour</td><td class="n num">4 août · 15</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Ce qui manque pour un vrai « global »</h3>
+        <div class="note"><div><b>App Store, toute la période.</b> L'export Apple fourni couvre août seul ; le cumul depuis la sortie n'y figure pas. Le même export sans filtre de date le donne.</div></div>
+        <div class="note"><div><b>Visites du site.</b> Aucun compteur en août : seule une estimation à partir du journal Vercel (400 à 700 pages vues, voir plus haut). Les 73 clics Instagram et les 17 clics Google sont les seuls chiffres exacts (90 arrivées). Mesure réelle à partir de septembre.</div></div>
+        <div class="note"><div><b>Google Play, toute la période.</b> Les 43 appareils actifs sont un cumul ; les acquisitions depuis la sortie demandent le rapport « Toute la période ».</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Sources et méthode</h2></div>
+    <ul class="method">
+      <li><b>App Store Connect</b>, Analyses → « Nombre total de téléchargements », 01/08–31/08/2026, export CSV. Compte chaque téléchargement, y compris les réinstallations.</li>
+      <li><b>Google Play Console</b>, Statistiques → « Acquisition d'utilisateurs (nouveaux) » et « Installations sur appareils actifs », quotidiennes, export CSV. Les appareils actifs sont un stock (combien ont l'app ce jour-là), les nouveaux utilisateurs un flux.</li>
+      <li><b>Instagram</b>, Tableau de bord professionnel → Statistiques → Activité du profil, période personnalisée 1–31 août 2026. « Appuis sur le lien externe » = clics sur le lien de la bio vers netbudget.app.</li>
+      <li><b>Google Search Console</b>, Performances → Résultats de recherche, type Web, 01/08–31/08/2026. « Apparitions » = impressions. Les totaux par page (365) dépassent le total par jour (288) parce qu'une même recherche peut afficher deux pages du site.</li>
+      <li>Les deux plateformes ne mesurent pas la même chose (téléchargements vs utilisateurs acquis) : l'addition « Apple + Google » est un ordre de grandeur, pas un compte exact.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const apple = [0,1,9,14,4,5,0,0,4,1,1,0,3,1,1,6,3,1,1,1,1,4,4,8,1,0,2,5,1,5,1];
+  const gNew = [0,0,4,1,3,0,0,0,0,0,1,0,2,0,0,0,0,0,2,4,2,1,0,4,2,1,4,3,1,0,4];
+  const gActive = [11,14,15,18,20,18,20,18,17,20,20,20,19,21,21,17,20,19,20,22,26,25,23,30,29,31,36,37,46,37,43];
+  const clicks = [0,0,1,2,0,1,2,0,0,0,0,1,0,1,0,2,0,0,1,0,0,3,0,1,0,0,0,0,0,2,0];
+  const impr = [6,10,12,13,8,10,9,2,10,10,10,10,5,6,6,7,5,9,10,11,7,9,10,12,4,15,18,12,10,12,10];
+  const sum = (a) => a.reduce((s, v) => s + v, 0);
+  const fr = (n, d = 0) => n.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const pct = (n, d = 0) => fr(n * 100, d) + " %";
+
+  const A = sum(apple), G = sum(gNew), T = A + G, C = sum(clicks), I = sum(impr);
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set("k-total", fr(T)); set("k-perday", fr(T / 31, 1)); set("k-apple", fr(A)); set("k-apple-share", pct(A / T));
+  set("k-google", fr(G)); set("k-active", fr(gActive[30])); set("k-clicks", fr(C)); set("k-impr", fr(I));
+  set("s-ctr", "CTR " + pct(C / I, 1)); set("o-total", fr(T)); set("o-share", pct(A / T) + " / " + pct(G / T));
+
+  // ---- SVG helpers -------------------------------------------------------
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (name, attrs, text) => {
+    const n = document.createElementNS(NS, name);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text !== undefined) n.textContent = text;
+    return n;
+  };
+  const frame = (W, H) => el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" });
+  const niceMax = (m) => { const steps = [5, 10, 15, 20, 25, 30, 40, 50, 60]; return steps.find((s) => s >= m) ?? Math.ceil(m / 10) * 10; };
+
+  function axes(svg, x0, x1, y0, y1, yMax, ticks) {
+    for (let i = 0; i <= ticks; i++) {
+      const v = (yMax / ticks) * i, y = y1 - ((y1 - y0) * v) / yMax;
+      svg.appendChild(el("line", { x1: x0, x2: x1, y1: y, y2: y, class: "grid-line" }));
+      svg.appendChild(el("text", { x: x0 - 8, y: y + 4, "text-anchor": "end" }, fr(v)));
+    }
+    svg.appendChild(el("line", { x1: x0, x2: x1, y1: y1, y2: y1, class: "axis" }));
+    [1, 5, 10, 15, 20, 25, 31].forEach((d) => {
+      const x = x0 + ((x1 - x0) * (d - 0.5)) / 31;
+      svg.appendChild(el("text", { x, y: y1 + 18, "text-anchor": "middle" }, d === 1 ? "1er" : String(d)));
+    });
+  }
+
+  // ---- Daily stacked bars -------------------------------------------------
+  (function () {
+    const W = 960, H = 300, x0 = 40, x1 = W - 12, y0 = 16, y1 = H - 30;
+    const svg = frame(W, H);
+    svg.setAttribute("aria-label", "Téléchargements App Store et nouveaux utilisateurs Google Play par jour, août 2026");
+    const yMax = niceMax(Math.max(...days.map((_, i) => apple[i] + gNew[i])));
+    axes(svg, x0, x1, y0, y1, yMax, 3);
+    const slot = (x1 - x0) / 31, bw = slot * 0.62;
+    days.forEach((d, i) => {
+      const x = x0 + slot * i + (slot - bw) / 2;
+      const hA = ((y1 - y0) * apple[i]) / yMax, hG = ((y1 - y0) * gNew[i]) / yMax;
+      if (apple[i]) svg.appendChild(el("rect", { x, y: y1 - hA, width: bw, height: hA, rx: 2, fill: "var(--apple)" }));
+      if (gNew[i]) svg.appendChild(el("rect", { x, y: y1 - hA - hG, width: bw, height: hG, rx: 2, fill: "var(--google)" }));
+      const tot = apple[i] + gNew[i];
+      if (tot >= 8) svg.appendChild(el("text", { x: x + bw / 2, y: y1 - hA - hG - 6, "text-anchor": "middle", style: "fill:var(--text);font-weight:700" }, String(tot)));
+    });
+    document.getElementById("chart-daily").appendChild(svg);
+  })();
+
+  // ---- Active installs line ----------------------------------------------
+  (function () {
+    const W = 460, H = 220, x0 = 36, x1 = W - 12, y0 = 16, y1 = H - 30;
+    const svg = frame(W, H);
+    svg.setAttribute("aria-label", "Appareils Android actifs par jour, de 11 à 43");
+    const yMax = 50;
+    axes(svg, x0, x1, y0, y1, yMax, 5);
+    const px = (i) => x0 + ((x1 - x0) * (i + 0.5)) / 31, py = (v) => y1 - ((y1 - y0) * v) / yMax;
+    const pts = gActive.map((v, i) => `${px(i)},${py(v)}`).join(" ");
+    svg.appendChild(el("polygon", { points: `${px(0)},${y1} ${pts} ${px(30)},${y1}`, fill: "var(--google)", opacity: "0.15" }));
+    svg.appendChild(el("polyline", { points: pts, fill: "none", stroke: "var(--google)", "stroke-width": 2.5, "stroke-linejoin": "round" }));
+    svg.appendChild(el("circle", { cx: px(30), cy: py(43), r: 4.5, fill: "var(--google)" }));
+    svg.appendChild(el("text", { x: px(30) - 8, y: py(43) - 10, "text-anchor": "end", style: "fill:var(--text);font-weight:700" }, "43"));
+    svg.appendChild(el("circle", { cx: px(28), cy: py(46), r: 3, fill: "none", stroke: "var(--google)", "stroke-width": 1.5 }));
+    svg.appendChild(el("text", { x: px(28), y: py(46) - 9, "text-anchor": "middle" }, "46 le 29"));
+    document.getElementById("chart-active").appendChild(svg);
+  })();
+
+  // ---- Search: impressions bars + clicks dots -----------------------------
+  (function () {
+    const W = 460, H = 220, x0 = 36, x1 = W - 12, y0 = 16, y1 = H - 30;
+    const svg = frame(W, H);
+    svg.setAttribute("aria-label", "Apparitions dans Google et clics par jour");
+    const yMax = 20;
+    axes(svg, x0, x1, y0, y1, yMax, 4);
+    const slot = (x1 - x0) / 31, bw = slot * 0.6;
+    days.forEach((d, i) => {
+      const x = x0 + slot * i + (slot - bw) / 2, h = ((y1 - y0) * impr[i]) / yMax;
+      svg.appendChild(el("rect", { x, y: y1 - h, width: bw, height: h, rx: 1.5, fill: "var(--search)", opacity: "0.55" }));
+      if (clicks[i]) {
+        const hc = ((y1 - y0) * clicks[i]) / yMax;
+        svg.appendChild(el("rect", { x: x + bw * 0.25, y: y1 - hc, width: bw * 0.5, height: hc, rx: 1.5, fill: "var(--text)" }));
+      }
+    });
+    document.getElementById("chart-search").appendChild(svg);
+  })();
+
+
+  // ---- Vercel edge requests (lecture du graphique, ±10 %) ------------------
+  (function () {
+    const req = [10,230,290,370,515,210,360,205,320,660,385,260,560,575,225,325,325,230,240,235,250,200,470,240,325,215,250,240,240,265,320];
+    const W = 460, H = 220, x0 = 40, x1 = W - 12, y0 = 16, y1 = H - 30;
+    const svg = frame(W, H);
+    svg.setAttribute("aria-label", "Requêtes servies par Vercel par jour, août 2026");
+    const yMax = 700;
+    for (let i = 0; i <= 5; i++) {
+      const v = 140 * i, y = y1 - ((y1 - y0) * v) / yMax;
+      svg.appendChild(el("line", { x1: x0, x2: x1, y1: y, y2: y, class: "grid-line" }));
+      svg.appendChild(el("text", { x: x0 - 8, y: y + 4, "text-anchor": "end" }, fr(v)));
+    }
+    svg.appendChild(el("line", { x1: x0, x2: x1, y1: y1, y2: y1, class: "axis" }));
+    [1, 5, 10, 15, 20, 25, 31].forEach((d) => {
+      const x = x0 + ((x1 - x0) * (d - 0.5)) / 31;
+      svg.appendChild(el("text", { x, y: y1 + 18, "text-anchor": "middle" }, d === 1 ? "1er" : String(d)));
+    });
+    const slot = (x1 - x0) / 31, bw = slot * 0.6;
+    req.forEach((v, i) => {
+      const x = x0 + slot * i + (slot - bw) / 2, h = ((y1 - y0) * v) / yMax;
+      svg.appendChild(el("rect", { x, y: y1 - h, width: bw, height: h, rx: 1.5, fill: "var(--muted)", opacity: "0.7" }));
+    });
+    document.getElementById("chart-vercel").appendChild(svg);
+  })();
+
+  // ---- Tables -------------------------------------------------------------
+  const row = (cells) => { const tr = document.createElement("tr"); cells.forEach((c) => tr.appendChild(c)); return tr; };
+  const td = (txt, cls) => { const d = document.createElement("td"); if (cls) d.className = cls; d.textContent = txt; return d; };
+  const barCell = (v, max, cls) => { const d = document.createElement("td"); d.style.width = "30%"; const b = document.createElement("div"); b.className = "bar " + (cls || ""); const i = document.createElement("i"); i.style.width = Math.max(2, (v / max) * 100) + "%"; b.appendChild(i); d.appendChild(b); return d; };
+
+  const gCountries = [["France", 26, 32], ["Canada", 2, 2], ["Belgique", 2, 2], ["Congo-Brazzaville", 2, 1], ["Autres pays", G - 32, 6]];
+  set("g-country-total", fr(G));
+  const tg = document.querySelector("#t-google-countries tbody");
+  gCountries.forEach(([c, n, a]) => tg.appendChild(row([td(c), td(fr(n), "n num"), barCell(n, 26, "google"), td(fr(a), "n num")])));
+
+  const queries = [["net budget", 56, 2, 7.5], ["intent prix / budget", 50, 0, 57.8], ["budget net", 21, 0, 10.5], ["netbase pricing", 3, 0, 67], ["nett budget", 2, 0, 7], ["budgetnet", 2, 0, 67.5], ["autres (5 requêtes)", 5, 0, null]];
+  const tq = document.querySelector("#t-queries tbody");
+  queries.forEach(([q, i, c, p]) => tq.appendChild(row([td(q), td(fr(i), "n num"), td(fr(c), "n num"), td(p === null ? "—" : fr(p, 1), "n num")])));
+
+  const devices = [["Mobile", 96, 13, 4.4], ["Ordinateur", 191, 4, 26.5], ["Tablette", 1, 0, 2]];
+  const tdv = document.querySelector("#t-devices tbody");
+  devices.forEach(([d, i, c, p]) => tdv.appendChild(row([td(d), td(fr(i), "n num"), td(fr(c), "n num"), td(pct(c / i, 1), "n num"), td(fr(p, 1), "n num")])));
+
+  const sc = [["France", 90, 13], ["États-Unis", 50, 2], ["Royaume-Uni", 21, 0], ["Inde", 16, 0], ["Allemagne", 14, 0], ["Philippines", 10, 0], ["Brésil", 4, 1], ["Grèce", 4, 1], ["33 autres pays", 79, 0]];
+  const tsc = document.querySelector("#t-search-countries tbody");
+  sc.forEach(([c, i, k]) => tsc.appendChild(row([td(c), td(fr(i), "n num"), td(fr(k), "n num")])));
+})();
+</script>
+
+</body>
+</html>
