@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Commande tes finances — suivi de la session</title>
+<!-- Chart.js 4.4.4, servi par le site : la politique de sécurité (CSP) de
+     netbudget.app n'autorise aucun script tiers. Fichier : dist/chart.umd.js
+     du paquet npm chart.js@4.4.4, inchangé. -->
+<script src="/vendor/chart-4.4.4.umd.js"></script>
+<style>
+  :root{
+    --navy:#0B2027; --navy2:#13323D; --teal:#028090; --sea:#00A896;
+    --mint:#02C39A; --gold:#F4B860; --ink:#13242B; --slate:#5A6B72;
+    --cloud:#F4F7F8; --line:#E4EAEC; --brick:#B23A30;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+       color:var(--ink);background:#fff;font-size:17px;line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px 80px}
+  header{background:var(--navy);color:#fff;padding:46px 0 40px;margin-bottom:44px}
+  header .wrap{padding-bottom:0}
+  .kicker{color:var(--mint);font-weight:700;letter-spacing:.14em;font-size:13px;margin:0 0 10px}
+  h1{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;font-size:clamp(30px,5vw,44px);
+     margin:0 0 10px;line-height:1.08;font-weight:800;letter-spacing:-.01em}
+  .sub{color:#C9D6DA;font-size:16px;max-width:640px}
+  .live{display:inline-flex;align-items:center;gap:8px;margin-top:18px;background:var(--navy2);
+        border:1px solid var(--teal);border-radius:999px;padding:7px 16px;font-size:14px;color:#EAF1F3}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--mint);animation:pulse 2s infinite}
+  .live.demo .dot{background:var(--gold);animation:none}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  h2{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;font-size:26px;margin:52px 0 6px;color:var(--ink);font-weight:800;letter-spacing:-.01em}
+  .lede{color:var(--slate);margin:0 0 20px;max-width:680px}
+  /* rangée de chiffres clés */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:-78px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px 14px;
+        box-shadow:0 10px 26px rgba(11,32,39,.10)}
+  .stat .n{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;font-size:40px;font-weight:800;color:var(--navy);line-height:1;font-variant-numeric:tabular-nums}
+  .stat .n small{font-size:20px;color:var(--slate);font-weight:400}
+  .stat .l{color:var(--slate);font-size:14px;margin-top:6px}
+  .stat.alert .n{color:var(--brick)}
+  /* barres maison */
+  .bars{margin:10px 0 0}
+  .bar{display:grid;grid-template-columns:170px 1fr 64px;gap:12px;align-items:center;margin:9px 0;font-size:15px}
+  .bar .track{background:var(--cloud);border-radius:6px;height:22px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--teal);border-radius:6px;min-width:2px;transition:width .6s}
+  .bar.mint .fill{background:var(--mint)} .bar.gold .fill{background:var(--gold)}
+  .bar .v{text-align:right;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
+  /* jauges bilan */
+  .gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .gauge{background:var(--cloud);border-radius:12px;padding:16px;text-align:center}
+  .gauge .p{font-family:ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;font-size:34px;font-weight:800;color:var(--teal);font-variant-numeric:tabular-nums}
+  .gauge .t{font-size:13.5px;color:var(--slate);margin-top:4px;line-height:1.3}
+  canvas{max-width:100%}
+  .panel{background:var(--cloud);border-radius:12px;padding:20px 22px;margin:14px 0}
+  table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}
+  th{background:var(--navy);color:#fff;text-align:left;padding:9px 12px;font-weight:700}
+  td{padding:8px 12px;border-bottom:1px solid var(--line)}
+  .verse{background:#FBEFD6;border-radius:10px;padding:14px 18px;font-style:italic;margin:40px 0 0}
+  .verse b{color:var(--teal);font-style:normal}
+  .method{border-top:2px solid var(--line);margin-top:56px;padding-top:20px;font-size:14.5px;color:var(--slate)}
+  .method h2{font-size:20px;margin-top:0}
+  footer{color:#8FA3A9;font-size:13px;margin-top:34px}
+  #err{display:none;background:#FDECEA;color:#B23A30;border-radius:10px;padding:14px 18px;margin:20px 0}
+  @media (max-width:640px){ .bar{grid-template-columns:110px 1fr 52px} .stats{margin-top:-60px} }
+  @media (prefers-reduced-motion: reduce){ .dot{animation:none} .bar .fill{transition:none} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="kicker">EJP SOCIAL · RAPPORT DE SUIVI</p>
+    <h1>Commande tes finances — la session en chiffres</h1>
+    <p class="sub" id="session">—</p>
+    <span class="live" id="badge"><span class="dot"></span><span id="badgeTxt">Connexion…</span></span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="err"></div>
+
+  <div class="stats">
+    <div class="stat"><div class="n" id="kInscrits">—</div><div class="l" id="kObjectif">inscrits</div></div>
+    <div class="stat"><div class="n" id="kAssidus">—</div><div class="l" id="kAssidusL">assidus</div></div>
+    <div class="stat"><div class="n" id="kNote">—</div><div class="l">note de fin de formation</div></div>
+    <div class="stat" id="kAlertBox"><div class="n" id="kAlertes">—</div><div class="l">alertes formateurs ouvertes</div></div>
+  </div>
+
+  <h2>Qui s'est inscrit</h2>
+  <p class="lede">Les inscriptions au fil des jours, et les profils qui composent la session — le contenu des ateliers (Camille, Thomas, Nadia…) parle à chacun d'eux.</p>
+  <div class="panel"><canvas id="chartCumul" height="110"></canvas></div>
+  <div class="bars" id="profils"></div>
+
+  <h2>Le cœur du sujet : l'assiduité</h2>
+  <p class="lede">Présents à chaque séance, de la session générale à l'atelier 4. Un « assidu » a suivi au moins <span id="seuilTxt">4</span> séances sur 5 — c'est le chiffre qui dira si la formation transforme.</p>
+  <div class="panel"><canvas id="chartFunnel" height="120"></canvas></div>
+  <div class="bars" id="defis"></div>
+
+  <h2>Ce qu'ils en disent en sortant</h2>
+  <p class="lede" id="fbLede">Le questionnaire de fin de formation.</p>
+  <div class="gauges" id="fbGauges"></div>
+  <div class="bars" id="fbAteliers"></div>
+
+  <h2>Trois mois après : est-ce que ça tient ?</h2>
+  <p class="lede" id="blLede">La vraie mesure du succès — relevée lors du bilan collectif, feuille de route en main. Les « non concernés » (pas de dette, pas prêt pour le PEA) sont exclus des pourcentages.</p>
+  <div class="gauges" id="blGauges"></div>
+
+  <h2>Côté formateurs</h2>
+  <p class="lede">Les retours hebdomadaires des formateurs sur leurs groupes.</p>
+  <div class="gauges" id="fmGauges"></div>
+
+  <div class="verse">« Connais bien l'état de ton troupeau, donne tes soins à tes brebis. » <b>— Proverbes 27:23</b></div>
+
+  <div class="method">
+    <h2>Sources et méthode</h2>
+    <p>Les chiffres proviennent du classeur de suivi de la formation (inscriptions, feuilles de présence remplies par les formateurs, questionnaires de fin de formation et de bilan à 3 mois, retours hebdomadaires des formateurs). Ils sont recalculés à chaque affichage de cette page — l'horodatage sous le titre fait foi. Les pourcentages du bilan à 3 mois excluent les personnes non concernées. Aucun chiffre individuel n'est publié : uniquement des agrégats, conformément à la règle de confidentialité de la formation.</p>
+  </div>
+  <footer>Commande tes finances · EJP Social · page privée non indexée — merci de ne pas partager le lien hors de l'équipe.</footer>
+</div>
+
+<script>
+/* ============ CONFIGURATION ============
+   1) Colle ici l'URL de déploiement Apps Script (…/exec)
+   2) Colle le TOKEN défini dans l'onglet Config du classeur
+   Tant que SCRIPT_URL est vide, la page affiche des données de DÉMONSTRATION. */
+const SCRIPT_URL = "";
+const TOKEN = "";
+const REFRESH_S = 60;
+
+const DEMO = {
+  updated: new Date().toISOString(),
+  session: "Session pilote — automne 2026 (données de démonstration)",
+  objectif: 30,
+  inscrits: { total: 27,
+    parProfil: {"Étudiant":11,"Jeune travailleur":9,"Collégien/Lycéen":4,"Parent":3},
+    parGroupe: {"Rebecca":9,"Emmanuel":9,"Jérémy":9},
+    cumul: [{date:"2026-09-15",total:6},{date:"2026-09-17",total:11},{date:"2026-09-19",total:16},
+            {date:"2026-09-21",total:20},{date:"2026-09-23",total:24},{date:"2026-09-25",total:27}] },
+  seances: [
+    {code:"SG",label:"Session générale",presents:26,renseigne:true},
+    {code:"A1",label:"Atelier 1",presents:24,renseigne:true},
+    {code:"A2",label:"Atelier 2",presents:23,renseigne:true},
+    {code:"A3",label:"Atelier 3",presents:21,renseigne:true},
+    {code:"A4",label:"Atelier 4",presents:20,renseigne:true}],
+  assiduite: { seuil:4, assidus:21, complets:17, taux:78 },
+  defis: {"Atelier 1":{faits:21,total:26},"Atelier 2":{faits:19,total:25},"Atelier 3":{faits:20,total:24}},
+  feedback: { reponses:19, noteMoyenne:4.6, recommande:95,
+    atelierPrefere:{"Épargne":7,"Budget":5,"Dettes & crédit":4,"Investissement":3} },
+  bilan3mois: { reponses:17, budgetTenu:76, virementActif:82, detteAttaquee:71, peaOuvert:35, netbudget:65 },
+  formateurs: { retours:11, actifs:3, noteMoyenne:4.3, alertes:1 },
+};
+
+let charts = {};
+function el(id){return document.getElementById(id)}
+function pct(v){return v===null||v===undefined?"—":v+" %"}
+
+function render(d, demo){
+  el("session").textContent = d.session + " · mis à jour le " +
+    new Date(d.updated).toLocaleString("fr-FR",{dateStyle:"long",timeStyle:"short"});
+  el("badgeTxt").textContent = demo ? "Mode démonstration — script non connecté" : "Données en direct";
+  el("badge").classList.toggle("demo", !!demo);
+
+  el("kInscrits").textContent = d.inscrits.total;
+  el("kObjectif").textContent = d.objectif ? "inscrits — objectif : "+d.objectif : "inscrits";
+  el("kAssidus").innerHTML = (d.assiduite.taux??"—") + "<small> %</small>";
+  el("kAssidusL").textContent = "d'assidus ("+d.assiduite.assidus+" pers. · ≥ "+d.assiduite.seuil+" séances)";
+  el("kNote").innerHTML = (d.feedback.noteMoyenne??"—") + "<small> / 5</small>";
+  el("kAlertes").textContent = d.formateurs.alertes;
+  el("kAlertBox").classList.toggle("alert", d.formateurs.alertes>0);
+  el("seuilTxt").textContent = d.assiduite.seuil;
+
+  // cumul inscriptions
+  mkChart("chartCumul","line",{
+    labels:d.inscrits.cumul.map(p=>p.date.slice(5)),
+    datasets:[{data:d.inscrits.cumul.map(p=>p.total),borderColor:"#028090",
+      backgroundColor:"rgba(2,128,144,.12)",fill:true,tension:.3,pointRadius:3}]},
+    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}});
+
+  // profils
+  bars("profils", Object.entries(d.inscrits.parProfil), d.inscrits.total, "");
+
+  // funnel séances
+  mkChart("chartFunnel","bar",{
+    labels:d.seances.map(s=>s.label),
+    datasets:[{data:d.seances.map(s=>s.renseigne?s.presents:null),
+      backgroundColor:["#0B2027","#028090","#00A896","#02C39A","#F4B860"],borderRadius:6}]},
+    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}});
+
+  // défis
+  const dEntries = Object.entries(d.defis).map(([k,v])=>[k+" — défis réalisés", v.faits, v.total]);
+  el("defis").innerHTML = dEntries.map(([l,f,t])=>{
+    const p = t? Math.round(100*f/t):0;
+    return `<div class="bar mint"><div>${l}</div><div class="track"><div class="fill" style="width:${p}%"></div></div><div class="v">${f}/${t}</div></div>`;
+  }).join("");
+
+  // feedback
+  el("fbLede").textContent = "Le questionnaire de fin de formation — " + d.feedback.reponses + " réponses.";
+  el("fbGauges").innerHTML =
+    gauge(d.feedback.noteMoyenne!==null? d.feedback.noteMoyenne+" / 5":"—","Note globale moyenne")+
+    gauge(pct(d.feedback.recommande),"recommanderaient la formation");
+  bars("fbAteliers", Object.entries(d.feedback.atelierPrefere||{}), d.feedback.reponses, "gold");
+
+  // bilan 3 mois
+  el("blLede").textContent = "La vraie mesure du succès — " + d.bilan3mois.reponses +
+    " réponses au bilan à 3 mois. Les « non concernés » sont exclus des pourcentages.";
+  const b=d.bilan3mois;
+  el("blGauges").innerHTML =
+    gauge(pct(b.budgetTenu),"tiennent leur budget")+
+    gauge(pct(b.virementActif),"ont un virement d'épargne automatique actif")+
+    gauge(pct(b.detteAttaquee),"ont attaqué leur dette cible")+
+    gauge(pct(b.peaOuvert),"ont ouvert leur PEA")+
+    gauge(pct(b.netbudget),"utilisent NetBudget");
+
+  // formateurs
+  const f=d.formateurs;
+  el("fmGauges").innerHTML =
+    gauge(f.actifs,"formateurs actifs")+
+    gauge(f.retours,"points hebdo remontés")+
+    gauge(f.noteMoyenne!==null? f.noteMoyenne+" / 5":"—","ressenti moyen des séances")+
+    gauge(f.alertes,"demandes d'aide en cours");
+}
+
+function gauge(v,label){return `<div class="gauge"><div class="p">${v}</div><div class="t">${label}</div></div>`}
+function bars(id, entries, total, cls){
+  entries.sort((a,b)=>b[1]-a[1]);
+  el(id).innerHTML = entries.map(([k,v])=>{
+    const p = total? Math.round(100*v/total):0;
+    return `<div class="bar ${cls}"><div>${k}</div><div class="track"><div class="fill" style="width:${p}%"></div></div><div class="v">${v}</div></div>`;
+  }).join("");
+}
+function mkChart(id,type,data,opts){
+  if(charts[id]) charts[id].destroy();
+  charts[id]=new Chart(el(id),{type,data,options:Object.assign({responsive:true,animation:{duration:500}},opts)});
+}
+
+async function load(){
+  if(!SCRIPT_URL){ render(DEMO,true); return; }
+  try{
+    const r = await fetch(SCRIPT_URL+"?token="+encodeURIComponent(TOKEN));
+    const d = await r.json();
+    if(d.error) throw new Error(d.error==="unauthorized"?"Token invalide — vérifie TOKEN dans cette page et dans l'onglet Config.":d.error);
+    el("err").style.display="none";
+    render(d,false);
+  }catch(e){
+    el("err").style.display="block";
+    el("err").textContent = "Impossible de charger les données : "+e.message;
+    el("badgeTxt").textContent = "Hors ligne — nouvelle tentative dans "+REFRESH_S+" s";
+  }
+}
+load();
+setInterval(load, REFRESH_S*1000);
+</script>
+</body>
+</html>
