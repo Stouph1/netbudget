@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLang } from "../../../src/contexts/LangContext";
+import { InfoTip } from "../../../src/components/InfoTip";
 import { confirmDialog, notify } from "../../../src/utils/notify";
 import type { SavingsGoal } from "../../../src/types/premium";
 
@@ -210,7 +211,10 @@ export default function GoalEditor({
               autoFocus={!goal}
             />
 
-            <Text style={styles.label}>{t("goals.field.target")}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.label}>{t("goals.field.target")}</Text>
+              <InfoTip title={t("help.goalTarget.title")} body={t("help.goalTarget.body")} />
+            </View>
             <TextInput
               style={styles.input}
               value={target}
@@ -220,7 +224,10 @@ export default function GoalEditor({
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>{t("goals.field.current")}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.label}>{t("goals.field.current")}</Text>
+              <InfoTip title={t("help.goalCurrent.title")} body={t("help.goalCurrent.body")} />
+            </View>
             <TextInput
               style={styles.input}
               value={current}
@@ -230,7 +237,10 @@ export default function GoalEditor({
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>{t("goals.field.monthly")}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.label}>{t("goals.field.monthly")}</Text>
+              <InfoTip title={t("help.goalMonthly.title")} body={t("help.goalMonthly.body")} />
+            </View>
             <TextInput
               style={styles.input}
               value={monthly}
@@ -240,7 +250,10 @@ export default function GoalEditor({
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>{t("goals.field.priority")}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.label}>{t("goals.field.priority")}</Text>
+              <InfoTip title={t("help.goalPriority.title")} body={t("help.goalPriority.body")} />
+            </View>
             <View style={styles.chipsRow}>
               {(
                 [
@@ -268,7 +281,10 @@ export default function GoalEditor({
               })}
             </View>
 
-            <Text style={styles.label}>{t("goals.field.deadline")}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.label}>{t("goals.field.deadline")}</Text>
+              <InfoTip title={t("help.goalDeadline.title")} body={t("help.goalDeadline.body")} />
+            </View>
             <Text style={styles.helper}>{t("goals.deadline.hint")}</Text>
             <View style={styles.chipsRow}>
               {(
@@ -299,7 +315,10 @@ export default function GoalEditor({
 
             <View style={styles.toggleRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.label}>{t("goals.field.extraP")}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Text style={styles.label}>{t("goals.field.extraP")}</Text>
+                  <InfoTip title={t("help.goalExtraP.title")} body={t("help.goalExtraP.body")} />
+                </View>
                 <Text style={styles.helper}>{t("goals.extraP.hint")}</Text>
               </View>
               <Switch

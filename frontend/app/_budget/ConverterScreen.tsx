@@ -1,6 +1,7 @@
 // Onglet Convertisseur (rendu façon Google Traduction) + historique local.
 //
 // Indépendant du Budget : il ne travaille que sur les taux de change.
+import { InfoTip } from "../../src/components/InfoTip";
 import { useBudgetTheme } from "./useBudgetTheme";
 import React from "react";
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -75,7 +76,10 @@ export default function ConverterScreen({
       <View style={styles.header}>
         <View>
           <Text style={styles.eyebrow}>{t("tab.converter")}</Text>
-          <Text style={styles.title}>{t("section.converter.title")}</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.title}>{t("section.converter.title")}</Text>
+            <InfoTip title={t("help.converter.title")} body={t("help.converter.body")} />
+          </View>
         </View>
         <TouchableOpacity
           onPress={onRefreshRates}

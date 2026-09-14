@@ -33,6 +33,7 @@ import {
 } from "../constants/eventTemplates";
 import ScopeSwitcher from "./ScopeSwitcher";
 import { useLang } from "../contexts/LangContext";
+import { InfoTip } from "./InfoTip";
 import { useCurrency } from "../contexts/CurrencyContext";
 import { useActiveScope } from "../contexts/ScopeContext";
 import { useSession } from "../contexts/SessionContext";
@@ -457,6 +458,12 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
             </View>
           ) : (
             <>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <Text style={{ color: TEXT_3, fontSize: 11, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }}>
+                  {t("events.form.detailsLabel")}
+                </Text>
+                <InfoTip title={t("help.eventForm.title")} body={t("help.eventForm.body")} />
+              </View>
               <TextInput
                 style={styles.input}
                 value={name}

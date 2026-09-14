@@ -421,9 +421,10 @@ export default function BudgetScreen({
       </Section>
 
       {/* Logement */}
-      <Section title={t("section.housing.title")}>
+      <Section title={t("section.housing.title")} info={{ title: t("help.housingSection.title"), body: t("help.housingSection.body") }}>
         <Field
           label={t("label.rent")}
+          info={{ title: t("help.rent.title"), body: t("help.rent.body") }}
           icon={<Feather name="home" size={18} color={COLOR_LOYER} />}
           right={getCurrency(currency).symbol}
           value={rent}
@@ -571,6 +572,7 @@ export default function BudgetScreen({
           <Section
             key={family}
             title={t(`family.${family}.label`)}
+            info={{ title: t(`help.family.${family}.title`), body: t(`help.family.${family}.body`) }}
             action={
               <TouchableOpacity
                 onPress={() => onAddItem(family)}
@@ -627,7 +629,7 @@ export default function BudgetScreen({
       </View>
 
       {/* Budget mois par mois */}
-      <Section title={t("section.monthly.title")}>
+      <Section title={t("section.monthly.title")} info={{ title: t("help.monthly.title"), body: t("help.monthly.body") }}>
         <Text style={styles.familySub}>
           {t("monthly.intro")}
         </Text>
@@ -653,7 +655,7 @@ export default function BudgetScreen({
       </Section>
 
       {/* === Conseils 50/30/20 === */}
-      <Section title={t("section.advice.title")}>
+      <Section title={t("section.advice.title")} info={{ title: t("help.adviceSection.title"), body: t("help.adviceSection.body") }}>
         <Text style={styles.familySub}>
           {t("advice.intro")}
         </Text>
@@ -683,7 +685,7 @@ export default function BudgetScreen({
       </Section>
 
       {/* === Résultat : camembert à la fin === */}
-      <Section title={t("section.breakdown.title")}>
+      <Section title={t("section.breakdown.title")} info={{ title: t("help.breakdown.title"), body: t("help.breakdown.body") }}>
         <View style={styles.hero} testID="dashboard-card">
           <LinearGradient
             colors={[city.theme.from, city.theme.to]}

@@ -408,7 +408,10 @@ export default function EventDetail() {
         })()}
 
         {/* Épargne mise de côté */}
-        <Text style={styles.sectionTitle}>{t("event.section.funding")}</Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0 }]}>{t("event.section.funding")}</Text>
+          <InfoTip title={t("help.eventFunding.title")} body={t("help.eventFunding.body")} />
+        </View>
         <View style={styles.savedRow}>
           <Text style={styles.savedLabel}>{t("event.savedLabel")}</Text>
           <TextInput
@@ -429,7 +432,10 @@ export default function EventDetail() {
         </View>
 
         {/* Postes */}
-        <Text style={styles.sectionTitle}>{t("event.section.items")}</Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0 }]}>{t("event.section.items")}</Text>
+          <InfoTip title={t("help.eventItems.title")} body={t("help.eventItems.body")} />
+        </View>
         {ev.items.map((it) => (
           <View key={it.id} style={styles.itemCard}>
             <TouchableOpacity
@@ -510,7 +516,10 @@ export default function EventDetail() {
         ))}
 
         {/* Rétro-planning */}
-        <Text style={styles.sectionTitle}>{t("event.section.plan")}</Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0 }]}>{t("event.section.plan")}</Text>
+          <InfoTip title={t("help.eventPlan.title")} body={t("help.eventPlan.body")} />
+        </View>
         {ev.milestones.map((ms) => {
           const due = milestoneDate(ev.dateIso, ms.monthsBefore);
           const overdue = !ms.done && due.getTime() < Date.now() && ms.monthsBefore > 0;

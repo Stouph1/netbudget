@@ -13,18 +13,24 @@ export function Section({
   title,
   subtitle,
   action,
+  info,
   children,
 }: {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  /** Bulle « i » à côté du titre : à quoi sert cette section. */
+  info?: InfoContent;
   children: React.ReactNode;
 }) {
   const { styles } = useBudgetTheme();
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={[styles.labelRow, { flex: 1 }]}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          {info ? <InfoTip {...info} /> : null}
+        </View>
         {action}
       </View>
       {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}

@@ -135,7 +135,7 @@ export default function SettingsScreen({
       </View>
       <Text style={styles.sectionSubtitle}>{t("settings.intro")}</Text>
 
-      <Section title={t("settings.currency.title")} subtitle={t("settings.currency.hint")}>
+      <Section title={t("settings.currency.title")} subtitle={t("settings.currency.hint")} info={{ title: t("help.currency.title"), body: t("help.currency.body") }}>
         <TouchableOpacity
           style={styles.inputWrap}
           onPress={onOpenCurrencyPicker}
@@ -209,7 +209,7 @@ export default function SettingsScreen({
         </View>
       </Section>
 
-      <Section title={t("settings.location.title")} subtitle={t("settings.location.hint")}>
+      <Section title={t("settings.location.title")} subtitle={t("settings.location.hint")} info={{ title: t("help.location.title"), body: t("help.location.body") }}>
         {locationFromProfile ? (
           <TouchableOpacity
             style={styles.profileLocNote}
@@ -259,7 +259,7 @@ export default function SettingsScreen({
         </TouchableOpacity>
       </Section>
 
-      <Section title={t("signup.giving.title")}>
+      <Section title={t("signup.giving.title")} info={{ title: t("help.giving.title"), body: t("help.giving.body") }}>
         <View style={styles.toggleRow}>
           <Feather
             name="heart"
@@ -349,7 +349,7 @@ export default function SettingsScreen({
           })}
       </Section>
 
-      <Section title={t("settings.notifications.title")}>
+      <Section title={t("settings.notifications.title")} info={{ title: t("help.notifications.title"), body: t("help.notifications.body") }}>
         <View style={styles.toggleRow}>
           <Feather
             name="bell"
@@ -402,7 +402,7 @@ export default function SettingsScreen({
           jours — mais elle doit rester ATTEIGNABLE : sans elle, un changement
           de téléphone perd l'historique synchronisé, définitivement. */}
       {canDeleteAccount ? (
-        <Section title={t("settings.vault.title")}>
+        <Section title={t("settings.vault.title")} info={{ title: t("help.vault.title"), body: t("help.vault.body") }}>
           <TouchableOpacity
             onPress={() => router.push("/vault-backup" as never)}
             style={styles.toggleRow}
