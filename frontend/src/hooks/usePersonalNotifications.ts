@@ -25,6 +25,8 @@ import {
   syncPersonalNotifications,
 } from "../utils/notificationScheduler";
 import { buildSyncInput } from "../utils/notificationSources";
+import { checkWorkspaceActivity } from "../utils/workspaceActivityNotify";
+import { formatCurrency } from "../utils/currency";
 
 /** En dessous, un retour au premier plan ne justifie pas de tout recalculer. */
 const RESYNC_AFTER_MS = 30 * 60 * 1000;
@@ -48,9 +50,13 @@ export function usePersonalNotifications(): void {
         displayCurrency: currency,
         profile,
       });
-      await syncPersonalNotifications(input, (key, params) =>
-        params ? tp(key, params) : t(key),
-      );
+      const tt = (key: string, params?: Record<string, string | number>) =>
+        params ? tp(key, params) : t(key);
+      await syncPersonalNotifications(input, tt);
+      // Puis la vie des espaces partagés : qui est arrivé, ce qui a bougé.
+      if (user?.id) {
+        await checkWorkspaceActivity(user.id, tt, (n) => formatCurrency(n, currency));
+      }
       lastSyncRef.current = Date.now();
     } catch {
       // Une notification non planifiée ne doit jamais empêcher l'app de tourner.

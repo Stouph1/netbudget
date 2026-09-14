@@ -6,6 +6,7 @@
 // couper les notifications, puis désinstaller.
 
 import {
+  decorateTitle,
   applyBudgetLimits,
   buildCandidates,
   DEFAULT_NOTIF_PREFS,
@@ -464,5 +465,20 @@ describe("prêts : le capital remboursé", () => {
     const ctx = baseCtx({ loans: [loan(52)] });
     const out = buildCandidates({ ...ctx, prefs: { ...ctx.prefs, loan: false } });
     expect(out.find((x) => x.id.includes("repaid"))).toBeUndefined();
+  });
+});
+
+// Le titre porte l'emoji de sa catégorie — sauf s'il en a déjà un.
+describe("decorateTitle", () => {
+  it("préfixe l'emoji de la catégorie", () => {
+    expect(decorateTitle("rights", "Tu as peut-être droit à ça")).toBe("💡 Tu as peut-être droit à ça");
+    expect(decorateTitle("loan", "Encore 12 ans")).toBe("🏁 Encore 12 ans");
+    expect(decorateTitle("goal", "80 % — tu avances")).toBe("🎯 80 % — tu avances");
+  });
+  it("laisse un titre qui commence déjà par un emoji", () => {
+    expect(decorateTitle("event", "🎉 Fête — c'est le moment")).toBe("🎉 Fête — c'est le moment");
+  });
+  it("ne touche pas aux catégories inconnues", () => {
+    expect(decorateTitle("autre", "Titre")).toBe("Titre");
   });
 });

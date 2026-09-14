@@ -20,7 +20,8 @@ export type NotifCategory =
   | "loan" // étape d'un prêt
   | "seasonal" // fenêtre courte : impôts, soldes, rentrée, fêtes
   | "comeback" // reprise après une absence
-  | "billing"; // échéance d'abonnement — un seul avis, discret, désactivable
+  | "billing" // échéance d'abonnement — un seul avis, discret, désactivable
+  | "workspace"; // vie d'un espace partagé : arrivée, départ, gros changement
 
 export type NotifCandidate = {
   id: string;
@@ -57,6 +58,12 @@ export type NotifPrefs = {
    * hebdomadaire : c'est ce qui le rend discret et non pressant.
    */
   billing: boolean;
+  /**
+   * Vie d'un espace partagé : quelqu'un arrive ou part, le budget ou les
+   * objectifs bougent nettement. Immédiate et hors plafond — c'est ce qui se
+   * passe MAINTENANT chez les autres membres, pas un rappel.
+   */
+  workspace: boolean;
   /** Plafond hebdomadaire, toutes catégories confondues. */
   maxPerWeek: number;
   /** Heure d'envoi (0-23). */
@@ -72,6 +79,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   seasonal: true,
   comeback: true,
   billing: true,
+  workspace: true,
   // 3 par semaine : au-delà, le taux d'ouverture s'effondre et l'utilisateur
   // coupe TOUT — on perd alors même les rappels utiles.
   maxPerWeek: 3,
@@ -417,4 +425,32 @@ export function applyBudgetLimits(
 /** Chaîne complète : candidates → plafonds → liste à planifier. */
 export function planNotifications(ctx: NotifContext): NotifCandidate[] {
   return applyBudgetLimits(buildCandidates(ctx), ctx.prefs, ctx.now);
+}
+
+/**
+ * Un emoji par catégorie, en tête du titre.
+ *
+ * Dans le centre de notifications, l'icône de l'app est la même sur toutes nos
+ * lignes : l'emoji est ce qui permet de distinguer un droit à réclamer d'un
+ * cap de prêt sans lire. Les titres qui en portent déjà un (jalon
+ * d'événement, objectif atteint) sont laissés tels quels.
+ */
+const CATEGORY_EMOJI: Record<string, string> = {
+  rights: "💡",
+  seasonal: "⏳",
+  event: "📅",
+  goal: "🎯",
+  loan: "🏁",
+  budget: "📊",
+  comeback: "👋",
+  billing: "🔔",
+  workspace: "👥",
+};
+
+export function decorateTitle(category: string, title: string): string {
+  const emoji = CATEGORY_EMOJI[category];
+  if (!emoji) return title;
+  // Commence déjà par autre chose qu'une lettre ou un chiffre : un emoji est là.
+  if (!/^[\p{L}\p{N}«"']/u.test(title.trim())) return title;
+  return `${emoji} ${title}`;
 }

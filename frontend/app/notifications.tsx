@@ -53,6 +53,7 @@ const CATEGORIES: { key: NotifCategory; icon: keyof typeof Feather.glyphMap }[] 
   // Un seul avis, trois jours avant l'échéance. Désactivable comme les autres :
   // Apple et Google préviennent de toute façon, celui-ci est un confort.
   { key: "billing", icon: "credit-card" },
+  { key: "workspace", icon: "users" },
   { key: "event", icon: "calendar" },
   { key: "goal", icon: "target" },
   { key: "budget", icon: "pie-chart" },

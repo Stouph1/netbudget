@@ -26,6 +26,7 @@ import {
   type NotifCandidate,
   type NotifContext,
   type NotifPrefs,
+  decorateTitle,
 } from "./notificationEngine";
 import { requestPermissionOnce } from "./notifications";
 
@@ -131,6 +132,21 @@ async function rotatePlanned(now: Date): Promise<Record<string, string>> {
   const planned = await readJson<PlannedMap>(PLANNED_KEY, {});
   const sent = await readJson<Record<string, string>>(SENT_KEY, {});
 
+  // Filet de sécurité : tout ce que le système garde encore de nous et qui ne
+  // figure pas dans la carte locale est annulé aussi. Sans ça, deux
+  // synchronisations qui se chevauchent — ou une carte perdue — laissaient des
+  // doublons en attente, et l'utilisateur recevait cinq fois le même conseil.
+  try {
+    const pending = await Notifications.getAllScheduledNotificationsAsync();
+    const known = new Set(Object.values(planned).map((e) => e.notifId));
+    for (const n of pending) {
+      const data = (n.content?.data ?? {}) as { notifKey?: unknown };
+      if (typeof data.notifKey === "string" && !known.has(n.identifier)) {
+        await Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
+      }
+    }
+  } catch {}
+
   for (const [id, entry] of Object.entries(planned)) {
     const at = new Date(entry.at);
     if (!Number.isNaN(at.getTime()) && at.getTime() <= now.getTime()) {
@@ -154,6 +170,7 @@ async function rotatePlanned(now: Date): Promise<Record<string, string>> {
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
+
 /**
  * Texte affiché d'une candidate.
  *
@@ -166,7 +183,7 @@ function renderCandidate(
   t: Translate,
 ): { title: string; body: string } {
   return {
-    title: t(c.titleKey, c.params),
+    title: decorateTitle(c.category, t(c.titleKey, c.params)),
     body:
       c.category === "rights"
         ? resolveAdviceText(c.bodyKey, t, c.bodyKey)
@@ -219,7 +236,27 @@ export type SyncResult = {
  * état. C'est ce qui permet de l'appeler à chaque ouverture de l'app sans
  * risquer d'empiler les notifications.
  */
-export async function syncPersonalNotifications(
+let inFlight: Promise<SyncResult> | null = null;
+
+export function syncPersonalNotifications(
+  input: SyncInput,
+  t: Translate,
+  opts: { requestPermission?: boolean } = {},
+): Promise<SyncResult> {
+  // Deux appels qui se chevauchent (montage + retour au premier plan, ou deux
+  // écrans) lisaient la même carte, annulaient les mêmes identifiants, puis
+  // programmaient chacun leur plan : autant de doublons. Le second attend le
+  // premier, et repart sur un état propre.
+  const run = inFlight
+    ? inFlight.then(() => syncOnce(input, t, opts))
+    : syncOnce(input, t, opts);
+  inFlight = run.finally(() => {
+    if (inFlight === run) inFlight = null;
+  });
+  return run;
+}
+
+async function syncOnce(
   input: SyncInput,
   t: Translate,
   opts: { requestPermission?: boolean } = {},
@@ -245,6 +282,9 @@ export async function syncPersonalNotifications(
   const planned: PlannedMap = {};
   const scheduled: NotifCandidate[] = [];
   for (const c of plan) {
+    // Une date déjà passée est livrée sur-le-champ par le système : c'est une
+    // salve au démarrage, pas une notification. On la laisse au prochain plan.
+    if (c.at.getTime() <= input.now.getTime() + 60_000) continue;
     const entry = await scheduleCandidate(c, t);
     if (entry) {
       planned[c.id] = entry;
