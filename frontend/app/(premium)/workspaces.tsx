@@ -878,6 +878,7 @@ function WorkspaceDetailModal({
                   {t("ws.invite.title")}
                 </Text>
                 <Text style={styles.tokenHint}>{t("ws.invite.howto")}</Text>
+                <Text style={[styles.tokenHint, { marginTop: 4 }]}>{t("ws.invite.sharing")}</Text>
                 <View style={{ flexDirection: "row", gap: 8 }}>
                   <TouchableOpacity
                     style={[styles.iconBtn, { flex: 1, flexDirection: "row", gap: 8 }]}

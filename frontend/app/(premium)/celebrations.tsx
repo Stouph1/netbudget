@@ -23,7 +23,10 @@ import {
   saveCelebrations,
   type CelebrationPerson,
 } from "../../src/lib/premiumStore";
-import { dateToIso, isoToInput, parseBirthdate } from "../../src/utils/birthday";
+import { computeAge, dateToIso, isoToInput, parseBirthdate } from "../../src/utils/birthday";
+import { SyncBanner } from "../../src/components/SyncBanner";
+import { useVault } from "../../src/hooks/useVault";
+import { interpolate } from "../../src/utils/advice";
 import { notify } from "../../src/utils/notify";
 
 const MIDNIGHT = "#0F172A";
@@ -43,6 +46,14 @@ export default function Celebrations() {
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [species, setSpecies] = useState<"dog" | "cat" | "other">("dog");
+  // Le coffre : quand la clé manque sur cet appareil, la couche de stockage
+  // REFUSE d'écrire (voir premiumStore.writePayload). La liste restait
+  // affichée, puis disparaissait au prochain lancement — « ça ne s'enregistre
+  // pas ». On le dit maintenant avant même la première saisie, et après.
+  const { state: vault } = useVault();
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const blocked =
+    vault.status === "locked" || vault.status === "wrongKey" ? "vault-locked" : syncError;
 
   useFocusEffect(
     useCallback(() => {
@@ -80,14 +91,16 @@ export default function Celebrations() {
     setList(next);
     setName("");
     setBirth("");
-    await saveCelebrations(user.id, next);
+    const r = await saveCelebrations(user.id, next);
+    setSyncError(r.ok ? null : (r.error ?? "unknown"));
   }
 
   async function remove(id: string) {
     if (!user?.id) return;
     const next = (list ?? []).filter((x) => x.id !== id);
     setList(next);
-    await saveCelebrations(user.id, next);
+    const r = await saveCelebrations(user.id, next);
+    setSyncError(r.ok ? null : (r.error ?? "unknown"));
   }
 
   return (
@@ -109,6 +122,7 @@ export default function Celebrations() {
       automaticallyAdjustKeyboardInsets
       keyboardDismissMode="interactive" contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
           <Text style={styles.intro}>{t("celeb.intro")}</Text>
+          {blocked ? <SyncBanner error={blocked} /> : null}
 
           {/* Formulaire d'ajout */}
           <View style={styles.form}>
@@ -181,7 +195,16 @@ export default function Celebrations() {
             </TouchableOpacity>
           </View>
 
-          {/* Liste */}
+          {/* Liste : le compte d'abord — c'est la réponse à « combien
+              d'enfants ? », que le Coach reprend ensuite. */}
+          {list.length > 0 ? (
+            <Text style={styles.countLine}>
+              {interpolate(t("celeb.count"), {
+                children: list.filter((p) => p.kind === "child").length,
+                pets: list.filter((p) => p.kind === "pet").length,
+              })}
+            </Text>
+          ) : null}
           {list.length === 0 ? (
             <Text style={styles.empty}>{t("celeb.empty")}</Text>
           ) : (
@@ -192,7 +215,9 @@ export default function Celebrations() {
                 </Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowName}>{p.name}</Text>
-                  <Text style={styles.rowMeta}>{isoToInput(p.birthdate)}</Text>
+                  <Text style={styles.rowMeta}>
+                    {isoToInput(p.birthdate)} · {interpolate(t("celeb.age"), { age: computeAge(new Date(p.birthdate + "T12:00:00")) })}
+                  </Text>
                 </View>
                 <TouchableOpacity onPress={() => remove(p.id)} hitSlop={10}>
                   <Feather name="trash-2" size={16} color={TEXT_3} />
@@ -273,6 +298,7 @@ const makeStyles = (GOLD: string) =>
   },
   addBtnText: { color: "#000", fontSize: 14, fontWeight: "700" },
   empty: { color: TEXT_3, fontSize: 13, textAlign: "center", marginTop: 8 },
+  countLine: { color: TEXT_2, fontSize: 13, fontWeight: "700", marginBottom: 8 },
   row: {
     flexDirection: "row",
     alignItems: "center",

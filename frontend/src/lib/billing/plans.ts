@@ -88,6 +88,8 @@ export function planFeatures(tier: Exclude<Tier, "free">): PlanFeature[] {
       params: { members: l.maxMembersPerWorkspace, spaces: l.maxWorkspaces },
     });
   }
+  // Ce que « partagé » veut dire : la formule suit les membres invités.
+  if (l.maxWorkspaces > 0) out.push({ key: "plan.feature.sharedPlan" });
   if (l.birthdays) out.push({ key: "plan.feature.birthdays" });
 
   // 2. Les projets.

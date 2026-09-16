@@ -43,8 +43,16 @@ import {
 } from "../../src/lib/adviceEngine";
 import {
   loadAdviceProfile,
+  loadCelebrations,
   saveAdviceProfile,
 } from "../../src/lib/premiumStore";
+import {
+  childrenOf,
+  derivedChildBrackets,
+  mergeChildBrackets,
+  sameBrackets,
+  type HouseholdChild,
+} from "../../src/lib/household";
 import {
   resolveAction,
   resolveBody,
@@ -481,6 +489,10 @@ export default function AdviceScreen() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // Les enfants enregistrés dans Anniversaires : leurs tranches d'âge sont
+  // imposées au profil, leurs prénoms affichés sous la question.
+  const [household, setHousehold] = useState<HouseholdChild[]>([]);
+  const [lockedBrackets, setLockedBrackets] = useState<ChildAgeBracket[]>([]);
   // Set des group.key expanded. Tout replié par défaut : la page se lit
   // d'abord comme un sommaire — titres et nombre de conseils — et l'on
   // ouvre ce qui intéresse. Tout déplié, c'était un mur de cartes.
@@ -529,7 +541,21 @@ export default function AdviceScreen() {
     (async () => {
       setLoading(true);
       // Profils d'avant la question « quel véhicule ? » : lus au nouveau format.
-      const loaded = normalizeVehicle(await loadAdviceProfile(user.id, workspaceId));
+      let loaded = normalizeVehicle(await loadAdviceProfile(user.id, workspaceId));
+      // Enfants d'Anniversaires : une seule vérité, celle qui a un prénom. Si
+      // le profil ne portait pas leurs tranches, on l'aligne et on l'enregistre.
+      const persons = await loadCelebrations(user.id).catch(() => []);
+      const kids = childrenOf(persons);
+      const derived = derivedChildBrackets(persons);
+      setHousehold(kids);
+      setLockedBrackets(derived);
+      if (derived.length > 0) {
+        const merged = mergeChildBrackets(loaded.children, derived);
+        if (!sameBrackets(loaded.children, merged)) {
+          loaded = { ...loaded, children: merged };
+          void saveAdviceProfile(user.id, loaded, workspaceId);
+        }
+      }
       setProfile(loaded);
       // Onboarding forcé seulement si le minimum du mode n'est pas rempli
       // (asso : rien d'obligatoire → direct sur les conseils).
@@ -621,6 +647,9 @@ export default function AdviceScreen() {
   }
 
   function toggleChild(bracket: ChildAgeBracket) {
+    // Une tranche portée par un enfant enregistré ne se décoche pas ici : on
+    // retire l'enfant dans Anniversaires, ou rien.
+    if (lockedBrackets.includes(bracket) && (profile.children ?? []).includes(bracket)) return;
     const current = profile.children ?? [];
     const next = current.includes(bracket)
       ? current.filter((c) => c !== bracket)
@@ -809,12 +838,15 @@ export default function AdviceScreen() {
           ) : null}
 
           {cfg.askKids === "always" ||
-          (cfg.askKids === "auto" && hasKids(profile.family)) ? (
+          (cfg.askKids === "auto" && (hasKids(profile.family) || household.length > 0)) ? (
             <ChildrenBlock
               label={cfg.kidsLabel}
               info={{ title: t("coach.help.kids.title"), body: t("coach.help.kids.body") }}
               value={profile.children ?? []}
               onToggle={toggleChild}
+              locked={lockedBrackets}
+              household={household}
+              onManage={() => router.push("/(premium)/celebrations" as never)}
             />
           ) : null}
 
@@ -1544,15 +1576,23 @@ function ChildrenBlock({
   info,
   value,
   onToggle,
+  locked = [],
+  household = [],
+  onManage,
 }: {
   label: string;
   info?: InfoContent;
   value: ChildAgeBracket[];
   onToggle: (b: ChildAgeBracket) => void;
+  /** Tranches imposées par les enfants enregistrés dans Anniversaires. */
+  locked?: ChildAgeBracket[];
+  /** Les enfants eux-mêmes, pour les nommer sous la question. */
+  household?: HouseholdChild[];
+  onManage?: () => void;
 }) {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
-  const { t } = useLang();
+  const { t, tp } = useLang();
   return (
     <View style={{ marginBottom: 20 }}>
       <View style={styles.qLabelRow}>
@@ -1560,15 +1600,36 @@ function ChildrenBlock({
         {info ? <InfoTip {...info} /> : null}
       </View>
       {info ? null : <Text style={styles.qHint}>{t("coach.children.hint")}</Text>}
+      {/* Les enfants qui ont un prénom : la réponse à « combien, quel âge »,
+          et le chemin pour la corriger. */}
+      <TouchableOpacity
+        onPress={onManage}
+        activeOpacity={0.8}
+        style={styles.householdRow}
+        accessibilityRole="button"
+        testID="coach-household"
+      >
+        <Feather name="gift" size={14} color={GOLD} />
+        <Text style={styles.householdText}>
+          {household.length > 0
+            ? `${tp("coach.children.fromCelebrations", { n: household.length })} ${household
+                .map((c) => tp("coach.children.item", { name: c.name, age: c.age }))
+                .join(" · ")}`
+            : t("coach.children.none")}
+        </Text>
+        <Text style={styles.householdLink}>{t("coach.children.manage")}</Text>
+      </TouchableOpacity>
       <View style={{ gap: 8, marginTop: 8 }}>
         {childrenOptions(t).map((opt) => {
           const active = value.includes(opt.value);
+          const isLocked = active && locked.includes(opt.value);
           return (
             <TouchableOpacity
               key={opt.value}
               onPress={() => onToggle(opt.value)}
               style={[styles.optionRow, active && styles.optionRowActive]}
-              activeOpacity={0.85}
+              activeOpacity={isLocked ? 1 : 0.85}
+              accessibilityState={{ checked: active, disabled: isLocked }}
             >
               <View style={[styles.checkbox, active && styles.checkboxActive]}>
                 {active ? (
@@ -1576,10 +1637,11 @@ function ChildrenBlock({
                 ) : null}
               </View>
               <Text
-                style={[styles.optionText, active && styles.optionTextActive]}
+                style={[styles.optionText, active && styles.optionTextActive, { flex: 1 }]}
               >
                 {opt.label}
               </Text>
+              {isLocked ? <Feather name="lock" size={12} color={TEXT_3} /> : null}
             </TouchableOpacity>
           );
         })}
@@ -1785,6 +1847,12 @@ const makeStyles = (GOLD: string) =>
   },
 
   qLabelRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  householdRow: {
+    flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8,
+    padding: 10, borderRadius: 10, borderWidth: 1, borderColor: alpha(GOLD, 0.3), backgroundColor: alpha(GOLD, 0.06),
+  },
+  householdText: { flex: 1, color: TEXT_2, fontSize: 12.5, lineHeight: 17 },
+  householdLink: { color: GOLD, fontSize: 12.5, fontWeight: "700" },
   qLabel: {
     color: TEXT_2,
     fontSize: 11,

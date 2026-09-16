@@ -52,6 +52,12 @@ import {
   type BudgetHistoryPoint,
 } from "../lib/premiumStore";
 import { loadProfileBasics } from "../lib/profile";
+import { loadCelebrations, type CelebrationPerson } from "../lib/premiumStore";
+import { listMembersWithProfiles, listMyWorkspaces, type MemberWithProfile } from "../lib/workspacesStore";
+import type { Workspace } from "../types/workspaces";
+import { childrenOf, petsOf } from "../lib/household";
+import { limitsFor } from "../lib/entitlements";
+import { InfoTip } from "./InfoTip";
 import type { S1Payload } from "../types/premium";
 import { TierBadge } from "./TierBadge";
 import { usePaywall } from "../hooks/usePaywall";
@@ -98,6 +104,13 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const paywall = usePaywall();
+  // Le foyer : les espaces que je partage et avec qui, les enfants et animaux
+  // enregistrés. C'est ce qui rend une formule Duo ou Famille visible — sans
+  // ça, elle ne se distinguait de Solo que par une pastille.
+  const [household, setHousehold] = useState<{
+    spaces: { ws: Workspace; members: MemberWithProfile[] }[];
+    persons: CelebrationPerson[];
+  } | null>(null);
   // Cibles de la visite guidée. Voir tourSteps.ts.
   const tourGoals = useTourTarget("home:goals");
   const tourTier = useTourTarget("home:tier");
@@ -151,12 +164,21 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       if (!user?.id || scopeLoading) return;
       let cancelled = false;
       (async () => {
-        const [payload, basics, hist] = await Promise.all([
+        const [payload, basics, hist, spaces, persons] = await Promise.all([
           loadS1(user.id, workspaceId, currency),
           loadProfileBasics(user.id),
           loadBudgetHistory(user.id, workspaceId),
+          listMyWorkspaces().catch(() => [] as Workspace[]),
+          loadCelebrations(user.id).catch(() => [] as CelebrationPerson[]),
         ]);
+        const withMembers = await Promise.all(
+          spaces.slice(0, 3).map(async (ws) => ({
+            ws,
+            members: await listMembersWithProfiles(ws.id).catch(() => [] as MemberWithProfile[]),
+          })),
+        );
         if (!cancelled) {
+          setHousehold({ spaces: withMembers, persons });
           setS1(payload);
           setAvatarUrl(basics.avatar_url);
           setUsername(basics.username);
@@ -465,6 +487,101 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           <Feather name="log-out" size={18} color={TEXT_3} />
         </TouchableOpacity>
       </View>
+
+      {/* Ton foyer : avec qui je partage, et qui vit ici. Visible dès qu'il
+          y a quelque chose à montrer ou une formule qui le permet. */}
+      {household &&
+      (household.spaces.length > 0 || household.persons.length > 0 || limitsFor(paywall.tier).maxWorkspaces > 0) ? (
+        <View style={styles.overviewCard} testID="household-card">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={[styles.overviewLabel, { marginBottom: 0 }]}>{t("home.household.title")}</Text>
+            <InfoTip title={t("help.household.title")} body={t("help.household.body")} />
+          </View>
+          {limitsFor(paywall.tier).maxWorkspaces > 0 ? (
+            <Text style={styles.householdPlan}>
+              {tp("home.household.plan", {
+                plan: t(`plan.${paywall.tier}.name`),
+                members: limitsFor(paywall.tier).maxMembersPerWorkspace,
+              })}
+            </Text>
+          ) : null}
+
+          {household.spaces.length === 0 ? (
+            <TouchableOpacity
+              style={styles.householdRow}
+              onPress={() => router.push("/(premium)/workspaces" as never)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+            >
+              <Feather name="users" size={16} color={GOLD} />
+              <Text style={styles.householdText}>{t("home.household.noSpace")}</Text>
+              <Feather name="chevron-right" size={16} color={TEXT_3} />
+            </TouchableOpacity>
+          ) : (
+            household.spaces.map(({ ws, members }) => {
+              const others = members.filter((m) => m.user_id !== user.id);
+              const names = others.map((m) => m.first_name || m.username || "…");
+              const max = limitsFor(paywall.tier).maxMembersPerWorkspace;
+              return (
+                <TouchableOpacity
+                  key={ws.id}
+                  style={styles.householdRow}
+                  onPress={() => router.push("/(premium)/workspaces" as never)}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  testID={`household-space-${ws.id}`}
+                >
+                  <Feather name="users" size={16} color={GOLD} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.householdName} numberOfLines={1}>{ws.name}</Text>
+                    <Text style={styles.householdText} numberOfLines={2}>
+                      {others.length === 0
+                        ? t("home.household.alone")
+                        : tp("home.household.sharedWith", { names: names.join(", ") })}
+                      {max > 0 ? ` · ${tp("home.household.seats", { n: members.length, max })}` : ""}
+                    </Text>
+                  </View>
+                  <Feather name="chevron-right" size={16} color={TEXT_3} />
+                </TouchableOpacity>
+              );
+            })
+          )}
+
+          <TouchableOpacity
+            style={styles.householdRow}
+            onPress={() => {
+              if (!paywall.require({ feature: "birthdays" })) return;
+              router.push("/(premium)/celebrations" as never);
+            }}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            testID="household-persons"
+          >
+            <Feather name="gift" size={16} color={GOLD} />
+            <View style={{ flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+              {household.persons.length === 0 ? (
+                <Text style={styles.householdText}>{t("home.household.noPersons")}</Text>
+              ) : (
+                <>
+                  {childrenOf(household.persons).map((c) => (
+                    <View key={c.id} style={styles.householdChip}>
+                      <Text style={styles.householdChipText}>👶 {tp("coach.children.item", { name: c.name, age: c.age })}</Text>
+                    </View>
+                  ))}
+                  {petsOf(household.persons).map((p) => (
+                    <View key={p.id} style={styles.householdChip}>
+                      <Text style={styles.householdChipText}>
+                        {p.species === "dog" ? "🐶" : p.species === "cat" ? "🐱" : "🐾"} {tp("coach.children.item", { name: p.name, age: p.age })}
+                      </Text>
+                    </View>
+                  ))}
+                </>
+              )}
+            </View>
+            <Feather name="chevron-right" size={16} color={TEXT_3} />
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       {/* Overview S1 */}
       <TouchableOpacity
@@ -1080,6 +1197,15 @@ const makeStyles = (GOLD: string) =>
     borderColor: BORDER,
     marginBottom: 16,
   },
+  householdPlan: { color: TEXT_2, fontSize: 12.5, lineHeight: 18, marginTop: 8 },
+  householdRow: {
+    flexDirection: "row", alignItems: "center", gap: 10, marginTop: 10,
+    padding: 12, borderRadius: 12, borderWidth: 1, borderColor: BORDER, backgroundColor: alpha(GOLD, 0.05),
+  },
+  householdName: { color: TEXT_1, fontSize: 14, fontWeight: "700" },
+  householdText: { color: TEXT_2, fontSize: 12.5, lineHeight: 17, flexShrink: 1 },
+  householdChip: { borderRadius: 999, borderWidth: 1, borderColor: alpha(GOLD, 0.35), backgroundColor: alpha(GOLD, 0.08), paddingHorizontal: 9, paddingVertical: 4 },
+  householdChipText: { color: TEXT_1, fontSize: 12.5, fontWeight: "600" },
   overviewLabel: {
     color: TEXT_2,
     fontSize: 11,

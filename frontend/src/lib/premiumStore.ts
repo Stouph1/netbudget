@@ -598,8 +598,10 @@ export async function loadCelebrations(userId: string): Promise<CelebrationPerso
 export async function saveCelebrations(
   userId: string,
   list: CelebrationPerson[],
-): Promise<void> {
-  await writePayload(CELEBRATIONS_KEY, userId, list, null);
+): Promise<{ ok: boolean; error?: string }> {
+  // Le résultat remonte : un coffre verrouillé refuse d'écrire, et l'écran
+  // doit le dire au lieu d'afficher une liste qui disparaîtra au relancement.
+  return writePayload(CELEBRATIONS_KEY, userId, list, null);
 }
 
 // ============================================================================

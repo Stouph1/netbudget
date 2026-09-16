@@ -562,7 +562,8 @@ export default function Index() {
           setBdayCards(buildChildBirthdayCards(a, c.name, perso, adviceI18n));
         } else {
           setBdaySource(`pet:${c.name}`);
-          setBdayCards(buildPetBirthdayCards(c.name, c.species ?? "other", adviceI18n));
+          const perso = await loadAdviceProfile(premiumUser.id, null);
+          setBdayCards(buildPetBirthdayCards(c.name, c.species ?? "other", adviceI18n, perso, computeAge(new Date(c.birthdate))));
         }
         setBdayOpen(true);
         break; // une fête à la fois
@@ -599,7 +600,7 @@ export default function Index() {
       } else {
         const pet = celebs.find((c) => c.kind !== "child");
         setBdaySource(`pet:${pet?.name ?? ""}`);
-        setBdayCards(buildPetBirthdayCards(pet?.name ?? "", pet?.species ?? "other", adviceI18n));
+        setBdayCards(buildPetBirthdayCards(pet?.name ?? "", pet?.species ?? "other", adviceI18n, perso, pet ? computeAge(new Date(pet.birthdate)) : undefined));
       }
       setBdayOpen(true);
     },

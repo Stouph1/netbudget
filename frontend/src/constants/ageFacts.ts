@@ -259,13 +259,56 @@ export function buildChildBirthdayCards(
     if (age === 20) put("bad", "📉", "fr.20", ["https://www.caf.fr/allocataires/aides-et-demarches/ma-situation/vie-personnelle/l-aine-de-mes-enfants-20-ans"]);
     if (age === 25) put("bad", "🎓", "fr.25", ["https://www.service-public.gouv.fr/particuliers/vosdroits/F3085"]);
   }
-  if (cards.length === 1) {
+  // Les repères de la tranche d'âge — valables partout, sans chiffre : ce que
+  // cet âge change dans un budget de parent. Un anniversaire d'enfant tombait
+  // sur trois cartes hors des âges « à fait » ; ce n'est pas une fête.
+  const band = age <= 6 ? "early" : age <= 11 ? "primary" : age <= 15 ? "middle" : age <= 18 ? "teen" : "adult";
+  const bandSlugs: Record<string, string[]> = {
+    early: ["early.save", "early.care"],
+    primary: ["primary.pocket", "primary.activities"],
+    middle: ["middle.account", "middle.phone"],
+    teen: ["teen.job", "teen.licence"],
+    adult: ["adult.studies", "adult.housing"],
+  };
+  for (const slug of bandSlugs[band]) {
+    cards.push(card("good", "🧭", tp(`bdayCard.child.band.${slug}.title`, { name, age }),
+      tp(`bdayCard.child.band.${slug}.body`, { name, age })));
+  }
+
+  // Puis le catalogue : les conseils « enfants » qui correspondent à sa
+  // tranche et au profil du parent — sourcés et datés, eux.
+  const bracket = childBracketOf(age);
+  const seen = new Set(cards.map((c) => c.title));
+  const pick = (children: ("0-6" | "7-11" | "12-15" | "16-18" | "19+")[], max: number) =>
+    matchAdvice({ ...profile, children })
+      .filter((c) => c.category === "kids" && (c.titleKey || c.title))
+      .map((c) => card("gold", "💡", resolveTitle(c, i18n), resolveBody(c, profile, i18n), c.sources))
+      .filter((c) => c.title && !seen.has(c.title) && seen.add(c.title))
+      .slice(0, max);
+  // D'abord les conseils de SA tranche ; s'ils manquent, ceux du foyer avec
+  // enfants en général — sourcés eux aussi, et toujours vrais pour ce parent.
+  const fromCatalog = pick([bracket], 3);
+  if (fromCatalog.length < 2) fromCatalog.push(...pick(["0-6", "7-11", "12-15", "16-18", "19+"], 2 - fromCatalog.length));
+  cards.push(...fromCatalog);
+
+  // Plancher : six cartes, une fête. La carte générique comble si le
+  // catalogue du pays est maigre.
+  if (cards.length < 5) {
     cards.push(card("good", "💝", t("bdayCard.child.generic.title"),
       tp("bdayCard.child.generic.body", { name })));
   }
   cards.push(card("neutral", "🎁", t("bdayCard.child.close.title"),
     tp("bdayCard.child.close.body", { name })));
-  return cards.slice(0, 8);
+  return cards.slice(0, 10);
+}
+
+/** Tranche du Coach pour un âge d'enfant — mêmes bornes que les options. */
+function childBracketOf(age: number): "0-6" | "7-11" | "12-15" | "16-18" | "19+" {
+  if (age <= 6) return "0-6";
+  if (age <= 11) return "7-11";
+  if (age <= 15) return "12-15";
+  if (age <= 18) return "16-18";
+  return "19+";
 }
 
 // ============================================================================
@@ -276,6 +319,8 @@ export function buildPetBirthdayCards(
   petName: string,
   species: "dog" | "cat" | "other",
   i18n: AdviceI18n,
+  profile: UserProfile = {},
+  age?: number,
 ): BirthdayCard[] {
   const { t, tp } = i18n;
   const name = petName;
@@ -291,6 +336,23 @@ export function buildPetBirthdayCards(
   } else {
     cards.push(card("good", "🛡️", t("bdayCard.pet.other.title"), tp("bdayCard.pet.other.body", { name })));
   }
+  // Prévention et imprévus : sans chiffre, valables pour tout animal.
+  cards.push(card("good", "🥣", t("bdayCard.pet.food.title"), tp("bdayCard.pet.food.body", { name })));
+  cards.push(card("bad", "🚑", t("bdayCard.pet.emergency.title"), tp("bdayCard.pet.emergency.body", { name })));
+  if (age !== undefined && age >= 7) {
+    cards.push(card("neutral", "🕰️", t("bdayCard.pet.senior.title"), tp("bdayCard.pet.senior.body", { name, age })));
+  }
+  // Le catalogue « animaux » du pays, sourcé et daté.
+  if (species === "dog" || species === "cat") {
+    const seen = new Set(cards.map((c) => c.title));
+    const fromCatalog = matchAdvice({ ...profile, hasPets: true, pets: [{ species, count: 1 }] })
+      .filter((c) => c.category === "pets" && (c.titleKey || c.title))
+      .slice(0, 6)
+      .map((c) => card("gold", "💡", resolveTitle(c, i18n), resolveBody(c, profile, i18n), c.sources))
+      .filter((c) => c.title && !seen.has(c.title))
+      .slice(0, 3);
+    cards.push(...fromCatalog);
+  }
   cards.push(card("neutral", "📊", t("bdayCard.pet.budget.title"), tp("bdayCard.pet.budget.body", { name })));
-  return cards;
+  return cards.slice(0, 10);
 }
