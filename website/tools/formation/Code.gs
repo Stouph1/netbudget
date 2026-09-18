@@ -23,7 +23,7 @@
 const TABS = {
   Config: ["Clé", "Valeur"],
   Inscriptions: ["Horodateur", "Prénom", "Nom", "Profil", "Groupe", "Email", "Téléphone"],
-  Presences: ["Séance", "Date", "Groupe", "Participant", "Présent", "Défi réalisé"],
+  Presences: ["Séance", "Date", "Groupe", "Participant", "Présent", "Défi réalisé", "Support envoyé"],
   Feedback: ["Horodateur", "Participant", "Note globale", "Recommanderait", "Atelier préféré", "Commentaire"],
   Bilan3mois: ["Horodateur", "Participant", "Budget tenu", "Virement automatique actif", "Dette attaquée", "PEA ouvert", "Utilise NetBudget"],
   Formateurs: ["Horodateur", "Formateur", "Semaine", "Groupe", "Note séance", "Besoin d'aide", "Résolu", "Commentaire"],
@@ -68,6 +68,10 @@ function prepare_() {
     ["OBJECTIF", existing.OBJECTIF || 30],
     ["SEUIL_ASSIDU", existing.SEUIL_ASSIDU || 4],
     ["GROUPES", existing.GROUPES || "Groupe 1, Groupe 2, Groupe 3"],
+    ["MAIL_ACTIF", existing.MAIL_ACTIF || "Oui"],
+    ["LIEN_SESSION", existing.LIEN_SESSION || ""],
+    ["SUPPORT_URL", existing.SUPPORT_URL || ""],
+    ["SUPPORT_DELAI_H", existing.SUPPORT_DELAI_H || 3],
   ];
   cfg.getRange(2, 1, rows.length, 2).setValues(rows);
   cfg.autoResizeColumns(1, 2);
@@ -424,8 +428,11 @@ function rafraichirListes() {
 /** Un déclencheur « à l'envoi du formulaire » par formulaire, sans doublon. */
 function installerDeclencheurs() {
   ScriptApp.getProjectTriggers().forEach((tr) => {
-    if (tr.getHandlerFunction() === "onSubmit_") ScriptApp.deleteTrigger(tr);
+    const h = tr.getHandlerFunction();
+    if (h === "onSubmit_" || h === "envoyerSupports") ScriptApp.deleteTrigger(tr);
   });
+  // Toutes les heures : le support part aux présents de la session générale.
+  ScriptApp.newTrigger("envoyerSupports").timeBased().everyHours(1).create();
   const props = PropertiesService.getDocumentProperties();
   FORMULAIRES.forEach((def) => {
     const id = props.getProperty("FORM_" + def.cle);
@@ -461,8 +468,9 @@ function onSubmit_(e) {
   });
   sh.appendRow(ligne);
 
-  // Un inscrit de plus : il doit apparaître dans les listes d'émargement.
-  if (def.cle === "INSCRIPTION") rafraichirListes();
+  // Un inscrit de plus : il doit apparaître dans les listes d'émargement,
+  // et recevoir tout de suite les liens de la session.
+  if (def.cle === "INSCRIPTION") { rafraichirListes(); mailInscription_(rep); }
 }
 
 /** « A1 — Atelier 1 » → « A1 ». */
@@ -496,6 +504,7 @@ function onOpen() {
     .addItem("2. Créer les formulaires", "creerFormulaires")
     .addSeparator()
     .addItem("Rafraîchir la liste des participants", "rafraichirListes")
+    .addItem("Envoyer le support maintenant", "envoyerSupportsMaintenant")
     .addItem("Afficher le TOKEN et les liens", "afficherConfig")
     .addToUi();
 }
@@ -504,4 +513,149 @@ function afficherConfig() {
   const cfg = readConfig_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Config"));
   const lignes = Object.keys(cfg).map((k) => k + " : " + cfg[k]);
   SpreadsheetApp.getUi().alert(lignes.join("\n") || "L'onglet Config est vide : lance « 1. Préparer le classeur ».");
+}
+
+// ---------- Emails ----------
+/**
+ * Deux envois, tous les deux automatiques :
+ *   — à l'inscription : confirmation avec le lien des séances et le lien
+ *     d'émargement ;
+ *   — quelques heures après la session générale : le support de formation,
+ *     aux personnes qui étaient présentes (elles seules).
+ * Réglages dans l'onglet Config : MAIL_ACTIF, LIEN_SESSION, SUPPORT_URL,
+ * SUPPORT_DELAI_H. Mets MAIL_ACTIF sur « Non » pour tout couper.
+ */
+const EXPEDITEUR = "Commande tes finances";
+
+function mailInscription_(rep) {
+  const cfg = readConfig_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Config"));
+  if (!yes_(cfg.MAIL_ACTIF)) return;
+  const to = String(rep["Email"] || "").trim();
+  if (!to) return;
+  const prenom = String(rep["Prénom"] || "").trim();
+  const props = PropertiesService.getDocumentProperties();
+  const idPres = props.getProperty("FORM_PRESENCE");
+  let lienPresence = "";
+  if (idPres) { try { lienPresence = FormApp.openById(idPres).getPublishedUrl(); } catch (err) { lienPresence = ""; } }
+
+  const lignes = [
+    "Bonjour " + prenom + ",",
+    "",
+    "Ton inscription à « " + String(cfg.SESSION || "la formation") + " » est enregistrée.",
+  ];
+  if (String(cfg.LIEN_SESSION || "").trim()) {
+    lignes.push("", "Les séances se passent ici : " + String(cfg.LIEN_SESSION).trim());
+  }
+  if (lienPresence) {
+    lignes.push("", "Au début de chaque séance, signale ta présence avec ce lien, il sert pour toutes les séances :", lienPresence);
+  }
+  lignes.push("", "À bientôt,", "L'équipe de la formation");
+
+  envoyer_(to, "Ton inscription est confirmée", lignes.join("\n"), null);
+}
+
+/** Déclencheur horaire. Renvoie le nombre d'envois. */
+function envoyerSupports() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const cfg = readConfig_(ss.getSheetByName("Config"));
+  if (!yes_(cfg.MAIL_ACTIF)) return 0;
+  const url = String(cfg.SUPPORT_URL || "").trim();
+  if (!url) return 0;
+
+  const sh = ss.getSheetByName("Presences");
+  if (!sh || sh.getLastRow() < 2) return 0;
+  const vals = sh.getDataRange().getValues();
+  const head = vals[0].map((h) => String(h).trim());
+  const iSeance = head.indexOf("Séance"), iDate = head.indexOf("Date"),
+        iPart = head.indexOf("Participant"), iPresent = head.indexOf("Présent"),
+        iSent = head.indexOf("Support envoyé");
+  if (iSent === -1) return 0;
+
+  const delai = (Number(cfg.SUPPORT_DELAI_H) || 3) * 3600 * 1000;
+  const now = Date.now();
+  const emails = emailsParNom_();
+  const piece = fichierDrive_(url);
+  let envoyes = 0;
+
+  for (let i = 1; i < vals.length; i++) {
+    const r = vals[i];
+    if (String(r[iSeance]).trim().toUpperCase() !== "SG") continue;
+    if (!yes_(r[iPresent])) continue;
+    if (String(r[iSent]).trim()) continue;
+    const d = r[iDate] instanceof Date ? r[iDate].getTime() : Date.parse(r[iDate]);
+    if (!d || now - d < delai) continue;
+
+    const nom = String(r[iPart]).trim();
+    const to = emails[nom.toLowerCase()];
+    if (!to) { sh.getRange(i + 1, iSent + 1).setValue("email introuvable"); continue; }
+    if (MailApp.getRemainingDailyQuota() < 1) break; // on reprendra à l'heure suivante
+
+    const corps = [
+      "Bonjour " + nom.split(" ")[0] + ",",
+      "",
+      "Merci d'être venu à la session générale de « " + String(cfg.SESSION || "la formation") + " ».",
+      "",
+      "Voici le support de la formation : " + url,
+      piece ? "Il est aussi en pièce jointe." : "",
+      "",
+      "À la prochaine séance,",
+      "L'équipe de la formation",
+    ].filter((l) => l !== "");
+    envoyer_(to, "Le support de la formation", corps.join("\n"), piece);
+    sh.getRange(i + 1, iSent + 1).setValue(new Date());
+    envoyes++;
+  }
+  return envoyes;
+}
+
+function envoyerSupportsMaintenant() {
+  const cfg = readConfig_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Config"));
+  if (!String(cfg.SUPPORT_URL || "").trim()) {
+    SpreadsheetApp.getUi().alert("Renseigne d'abord SUPPORT_URL dans l'onglet Config : le lien Drive du support de formation.");
+    return;
+  }
+  const n = envoyerSupports();
+  SpreadsheetApp.getUi().alert(
+    n + " envoi(s). Les personnes déjà servies portent une date dans la colonne « Support envoyé » de l'onglet Presences.\n" +
+    "Celles qui viennent d'émarger partent automatiquement après " + (Number(cfg.SUPPORT_DELAI_H) || 3) + " h."
+  );
+}
+
+/** { "prénom nom": email } d'après l'onglet Inscriptions. */
+function emailsParNom_() {
+  const out = {};
+  rows_(SpreadsheetApp.getActiveSpreadsheet(), "Inscriptions").forEach((r) => {
+    const n = (String(r["Prénom"] || "").trim() + " " + String(r["Nom"] || "").trim()).trim().toLowerCase();
+    const m = String(r["Email"] || "").trim();
+    if (n && m) out[n] = m;
+  });
+  return out;
+}
+
+/** Le fichier Drive derrière un lien, s'il est joignable (moins de 20 Mo). */
+function fichierDrive_(url) {
+  const m = String(url).match(/[-\w]{25,}/);
+  if (!m) return null;
+  try {
+    const f = DriveApp.getFileById(m[0]);
+    return f.getSize() < 20 * 1024 * 1024 ? f : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function envoyer_(to, sujet, corps, fichier) {
+  const opts = { name: EXPEDITEUR };
+  // Un Google Slides ou Docs part en PDF ; un fichier déjà binaire part tel quel.
+  if (fichier) {
+    let blob;
+    try { blob = fichier.getAs(MimeType.PDF); } catch (err) { blob = fichier.getBlob(); }
+    opts.attachments = [blob];
+  }
+  try {
+    MailApp.sendEmail(to, sujet, corps, opts);
+  } catch (err) {
+    // Un envoi raté ne doit jamais bloquer l'enregistrement d'une réponse.
+    console.error("Envoi impossible à " + to + " : " + err.message);
+  }
 }
