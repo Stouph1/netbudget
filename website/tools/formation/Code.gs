@@ -40,9 +40,22 @@ const PROFILS = ["Étudiant", "Jeune travailleur", "Collégien/Lycéen", "Parent
 const ATELIERS = ["Budget", "Épargne", "Dettes & crédit", "Investissement"];
 
 // ---------- setup ----------
+/**
+ * Un message à l'écran quand on vient du classeur, une ligne de journal quand
+ * on vient de l'éditeur Apps Script : là-bas, getUi() n'existe pas et faisait
+ * échouer la fonction alors que le travail était déjà fait.
+ */
+function dire_(msg) {
+  try {
+    SpreadsheetApp.getUi().alert(msg);
+  } catch (err) {
+    console.log(msg);
+  }
+}
+
 function setup() {
   const token = prepare_();
-  SpreadsheetApp.getUi().alert(
+  dire_(
     "Classeur prêt. TOKEN : " + token + "\n(onglet Config, ligne 2)\n\n" +
     "Étape suivante : menu « Commande tes finances » → « Créer les formulaires »."
   );
@@ -476,7 +489,7 @@ function creerFormulaires() {
   ecrireConfig_(ss.getSheetByName("Config"), liens);
   installerDeclencheurs();
   rafraichirListes();
-  SpreadsheetApp.getUi().alert(
+  dire_(
     "Les " + FORMULAIRES.length + " formulaires sont prêts.\n\n" +
     "Leurs liens sont dans l'onglet Config (lignes LIEN_…).\n" +
     "Chaque réponse arrive désormais toute seule dans le bon onglet, et le tableau de bord se met à jour dans la minute."
@@ -624,7 +637,7 @@ function onOpen() {
 function afficherConfig() {
   const cfg = readConfig_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Config"));
   const lignes = Object.keys(cfg).map((k) => k + " : " + cfg[k]);
-  SpreadsheetApp.getUi().alert(lignes.join("\n") || "L'onglet Config est vide : lance « 1. Préparer le classeur ».");
+  dire_(lignes.join("\n") || "L'onglet Config est vide : lance « 1. Préparer le classeur ».");
 }
 
 // ---------- Emails ----------
@@ -730,12 +743,12 @@ function envois_(forcer) {
 function envoyerSupportsMaintenant() {
   const cfg = readConfig_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Config"));
   if (!String(cfg.SUPPORT_URL || "").trim()) {
-    SpreadsheetApp.getUi().alert("Renseigne d'abord SUPPORT_URL dans l'onglet Config : le lien Drive du support de formation.");
+    dire_("Renseigne d'abord SUPPORT_URL dans l'onglet Config : le lien Drive du support de formation.");
     return;
   }
   // À la main, on n'attend pas le délai : la séance vient de se terminer.
   const n = envois_(true);
-  SpreadsheetApp.getUi().alert(
+  dire_(
     n + " envoi(s) à l'instant, aux présents de la session générale qui ne l'avaient pas encore reçu.\n\n" +
     "Les personnes servies portent une date dans la colonne « Support envoyé » de l'onglet Presences. " +
     "Sans clic de ta part, l'envoi se fait tout seul " + (Number(cfg.SUPPORT_DELAI_H) || 3) + " h après l'émargement."
