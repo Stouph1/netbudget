@@ -554,8 +554,13 @@ function mailInscription_(rep) {
   envoyer_(to, "Ton inscription est confirmée", lignes.join("\n"), null);
 }
 
-/** Déclencheur horaire. Renvoie le nombre d'envois. */
+/** Cible du déclencheur horaire : le délai de Config est respecté. */
 function envoyerSupports() {
+  return envois_(false);
+}
+
+/** Le travail réel. « forcer » ignore le délai : c'est l'envoi à la main. */
+function envois_(forcer) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const cfg = readConfig_(ss.getSheetByName("Config"));
   if (!yes_(cfg.MAIL_ACTIF)) return 0;
@@ -582,8 +587,10 @@ function envoyerSupports() {
     if (String(r[iSeance]).trim().toUpperCase() !== "SG") continue;
     if (!yes_(r[iPresent])) continue;
     if (String(r[iSent]).trim()) continue;
-    const d = r[iDate] instanceof Date ? r[iDate].getTime() : Date.parse(r[iDate]);
-    if (!d || now - d < delai) continue;
+    if (!forcer) {
+      const d = r[iDate] instanceof Date ? r[iDate].getTime() : Date.parse(r[iDate]);
+      if (!d || now - d < delai) continue;
+    }
 
     const nom = String(r[iPart]).trim();
     const to = emails[nom.toLowerCase()];
@@ -614,10 +621,12 @@ function envoyerSupportsMaintenant() {
     SpreadsheetApp.getUi().alert("Renseigne d'abord SUPPORT_URL dans l'onglet Config : le lien Drive du support de formation.");
     return;
   }
-  const n = envoyerSupports();
+  // À la main, on n'attend pas le délai : la séance vient de se terminer.
+  const n = envois_(true);
   SpreadsheetApp.getUi().alert(
-    n + " envoi(s). Les personnes déjà servies portent une date dans la colonne « Support envoyé » de l'onglet Presences.\n" +
-    "Celles qui viennent d'émarger partent automatiquement après " + (Number(cfg.SUPPORT_DELAI_H) || 3) + " h."
+    n + " envoi(s) à l'instant, aux présents de la session générale qui ne l'avaient pas encore reçu.\n\n" +
+    "Les personnes servies portent une date dans la colonne « Support envoyé » de l'onglet Presences. " +
+    "Sans clic de ta part, l'envoi se fait tout seul " + (Number(cfg.SUPPORT_DELAI_H) || 3) + " h après l'émargement."
   );
 }
 
