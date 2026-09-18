@@ -139,20 +139,54 @@ const avg_ = (nums) => { const v = nums.filter((n) => n !== null); return v.leng
 const dateKey_ = (v) => { const d = v instanceof Date ? v : new Date(v); return isNaN(d) ? null : Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd"); };
 
 // ---------- agrégats ----------
-function stats_() {
+/** Tout ce qui est lu dans le classeur, une seule fois par requête. */
+function donnees_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const cfg = readConfig_(ss.getSheetByName("Config"));
-  const seuil = Number(cfg.SEUIL_ASSIDU) || 4;
+  return {
+    cfg: readConfig_(ss.getSheetByName("Config")),
+    ins: rows_(ss, "Inscriptions"),
+    pres: rows_(ss, "Presences"),
+    fb: rows_(ss, "Feedback"),
+    bl: rows_(ss, "Bilan3mois"),
+    fm: rows_(ss, "Formateurs"),
+  };
+}
+
+const nomDe_ = (r) =>
+  (String(r["Prénom"] || "").trim() + " " + String(r["Nom"] || "").trim()).trim().toLowerCase();
+
+/** { "prénom nom": { groupe, profil } } — l'inscription fait foi. */
+function indexParticipants_(ins) {
+  const out = {};
+  ins.forEach((r) => {
+    const n = nomDe_(r);
+    if (n) out[n] = { groupe: String(r["Groupe"] || "").trim(), profil: String(r["Profil"] || "").trim() };
+  });
+  return out;
+}
+
+/** Une personne inconnue de l'onglet Inscriptions n'entre dans aucun filtre. */
+function garde_(filtre, info) {
+  if (!filtre || filtre.type === "tous") return true;
+  if (!info) return false;
+  return filtre.type === "groupe" ? info.groupe === filtre.valeur : info.profil === filtre.valeur;
+}
+
+/** Les agrégats, pour tout le monde ou pour un seul groupe / profil. */
+function stats_(D, filtre) {
+  const idx = indexParticipants_(D.ins);
+  const retenu = (nom) => garde_(filtre, idx[String(nom || "").trim().toLowerCase()]);
+  const seuil = Number(D.cfg.SEUIL_ASSIDU) || 4;
 
   // Inscriptions
-  const ins = rows_(ss, "Inscriptions");
+  const ins = D.ins.filter((r) => garde_(filtre, idx[nomDe_(r)]));
   const byDay = {};
   ins.forEach((r) => { const k = dateKey_(r["Horodateur"]); if (k) byDay[k] = (byDay[k] || 0) + 1; });
   let run = 0;
   const cumul = Object.keys(byDay).sort().map((d) => ({ date: d, total: (run += byDay[d]) }));
 
   // Présences
-  const pres = rows_(ss, "Presences");
+  const pres = D.pres.filter((r) => retenu(r["Participant"]));
   const seances = SEANCES.map((s) => {
     const rowsS = pres.filter((r) => String(r["Séance"]).trim().toUpperCase() === s.code);
     const presents = new Set(rowsS.filter((r) => yes_(r["Présent"])).map((r) => String(r["Participant"]).trim().toLowerCase()));
@@ -178,7 +212,7 @@ function stats_() {
   });
 
   // Feedback de fin
-  const fb = rows_(ss, "Feedback");
+  const fb = D.fb.filter((r) => retenu(r["Participant"]));
   const feedback = {
     reponses: fb.length,
     noteMoyenne: avg_(fb.map((r) => num_(r["Note globale"]))),
@@ -187,7 +221,7 @@ function stats_() {
   };
 
   // Bilan à 3 mois — les « non concernés » sortent du dénominateur
-  const bl = rows_(ss, "Bilan3mois");
+  const bl = D.bl.filter((r) => retenu(r["Participant"]));
   const share = (key) => { const c = bl.filter((r) => !na_(r[key]) && String(r[key]).trim() !== ""); return pctOf_(c.filter((r) => yes_(r[key])).length, c.length); };
   const bilan3mois = {
     reponses: bl.length,
@@ -198,19 +232,19 @@ function stats_() {
     netbudget: share("Utilise NetBudget"),
   };
 
-  // Formateurs
-  const fm = rows_(ss, "Formateurs");
+  // Formateurs : filtrables par groupe seulement, un formateur n'anime pas un profil.
+  const fm = filtre && filtre.type === "groupe"
+    ? D.fm.filter((r) => String(r["Groupe"] || "").trim() === filtre.valeur)
+    : D.fm;
   const formateurs = {
     retours: fm.length,
     actifs: Object.keys(count_(fm, "Formateur")).length,
     noteMoyenne: avg_(fm.map((r) => num_(r["Note séance"]))),
     alertes: fm.filter((r) => yes_(r["Besoin d'aide"]) && !yes_(r["Résolu"])).length,
+    global: !(filtre && filtre.type === "groupe") && !!(filtre && filtre.type === "profil"),
   };
 
   return {
-    updated: new Date().toISOString(),
-    session: String(cfg.SESSION || "Session en cours"),
-    objectif: Number(cfg.OBJECTIF) || null,
     inscrits: { total: ins.length, parProfil: count_(ins, "Profil"), parGroupe: count_(ins, "Groupe"), cumul },
     seances,
     assiduite: { seuil, assidus, complets, taux: pctOf_(assidus, base) },
@@ -221,6 +255,25 @@ function stats_() {
   };
 }
 
+/** Ce que reçoit la page : la vue d'ensemble, plus une vue par groupe et par profil. */
+function paquet_() {
+  const D = donnees_();
+  const tous = stats_(D, { type: "tous" });
+  const vues = [{ cle: "tous", label: "Tous les participants", type: "tous", stats: tous }];
+  Object.keys(tous.inscrits.parGroupe).sort().forEach((g) => {
+    vues.push({ cle: "groupe:" + g, label: g, type: "groupe", stats: stats_(D, { type: "groupe", valeur: g }) });
+  });
+  Object.keys(tous.inscrits.parProfil).sort().forEach((p) => {
+    vues.push({ cle: "profil:" + p, label: p, type: "profil", stats: stats_(D, { type: "profil", valeur: p }) });
+  });
+  return Object.assign({
+    updated: new Date().toISOString(),
+    session: String(D.cfg.SESSION || "Session en cours"),
+    objectif: Number(D.cfg.OBJECTIF) || null,
+    vues: vues,
+  }, tous);
+}
+
 // ---------- application web ----------
 function doGet(e) {
   const cfg = readConfig_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Config"));
@@ -229,7 +282,7 @@ function doGet(e) {
   if (!cfg.TOKEN || String(given) !== String(cfg.TOKEN)) {
     body = { error: "unauthorized" };
   } else {
-    try { body = stats_(); } catch (err) { body = { error: "Erreur du script : " + err.message }; }
+    try { body = paquet_(); } catch (err) { body = { error: "Erreur du script : " + err.message }; }
   }
   return ContentService.createTextOutput(JSON.stringify(body)).setMimeType(ContentService.MimeType.JSON);
 }

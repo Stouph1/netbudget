@@ -63,6 +63,18 @@
   .method{border-top:2px solid var(--line);margin-top:56px;padding-top:20px;font-size:14.5px;color:var(--slate)}
   .method h2{font-size:20px;margin-top:0}
   footer{color:#8FA3A9;font-size:13px;margin-top:34px}
+  /* filtre de vue */
+  .filtre{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap;font-size:14px;color:#C9D6DA}
+  .filtre[hidden]{display:none}
+  .filtre label{font-weight:700;letter-spacing:.02em}
+  .filtre select{appearance:none;-webkit-appearance:none;background-color:var(--navy2);color:#EAF1F3;
+    border:1px solid var(--teal);border-radius:999px;padding:9px 40px 9px 16px;font:inherit;font-size:14px;
+    cursor:pointer;max-width:100%;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23A9C3C9' stroke-width='2' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 15px center}
+  .filtre select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+  .filtre .info{color:#8FA3A9}
+  .note{color:var(--slate);font-size:14px;margin:12px 0 0}
   #err{display:none;background:#FDECEA;color:#B23A30;border-radius:10px;padding:14px 18px;margin:20px 0}
   @media (max-width:640px){ .bar{grid-template-columns:110px 1fr 52px} .stats{margin-top:-60px} }
   @media (prefers-reduced-motion: reduce){ .dot{animation:none} .bar .fill{transition:none} }
@@ -76,6 +88,11 @@
     <h1>Commande tes finances — la session en chiffres</h1>
     <p class="sub" id="session">—</p>
     <span class="live" id="badge"><span class="dot"></span><span id="badgeTxt">Connexion…</span></span>
+    <div class="filtre" id="filtreBox" hidden>
+      <label for="vue">Afficher</label>
+      <select id="vue" aria-describedby="vueInfo"></select>
+      <span class="info" id="vueInfo"></span>
+    </div>
   </div>
 </header>
 
@@ -111,6 +128,7 @@
   <h2>Côté formateurs</h2>
   <p class="lede">Les retours hebdomadaires des formateurs sur leurs groupes.</p>
   <div class="gauges" id="fmGauges"></div>
+  <p class="note" id="fmNote"></p>
 
   <div class="verse">« Connais bien l'état de ton troupeau, donne tes soins à tes brebis. » <b>— Proverbes 27:23</b></div>
 
@@ -221,6 +239,9 @@ function render(d, demo){
     gauge(f.retours,"points hebdo remontés")+
     gauge(f.noteMoyenne!==null? f.noteMoyenne+" / 5":"—","ressenti moyen des séances")+
     gauge(f.alertes,"demandes d'aide en cours");
+  el("fmNote").textContent = f.global
+    ? "Ce bloc reste celui de toute la session : un formateur anime un groupe, pas un profil."
+    : "";
 }
 
 function gauge(v,label){return `<div class="gauge"><div class="p">${v}</div><div class="t">${label}</div></div>`}
@@ -236,6 +257,37 @@ function mkChart(id,type,data,opts){
   charts[id]=new Chart(el(id),{type,data,options:Object.assign({responsive:true,animation:{duration:500}},opts)});
 }
 
+/* ---- filtres : le script renvoie une vue d'ensemble et une vue par groupe
+   et par profil. On bascule sans recharger, la sélection survit au
+   rafraîchissement automatique. ---- */
+let paquet = null;
+let vueCourante = "tous";
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function listeVues(d){ return Array.isArray(d.vues) && d.vues.length>1 ? d.vues : null; }
+
+function majFiltre(d){
+  const box = el("filtreBox"), sel = el("vue"), list = listeVues(d);
+  if(!list){ box.hidden = true; return; }
+  if(!list.some(v=>v.cle===vueCourante)) vueCourante = "tous";
+  const opt = (v)=>`<option value="${esc(v.cle)}"${v.cle===vueCourante?" selected":""}>${esc(v.label)}</option>`;
+  const bloc = (type,titre)=>{ const l=list.filter(v=>v.type===type);
+    return l.length ? `<optgroup label="${titre}">${l.map(opt).join("")}</optgroup>` : ""; };
+  sel.innerHTML = list.filter(v=>v.type==="tous").map(opt).join("")
+    + bloc("groupe","Par groupe") + bloc("profil","Par profil");
+  box.hidden = false;
+}
+
+function afficher(){
+  if(!paquet) return;
+  const list = listeVues(paquet);
+  const v = list ? (list.filter(x=>x.cle===vueCourante)[0] || list[0]) : null;
+  render(v ? Object.assign({}, paquet, v.stats) : paquet, false);
+  const n = v && v.stats ? v.stats.inscrits.total : null;
+  el("vueInfo").textContent = !v || v.cle==="tous" ? ""
+    : (n===1 ? "1 inscrit dans cette vue" : n+" inscrits dans cette vue");
+}
+
 async function load(){
   if(!SCRIPT_URL){ render(DEMO,true); return; }
   try{
@@ -243,13 +295,16 @@ async function load(){
     const d = await r.json();
     if(d.error) throw new Error(d.error==="unauthorized"?"Token invalide — vérifie TOKEN dans cette page et dans l'onglet Config.":d.error);
     el("err").style.display="none";
-    render(d,false);
+    paquet = d;
+    majFiltre(d);
+    afficher();
   }catch(e){
     el("err").style.display="block";
     el("err").textContent = "Impossible de charger les données : "+e.message;
     el("badgeTxt").textContent = "Hors ligne — nouvelle tentative dans "+REFRESH_S+" s";
   }
 }
+el("vue").addEventListener("change", (e)=>{ vueCourante = e.target.value; afficher(); });
 load();
 setInterval(load, REFRESH_S*1000);
 </script>
