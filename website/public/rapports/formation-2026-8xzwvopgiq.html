@@ -74,6 +74,10 @@
     background-repeat:no-repeat;background-position:right 15px center}
   .filtre select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
   .filtre .info{color:#8FA3A9}
+  .filtre .reset{background:none;border:0;color:var(--mint);font:inherit;font-size:14px;
+    text-decoration:underline;cursor:pointer;padding:4px}
+  .filtre .reset[hidden]{display:none}
+  .filtre .reset:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
   .note{color:var(--slate);font-size:14px;margin:12px 0 0}
   #err{display:none;background:#FDECEA;color:#B23A30;border-radius:10px;padding:14px 18px;margin:20px 0}
   @media (max-width:640px){ .bar{grid-template-columns:110px 1fr 52px} .stats{margin-top:-60px} }
@@ -89,9 +93,12 @@
     <p class="sub" id="session">—</p>
     <span class="live" id="badge"><span class="dot"></span><span id="badgeTxt">Connexion…</span></span>
     <div class="filtre" id="filtreBox" hidden>
-      <label for="vue">Afficher</label>
-      <select id="vue" aria-describedby="vueInfo"></select>
+      <label for="cible">Afficher</label>
+      <select id="cible" aria-describedby="vueInfo"></select>
+      <label for="periode">sur</label>
+      <select id="periode" aria-describedby="vueInfo"></select>
       <span class="info" id="vueInfo"></span>
+      <button type="button" class="reset" id="reset" hidden>Tout réafficher</button>
     </div>
   </div>
 </header>
@@ -134,7 +141,7 @@
 
   <div class="method">
     <h2>Sources et méthode</h2>
-    <p>Les chiffres proviennent du classeur de suivi de la formation (inscriptions, feuilles de présence remplies par les formateurs, questionnaires de fin de formation et de bilan à 3 mois, retours hebdomadaires des formateurs). Ils sont recalculés à chaque affichage de cette page — l'horodatage sous le titre fait foi. Les pourcentages du bilan à 3 mois excluent les personnes non concernées. Aucun chiffre individuel n'est publié : uniquement des agrégats, conformément à la règle de confidentialité de la formation.</p>
+    <p>Les chiffres proviennent du classeur de suivi de la formation (inscriptions, feuilles de présence remplies par les formateurs, questionnaires de fin de formation et de bilan à 3 mois, retours hebdomadaires des formateurs). Ils sont recalculés à chaque affichage de cette page — l'horodatage sous le titre fait foi. Les filtres du bandeau s'appliquent à toute la page : « Afficher » restreint à un groupe ou à un profil, « sur » restreint à une période, et chaque ligne est retenue d'après sa propre date, inscription, émargement, questionnaire ou retour de formateur. Les pourcentages du bilan à 3 mois excluent les personnes non concernées. Aucun chiffre individuel n'est publié : uniquement des agrégats, conformément à la règle de confidentialité de la formation.</p>
   </div>
   <footer>Commande tes finances · EJP Social · page privée non indexée — merci de ne pas partager le lien hors de l'équipe.</footer>
 </div>
@@ -257,54 +264,67 @@ function mkChart(id,type,data,opts){
   charts[id]=new Chart(el(id),{type,data,options:Object.assign({responsive:true,animation:{duration:500}},opts)});
 }
 
-/* ---- filtres : le script renvoie une vue d'ensemble et une vue par groupe
-   et par profil. On bascule sans recharger, la sélection survit au
-   rafraîchissement automatique. ---- */
-let paquet = null;
-let vueCourante = "tous";
+/* ---- filtres : deux dimensions, qui et quand. Le script fait le calcul,
+   la page redemande la vue choisie. La sélection tient au rafraîchissement. ---- */
+let choixCible = "tous", choixPeriode = "tout";
+let sigCible = "", sigPeriode = "";
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function listeVues(d){ return Array.isArray(d.vues) && d.vues.length>1 ? d.vues : null; }
+function remplir(sel, html, sig, garde){
+  if(html === sig) return sig;          // on ne casse pas la liste ouverte pour rien
+  sel.innerHTML = html;
+  sel.value = garde;
+  return html;
+}
 
 function majFiltre(d){
-  const box = el("filtreBox"), sel = el("vue"), list = listeVues(d);
-  if(!list){ box.hidden = true; return; }
-  if(!list.some(v=>v.cle===vueCourante)) vueCourante = "tous";
-  const opt = (v)=>`<option value="${esc(v.cle)}"${v.cle===vueCourante?" selected":""}>${esc(v.label)}</option>`;
-  const bloc = (type,titre)=>{ const l=list.filter(v=>v.type===type);
+  const box = el("filtreBox");
+  if(!Array.isArray(d.cibles) || !Array.isArray(d.periodes)){ box.hidden = true; return; }
+  choixCible = d.cible ? d.cible.cle : "tous";
+  choixPeriode = d.periode ? d.periode.cle : "tout";
+
+  const opt = (v)=>`<option value="${esc(v.cle)}">${esc(v.label)}</option>`;
+  const bloc = (type,titre)=>{ const l = d.cibles.filter(v=>v.type===type);
     return l.length ? `<optgroup label="${titre}">${l.map(opt).join("")}</optgroup>` : ""; };
-  sel.innerHTML = list.filter(v=>v.type==="tous").map(opt).join("")
-    + bloc("groupe","Par groupe") + bloc("profil","Par profil");
+  sigCible = remplir(el("cible"),
+    d.cibles.filter(v=>v.type==="tous").map(opt).join("") + bloc("groupe","Par groupe") + bloc("profil","Par profil"),
+    sigCible, choixCible);
+  sigPeriode = remplir(el("periode"), d.periodes.map(opt).join(""), sigPeriode, choixPeriode);
+
+  const filtre = choixCible!=="tous" || choixPeriode!=="tout";
+  el("vueInfo").textContent = filtre
+    ? (d.inscrits.total===1 ? "1 inscrit dans cette vue" : d.inscrits.total+" inscrits dans cette vue")
+    : "";
+  el("reset").hidden = !filtre;
   box.hidden = false;
 }
 
-function afficher(){
-  if(!paquet) return;
-  const list = listeVues(paquet);
-  const v = list ? (list.filter(x=>x.cle===vueCourante)[0] || list[0]) : null;
-  render(v ? Object.assign({}, paquet, v.stats) : paquet, false);
-  const n = v && v.stats ? v.stats.inscrits.total : null;
-  el("vueInfo").textContent = !v || v.cle==="tous" ? ""
-    : (n===1 ? "1 inscrit dans cette vue" : n+" inscrits dans cette vue");
+function changer(cible, periode){
+  choixCible = cible; choixPeriode = periode;
+  el("badgeTxt").textContent = "Calcul en cours…";
+  load();
 }
 
 async function load(){
   if(!SCRIPT_URL){ render(DEMO,true); return; }
   try{
-    const r = await fetch(SCRIPT_URL+"?token="+encodeURIComponent(TOKEN));
+    const r = await fetch(SCRIPT_URL+"?token="+encodeURIComponent(TOKEN)
+      +"&cible="+encodeURIComponent(choixCible)+"&periode="+encodeURIComponent(choixPeriode));
     const d = await r.json();
     if(d.error) throw new Error(d.error==="unauthorized"?"Token invalide — vérifie TOKEN dans cette page et dans l'onglet Config.":d.error);
     el("err").style.display="none";
-    paquet = d;
+    render(d,false);
     majFiltre(d);
-    afficher();
   }catch(e){
     el("err").style.display="block";
     el("err").textContent = "Impossible de charger les données : "+e.message;
     el("badgeTxt").textContent = "Hors ligne — nouvelle tentative dans "+REFRESH_S+" s";
   }
 }
-el("vue").addEventListener("change", (e)=>{ vueCourante = e.target.value; afficher(); });
+
+el("cible").addEventListener("change", (e)=>changer(e.target.value, choixPeriode));
+el("periode").addEventListener("change", (e)=>changer(choixCible, e.target.value));
+el("reset").addEventListener("click", ()=>changer("tous","tout"));
 load();
 setInterval(load, REFRESH_S*1000);
 </script>

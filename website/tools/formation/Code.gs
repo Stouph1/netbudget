@@ -173,20 +173,20 @@ function garde_(filtre, info) {
 }
 
 /** Les agrégats, pour tout le monde ou pour un seul groupe / profil. */
-function stats_(D, filtre) {
+function stats_(D, filtre, per) {
   const idx = indexParticipants_(D.ins);
-  const retenu = (nom) => garde_(filtre, idx[String(nom || "").trim().toLowerCase()]);
+  const retenu = (r, nom) => dansPeriode_(per, r) && garde_(filtre, idx[String(nom || "").trim().toLowerCase()]);
   const seuil = Number(D.cfg.SEUIL_ASSIDU) || 4;
 
   // Inscriptions
-  const ins = D.ins.filter((r) => garde_(filtre, idx[nomDe_(r)]));
+  const ins = D.ins.filter((r) => dansPeriode_(per, r) && garde_(filtre, idx[nomDe_(r)]));
   const byDay = {};
   ins.forEach((r) => { const k = dateKey_(r["Horodateur"]); if (k) byDay[k] = (byDay[k] || 0) + 1; });
   let run = 0;
   const cumul = Object.keys(byDay).sort().map((d) => ({ date: d, total: (run += byDay[d]) }));
 
   // Présences
-  const pres = D.pres.filter((r) => retenu(r["Participant"]));
+  const pres = D.pres.filter((r) => retenu(r, r["Participant"]));
   const seances = SEANCES.map((s) => {
     const rowsS = pres.filter((r) => String(r["Séance"]).trim().toUpperCase() === s.code);
     const presents = new Set(rowsS.filter((r) => yes_(r["Présent"])).map((r) => String(r["Participant"]).trim().toLowerCase()));
@@ -212,7 +212,7 @@ function stats_(D, filtre) {
   });
 
   // Feedback de fin
-  const fb = D.fb.filter((r) => retenu(r["Participant"]));
+  const fb = D.fb.filter((r) => retenu(r, r["Participant"]));
   const feedback = {
     reponses: fb.length,
     noteMoyenne: avg_(fb.map((r) => num_(r["Note globale"]))),
@@ -221,7 +221,7 @@ function stats_(D, filtre) {
   };
 
   // Bilan à 3 mois — les « non concernés » sortent du dénominateur
-  const bl = D.bl.filter((r) => retenu(r["Participant"]));
+  const bl = D.bl.filter((r) => retenu(r, r["Participant"]));
   const share = (key) => { const c = bl.filter((r) => !na_(r[key]) && String(r[key]).trim() !== ""); return pctOf_(c.filter((r) => yes_(r[key])).length, c.length); };
   const bilan3mois = {
     reponses: bl.length,
@@ -233,9 +233,10 @@ function stats_(D, filtre) {
   };
 
   // Formateurs : filtrables par groupe seulement, un formateur n'anime pas un profil.
+  const fmPeriode = D.fm.filter((r) => dansPeriode_(per, r));
   const fm = filtre && filtre.type === "groupe"
-    ? D.fm.filter((r) => String(r["Groupe"] || "").trim() === filtre.valeur)
-    : D.fm;
+    ? fmPeriode.filter((r) => String(r["Groupe"] || "").trim() === filtre.valeur)
+    : fmPeriode;
   const formateurs = {
     retours: fm.length,
     actifs: Object.keys(count_(fm, "Formateur")).length,
@@ -255,23 +256,81 @@ function stats_(D, filtre) {
   };
 }
 
-/** Ce que reçoit la page : la vue d'ensemble, plus une vue par groupe et par profil. */
-function paquet_() {
+/** Les périodes proposées : les raccourcis, puis un choix par mois vu dans le classeur. */
+const MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
+function dateDe_(r) {
+  const v = r["Horodateur"] !== undefined && r["Horodateur"] !== "" ? r["Horodateur"] : r["Date"];
+  const d = v instanceof Date ? v : new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+function dansPeriode_(per, r) {
+  if (!per || per.cle === "tout") return true;
+  const d = dateDe_(r);
+  if (!d) return false;
+  const t = d.getTime();
+  return t >= per.debut && t <= per.fin;
+}
+
+/** Les périodes disponibles, d'après les dates réellement présentes. */
+function periodes_(D) {
+  const now = new Date();
+  const fin = now.getTime();
+  const jour = 24 * 3600 * 1000;
+  const list = [
+    { cle: "tout", label: "Depuis le début" },
+    { cle: "7j", label: "7 derniers jours", debut: fin - 7 * jour, fin: fin },
+    { cle: "30j", label: "30 derniers jours", debut: fin - 30 * jour, fin: fin },
+  ];
+  const mois = {};
+  [].concat(D.ins, D.pres, D.fb, D.bl, D.fm).forEach((r) => {
+    const d = dateDe_(r);
+    if (d) mois[d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2)] = true;
+  });
+  Object.keys(mois).sort().reverse().forEach((m) => {
+    const an = Number(m.slice(0, 4)), mo = Number(m.slice(5, 7)) - 1;
+    list.push({
+      cle: "mois:" + m,
+      label: MOIS_FR[mo].charAt(0).toUpperCase() + MOIS_FR[mo].slice(1) + " " + an,
+      debut: new Date(an, mo, 1).getTime(),
+      fin: new Date(an, mo + 1, 1).getTime() - 1,
+    });
+  });
+  return list;
+}
+
+/** Les cibles disponibles : tout le monde, chaque groupe, chaque profil. */
+function cibles_(D) {
+  const g = {}, p = {};
+  D.ins.forEach((r) => {
+    const gg = String(r["Groupe"] || "").trim(); if (gg) g[gg] = true;
+    const pp = String(r["Profil"] || "").trim(); if (pp) p[pp] = true;
+  });
+  const out = [{ cle: "tous", label: "Tous les participants", type: "tous" }];
+  Object.keys(g).sort().forEach((x) => out.push({ cle: "groupe:" + x, label: x, type: "groupe", valeur: x }));
+  Object.keys(p).sort().forEach((x) => out.push({ cle: "profil:" + x, label: x, type: "profil", valeur: x }));
+  return out;
+}
+
+const trouve_ = (list, cle, defaut) => list.filter((x) => x.cle === cle)[0] || defaut;
+
+/** Ce que reçoit la page : les agrégats de la vue demandée, et la liste des vues possibles. */
+function paquet_(cibleCle, periodeCle) {
   const D = donnees_();
-  const tous = stats_(D, { type: "tous" });
-  const vues = [{ cle: "tous", label: "Tous les participants", type: "tous", stats: tous }];
-  Object.keys(tous.inscrits.parGroupe).sort().forEach((g) => {
-    vues.push({ cle: "groupe:" + g, label: g, type: "groupe", stats: stats_(D, { type: "groupe", valeur: g }) });
-  });
-  Object.keys(tous.inscrits.parProfil).sort().forEach((p) => {
-    vues.push({ cle: "profil:" + p, label: p, type: "profil", stats: stats_(D, { type: "profil", valeur: p }) });
-  });
+  const cibles = cibles_(D);
+  const periodes = periodes_(D);
+  const cible = trouve_(cibles, cibleCle, cibles[0]);
+  const periode = trouve_(periodes, periodeCle, periodes[0]);
   return Object.assign({
     updated: new Date().toISOString(),
     session: String(D.cfg.SESSION || "Session en cours"),
     objectif: Number(D.cfg.OBJECTIF) || null,
-    vues: vues,
-  }, tous);
+    cible: { cle: cible.cle, label: cible.label },
+    periode: { cle: periode.cle, label: periode.label },
+    cibles: cibles.map((c) => ({ cle: c.cle, label: c.label, type: c.type })),
+    periodes: periodes.map((x) => ({ cle: x.cle, label: x.label })),
+  }, stats_(D, cible, periode));
 }
 
 // ---------- application web ----------
@@ -282,7 +341,7 @@ function doGet(e) {
   if (!cfg.TOKEN || String(given) !== String(cfg.TOKEN)) {
     body = { error: "unauthorized" };
   } else {
-    try { body = paquet_(); } catch (err) { body = { error: "Erreur du script : " + err.message }; }
+    try { body = paquet_(e && e.parameter ? e.parameter.cible : "", e && e.parameter ? e.parameter.periode : ""); } catch (err) { body = { error: "Erreur du script : " + err.message }; }
   }
   return ContentService.createTextOutput(JSON.stringify(body)).setMimeType(ContentService.MimeType.JSON);
 }
