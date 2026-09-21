@@ -7,9 +7,16 @@
 import { useMemo } from "react";
 import { useAccent } from "../../src/contexts/ThemeContext";
 import { makeBudgetStyles } from "./styles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSheetBottom } from "../../src/hooks/useSheetBottom";
 
 export function useBudgetTheme() {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeBudgetStyles(GOLD), [GOLD]);
-  return { styles, GOLD };
+  // Marge basse des feuilles : barre de navigation Android, barre d'accueil iOS.
+  const sheetBottom = useSheetBottom(32);
+  // Clavier ouvert, la feuille est bornée par ce qui reste au-dessus : elle
+  // ne doit jamais passer sous la barre de statut.
+  const sheetTop = useSafeAreaInsets().top + 16;
+  return { styles, GOLD, sheetBottom, sheetTop };
 }

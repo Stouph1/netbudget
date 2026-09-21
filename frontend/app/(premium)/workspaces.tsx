@@ -57,6 +57,7 @@ import type {
   WorkspaceKind,
   WorkspaceMember,
 } from "../../src/types/workspaces";
+import { useKeyboardLift, useSheetBottom } from "../../src/hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -93,26 +94,6 @@ const DATE_LOCALES: Record<Lang, string> = {
   ar: "ar",
   ja: "ja-JP",
 };
-
-// Suit la hauteur du clavier pour que les sheets flottent au-dessus
-// (même pattern que GoalEditor — KeyboardAvoidingView pousse les sheets
-// au-dessus de la status bar, on gère à la main).
-function useKeyboardHeight(): number {
-  const [height, setHeight] = useState(0);
-  useEffect(() => {
-    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSub = Keyboard.addListener(showEvt, (e) => {
-      setHeight(e.endCoordinates.height);
-    });
-    const hideSub = Keyboard.addListener(hideEvt, () => setHeight(0));
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-  return height;
-}
 
 export default function WorkspacesScreen() {
   const GOLD = useAccent().main;
@@ -432,7 +413,8 @@ function CreateModal({
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
-  const keyboardHeight = useKeyboardHeight();
+  const sheetBottom = useSheetBottom(36);
+  const keyboardHeight = useKeyboardLift();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [kind, setKind] = useState<WorkspaceKind>("family");
@@ -466,7 +448,7 @@ function CreateModal({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
+        <View style={[styles.sheet, { paddingBottom: sheetBottom, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{t("ws.new.title")}</Text>
@@ -554,7 +536,8 @@ function JoinModal({
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
-  const keyboardHeight = useKeyboardHeight();
+  const sheetBottom = useSheetBottom(36);
+  const keyboardHeight = useKeyboardLift();
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -585,7 +568,7 @@ function JoinModal({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, { paddingBottom: 36, marginBottom: keyboardHeight }]}>
+        <View style={[styles.sheet, { paddingBottom: sheetBottom, marginBottom: keyboardHeight }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{t("ws.join.title")}</Text>
@@ -651,7 +634,8 @@ function WorkspaceDetailModal({
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
-  const keyboardHeight = useKeyboardHeight();
+  const sheetBottom = useSheetBottom(36);
+  const keyboardHeight = useKeyboardLift();
   const [members, setMembers] = useState<MemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -796,7 +780,7 @@ function WorkspaceDetailModal({
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, { maxHeight: maxSheetHeight, marginBottom: keyboardHeight }]}>
+        <View style={[styles.sheet, { maxHeight: maxSheetHeight, marginBottom: keyboardHeight, paddingBottom: sheetBottom }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>

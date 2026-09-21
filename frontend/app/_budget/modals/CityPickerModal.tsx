@@ -9,7 +9,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   SectionList,
   StyleSheet,
@@ -64,7 +63,7 @@ export default function CityPickerModal({
   onPickCity: (next: City) => void;
   onClose: () => void;
 }) {
-  const { styles, GOLD } = useBudgetTheme();
+  const { styles, GOLD, sheetBottom, sheetTop } = useBudgetTheme();
   return (
     <Modal
       visible={visible}
@@ -78,11 +77,12 @@ export default function CityPickerModal({
           onPress={() => { Keyboard.dismiss(); onClose(); }}
         />
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior="padding"
           keyboardVerticalOffset={keyboardVerticalOffset}
-          style={{ width: "100%" }}
+          style={{ flex: 1, justifyContent: "flex-end", paddingTop: sheetTop }}
+          pointerEvents="box-none"
         >
-        <View style={[styles.sheet, { height: sheetHeight }]}>
+        <View style={[styles.sheet, { height: sheetHeight, paddingBottom: sheetBottom }]}>
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader}>
             {pickerStep === "city" ? (

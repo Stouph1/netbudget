@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import DonutChart, { type DonutSegment } from "../../src/components/DonutChart";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { useLang } from "../../src/contexts/LangContext";
@@ -161,6 +161,7 @@ export default function S1Epargne() {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
+  const insets = useSafeAreaInsets();
   // Devise active (le « € » était codé en dur : changer de devise n'avait
   // aucun effet sur cet écran).
   const { fmt: formatEuro, currency } = useCurrency();
@@ -584,7 +585,7 @@ export default function S1Epargne() {
       </ScrollView>
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { bottom: insets.bottom + 20 }]}
         onPress={() => {
           // On demande AVANT d'ouvrir l'éditeur. Laisser remplir un formulaire
           // pour refuser à l'enregistrement est la pire des séquences : le

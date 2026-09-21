@@ -580,6 +580,9 @@ export const makeBudgetStyles = (GOLD: string) =>
     padding: 20, paddingBottom: 32,
     borderWidth: 1, borderColor: BORDER,
     height: Math.round(SCREEN_H * 0.85),
+    // Quand le clavier laisse moins de place que la hauteur demandée, la
+    // feuille se compresse au lieu de passer sous la barre de statut.
+    flexShrink: 1,
     width: "100%",
     maxWidth: 640,
     alignSelf: "center",

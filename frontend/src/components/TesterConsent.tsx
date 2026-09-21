@@ -27,7 +27,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -39,6 +38,8 @@ import {
 } from "react-native";
 import type { Tier } from "../lib/entitlements";
 import { APPROVAL, contractSections } from "../lib/testerContract";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSheetBottom } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -65,6 +66,8 @@ export function TesterConsent({
   onDecline: () => void;
 }) {
   const GOLD = useAccent().main;
+  const insets = useSafeAreaInsets();
+  const sheetBottom = useSheetBottom(30);
   const s = useMemo(() => makeS(GOLD), [GOLD]);
   const [name, setName] = useState(defaultName ?? "");
   const [checks, setChecks] = useState<boolean[]>(APPROVAL.cases.map(() => false));
@@ -91,10 +94,10 @@ export function TesterConsent({
           le premier écran qu'il rencontre. */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
       >
       <View style={s.root}>
-        <View style={s.head}>
+        <View style={[s.head, { paddingTop: insets.top + 20 }]}>
           <Text style={s.title}>{APPROVAL.titre}</Text>
           <Text style={s.intro}>{APPROVAL.intro}</Text>
         </View>
@@ -131,7 +134,7 @@ export function TesterConsent({
           ) : null}
         </ScrollView>
 
-        <View style={s.foot}>
+        <View style={[s.foot, { paddingBottom: sheetBottom }]}>
           {APPROVAL.cases.map((label, i) => (
             <TouchableOpacity
               key={label}

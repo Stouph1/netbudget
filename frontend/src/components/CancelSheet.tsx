@@ -30,6 +30,7 @@ import { useState, useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLang } from "../contexts/LangContext";
 import type { Tier } from "../lib/entitlements";
+import { useSheetBottom } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -85,6 +86,7 @@ export function CancelSheet({
   const GOLD = useAccent().main;
   const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
+  const sheetBottom = useSheetBottom(28);
   const [reason, setReason] = useState<CancelReason | null>(null);
 
   const offer = reason ? offerFor(reason, tier) : null;
@@ -92,7 +94,7 @@ export function CancelSheet({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={s.backdrop} onPress={onClose}>
-        <Pressable style={s.sheet} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={[s.sheet, { paddingBottom: sheetBottom }]} onPress={(e) => e.stopPropagation()}>
           <View style={s.grabber} />
 
           <Text style={s.title}>{t("cancel.title")}</Text>

@@ -21,6 +21,7 @@ import { Feather } from "@expo/vector-icons";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, { FadeInDown } from "react-native-reanimated";
 import { useLang } from "../contexts/LangContext";
+import { useSheetBottom } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const TEXT_1 = "#FFFFFF";
@@ -53,11 +54,12 @@ export function WhatsNewSheet({
   const GOLD = useAccent().main;
   const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
+  const sheetBottom = useSheetBottom(26);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={s.backdrop} onPress={onClose}>
-        <Pressable style={s.sheet} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={[s.sheet, { paddingBottom: sheetBottom }]} onPress={(e) => e.stopPropagation()}>
           <View style={s.grabber} />
 
           <Text style={s.eyebrow}>{tp("whatsnew.version", { v: version })}</Text>

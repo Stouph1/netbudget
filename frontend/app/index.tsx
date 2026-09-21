@@ -1527,7 +1527,7 @@ export default function Index() {
         globalCitySuggestions={globalCitySuggestions}
         filteredCities={filteredCities}
         sheetHeight={sheetHeight}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        keyboardVerticalOffset={0}
         t={t}
         onCitySearchChange={setCitySearch}
         onPickCountry={(code) => {
@@ -1569,7 +1569,7 @@ export default function Index() {
         currency={currency}
         tithePercent={tithePercent}
         sheetHeight={sheetHeight}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        keyboardVerticalOffset={0}
         t={t}
         onChangeType={changeIncomeType}
         onChangeProStatus={changeIncomeProStatus}
@@ -1584,7 +1584,7 @@ export default function Index() {
         tithePercent={tithePercent}
         currency={currency}
         sheetHeight={sheetHeight}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        keyboardVerticalOffset={0}
         t={t}
         onChange={setIncomes}
         onClose={() => setMonthEditor(null)}
@@ -1597,7 +1597,7 @@ export default function Index() {
         newItemAmount={newItemAmount}
         currency={currency}
         sheetHeight={sheetHeight}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        keyboardVerticalOffset={0}
         t={t}
         onLabelChange={setNewItemLabel}
         onAmountChange={setNewItemAmount}
@@ -1615,7 +1615,7 @@ export default function Index() {
         setLoanStartText={setLoanStartText}
         currency={currency}
         sheetHeight={sheetHeight}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        keyboardVerticalOffset={0}
         t={t}
         fmt={fmt}
         humanRemaining={humanRemaining}

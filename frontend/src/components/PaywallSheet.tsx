@@ -34,6 +34,7 @@ import {
 import { useLang } from "../contexts/LangContext";
 import type { Tier } from "../lib/entitlements";
 import { PlanCards } from "./PlanCards";
+import { useSheetBottom } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const TEXT_1 = "#FFFFFF";
@@ -60,6 +61,7 @@ export function PaywallSheet({
   const GOLD = useAccent().main;
   const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t, tp } = useLang();
+  const sheetBottom = useSheetBottom(26);
   if (!reason) return null;
 
   const headline =
@@ -81,7 +83,7 @@ export function PaywallSheet({
       <Pressable style={s.backdrop} onPress={onClose} accessibilityRole="button">
         {/* Toucher hors de la carte referme. On stoppe la propagation à
             l'intérieur pour ne pas fermer au premier contact avec le contenu. */}
-        <Pressable style={s.sheet} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={[s.sheet, { paddingBottom: sheetBottom }]} onPress={(e) => e.stopPropagation()}>
           <View style={s.grabber} />
 
           <View style={s.head}>

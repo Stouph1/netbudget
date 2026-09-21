@@ -31,6 +31,7 @@ import {
   type LoanProgress,
   type LoanRepayment,
 } from "../utils/loanSchedule";
+import { useSheetBottom } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -71,6 +72,7 @@ export default function LoanScheduleModal({
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
+  const sheetBottom = useSheetBottom(0);
   const [expanded, setExpanded] = useState<number | null>(null);
 
   // Nom de mois abrégé dans la langue de l'app (« janv. », « Jan », « 1月 »…).
@@ -289,7 +291,7 @@ export default function LoanScheduleModal({
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: sheetBottom }]}>
           <View style={styles.handle} />
           <View style={styles.header}>
             <View style={{ flex: 1 }}>

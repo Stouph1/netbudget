@@ -7,9 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import { useEffect, useState, useMemo } from "react";
 import {
   Dimensions,
-  Keyboard,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -24,6 +22,7 @@ import { useLang } from "../../../src/contexts/LangContext";
 import { InfoTip } from "../../../src/components/InfoTip";
 import { confirmDialog, notify } from "../../../src/utils/notify";
 import type { SavingsGoal } from "../../../src/types/premium";
+import { useKeyboardLift, useSheetBottom } from "../../../src/hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -65,26 +64,12 @@ export default function GoalEditor({
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
+  const sheetBottom = useSheetBottom(36);
   const insets = useSafeAreaInsets();
 
-  // Track keyboard height pour cap la hauteur du sheet dynamiquement.
-  // KeyboardAvoidingView poussait le sheet au-dessus de la status bar quand
-  // le clavier ouvrait — on gère à la main : sheet MAX = screen - safeArea - keyboard.
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  useEffect(() => {
-    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSub = Keyboard.addListener(showEvt, (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    });
-    const hideSub = Keyboard.addListener(hideEvt, () => {
-      setKeyboardHeight(0);
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
+  // Hauteur du clavier, mesurée par la position de son bord haut : voir
+  // useKeyboardLift. Le sheet flotte au-dessus et se borne à ce qui reste.
+  const keyboardHeight = useKeyboardLift();
 
   const screenH = Dimensions.get("window").height;
   const maxSheetHeight = screenH - insets.top - 12 - keyboardHeight;
@@ -182,7 +167,7 @@ export default function GoalEditor({
         <View
           style={[
             styles.sheet,
-            { maxHeight: maxSheetHeight, marginBottom: keyboardHeight },
+            { maxHeight: maxSheetHeight, marginBottom: keyboardHeight, paddingBottom: sheetBottom },
           ]}
         >
             <View style={styles.handle} />

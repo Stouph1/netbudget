@@ -37,7 +37,7 @@ export default function CurrencySheetModal({
   onSelect: (code: CurrencyCode) => void;
   onClose: () => void;
 }) {
-  const { styles, GOLD } = useBudgetTheme();
+  const { styles, GOLD, sheetBottom } = useBudgetTheme();
   return (
     <Modal
       visible={visible}
@@ -47,7 +47,7 @@ export default function CurrencySheetModal({
     >
       <View style={styles.modalBackdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, { height: sheetHeight }]}>
+        <View style={[styles.sheet, { height: sheetHeight, paddingBottom: sheetBottom }]}>
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{title}</Text>

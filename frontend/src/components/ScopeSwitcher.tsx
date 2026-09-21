@@ -23,6 +23,7 @@ import { useLang } from "../contexts/LangContext";
 import { useActiveScope } from "../hooks/useActiveScope";
 import { listMyWorkspaces } from "../lib/workspacesStore";
 import type { Workspace, WorkspaceKind } from "../types/workspaces";
+import { useSheetBottom } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -51,6 +52,7 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
   const accentFor = useAccentFor();
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
+  const sheetBottom = useSheetBottom(36);
   const { workspaceId, setScope } = useActiveScope();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,7 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: sheetBottom }]}>
           <View style={styles.handle} />
           <View style={styles.header}>
             <Text style={styles.title}>{t("ws.switcher.title")}</Text>
