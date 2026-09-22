@@ -283,7 +283,12 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   // ==========================================================================
   if (!user) {
     return (
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}>
+      <ScrollView
+      contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}
+      ref={tourScroll.ref}
+      onScroll={tourScroll.onScroll}
+      scrollEventThrottle={64}
+    >
         <View style={styles.signinHero}>
           <View style={styles.signinIconWrap}>
             <Feather name="user" size={36} color={GOLD} />
@@ -396,7 +401,12 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const pct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}>
+    <ScrollView
+      contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}
+      ref={tourScroll.ref}
+      onScroll={tourScroll.onScroll}
+      scrollEventThrottle={64}
+    >
       {!username ? (
         <TouchableOpacity
           style={styles.completeBanner}

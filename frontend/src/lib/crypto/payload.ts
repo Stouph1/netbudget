@@ -142,3 +142,42 @@ export async function decryptPayload<T>(
 export function wrapPlaintext(data: unknown): { v: number; plaintext: unknown } {
   return { v: PLAINTEXT_VERSION, plaintext: data };
 }
+
+/**
+ * Octets d'une colonne `bytea` telle que PostgREST la renvoie.
+ *
+ * Le client a toujours ENVOYÉ ses octets en base64 (texte). Postgres, qui
+ * attend du binaire, a rangé ce texte tel quel : la colonne contient les
+ * caractères du base64, pas les octets d'origine. PostgREST renvoie ensuite
+ * le contenu en hexadécimal préfixé « \x ». Décoder l'hexadécimal seul rend
+ * donc la chaîne base64, pas la clé : tout ce qui devait être relu depuis le
+ * serveur (clé d'espace d'un membre, budget partagé, coffre sur un nouveau
+ * téléphone) échouait à se déchiffrer, sans un mot. On décode donc les deux
+ * couches quand la seconde est reconnaissable, et on accepte aussi du base64
+ * brut et de l'hexadécimal réellement binaire.
+ */
+export function bytesFromColumn(raw: unknown): Uint8Array {
+  if (raw instanceof Uint8Array) return raw;
+  if (typeof raw !== "string") return new Uint8Array(0);
+  if (!raw.startsWith("\\x")) return base64ToBytes(raw);
+  const hex = raw.slice(2);
+  const out = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  // Une chaîne base64 déguisée en binaire : longueur multiple de 4, alphabet
+  // base64, au plus deux « = » finaux. Un vrai binaire aléatoire ne passe ce
+  // filtre qu'avec une probabilité négligeable.
+  if (out.length >= 4 && out.length % 4 === 0 && looksLikeBase64(out)) {
+    return base64ToBytes(String.fromCharCode(...out));
+  }
+  return out;
+}
+
+function looksLikeBase64(bytes: Uint8Array): boolean {
+  let pad = 0;
+  for (let i = 0; i < bytes.length; i++) {
+    const c = String.fromCharCode(bytes[i]);
+    if (c === "=") { pad++; if (i < bytes.length - 2) return false; continue; }
+    if (pad > 0 || B64.indexOf(c) < 0) return false;
+  }
+  return true;
+}

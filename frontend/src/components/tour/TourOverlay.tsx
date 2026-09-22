@@ -30,6 +30,10 @@ const SCRIM = "rgba(8,12,24,0.86)";
 /** Marge autour de la cible, pour qu'elle respire dans le trou. */
 const PAD = 8;
 const BUBBLE_MAX = 330;
+/** Hauteur réservée en bas : barre d'onglets flottante et barre système. */
+const TAB_BAR_RESERVE = 120;
+/** Hauteur minimale d'une bulle, pour la garder entière à l'écran. */
+const BUBBLE_MIN_H = 170;
 
 export function TourOverlay() {
   const GOLD = useAccent().main;
@@ -114,9 +118,11 @@ export function TourOverlay() {
         style={[
           s.bubbleWrap,
           { zIndex: 2, elevation: 2 },
+          // Au-dessus de la barre d'onglets (≈ 110 pt) et sous la barre de
+          // statut : une bulle sous la barre d'onglets se lisait comme cassée.
           below
-            ? { top: hole.y + hole.h + 14 }
-            : { bottom: H - hole.y + 14 },
+            ? { top: Math.min(hole.y + hole.h + 14, H - TAB_BAR_RESERVE - BUBBLE_MIN_H) }
+            : { bottom: Math.max(H - hole.y + 14, TAB_BAR_RESERVE) },
           { left: Math.max(16, Math.min(W - BUBBLE_MAX - 16, hole.x + hole.w / 2 - BUBBLE_MAX / 2)) },
         ]}
       >
@@ -174,7 +180,8 @@ const makeS = (GOLD: string) =>
   title: { color: TEXT_1, fontSize: 16.5, fontWeight: "800", marginBottom: 6 },
   body: { color: TEXT_2, fontSize: 13.5, lineHeight: 19.5 },
   foot: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 14 },
-  count: { color: TEXT_3, fontSize: 12, fontWeight: "700" },
+  // Largeur réservée : « 5/11 » se faisait rogner en « 5/1 » sur Android.
+  count: { color: TEXT_3, fontSize: 12, fontWeight: "700", minWidth: 44, fontVariant: ["tabular-nums"] },
   skip: { color: TEXT_3, fontSize: 13, fontWeight: "600" },
   cta: {
     flexDirection: "row",

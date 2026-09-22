@@ -358,8 +358,8 @@ function ScopeCard({
         )}
       </View>
       <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Text style={styles.scopeName}>{name}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <Text style={styles.scopeName} numberOfLines={1}>{name}</Text>
           {isOwner ? (
             <View style={styles.ownerBadge}>
               <Text style={styles.ownerBadgeText}>
@@ -826,7 +826,7 @@ function WorkspaceDetailModal({
                 const displayName =
                   m.user_id === currentUserId
                     ? t("ws.you")
-                    : m.username ?? m.first_name ?? m.user_id.slice(0, 8) + "…";
+                    : m.username ?? m.first_name ?? t("ws.member.anonymous");
                 return (
                   <View key={m.user_id} style={styles.memberRow}>
                     <View style={styles.memberAvatar}>

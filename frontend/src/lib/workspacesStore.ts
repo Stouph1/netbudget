@@ -12,7 +12,8 @@ import type {
   WorkspaceMember,
 } from "../types/workspaces";
 import { supabase } from "./supabase";
-import { bytesToBase64, base64ToBytes } from "./crypto/payload";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { bytesFromColumn, bytesToBase64 } from "./crypto/payload";
 import { keyForUser } from "./crypto/vaultSession";
 import {
   generateWorkspaceKey,
@@ -288,7 +289,7 @@ export async function listPendingInvites(
 
 export async function acceptInvite(
   token: string,
-): Promise<{ ok: boolean; workspaceId?: string; error?: string }> {
+): Promise<{ ok: boolean; workspaceId?: string; keyPending?: boolean; error?: string }> {
   // La validation (token, statut, expiration, correspondance d'email) est
   // faite EN BASE par la fonction SECURITY DEFINER accept_invite : les
   // contrôles côté client sont contournables en appelant PostgREST direct,
@@ -309,55 +310,112 @@ export async function acceptInvite(
     return { ok: false, error: code };
   }
 
-  const workspaceId = (data as string) ?? undefined;
+  // Deux formes de réponse cohabitent le temps d'appliquer la migration 023 :
+  // l'ancienne fonction renvoie l'identifiant seul, la nouvelle renvoie aussi
+  // la clé scellée. Avec l'ancienne, on relit l'invitation — ce qui échoue
+  // dès que la policy de lecture ne nous couvre pas ; c'était le bug.
+  const obj = data && typeof data === "object" ? (data as Record<string, unknown>) : null;
+  const workspaceId =
+    (obj ? (obj.workspace_id as string | undefined) : (data as string | undefined)) ?? undefined;
+  if (!workspaceId) return { ok: true };
 
-  // L'adhésion est faite. On récupère maintenant la clé de l'espace depuis
-  // l'invitation, en l'ouvrant avec le code que l'utilisateur vient de saisir.
+  const sealed = obj && obj.sealed_key && obj.sealed_nonce
+    ? { key: String(obj.sealed_key), nonce: String(obj.sealed_nonce) }
+    : await sealedFromInviteRow(token);
+
+  // L'adhésion est faite. La clé de l'espace suit : ouverte avec le code que
+  // l'utilisateur vient de saisir, puis rangée sous sa clé personnelle.
   //
-  // Un échec ici n'annule PAS l'adhésion : la personne est bien membre, elle
-  // verra simplement l'espace comme verrouillé. Revenir en arrière serait pire
-  // — elle aurait consommé son code pour rien.
-  if (workspaceId) {
-    await claimWorkspaceKey(workspaceId, token);
-  }
+  // Un échec ici n'annule PAS l'adhésion, mais il n'est plus silencieux : on
+  // garde de quoi réessayer (au prochain déverrouillage du coffre) et on le
+  // dit à l'écran, qui affiche l'espace comme verrouillé.
+  const claimed = await claimWorkspaceKey(workspaceId, token, sealed);
+  if (!claimed) await rememberPendingClaim({ workspaceId, token, sealed });
+  return { ok: true, workspaceId, keyPending: !claimed };
+}
 
-  return { ok: true, workspaceId };
+type SealedInvite = { key: string; nonce: string } | null;
+type PendingClaim = { workspaceId: string; token: string; sealed: SealedInvite };
+const PENDING_CLAIMS_KEY = "netbudget:ws-claims:v1";
+
+/** Clé scellée relue dans l'invitation (ancienne voie, soumise à la RLS). */
+async function sealedFromInviteRow(token: string): Promise<SealedInvite> {
+  const { data } = await supabase
+    .from("workspace_invites")
+    .select("sealed_key, sealed_nonce")
+    .eq("token", token)
+    .maybeSingle();
+  if (!data?.sealed_key || !data?.sealed_nonce) return null;
+  return { key: String(data.sealed_key), nonce: String(data.sealed_nonce) };
 }
 
 /**
- * Ouvre la clé d'espace déposée dans l'invitation et en range sa propre copie.
- *
- * Silencieux à dessein : appelé juste après l'adhésion, il ne doit jamais faire
- * échouer celle-ci. Les cas d'échec — espace non chiffré, coffre personnel
- * verrouillé, invitation sans clé — se traduisent tous par un espace affiché
- * comme verrouillé, ce que l'interface sait expliquer.
+ * Ouvre la clé d'espace scellée dans l'invitation et en range sa propre copie.
+ * Renvoie vrai quand la copie est rangée, ou quand l'espace n'est pas chiffré
+ * (rien à ranger). Faux quand il faudra réessayer.
  */
-async function claimWorkspaceKey(workspaceId: string, token: string): Promise<void> {
+async function claimWorkspaceKey(
+  workspaceId: string,
+  token: string,
+  sealed: SealedInvite,
+): Promise<boolean> {
   try {
+    if (!sealed) return true; // espace non chiffré
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
-    if (!userId || !keyForUser(userId)) return;
-
-    const { data } = await supabase
-      .from("workspace_invites")
-      .select("sealed_key, sealed_nonce")
-      .eq("token", token)
-      .maybeSingle();
-    if (!data?.sealed_key || !data?.sealed_nonce) return; // espace non chiffré
+    if (!userId || !keyForUser(userId)) return false; // coffre pas encore ouvert
 
     const wsKey = await openFromInvite(
-      {
-        ciphertext: base64ToBytes(String(data.sealed_key)),
-        nonce: base64ToBytes(String(data.sealed_nonce)),
-      },
+      { ciphertext: bytesFromColumn(sealed.key), nonce: bytesFromColumn(sealed.nonce) },
       token,
     );
-    if (!wsKey) return;
-
-    await storeWorkspaceKey(userId, workspaceId, wsKey);
+    if (!wsKey) return false;
+    const stored = await storeWorkspaceKey(userId, workspaceId, wsKey);
+    return stored.ok;
   } catch {
-    // Voir le commentaire ci-dessus : jamais bloquant.
+    return false;
   }
+}
+
+async function readPendingClaims(): Promise<PendingClaim[]> {
+  try {
+    const raw = await AsyncStorage.getItem(PENDING_CLAIMS_KEY);
+    const list = raw ? (JSON.parse(raw) as PendingClaim[]) : [];
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+async function rememberPendingClaim(claim: PendingClaim): Promise<void> {
+  const list = (await readPendingClaims()).filter((c) => c.workspaceId !== claim.workspaceId);
+  list.push(claim);
+  try {
+    await AsyncStorage.setItem(PENDING_CLAIMS_KEY, JSON.stringify(list));
+  } catch {
+    // Stockage indisponible : l'utilisateur pourra toujours redemander un code.
+  }
+}
+
+/**
+ * Reprend les clés d'espace qu'on n'avait pas pu ranger à l'adhésion.
+ * À appeler quand le coffre personnel vient de s'ouvrir. Renvoie le nombre
+ * d'espaces débloqués.
+ */
+export async function retryPendingWorkspaceClaims(): Promise<number> {
+  const list = await readPendingClaims();
+  if (list.length === 0) return 0;
+  const rest: PendingClaim[] = [];
+  let done = 0;
+  for (const c of list) {
+    const sealed = c.sealed ?? (await sealedFromInviteRow(c.token));
+    if (await claimWorkspaceKey(c.workspaceId, c.token, sealed)) done++;
+    else rest.push({ ...c, sealed });
+  }
+  try {
+    await AsyncStorage.setItem(PENDING_CLAIMS_KEY, JSON.stringify(rest));
+  } catch {}
+  return done;
 }
 
 export async function listMyPendingInvites(): Promise<WorkspaceInvite[]> {

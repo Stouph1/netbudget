@@ -45,9 +45,11 @@ import { styles } from "./styles";
 import { Field, Section } from "./ui";
 import { useTourScroller, useTourTarget } from "../../src/components/tour/TourContext";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
+import { SyncBanner } from "../../src/components/SyncBanner";
 
 export default function BudgetScreen({
   t,
+  syncError = null,
   fmt,
   currency,
   city,
@@ -112,6 +114,8 @@ export default function BudgetScreen({
   onExportPdf,
 }: {
   t: Translate;
+  /** Refus de la dernière sauvegarde cloud, voir SyncBanner. */
+  syncError?: string | null;
   fmt: (v: number) => string;
   currency: CurrencyCode;
   city: City;
@@ -196,6 +200,7 @@ export default function BudgetScreen({
       }}
       scrollEventThrottle={64}
     >
+      {syncError ? <SyncBanner error={syncError} /> : null}
       {/* Header */}
       <View style={styles.header}>
         <View>

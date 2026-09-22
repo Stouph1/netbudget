@@ -11,7 +11,7 @@
 // sensible que celle qui l'a ouverte.
 
 import { supabase } from "../supabase";
-import { base64ToBytes, bytesToBase64 } from "./payload";
+import { bytesFromColumn, bytesToBase64 } from "./payload";
 import { keyForUser } from "./vaultSession";
 import { openForMember, sealForMember, type Sealed } from "./workspaceKey";
 
@@ -21,16 +21,8 @@ const cache = new Map<string, Uint8Array>();
 const cacheKey = (userId: string, workspaceId: string) => `${userId}:${workspaceId}`;
 
 /** Colonne bytea : Supabase la renvoie en hexadécimal `\x…` ou en base64. */
-function toBytes(raw: unknown): Uint8Array {
-  if (typeof raw !== "string") return raw as Uint8Array;
-  if (!raw.startsWith("\\x")) return base64ToBytes(raw);
-  const hex = raw.slice(2);
-  const out = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < out.length; i++) {
-    out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-  }
-  return out;
-}
+// Voir bytesFromColumn : les colonnes bytea portent du base64 déguisé.
+const toBytes = bytesFromColumn;
 
 /**
  * Clé de l'espace pour ce membre, ou null.

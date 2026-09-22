@@ -36,6 +36,7 @@ import { supabase } from "./supabase";
 import type { CurrencyCode } from "../utils/currency";
 import { getRates } from "../utils/exchangeRates";
 import { convertEvents, convertGoals } from "../utils/convertData";
+import { bytesFromColumn } from "./crypto/payload";
 import { sodium } from "./crypto/sodium";
 import { keyForUser, stateForUser } from "./crypto/vaultSession";
 import { canWrite, needsMigration, shouldEncrypt } from "./crypto/vaultState";
@@ -211,18 +212,8 @@ async function readPayload<T>(
 }
 
 /** Colonne bytea : Supabase la renvoie en hexadécimal `\x…`, en base64, ou brute. */
-function toBytes(raw: unknown): Uint8Array {
-  if (typeof raw !== "string") return raw as Uint8Array;
-  return raw.startsWith("\\x") ? hexToU8(raw.slice(2)) : base64ToU8(raw);
-}
-
-function hexToU8(hex: string): Uint8Array {
-  const out = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < out.length; i++) {
-    out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-  }
-  return out;
-}
+// Voir bytesFromColumn : les colonnes bytea portent du base64 déguisé.
+const toBytes = bytesFromColumn;
 
 async function writePayload<T>(
   payloadKey: string,

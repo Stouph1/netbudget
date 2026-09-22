@@ -837,6 +837,7 @@ export default function Index() {
     budgetScopeTarget,
     budgetSwitcherOpen,
     setBudgetSwitcherOpen,
+    syncError: budgetSyncError,
   } = useBudgetPersistence({
     hydrated,
     userId: premiumUser?.id,
@@ -1247,6 +1248,7 @@ export default function Index() {
         <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
         <BudgetScreen
           t={t}
+          syncError={budgetSyncError}
           fmt={fmt}
           currency={currency}
           city={city}

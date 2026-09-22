@@ -14,6 +14,7 @@ import { useSession } from "../contexts/SessionContext";
 import { currentKey, ensureVault, readVaultState } from "../lib/crypto/vault";
 import { publishVaultSession } from "../lib/crypto/vaultSession";
 import type { VaultState } from "../lib/crypto/vaultState";
+import { retryPendingWorkspaceClaims } from "../lib/workspacesStore";
 
 export type VaultInfo = {
   state: VaultState;
@@ -39,6 +40,9 @@ export function useVault(): VaultInfo {
     // déjà voir le bon état.
     publishVaultSession(userId, next, key);
     setState(next);
+    // Coffre ouvert : les clés d'espace qu'on n'avait pas pu ranger à
+    // l'adhésion (coffre encore fermé à ce moment-là) le sont maintenant.
+    if (next.status === "unlocked") void retryPendingWorkspaceClaims();
   }, [user?.id]);
 
   useEffect(() => {

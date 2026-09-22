@@ -7,7 +7,8 @@
 //
 // Le chargement initial (hydratation depuis AsyncStorage) reste dans
 // app/index.tsx : il doit se déclencher avant ces effets.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
 import { CurrencyCode } from "../../src/utils/currency";
 import { Lang } from "../../src/i18n/translations";
 import { City } from "../../src/constants/cities";
@@ -77,6 +78,11 @@ export function useBudgetPersistence({
   const budgetScopeTarget = userId ? activeWorkspaceId : null;
   const [budgetScope, setBudgetScope] = useState<string | null>(null);
   const [budgetSwitcherOpen, setBudgetSwitcherOpen] = useState(false);
+  // Dernier refus d'écriture cloud (coffre fermé, clé d'espace absente,
+  // réseau). Null quand la dernière sauvegarde est passée. C'est ce qui
+  // manquait : un membre pouvait saisir tout un budget « enregistré » sur
+  // son seul téléphone sans qu'on le lui dise.
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const applyBudgetSnapshot = useCallback(
     (d: {
@@ -124,6 +130,36 @@ export function useBudgetPersistence({
     };
   }, [hydrated, budgetScopeTarget, budgetScope, userId, applyBudgetSnapshot]);
 
+  // ----- Espace partagé : rafraîchir ce que les autres ont écrit -----
+  //
+  // Le budget d'un espace n'était relu qu'au changement d'espace. Deux
+  // membres ouverts en même temps ne se voyaient donc jamais : l'un saisissait
+  // un salaire, l'autre gardait 0 € jusqu'à relancer l'app. On relit le
+  // serveur quand l'app revient au premier plan, et toutes les 30 s tant
+  // qu'elle y est. On n'applique que si le contenu a changé, sinon la
+  // sauvegarde repartirait pour rien.
+  const lastServerJson = useRef<string | null>(null);
+  useEffect(() => {
+    if (!hydrated || !userId || !budgetScopeTarget || budgetScope !== budgetScopeTarget) return;
+    let cancelled = false;
+    const pull = async () => {
+      const b = await loadBudget(userId, budgetScopeTarget);
+      if (cancelled || !b) return;
+      const json = JSON.stringify(b);
+      if (json === lastServerJson.current) return;
+      lastServerJson.current = json;
+      applyBudgetSnapshot(b);
+    };
+    const onState = (st: string) => { if (st === "active") void pull(); };
+    const sub = AppState.addEventListener("change", onState);
+    const timer = setInterval(() => { if (AppState.currentState === "active") void pull(); }, 30_000);
+    return () => {
+      cancelled = true;
+      sub.remove();
+      clearInterval(timer);
+    };
+  }, [hydrated, userId, budgetScopeTarget, budgetScope, applyBudgetSnapshot]);
+
   // ----- Persistance : sauvegarde à chaque changement (après hydratation) -----
   useEffect(() => {
     if (!hydrated) return;
@@ -140,11 +176,11 @@ export function useBudgetPersistence({
         lang,
       });
     } else if (userId) {
-      saveBudget(
+      void saveBudget(
         userId,
         { incomes, rent, expenseItems, loans },
         budgetScope,
-      );
+      ).then((r) => setSyncError(r.ok ? null : (r.error ?? "unknown")));
       // Devise / langue / ville restent des réglages device : on les merge
       // dans le stockage local SANS toucher au budget perso qui y vit.
       (async () => {
@@ -215,5 +251,5 @@ export function useBudgetPersistence({
     lang,
   ]);
 
-  return { budgetScope, budgetScopeTarget, budgetSwitcherOpen, setBudgetSwitcherOpen };
+  return { budgetScope, budgetScopeTarget, budgetSwitcherOpen, setBudgetSwitcherOpen, syncError };
 }
