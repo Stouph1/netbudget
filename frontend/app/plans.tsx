@@ -38,6 +38,7 @@ import { useLang } from "../src/contexts/LangContext";
 import {
   annualSaving,
   HIGHLIGHTED_TIER,
+  type Saving,
   monthlyEquivalent,
   planFeatures,
   planMembers,
@@ -93,12 +94,17 @@ export default function Plans() {
   const loadingOffers = offerings === null;
   const sellable = available && !loadingOffers && offerings.length > 0;
 
-  // Le badge de la bascule annuelle s'appuie sur la formule mise en avant : un
-  // pourcentage par formule encombrerait, et ils sont très proches.
-  const headlineSaving = annualSaving(
-    offerings?.find((o) => o.productId === PRODUCT_IDS[HIGHLIGHTED_TIER].monthly),
-    offerings?.find((o) => o.productId === PRODUCT_IDS[HIGHLIGHTED_TIER].yearly),
-  );
+  // Le badge de la bascule annuelle annonce « jusqu'à −X % » : X est la
+  // meilleure économie réelle parmi les formules, jamais plus. Chaque carte
+  // affiche ensuite son propre chiffre exact. Un « −32 % » pris sur une seule
+  // formule était faux pour les autres (Solo : 30 %), et un prix annoncé
+  // faux, c'est une pratique commerciale trompeuse.
+  const headlineSaving = SELLABLE_TIERS.map((tier) =>
+    annualSaving(
+      offerings?.find((o) => o.productId === PRODUCT_IDS[tier].monthly),
+      offerings?.find((o) => o.productId === PRODUCT_IDS[tier].yearly),
+    ),
+  ).reduce<Saving | null>((best, cur) => (cur && (!best || cur.percent > best.percent) ? cur : best), null);
 
   useEffect(() => {
     let alive = true;
@@ -335,6 +341,7 @@ export default function Plans() {
                           <Text style={s.saving}>
                             {tp("plan.saving", {
                               amount: money(saving.amount, saving.currency),
+                              pct: saving.percent,
                             })}
                           </Text>
                         ) : null}

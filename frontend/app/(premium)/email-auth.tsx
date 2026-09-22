@@ -42,9 +42,12 @@ export default function EmailAuth() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const isSignup = mode === "signup";
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const canSubmit = emailOk && password.length >= 8 && (!isSignup || confirm === password);
 
   async function afterAuth(userId: string) {
     await recordConsent(userId); // case RGPD cochée en amont (hero Profil)
@@ -112,7 +115,7 @@ export default function EmailAuth() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
         style={{ flex: 1 }}
       >
         <View style={styles.header}>
@@ -175,32 +178,61 @@ export default function EmailAuth() {
               autoCapitalize="none"
               autoComplete={isSignup ? "new-password" : "current-password"}
             />
-            <TouchableOpacity onPress={() => setShowPwd(!showPwd)} hitSlop={10} style={styles.eyeBtn}>
+            <TouchableOpacity
+              onPress={() => setShowPwd(!showPwd)}
+              hitSlop={10}
+              style={styles.eyeBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t("auth.label.password")}
+            >
               <Feather name={showPwd ? "eye-off" : "eye"} size={18} color={TEXT_3} />
             </TouchableOpacity>
           </View>
+          {isSignup && password.length > 0 && password.length < 8 ? (
+            <Text style={[styles.hint, { color: "#F87171" }]}>{t("auth.password.tooShort")}</Text>
+          ) : null}
 
           {isSignup ? (
             <>
               <Text style={styles.label}>{t("auth.label.confirm")}</Text>
-              <TextInput
-                style={styles.input}
-                value={confirm}
-                onChangeText={setConfirm}
-                placeholder={t("auth.placeholder.confirm")}
-                placeholderTextColor={TEXT_3}
-                secureTextEntry={!showPwd}
-                autoCapitalize="none"
-                autoComplete="new-password"
-              />
+              <View style={styles.pwdRow}>
+                <TextInput
+                  style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                  value={confirm}
+                  onChangeText={setConfirm}
+                  placeholder={t("auth.placeholder.confirm")}
+                  placeholderTextColor={TEXT_3}
+                  secureTextEntry={!showConfirm}
+                  autoCapitalize="none"
+                  autoComplete="new-password"
+                  testID="auth-confirm"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirm(!showConfirm)}
+                  hitSlop={10}
+                  style={styles.eyeBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("auth.label.confirm")}
+                >
+                  <Feather name={showConfirm ? "eye-off" : "eye"} size={18} color={TEXT_3} />
+                </TouchableOpacity>
+              </View>
+              {/* Le verdict s'affiche pendant la saisie : découvrir l'erreur
+                  seulement au bouton, c'est retaper deux champs. */}
+              {confirm.length > 0 ? (
+                <Text style={[styles.hint, { color: confirm === password ? GOLD : "#F87171" }]}>
+                  {confirm === password ? t("auth.password.match") : t("auth.password.mismatch")}
+                </Text>
+              ) : null}
             </>
           ) : null}
 
           <TouchableOpacity
             onPress={submit}
-            disabled={busy}
-            style={styles.ctaBtn}
+            disabled={busy || !canSubmit}
+            style={[styles.ctaBtn, !canSubmit && { opacity: 0.45 }]}
             activeOpacity={0.85}
+            testID="auth-submit"
           >
             {busy ? (
               <ActivityIndicator color="#000" />
@@ -291,7 +323,8 @@ const makeStyles = (GOLD: string) =>
     fontSize: 15,
     marginBottom: 4,
   },
-  pwdRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  pwdRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
+  hint: { fontSize: 12, marginTop: 8, marginLeft: 2 },
   eyeBtn: {
     width: 44,
     height: 44,

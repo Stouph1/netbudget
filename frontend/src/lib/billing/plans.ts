@@ -189,7 +189,9 @@ export function annualSaving(
 
   return {
     amount,
-    percent: Math.round((amount / twelveMonths) * 100),
+    // Plancher, pas arrondi : « −30 % » pour 30,4 % réels. On n'annonce jamais
+    // plus que ce qui est vraiment économisé.
+    percent: Math.floor((amount / twelveMonths) * 100),
     currency: monthly.currency,
   };
 }

@@ -32,6 +32,7 @@ import { Dropdown, Field } from "../ui";
 import { InfoTip } from "../../../src/components/InfoTip";
 import { interpolate } from "../../../src/utils/advice";
 import type { Translate } from "../types";
+import { switchStyle } from "../../../src/theme/controls";
 
 export default function IncomeModal({
   visible,
@@ -320,6 +321,7 @@ export default function IncomeModal({
                       trackColor={{ false: BORDER, true: GOLD }}
                       thumbColor="#fff"
                       ios_backgroundColor={BORDER}
+                      style={switchStyle}
                     />
                   </View>
                   {incomeForm.titheApplied ? (

@@ -26,6 +26,7 @@ import { TierGlyph } from "../../src/components/TierBadge";
 import { limitsFor, type Tier } from "../../src/lib/entitlements";
 import type { Translate } from "./types";
 import { AppVersionLine } from "../../src/components/AppVersionLine";
+import { switchStyle } from "../../src/theme/controls";
 
 export default function SettingsScreen({
   currency,
@@ -284,6 +285,7 @@ export default function SettingsScreen({
             trackColor={{ false: BORDER, true: GOLD }}
             thumbColor="#fff"
             ios_backgroundColor={BORDER}
+            style={switchStyle}
             testID="settings-giving-toggle"
           />
         </View>
@@ -367,6 +369,7 @@ export default function SettingsScreen({
             trackColor={{ false: BORDER, true: GOLD }}
             thumbColor="#fff"
             ios_backgroundColor={BORDER}
+            style={switchStyle}
             testID="settings-notifications-toggle"
           />
         </View>

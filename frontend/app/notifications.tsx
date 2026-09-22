@@ -38,6 +38,7 @@ import {
   type SyncInput,
 } from "../src/utils/notificationScheduler";
 import { buildSyncInput } from "../src/utils/notificationSources";
+import { switchStyle } from "../src/theme/controls";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -218,6 +219,7 @@ export default function NotificationSettings() {
                 ios_backgroundColor={BORDER}
                 accessibilityLabel={t(`notifPrefs.cat.${key}.label`)}
                 testID={`notif-cat-${key}`}
+                style={switchStyle}
               />
             </View>
           ))}

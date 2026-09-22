@@ -33,6 +33,7 @@ import {
 import { BORDER, MONTH_KEYS_LONG, TEXT_2, TEXT_3 } from "../constants";
 import { useBudgetTheme } from "../useBudgetTheme";
 import type { Translate } from "../types";
+import { switchStyle } from "../../../src/theme/controls";
 
 export default function MonthEditorModal({
   monthIndex,
@@ -135,6 +136,7 @@ export default function MonthEditorModal({
                           ios_backgroundColor={BORDER}
                           accessibilityLabel={t("month.editor.received")}
                           testID={`month-editor-received-${s.id}`}
+                          style={switchStyle}
                         />
                       )}
                     </View>

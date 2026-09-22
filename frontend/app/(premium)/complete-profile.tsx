@@ -43,6 +43,7 @@ import {
 } from "../../src/utils/birthday";
 import { notify } from "../../src/utils/notify";
 import type { AgeBracket, Country, Occupation } from "../../src/types/advice";
+import { switchStyle } from "../../src/theme/controls";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -540,6 +541,7 @@ export default function CompleteProfile() {
                 trackColor={{ false: BORDER, true: GOLD }}
                 thumbColor="#fff"
                 ios_backgroundColor={BORDER}
+                style={switchStyle}
               />
             </View>
 

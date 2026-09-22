@@ -23,6 +23,7 @@ import { InfoTip } from "../../../src/components/InfoTip";
 import { confirmDialog, notify } from "../../../src/utils/notify";
 import type { SavingsGoal } from "../../../src/types/premium";
 import { useKeyboardLift, useSheetBottom } from "../../../src/hooks/useSheetBottom";
+import { switchStyle } from "../../../src/theme/controls";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -312,6 +313,7 @@ export default function GoalEditor({
                 trackColor={{ false: BORDER, true: MINT }}
                 thumbColor="#fff"
                 ios_backgroundColor={BORDER}
+                style={switchStyle}
               />
             </View>
 

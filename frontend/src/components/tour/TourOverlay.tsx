@@ -15,7 +15,7 @@
 
 import { alpha } from "../../theme/accents";
 import { useAccent } from "../../contexts/ThemeContext";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -36,12 +36,20 @@ export function TourOverlay() {
   const s = useMemo(() => makeS(GOLD), [GOLD]);
   const { t } = useLang();
   const { step, rect, index, total, next, skip } = useTour();
+  // Les cibles sont mesurées dans la FENÊTRE (measureInWindow), le voile est
+  // posé dans une SafeAreaView : sur Android en bord à bord et sur iPhone, son
+  // origine est sous la barre de statut, pas au bord de l'écran. Sans cette
+  // correction le projecteur tombait 50 dp trop bas et cerclait la mauvaise
+  // carte — « double bordure », « tuto cassé ».
+  const rootRef = useRef<View>(null);
+  const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  const relocate = () => rootRef.current?.measureInWindow((x, y) => setOrigin({ x, y }));
   if (!step || !rect) return null;
 
   const { width: W, height: H } = Dimensions.get("window");
   const hole = {
-    x: Math.max(0, rect.x - PAD),
-    y: Math.max(0, rect.y - PAD),
+    x: Math.max(0, rect.x - origin.x - PAD),
+    y: Math.max(0, rect.y - origin.y - PAD),
     w: rect.width + PAD * 2,
     h: rect.height + PAD * 2,
   };
@@ -50,7 +58,7 @@ export function TourOverlay() {
   const last = index === total - 1;
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    <View ref={rootRef} onLayout={relocate} style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {/* Les quatre pans d'ombre. Ils captent les gestes — taper à côté fait
           avancer — mais le trou du milieu, lui, laisse passer. */}
       <Reanimated.View entering={FadeIn.duration(240)} exiting={FadeOut.duration(160)}>
