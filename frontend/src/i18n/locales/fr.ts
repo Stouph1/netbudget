@@ -122,6 +122,12 @@ export const fr: Catalog = {
   "settings.about.privacy": "Politique de confidentialité",
   "settings.about.terms": "Conditions d'utilisation",
   "settings.about.contact": "Nous écrire",
+  "settings.version.title": "Version de l'app",
+  "settings.version.dev": "développement",
+  "settings.version.embedded": "d'origine",
+  "settings.version.update": "mise à jour {id}",
+  "settings.version.copied": "Copiée dans le presse-papier",
+  "settings.version.hint": "Touche pour copier, utile pour signaler un bug.",
   "settings.reset.btn": "Réinitialiser toutes les données",
 
   // Common labels

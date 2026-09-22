@@ -63,6 +63,7 @@ import { TierBadge } from "./TierBadge";
 import { usePaywall } from "../hooks/usePaywall";
 import { PaywallSheet } from "./PaywallSheet";
 import { useTourScroller, useTourTarget } from "./tour/TourContext";
+import { useTabBarReserve } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -92,6 +93,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
+  const scrollBottom = useTabBarReserve(110);
   // Devise active (le « € » était codé en dur : changer de devise n'avait
   // aucun effet sur cet écran).
   const { fmt: formatEuro, currency } = useCurrency();
@@ -281,7 +283,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   // ==========================================================================
   if (!user) {
     return (
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}>
         <View style={styles.signinHero}>
           <View style={styles.signinIconWrap}>
             <Feather name="user" size={36} color={GOLD} />
@@ -390,7 +392,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
   const pct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
+    <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}>
       {!username ? (
         <TouchableOpacity
           style={styles.completeBanner}

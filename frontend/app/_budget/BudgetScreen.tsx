@@ -169,7 +169,7 @@ export default function BudgetScreen({
   onDeleteItem: (id: string) => void;
   onExportPdf: () => void;
 }) {
-  const { styles, GOLD } = useBudgetTheme();
+  const { styles, GOLD, scrollBottom } = useBudgetTheme();
   // Cibles de la visite guidée. Voir tourSteps.ts pour ce qu'elles racontent.
   const tourSummary = useTourTarget("budget:summary");
   const tourAddIncome = useTourTarget("budget:addIncome");
@@ -183,7 +183,7 @@ export default function BudgetScreen({
       automaticallyAdjustKeyboardInsets
       keyboardDismissMode="interactive"
       style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottom }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       ref={tourScroll.ref}

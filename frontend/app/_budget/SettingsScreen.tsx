@@ -25,6 +25,7 @@ import { TierUnlock } from "../../src/components/TierUnlock";
 import { TierGlyph } from "../../src/components/TierBadge";
 import { limitsFor, type Tier } from "../../src/lib/entitlements";
 import type { Translate } from "./types";
+import { AppVersionLine } from "../../src/components/AppVersionLine";
 
 export default function SettingsScreen({
   currency,
@@ -84,7 +85,7 @@ export default function SettingsScreen({
   /** Situation professionnelle du profil ; la ligne ACRE n'a de sens qu'en indépendant. */
   occupation: string | null;
 }) {
-  const { styles, GOLD } = useBudgetTheme();
+  const { styles, GOLD, scrollBottom } = useBudgetTheme();
   // Couleur d'accent : un réglage par espace, gardé sur l'appareil.
   const { accentId, setAccent } = useThemeSettings();
   const { scopeLabel, scopeLabelIsKey } = useActiveScope();
@@ -123,7 +124,7 @@ export default function SettingsScreen({
       onScroll={tourScroll.onScroll}
       scrollEventThrottle={64}
       style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottom }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
@@ -607,6 +608,9 @@ export default function SettingsScreen({
         ) : null}
       </Section>
       <View style={{ height: 40 }} />
+      {/* Tout en bas, comme partout ailleurs : la version, pour savoir si
+          la personne qui signale un bug a la dernière. */}
+      <AppVersionLine />
     </ScrollView>
   );
 }

@@ -62,3 +62,14 @@ export function useKeyboardLift(): number {
   }, []);
   return lift;
 }
+
+/**
+ * Réserve à laisser sous une liste qui défile derrière la barre d'onglets
+ * flottante. La barre elle-même grandit avec la barre système (48 dp pour les
+ * trois boutons Android, 34 pt pour iOS) : la réserve suit, sinon la dernière
+ * ligne reste cachée derrière.
+ */
+export function useTabBarReserve(base = 100): number {
+  const insets = useSafeAreaInsets();
+  return base + Math.max(insets.bottom, 30);
+}

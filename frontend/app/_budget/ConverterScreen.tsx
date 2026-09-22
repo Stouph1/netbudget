@@ -48,7 +48,7 @@ export default function ConverterScreen({
   onRestoreHistory: (h: ConvHistoryItem) => void;
   onClearHistory: () => void;
 }) {
-  const { styles, GOLD } = useBudgetTheme();
+  const { styles, GOLD, scrollBottom } = useBudgetTheme();
   // Ancienneté localisée : l'utilitaire ne renvoie que l'unité et la valeur,
   // la phrase se compose ici. `t` arrive par props, on interpole donc {n}
   // sur place plutôt que d'ajouter une prop `tp` juste pour ça.
@@ -69,7 +69,7 @@ export default function ConverterScreen({
       onScroll={tourScroll.onScroll}
       scrollEventThrottle={64}
       style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottom }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >

@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import { useAccent } from "../../src/contexts/ThemeContext";
 import { makeBudgetStyles } from "./styles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSheetBottom } from "../../src/hooks/useSheetBottom";
+import { useSheetBottom, useTabBarReserve } from "../../src/hooks/useSheetBottom";
 
 export function useBudgetTheme() {
   const GOLD = useAccent().main;
@@ -18,5 +18,7 @@ export function useBudgetTheme() {
   // Clavier ouvert, la feuille est bornée par ce qui reste au-dessus : elle
   // ne doit jamais passer sous la barre de statut.
   const sheetTop = useSafeAreaInsets().top + 16;
-  return { styles, GOLD, sheetBottom, sheetTop };
+  // Bas des listes qui défilent sous la barre d'onglets.
+  const scrollBottom = useTabBarReserve(100);
+  return { styles, GOLD, sheetBottom, sheetTop, scrollBottom };
 }

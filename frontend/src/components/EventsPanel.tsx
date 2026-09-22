@@ -56,6 +56,7 @@ import {
   dominantDestination,
   toDisplayCurrency,
 } from "../utils/travelEstimate";
+import { useTabBarReserve } from "../hooks/useSheetBottom";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -98,6 +99,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
+  const scrollBottom = useTabBarReserve(100);
   // Devise active : « € » était codé en dur, changer de devise n'avait aucun effet ici.
   const { fmt, currency } = useCurrency();
   const { user, loading: sessionLoading } = useSession();
@@ -304,7 +306,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     <ScrollView
       automaticallyAdjustKeyboardInsets
       keyboardDismissMode="interactive"
-      contentContainerStyle={{ padding: 20, paddingBottom: standalone ? 60 : 130 }}
+      contentContainerStyle={{ padding: 20, paddingBottom: standalone ? 60 : scrollBottom }}
       showsVerticalScrollIndicator={false}
     >
       {!standalone ? <Text style={styles.pageTitle}>{t("events.title")}</Text> : null}
