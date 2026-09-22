@@ -1021,7 +1021,7 @@ const makeStyles = (GOLD: string) =>
   },
   activeLabel: {
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -1072,7 +1072,7 @@ const makeStyles = (GOLD: string) =>
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  ownerBadgeText: { color: "#000", fontSize: 8, fontWeight: "800", letterSpacing: 0.5 },
+  ownerBadgeText: { color: "#000", fontSize: 11, fontWeight: "800", letterSpacing: 0.5 },
 
   primaryBtn: {
     flexDirection: "row",
@@ -1220,7 +1220,7 @@ const makeStyles = (GOLD: string) =>
   },
   roleBadgeText: {
     color: TEXT_2,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,

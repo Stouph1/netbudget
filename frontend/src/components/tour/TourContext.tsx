@@ -76,8 +76,10 @@ type TourValue = {
 const SLIDE_MS = 320;
 /** Au-delà, on renonce à attendre l'onglet et on continue quand même. */
 const NAV_TIMEOUT_MS = 1500;
-/** Temps laissé au défilement animé pour finir. */
-const SCROLL_SETTLE_MS = 400;
+/** Pause entre deux lectures de position : on n'éclaire qu'une cible immobile. */
+const SETTLE_STEP_MS = 120;
+/** Nombre maximal de lectures avant d'éclairer la cible où elle est. */
+const SETTLE_MAX_TRIES = 8;
 
 const TourCtx = createContext<TourValue | null>(null);
 
@@ -175,7 +177,12 @@ export function TourProvider({ children }: { children: ReactNode }) {
       // coordonnées d'un écran qui n'est pas encore en place.
       await new Promise((r) => setTimeout(r, SLIDE_MS));
 
-      const measure = (attempt: number) => {
+      // La cible ne s'éclaire qu'IMMOBILE. Une lecture prise pendant que la
+      // page défile encore donnait un projecteur posé sur du vide, et un
+      // téléphone lent (ou un émulateur) mettait bien plus de 400 ms à finir
+      // son défilement. On relit donc jusqu'à obtenir deux positions
+      // identiques, avec une borne pour ne jamais bloquer la visite.
+      const measure = (attempt: number, previous: TargetRect | null) => {
         const view = targets.current.get(step.target);
         if (!view) {
           void show(list, i + 1);
@@ -195,12 +202,23 @@ export function TourProvider({ children }: { children: ReactNode }) {
           const scroller = scrollers.current.get(step.tab);
           const needsScroll = y < TOP || y + height > BOTTOM;
 
-          // Une seule tentative de défilement : si la cible n'arrive pas en
-          // place, elle est dans un conteneur qu'on ne pilote pas. On
-          // l'éclaire où elle est plutôt que de boucler.
+          // Une seule demande de défilement, sans animation : si la cible
+          // n'arrive pas en place, elle est dans un conteneur qu'on ne
+          // pilote pas, et on l'éclaire où elle est plutôt que de boucler.
           if (needsScroll && scroller && attempt === 0) {
             scroller.scrollTo(Math.max(0, scroller.offset() + (y - H * 0.34)));
-            setTimeout(() => measure(1), SCROLL_SETTLE_MS);
+            setTimeout(() => measure(1, null), SETTLE_STEP_MS);
+            return;
+          }
+
+          const same =
+            previous !== null &&
+            Math.abs(previous.x - x) < 0.5 &&
+            Math.abs(previous.y - y) < 0.5 &&
+            Math.abs(previous.width - width) < 0.5 &&
+            Math.abs(previous.height - height) < 0.5;
+          if (!same && attempt < SETTLE_MAX_TRIES) {
+            setTimeout(() => measure(attempt + 1, { x, y, width, height }), SETTLE_STEP_MS);
             return;
           }
 
@@ -217,7 +235,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
         });
       };
 
-      measure(0);
+      measure(0, null);
     },
     [goToTab],
   );
@@ -309,7 +327,8 @@ export function useTourScroller(tab: string) {
         tab,
         sv
           ? {
-              scrollTo: (y) => sv.scrollTo({ y, animated: true }),
+              // Sans animation : la position est définitive dès le rendu suivant.
+              scrollTo: (y) => sv.scrollTo({ y, animated: false }),
               offset: () => offset.current,
             }
           : null,

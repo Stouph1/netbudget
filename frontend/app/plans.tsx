@@ -501,7 +501,7 @@ const makeS = (GOLD: string) =>
   periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: "center" },
   periodBtnActive: { backgroundColor: alpha(GOLD, 0.14) },
   periodText: { color: TEXT_2, fontSize: 13.5, fontWeight: "600" },
-  periodBadge: { color: GOLD, fontSize: 10.5, fontWeight: "800", marginTop: 2 },
+  periodBadge: { color: GOLD, fontSize: 11, fontWeight: "800", marginTop: 2 },
   saving: { color: GOLD, fontSize: 12.5, fontWeight: "700", marginTop: 4 },
   periodTextActive: { color: GOLD },
   card: {
@@ -523,7 +523,7 @@ const makeS = (GOLD: string) =>
   },
   badgeText: {
     color: GOLD,
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 0.7,
@@ -544,7 +544,7 @@ const makeS = (GOLD: string) =>
     paddingVertical: 3,
     marginBottom: 9,
   },
-  trialChipText: { color: GOLD, fontSize: 10.5, fontWeight: "800" },
+  trialChipText: { color: GOLD, fontSize: 11, fontWeight: "800" },
   trialTerms: { color: TEXT_3, fontSize: 11, lineHeight: 16, marginTop: 16 },
   features: { marginTop: 16, gap: 9 },
   featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 9 },

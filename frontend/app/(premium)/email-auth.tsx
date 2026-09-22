@@ -7,7 +7,7 @@ import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { goBack } from "../../src/lib/nav";
-import { useState, useMemo } from "react";
+import { useRef, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -43,6 +43,10 @@ export default function EmailAuth() {
   const [confirm, setConfirm] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  // Enchaînement au clavier : Suivant passe au champ d'après, le dernier
+  // valide. Personne ne devrait avoir à retoucher l'écran entre deux champs.
+  const pwdRef = useRef<TextInput>(null);
+  const confirmRef = useRef<TextInput>(null);
   const [busy, setBusy] = useState(false);
 
   const isSignup = mode === "signup";
@@ -164,6 +168,11 @@ export default function EmailAuth() {
             autoCorrect={false}
             keyboardType="email-address"
             autoComplete="email"
+            textContentType="emailAddress"
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => pwdRef.current?.focus()}
+            testID="auth-email"
           />
 
           <Text style={styles.label}>{t("auth.label.password")}</Text>
@@ -177,6 +186,12 @@ export default function EmailAuth() {
               secureTextEntry={!showPwd}
               autoCapitalize="none"
               autoComplete={isSignup ? "new-password" : "current-password"}
+              textContentType={isSignup ? "newPassword" : "password"}
+              ref={pwdRef}
+              returnKeyType={isSignup ? "next" : "go"}
+              blurOnSubmit={!isSignup}
+              onSubmitEditing={() => (isSignup ? confirmRef.current?.focus() : void submit())}
+              testID="auth-password"
             />
             <TouchableOpacity
               onPress={() => setShowPwd(!showPwd)}
@@ -205,6 +220,10 @@ export default function EmailAuth() {
                   secureTextEntry={!showConfirm}
                   autoCapitalize="none"
                   autoComplete="new-password"
+                  textContentType="newPassword"
+                  ref={confirmRef}
+                  returnKeyType="go"
+                  onSubmitEditing={() => void submit()}
                   testID="auth-confirm"
                 />
                 <TouchableOpacity

@@ -2078,7 +2078,7 @@ const makeStyles = (GOLD: string) =>
   },
   figureLabel: {
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 0.3,
   },

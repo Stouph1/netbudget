@@ -15,10 +15,10 @@
 
 import { alpha } from "../../theme/accents";
 import { useAccent } from "../../contexts/ThemeContext";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Feather } from "@expo/vector-icons";
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 import { useLang } from "../../contexts/LangContext";
 import { useTour } from "./TourContext";
 
@@ -44,6 +44,17 @@ export function TourOverlay() {
   const rootRef = useRef<View>(null);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
   const relocate = () => rootRef.current?.measureInWindow((x, y) => setOrigin({ x, y }));
+  // Un simple fondu à chaque étape, avec l'Animated de React Native. Les
+  // animations d'entrée de la bibliothèque tierce laissaient sur Android une
+  // zone tactile décalée : « Suivant » ne répondait qu'une fois sur trois
+  // alors que taper le voile fonctionnait.
+  const fade = useRef(new Animated.Value(0)).current;
+  const stepKey = step ? `${step.target}:${rect?.x}:${rect?.y}` : "";
+  useEffect(() => {
+    if (!stepKey) return;
+    fade.setValue(0);
+    Animated.timing(fade, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+  }, [fade, stepKey]);
   if (!step || !rect) return null;
 
   const { width: W, height: H } = Dimensions.get("window");
@@ -61,7 +72,7 @@ export function TourOverlay() {
     <View ref={rootRef} onLayout={relocate} style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {/* Les quatre pans d'ombre. Ils captent les gestes — taper à côté fait
           avancer — mais le trou du milieu, lui, laisse passer. */}
-      <Reanimated.View entering={FadeIn.duration(240)} exiting={FadeOut.duration(160)}>
+      <Animated.View collapsable={false} style={[StyleSheet.absoluteFill, { opacity: fade }]} pointerEvents="box-none">
         <TouchableOpacity
           activeOpacity={1}
           onPress={next}
@@ -95,12 +106,14 @@ export function TourOverlay() {
           ]}
           pointerEvents="none"
         />
-      </Reanimated.View>
-
-      <Reanimated.View
-        entering={FadeIn.delay(120).duration(260)}
+      {/* collapsable={false} : sans lui, Android aplatit cette vue purement
+          géométrique et ses boutons ne reçoivent plus aucune pression. C'est
+          la cause du « Suivant » muet. */}
+      <View
+        collapsable={false}
         style={[
           s.bubbleWrap,
+          { zIndex: 2, elevation: 2 },
           below
             ? { top: hole.y + hole.h + 14 }
             : { bottom: H - hole.y + 14 },
@@ -134,7 +147,9 @@ export function TourOverlay() {
             </TouchableOpacity>
           </View>
         </View>
-      </Reanimated.View>
+      </View>
+      </Animated.View>
+
     </View>
   );
 }

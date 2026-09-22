@@ -268,7 +268,7 @@ const makeStyles = (GOLD: string) =>
   },
   th: {
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 1,
     textTransform: "uppercase",
     fontWeight: "700",
@@ -311,7 +311,7 @@ const makeStyles = (GOLD: string) =>
   },
   totalLabel: {
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 1.4,
     textTransform: "uppercase",
     fontWeight: "700",

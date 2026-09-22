@@ -765,14 +765,14 @@ const makeStyles = (GOLD: string) =>
   },
   extraPTag: {
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     marginTop: 2,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   priorityTag: {
-    fontSize: 10,
+    fontSize: 11,
     marginTop: 2,
     fontWeight: "700",
     textTransform: "uppercase",

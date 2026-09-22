@@ -299,6 +299,10 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
             style={styles.consentRow}
             onPress={() => setConsentOk(!consentOk)}
             activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: consentOk }}
+            testID="home-consent"
           >
             <View style={[styles.consentBox, consentOk && styles.consentBoxOn]}>
               {consentOk ? <Feather name="check" size={13} color="#000" /> : null}
@@ -1250,7 +1254,7 @@ const makeStyles = (GOLD: string) =>
   },
   historyDemoBtn: {
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     letterSpacing: 0.5,
     borderWidth: 1,
@@ -1301,7 +1305,7 @@ const makeStyles = (GOLD: string) =>
   },
   historyMonth: {
     color: TEXT_3,
-    fontSize: 9,
+    fontSize: 11,
     marginTop: 6,
   },
   historyLegend: {
@@ -1345,7 +1349,7 @@ const makeStyles = (GOLD: string) =>
     width: 72,
     textAlign: "right",
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.3,

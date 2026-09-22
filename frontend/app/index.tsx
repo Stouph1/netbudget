@@ -159,6 +159,7 @@ import AddItemModal from "./_budget/modals/AddItemModal";
 import LoanModal from "./_budget/modals/LoanModal";
 import ConfirmModal from "./_budget/modals/ConfirmModal";
 import UpdateModal from "./_budget/modals/UpdateModal";
+import { useKeyboardLift } from "../src/hooks/useSheetBottom";
 
 
 export default function Index() {
@@ -168,20 +169,18 @@ export default function Index() {
   const insets = useSafeAreaInsets();
 
   // Revenus
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const kbLift = useKeyboardLift();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   useEffect(() => {
     const showSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (e) => {
-        setKeyboardVisible(true);
         setKeyboardHeight(e?.endCoordinates?.height ?? 0);
       }
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
       () => {
-        setKeyboardVisible(false);
         setKeyboardHeight(0);
       }
     );
@@ -1382,10 +1381,12 @@ export default function Index() {
         </GestureDetector>
       </KeyboardAvoidingView>
 
-      {/* Floating "Terminé" button while keyboard is up */}
-      {keyboardVisible && (
+      {/* Bouton flottant « Terminé » tant que le clavier est ouvert. Posé juste
+          au-dessus du clavier : à hauteur fixe, il restait caché derrière lui,
+          puis réapparaissait au bas de l'écran une fois le clavier fermé. */}
+      {kbLift > 0 && (
         <TouchableOpacity
-          style={styles.dismissKbBtn}
+          style={[styles.dismissKbBtn, { bottom: kbLift + 12 }]}
           onPress={() => Keyboard.dismiss()}
           activeOpacity={0.85}
           testID="dismiss-keyboard"

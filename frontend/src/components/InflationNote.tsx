@@ -151,7 +151,7 @@ const s = StyleSheet.create({
   },
   loanGrade: { fontSize: 11.5, fontWeight: "800" },
   loanReal: { color: TEXT_2, fontSize: 11 },
-  loanCaveat: { color: TEXT_3, fontSize: 10, lineHeight: 13.5 },
+  loanCaveat: { color: TEXT_3, fontSize: 11, lineHeight: 13.5 },
 });
 
 /**

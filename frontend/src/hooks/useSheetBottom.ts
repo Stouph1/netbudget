@@ -10,7 +10,7 @@
 // ce que la feuille avait déjà. Clavier ouvert, la barre est cachée dessous :
 // on ne garde qu'un souffle, sinon un bandeau vide sépare le bouton du clavier.
 import { useEffect, useState } from "react";
-import { Dimensions, Keyboard, Platform } from "react-native";
+import { Dimensions, Keyboard, Platform, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function useKeyboardVisible(): boolean {
@@ -60,6 +60,18 @@ export function useKeyboardLift(): number {
       hd.remove();
     };
   }, []);
+
+  // Filet de sécurité : sur Android, l'événement de fermeture manque parfois
+  // (clavier fermé par un retour arrière qui change aussi d'écran). Tant que
+  // le clavier est réputé ouvert, on vérifie qu'un champ a encore le focus ;
+  // sinon il est fermé, quoi qu'en dise l'événement.
+  useEffect(() => {
+    if (lift <= 0) return;
+    const id = setInterval(() => {
+      if (TextInput.State.currentlyFocusedInput() == null) setLift(0);
+    }, 700);
+    return () => clearInterval(id);
+  }, [lift]);
   return lift;
 }
 

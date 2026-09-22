@@ -123,7 +123,7 @@ const makeS = (GOLD: string) =>
   },
   eyebrow: {
     color: GOLD,
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.6,
     textTransform: "uppercase",

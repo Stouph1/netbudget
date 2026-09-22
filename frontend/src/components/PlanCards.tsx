@@ -137,7 +137,7 @@ const makeS = (GOLD: string) =>
   },
   badgeText: {
     color: GOLD,
-    fontSize: 8.5,
+    fontSize: 11,
     fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 0.5,

@@ -204,7 +204,7 @@ const makeS = (GOLD: string) =>
   },
   cardCol: { flexDirection: "column", alignItems: "stretch", gap: 8 },
   row: { flexDirection: "row", alignItems: "center", gap: 9 },
-  foot: { color: "#8193AC", fontSize: 10.5, lineHeight: 14 },
+  foot: { color: "#8193AC", fontSize: 11, lineHeight: 14 },
   title: { color: TEXT_1, fontSize: 13, fontWeight: "700" },
   body: { color: TEXT_2, fontSize: 11.5, lineHeight: 16, marginTop: 1 },
   cta: {

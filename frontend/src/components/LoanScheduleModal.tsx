@@ -525,9 +525,9 @@ const makeStyles = (GOLD: string) =>
     overflow: "hidden",
     backgroundColor: "rgba(255,255,255,0.06)",
   },
-  yearDetail: { color: TEXT_3, fontSize: 10.5 },
+  yearDetail: { color: TEXT_3, fontSize: 11 },
   yearBalance: { color: TEXT_1, fontSize: 12.5, fontWeight: "700" },
-  yearBalanceLabel: { color: TEXT_3, fontSize: 9.5 },
+  yearBalanceLabel: { color: TEXT_3, fontSize: 11 },
   monthsBox: {
     backgroundColor: "rgba(255,255,255,0.03)",
     borderRadius: 10,
@@ -545,12 +545,12 @@ const makeStyles = (GOLD: string) =>
   },
   monthHeadText: {
     color: TEXT_3,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
   },
   monthRow: { flexDirection: "row", paddingVertical: 4 },
-  monthCell: { flex: 1, fontSize: 10.5, textAlign: "right" },
+  monthCell: { flex: 1, fontSize: 11, textAlign: "right" },
   monthText: { color: TEXT_2, fontVariant: ["tabular-nums"] },
   monthPayment: { color: TEXT_1, fontWeight: "700" },
   footnote: {

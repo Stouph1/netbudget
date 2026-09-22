@@ -66,7 +66,7 @@ export const makeBudgetStyles = (GOLD: string) =>
   },
   ratioLabel: {
     color: TEXT_3,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -257,7 +257,7 @@ export const makeBudgetStyles = (GOLD: string) =>
   },
   miniDonutCell: { flex: 1, alignItems: "center", gap: 2 },
   miniDonutLabel: { color: TEXT, fontSize: 12, fontWeight: "700", marginTop: 6 },
-  miniDonutTarget: { color: TEXT_2, fontSize: 10.5 },
+  miniDonutTarget: { color: TEXT_2, fontSize: 11 },
   miniDonutAmount: { color: TEXT_2, fontSize: 11, fontWeight: "600" },
   previewHint: { color: TEXT_2, fontSize: 12, marginTop: 6, textAlign: "center" },
   loanProgressWrap: { marginTop: 8, gap: 4 },
@@ -327,7 +327,7 @@ export const makeBudgetStyles = (GOLD: string) =>
     gap: 3,
     borderRadius: 20,
   },
-  tabLabel: { color: TEXT_3, fontSize: 10.5, fontWeight: "600", textAlign: "center" },
+  tabLabel: { color: TEXT_3, fontSize: 11, fontWeight: "600", textAlign: "center" },
   tabLabelActive: { color: GOLD, fontWeight: "800" },
 
   topSummary: {
@@ -367,7 +367,7 @@ export const makeBudgetStyles = (GOLD: string) =>
   topSummaryBlock: { flex: 1, alignItems: "center" },
   topSummaryDivider: { width: 1, height: 36, backgroundColor: BORDER },
   topSummaryLabel: {
-    color: TEXT_3, fontSize: 10, letterSpacing: 1.2,
+    color: TEXT_3, fontSize: 11, letterSpacing: 1.2,
     textTransform: "uppercase", fontWeight: "700", marginBottom: 6,
   },
   topSummaryValue: {
@@ -672,7 +672,7 @@ export const makeBudgetStyles = (GOLD: string) =>
   incomeLabel: { color: TEXT, fontSize: 15, fontWeight: "700" },
   incomeMeta: { color: TEXT_3, fontSize: 11, marginTop: 2 },
   incomeNet: { color: GOLD, fontSize: 15, fontWeight: "800", fontVariant: ["tabular-nums"] },
-  incomeMetaSmall: { color: TEXT_3, fontSize: 10, marginTop: 2 },
+  incomeMetaSmall: { color: TEXT_3, fontSize: 11, marginTop: 2 },
   familyTotalRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     marginTop: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: BORDER,

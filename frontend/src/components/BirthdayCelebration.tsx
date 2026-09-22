@@ -365,7 +365,7 @@ const makeStyles = (GOLD: string) =>
     position: "absolute", top: 16, alignSelf: "center",
     paddingVertical: 4, paddingHorizontal: 12, borderRadius: 999,
   },
-  toneBadgeText: { fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
+  toneBadgeText: { fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
   cardEmoji: { fontSize: 52, marginBottom: 16 },
   cardTitle: { color: TEXT_1, fontSize: 22, fontWeight: "800", textAlign: "center", marginBottom: 12 },
   cardBody: { color: TEXT_2, fontSize: 15, lineHeight: 23, textAlign: "center" },
