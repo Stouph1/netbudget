@@ -25,13 +25,20 @@ const t = useTranslations(locale);
 // Sur l'accueil on n'en montre que cinq : une page d'accueil n'est pas une
 // documentation, et les cinq premières couvrent l'essentiel des hésitations.
 const ids = compact ? FAQ_IDS.slice(0, FAQ_HOME_COUNT) : FAQ_IDS;
+// Sur sa propre page, ce titre EST le titre de la page : H1. Sur l'accueil,
+// c'est une section parmi d'autres : H2. Une page sans H1 n'a pas de sujet
+// pour un lecteur d'écran ni pour un moteur.
+const Heading = compact ? "h2" : "h1";
+// Les questions descendent d'un cran sous le titre : H3 sous un H2, H2 sous
+// un H1. Sauter un niveau casse le plan que suivent les lecteurs d'écran.
+const QHeading = compact ? "h3" : "h2";
 ---
 
 <section id="faq" class="relative">
   <div class="container-app py-20 md:py-28">
     <div class="mx-auto max-w-3xl text-center reveal">
       <span class="eyebrow">{t("faq.eyebrow")}</span>
-      <h2 class="heading-2 mt-4 text-balance">{t("faq.title")}</h2>
+      <Heading class="heading-2 mt-4 text-balance">{t("faq.title")}</Heading>
       <p class="body-lg mt-4 text-balance">{t("faq.intro")}</p>
     </div>
 
@@ -46,9 +53,9 @@ const ids = compact ? FAQ_IDS.slice(0, FAQ_HOME_COUNT) : FAQ_IDS;
             <summary
               class="flex cursor-pointer list-none items-start justify-between gap-4 text-left"
             >
-              <h3 class="text-base font-semibold text-text-1 md:text-[17px]">
+              <QHeading class="text-base font-semibold text-text-1 md:text-[17px]">
                 {t(`faq.${id}.q`)}
-              </h3>
+              </QHeading>
               <span
                 aria-hidden="true"
                 class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/10 text-text-3 transition group-open:rotate-45 group-open:border-mint-500/40 group-open:text-mint-400"

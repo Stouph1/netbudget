@@ -4,7 +4,10 @@
 // on affiche un fallback "placeholder" propre plutôt qu'une icône cassée.
 
 interface Props {
-  src: string; // chemin de la capture sous /public/, ex: "/screens/budget.png"
+  /** Chemin SANS extension sous /public/, ex: "/screens/budget-720" : on sert
+   *  le WebP, avec le PNG de même taille en repli. Les originaux 1170 px
+   *  pesaient jusqu'à 530 Ko pour 360 px affichés. */
+  src: string;
   alt: string;
   tilt?: "left" | "right" | "none";
   size?: "sm" | "md" | "lg";
@@ -38,14 +41,19 @@ const tiltClass = {
       <div aria-hidden="true" class="absolute left-1/2 top-2 z-20 h-6 w-24 -translate-x-1/2 rounded-full bg-black/95 ring-1 ring-white/5"></div>
 
       <!-- Capture -->
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        class="absolute inset-0 h-full w-full object-cover"
-        onerror="this.classList.add('hidden'); const sib = this.nextElementSibling; if (sib) sib.classList.remove('hidden');"
-      />
+      <picture>
+        <source srcset={`${src}.webp`} type="image/webp" />
+        <img
+          src={`${src}.png`}
+          alt={alt}
+          width="720"
+          height="1558"
+          loading="lazy"
+          decoding="async"
+          class="absolute inset-0 h-full w-full object-cover"
+          onerror="const pic = this.parentElement; pic.classList.add('hidden'); const sib = pic.nextElementSibling; if (sib) sib.classList.remove('hidden');"
+        />
+      </picture>
 
       <!-- Fallback affiché si l'image n'existe pas (this.nextElementSibling) -->
       <div class="hidden absolute inset-0 flex flex-col items-center justify-center gap-3 p-8 text-center bg-gradient-to-br from-midnight-800 to-ink-900">

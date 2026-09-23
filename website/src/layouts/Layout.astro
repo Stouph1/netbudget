@@ -58,6 +58,18 @@ const pageDesc = description ?? t("hero.subtitle");
 const cleanPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
 const canonical = new URL(cleanPath, SITE).href;
 
+// Variantes de langue de CETTE page. Elles pointaient toutes vers l'accueil :
+// depuis /faq, « en » menait à /en au lieu de /en/faq, et les moteurs
+// recevaient une carte fausse. Une page hors index (merci, 404) n'en déclare
+// pas : elle n'a pas de jumelle indexable.
+const pathSansLocale = cleanPath.replace(/^\/en(?=\/|$)/, "") || "/";
+const alternates = noindex
+  ? null
+  : {
+      fr: new URL(pathSansLocale, SITE).href,
+      en: new URL(pathSansLocale === "/" ? "/en" : `/en${pathSansLocale}`, SITE).href,
+    };
+
 const shareImage = new URL(
   ogImage ?? (locale === "en" ? "/og-image-en.png" : "/og-image.png"),
   SITE,
@@ -146,9 +158,13 @@ const jsonLd = {
     <meta name="twitter:description" content={pageDesc} />
     <meta name="twitter:image" content={shareImage} />
 
-    <link rel="alternate" hreflang="x-default" href={`${SITE}/`} />
-    <link rel="alternate" hreflang="fr" href={`${SITE}/`} />
-    <link rel="alternate" hreflang="en" href={`${SITE}/en`} />
+    {alternates ? (
+      <>
+        <link rel="alternate" hreflang="x-default" href={alternates.fr} />
+        <link rel="alternate" hreflang="fr" href={alternates.fr} />
+        <link rel="alternate" hreflang="en" href={alternates.en} />
+      </>
+    ) : null}
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
@@ -161,12 +177,6 @@ const jsonLd = {
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-full focus:bg-mint-500 focus:px-5 focus:text-sm focus:font-semibold focus:text-ink-900"
     >
       {t("a11y.skip")}
-    </a>
-    <a
-      href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-mint-500 focus:px-3 focus:py-2 focus:text-ink-900"
-    >
-      {t("a11y.skipToContent")}
     </a>
     <Nav locale={locale} pageKind={pageKind} />
     <main id="main">

@@ -9,9 +9,11 @@ const { locale } = Astro.props;
 const t = useTranslations(locale);
 
 const screens = [
-  { src: "/screens/budget.png", alt: "Onglet Budget", tilt: "left" as const, label: t("screens.budget") },
-  { src: "/screens/converter.png", alt: "Onglet Convertisseur", tilt: "none" as const, label: t("screens.converter") },
-  { src: "/screens/settings.png", alt: "Onglet Réglages", tilt: "right" as const, label: t("screens.settings") },
+  // L'alternative textuelle reprend le libellé traduit : « Onglet Budget » en
+  // dur restait en français sur la page anglaise.
+  { src: "/screens/budget-720", alt: t("screens.budget"), tilt: "left" as const, label: t("screens.budget") },
+  { src: "/screens/converter-720", alt: t("screens.converter"), tilt: "none" as const, label: t("screens.converter") },
+  { src: "/screens/settings-720", alt: t("screens.settings"), tilt: "right" as const, label: t("screens.settings") },
 ];
 ---
 

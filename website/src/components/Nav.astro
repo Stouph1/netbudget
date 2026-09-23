@@ -38,8 +38,8 @@ const legalLinks = [
   <div class="container-app flex h-16 items-center justify-between gap-3">
     <a href={home} class="group flex shrink-0 items-center gap-2.5">
       <img
-        src="/logo.png"
-        alt="NETbudget"
+        src="/logo-64.png"
+        alt=""
         width="32"
         height="32"
         class="h-8 w-8 rounded-lg shadow-lg shadow-mint-500/20"
@@ -180,7 +180,7 @@ const legalLinks = [
       <details class="relative" data-nav-menu>
         <summary
           class="flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3.5 text-sm font-semibold text-text-2 transition hover:text-text-1"
-          aria-label={t("footer.lang")}
+          aria-label={`${t("footer.lang")} : ${locale.toUpperCase()}`}
         >
           {LOCALES.find((l) => l.code === locale)?.flag}
           <span class="uppercase">{locale}</span>

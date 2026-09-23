@@ -27,6 +27,7 @@ const APP_STORE = "https://apps.apple.com/app/netbudget/id6763551701";
   class="pointer-events-none fixed inset-x-0 bottom-0 z-40 translate-y-full opacity-0 transition-[transform,opacity] duration-300 md:hidden"
   style="padding-bottom: env(safe-area-inset-bottom, 0px)"
   aria-hidden="true"
+  inert
 >
   <div class="border-t border-white/10 bg-ink-900/90 px-4 py-3 backdrop-blur-lg">
     <div class="flex items-center gap-3">
@@ -52,10 +53,14 @@ const APP_STORE = "https://apps.apple.com/app/netbudget/id6763551701";
     const show = () => {
       bar.classList.remove("translate-y-full", "opacity-0", "pointer-events-none");
       bar.setAttribute("aria-hidden", "false");
+      // `inert` retire la barre de l'ordre de tabulation tant qu'elle est
+      // hors écran : un lien invisible qui prend le focus désoriente au clavier.
+      bar.inert = false;
     };
     const hide = () => {
       bar.classList.add("translate-y-full", "opacity-0", "pointer-events-none");
       bar.setAttribute("aria-hidden", "true");
+      bar.inert = true;
     };
 
     // Le bloc final porte l'id "final-cta" ; s'il est à l'écran, on se retire.
