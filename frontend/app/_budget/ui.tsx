@@ -115,7 +115,10 @@ export function Field({
           <TextInput
             style={styles.inputField}
             value={value}
-            onChangeText={onChangeText}
+            // Un « 0 » placé devant un nombre est un reste du zéro par défaut
+            // que la sélection au focus n'a pas remplacé (clavier matériel,
+            // collage). « 0350 » redevient « 350 » ; « 0,5 » reste intact.
+            onChangeText={(next) => onChangeText(next.replace(/^0+(?=\d)/, ""))}
             onFocus={handleFocus}
             onBlur={handleBlur}
             keyboardType={keyboardType || "default"}

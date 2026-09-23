@@ -138,7 +138,6 @@ export default function IncomeModal({
                 value={incomeForm.amount}
                 onChangeText={(v) => setIncomeForm((f) => ({ ...f, amount: v }))}
                 keyboardType="decimal-pad"
-                selectTextOnFocus
                 placeholder="0"
                 testID="income-amount"
               />
@@ -287,7 +286,6 @@ export default function IncomeModal({
                 value={incomeForm.chargesPercent}
                 onChangeText={(v) => setIncomeForm((f) => ({ ...f, chargesPercent: v }))}
                 keyboardType="decimal-pad"
-                selectTextOnFocus
                 placeholder="0"
                 hintText={TYPE_HINT[incomeForm.type]}
                 testID="income-charges"

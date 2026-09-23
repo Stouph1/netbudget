@@ -536,7 +536,8 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           ) : (
             household.spaces.map(({ ws, members }) => {
               const others = members.filter((m) => m.user_id !== user.id);
-              const names = others.map((m) => m.first_name || m.username || "…");
+              // Un membre sans pseudo ni prénom reste nommé, pas réduit à « … ».
+              const names = others.map((m) => m.first_name || m.username || t("ws.member.anonymous"));
               const max = limitsFor(paywall.tier).maxMembersPerWorkspace;
               return (
                 <TouchableOpacity

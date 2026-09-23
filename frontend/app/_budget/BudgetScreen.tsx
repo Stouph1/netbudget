@@ -438,7 +438,6 @@ export default function BudgetScreen({
           value={rent}
           onChangeText={onRentChange}
           keyboardType="decimal-pad"
-          selectTextOnFocus
           placeholder="0"
           testID="rent-input"
         />
@@ -613,7 +612,6 @@ export default function BudgetScreen({
                   onLabelChange={(v) => onItemLabelChange(it.id, v)}
                   onDelete={() => onDeleteItem(it.id)}
                   keyboardType="decimal-pad"
-                  selectTextOnFocus
                   placeholder="0"
                   renameHint={t("renameHint")}
                   testID={`expense-${it.id}`}
