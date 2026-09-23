@@ -28,12 +28,25 @@ type Session = {
  */
 let session: Session = { userId: null, state: { status: "noAccount" }, key: null };
 
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
 export function publishVaultSession(
   userId: string | null,
   state: VaultState,
   key: Uint8Array | null,
 ): void {
   session = { userId, state, key };
+  listeners.forEach((l) => l());
+}
+
+/**
+ * Prévenu à chaque publication. Sert aux écrans : un déverrouillage ou une
+ * remise à zéro faits depuis un écran doivent se voir partout, tout de suite.
+ */
+export function onVaultSessionChange(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
 export function currentVaultSession(): Session {

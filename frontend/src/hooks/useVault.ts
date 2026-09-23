@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "../contexts/SessionContext";
 import { currentKey, ensureVault, readVaultState } from "../lib/crypto/vault";
-import { publishVaultSession } from "../lib/crypto/vaultSession";
+import { onVaultSessionChange, publishVaultSession } from "../lib/crypto/vaultSession";
 import type { VaultState } from "../lib/crypto/vaultState";
 import { retryPendingWorkspaceClaims } from "../lib/workspacesStore";
 
@@ -48,6 +48,14 @@ export function useVault(): VaultInfo {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Un déverrouillage ou une remise à zéro faits depuis un écran publient la
+  // session : on relit l'état pour que ce hook, et donc les bandeaux, suivent.
+  useEffect(() => {
+    return onVaultSessionChange(() => {
+      void readVaultState(user?.id ?? null).then(setState);
+    });
+  }, [user?.id]);
 
   return { state, refresh };
 }

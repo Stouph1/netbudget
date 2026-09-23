@@ -9,6 +9,7 @@ import { supabase } from "../supabase";
 import { forgetKey, loadKey, loadPhrase, rememberKey, rememberPhrase } from "./keystore";
 import { generatePhrase, keyFingerprint, keyFromPhrase } from "./vaultKey";
 import { vaultState, type VaultState } from "./vaultState";
+import { publishVaultSession } from "./vaultSession";
 
 /** Empreinte enregistrée côté serveur, ou null si le chiffrement est inactif. */
 export async function remoteFingerprint(userId: string): Promise<string | null> {
@@ -136,6 +137,7 @@ export async function unlockVault(
       return { ok: false, reason: "wrongAccount" };
     }
     await rememberKey(userId, key);
+    publishVaultSession(userId, vaultState(true, { fingerprint: remote }, { fingerprint: remote }), key);
     return { ok: true };
   } catch {
     return { ok: false, reason: "error" };
