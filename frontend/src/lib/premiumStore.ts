@@ -165,7 +165,10 @@ async function readPayload<T>(
       query = query.eq("user_id", userId).is("workspace_id", null);
     }
 
-    const { data, error } = await query.maybeSingle();
+    // Une seule ligne par espace, mais la base a pu en garder plusieurs
+    // avant la migration 027 : on prend la plus récente au lieu d'échouer.
+    const { data: rows, error } = await query.order("updated_at", { ascending: false }).limit(1);
+    const data = rows?.[0];
     if (error || !data) return cached ?? fallback;
 
     const bytes = toBytes(data.ciphertext as unknown);
@@ -278,20 +281,28 @@ async function writePayload<T>(
 
     // L'index unique utilise coalesce : l'upsert de Supabase ne sait pas s'en
     // servir. On fait donc select puis update ou insert à la main.
+    //
+    // ESPACE PARTAGÉ : la ligne appartient à l'ESPACE, pas à celui qui écrit.
+    // Chercher « ma » ligne créait une ligne par membre, et la lecture, qui
+    // attend une ligne par espace, échouait dès le deuxième contributeur :
+    // deux téléphones au même espace ne se voyaient jamais.
     let query = supabase
       .from("encrypted_payloads")
       .select("id")
-      .eq("user_id", userId)
       .eq("payload_key", payloadKey);
     query = workspaceId
       ? query.eq("workspace_id", workspaceId)
-      : query.is("workspace_id", null);
-    const { data: existing } = await query.maybeSingle();
+      : query.eq("user_id", userId).is("workspace_id", null);
+    const { data: existingRows } = await query.order("updated_at", { ascending: false }).limit(1);
+    const existing = existingRows?.[0];
 
     if (existing?.id) {
+      // Le déclencheur serveur gèle user_id et workspace_id : on ne renvoie
+      // que le contenu. Le créateur de la ligne reste le premier contributeur.
+      const { user_id: _u, workspace_id: _w, ...contenu } = payload;
       const { error } = await supabase
         .from("encrypted_payloads")
-        .update(payload)
+        .update(contenu)
         .eq("id", existing.id);
       if (error) return { ok: false, error: error.message };
     } else {
