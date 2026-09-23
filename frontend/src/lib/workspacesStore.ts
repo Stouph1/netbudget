@@ -302,6 +302,8 @@ export async function acceptInvite(
     const raw = error.message ?? "";
     const code = raw.includes("invalid_invite")
       ? "invalid_invite"
+      : raw.includes("workspace_full")
+        ? "workspace_full"
       : raw.includes("unauthenticated")
         ? "unauthenticated"
         : raw.includes("Could not find the function")

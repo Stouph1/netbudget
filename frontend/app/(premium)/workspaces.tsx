@@ -58,6 +58,7 @@ import type {
   WorkspaceMember,
 } from "../../src/types/workspaces";
 import { useKeyboardLift, useSheetBottom } from "../../src/hooks/useSheetBottom";
+import { limitsFor } from "../../src/lib/entitlements";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -635,6 +636,7 @@ function WorkspaceDetailModal({
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
   const sheetBottom = useSheetBottom(36);
+  const paywall = usePaywall();
   const keyboardHeight = useKeyboardLift();
   const [members, setMembers] = useState<MemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -707,6 +709,14 @@ function WorkspaceDetailModal({
   // autre, fautes de frappe) alors que le code seul suffit — 256 bits,
   // usage unique, expiration 14 jours.
   async function sendInvite() {
+    // La formule fixe la taille de l'espace : Duo à deux, Famille à six. Le
+    // serveur refuse aussi (accept_invite), mais autant ne pas distribuer un
+    // code qui échouera chez la personne invitée.
+    const max = limitsFor(paywall.tier).maxMembersPerWorkspace;
+    if (max > 0 && members.length >= max) {
+      notify(t("ws.err.full.title"), tp("ws.err.full.detail", { max }));
+      return;
+    }
     setBusy(true);
     const result = await createInvite(workspace.id);
     setBusy(false);
@@ -724,6 +734,8 @@ function WorkspaceDetailModal({
     switch (code) {
       case "invalid_invite":
         return t("ws.err.inviteInvalid");
+      case "workspace_full":
+        return t("ws.err.full");
       case "unauthenticated":
         return t("ws.err.notSignedIn");
       case "not_deployed":
