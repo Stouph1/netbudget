@@ -125,6 +125,7 @@ export default function LoanModal({
                   value={form.directMonthly ?? "0"}
                   onChangeText={(v) => setForm({ ...form, directMonthly: v })}
                   keyboardType="decimal-pad"
+                  selectTextOnFocus
                   placeholder="0"
                   hintText={t("label.loanMonthlyHint")}
                   testID="loan-direct-monthly-input"
@@ -139,6 +140,7 @@ export default function LoanModal({
                     value={form.principal}
                     onChangeText={(v) => setForm({ ...form, principal: v })}
                     keyboardType="decimal-pad"
+                    selectTextOnFocus
                     placeholder="0"
                     testID="loan-principal-input"
                   />
@@ -150,6 +152,7 @@ export default function LoanModal({
                     value={form.ratePercent}
                     onChangeText={(v) => setForm({ ...form, ratePercent: v })}
                     keyboardType="decimal-pad"
+                    selectTextOnFocus
                     placeholder="0"
                     testID="loan-rate-input"
                   />
@@ -174,6 +177,7 @@ export default function LoanModal({
                     value={form.years}
                     onChangeText={(v) => setForm({ ...form, years: v })}
                     keyboardType="decimal-pad"
+                    selectTextOnFocus
                     placeholder="0"
                     testID="loan-years-input"
                   />
