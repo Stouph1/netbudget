@@ -3,7 +3,7 @@ import { defineConfig } from "astro/config";
 import tailwind from "@astrojs/tailwind";
 
 export default defineConfig({
-  site: "https://netbudget.app",
+  site: "https://www.netbudget.app",
   integrations: [tailwind({ applyBaseStyles: false })],
   i18n: {
     defaultLocale: "fr",

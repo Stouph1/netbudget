@@ -9,7 +9,7 @@
 
 import type { APIRoute } from "astro";
 
-const SITE = "https://netbudget.app";
+const SITE = "https://www.netbudget.app";
 
 /**
  * Pages volontairement absentes du sitemap.

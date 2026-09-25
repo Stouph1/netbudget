@@ -11,4 +11,4 @@ Allow: /
 Disallow: /merci
 Disallow: /en/thank-you
 
-Sitemap: https://netbudget.app/sitemap.xml
+Sitemap: https://www.netbudget.app/sitemap.xml

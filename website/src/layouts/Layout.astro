@@ -36,7 +36,11 @@ const {
 const t = useTranslations(locale);
 const dir = isRtl(locale) ? "rtl" : "ltr";
 
-const SITE = "https://netbudget.app";
+// AVEC www, et ce n'est pas un détail non plus : l'hébergeur redirige le
+// domaine nu vers www (307). Un canonique, un hreflang ou un sitemap qui
+// désignent le domaine nu pointent vers une redirection, et Google choisit
+// alors lui-même l'adresse de référence au lieu de suivre la nôtre.
+const SITE = "https://www.netbudget.app";
 
 // L'accroche est découpée en trois morceaux dans le catalogue (pour styliser
 // l'accent à l'écran) : les recoller tous, sinon le titre anglais s'arrête sur
