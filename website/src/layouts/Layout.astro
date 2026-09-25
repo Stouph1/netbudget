@@ -3,6 +3,8 @@ import "../styles/globals.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import StickyCta from "../components/StickyCta.astro";
+import ConsentNotice from "../components/ConsentNotice.astro";
+import { getAppStoreFacts } from "../lib/appStore";
 import { useTranslations, isRtl, type Locale } from "../i18n/utils";
 
 interface Props {
@@ -79,13 +81,40 @@ const shareImage = new URL(
 // non `LocalBusiness` : NETbudget n'a ni adresse, ni horaires, ni zone de
 // chalandise — un balisage de commerce local sur une app serait ignoré au
 // mieux, considéré comme trompeur au pire.
+// Ce que la boutique publie sur l'app, lu au build (voir lib/appStore) : note
+// moyenne, nombre de notes, version, date de sortie. C'est ce qui permet à
+// Google d'afficher les étoiles sous le résultat. Rien n'est écrit à la main.
+const store = await getAppStoreFacts();
+
 const appSchema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "NETbudget",
   applicationCategory: "FinanceApplication",
+  applicationSubCategory: "BudgetingApplication",
   operatingSystem: "iOS, Android",
   url: SITE,
+  installUrl: [
+    "https://apps.apple.com/app/netbudget/id6763551701",
+    "https://play.google.com/store/apps/details?id=com.stouph.netbudget",
+  ],
+  screenshot: ["/screens/budget-720.webp", "/screens/converter-720.webp", "/screens/settings-720.webp"].map(
+    (p) => new URL(p, SITE).href,
+  ),
+  isAccessibleForFree: true,
+  ...(store?.version ? { softwareVersion: store.version } : {}),
+  ...(store?.datePublished ? { datePublished: store.datePublished } : {}),
+  ...(store && store.ratingCount > 0
+    ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: store.rating,
+          ratingCount: store.ratingCount,
+          bestRating: 5,
+          worstRating: 1,
+        },
+      }
+    : {}),
   inLanguage: ["fr", "en", "es", "pt", "de", "it", "ar", "ja"],
   description: pageDesc,
   image: shareImage,
@@ -131,7 +160,23 @@ const jsonLd = {
         « aucun traceur » et la dispense de bannière. Le script n'existe que si
         l'analyse est activée sur le projet Vercel ; ailleurs, il répond 404 et
         le navigateur passe. Déclaré dans la politique de confidentialité. */}
-    <script defer src="/_vercel/insights/script.js"></script>
+    <script is:inline>
+      // Chargé seulement si la personne n'a pas refusé la mesure (voir
+      // ConsentNotice) et si son navigateur n'envoie pas le signal
+      // « Global Privacy Control ». Sans cookie ni identifiant, cette mesure
+      // n'exige pas de consentement ; on laisse quand même le dernier mot.
+      (function () {
+        try {
+          var choice = localStorage.getItem("nb:consent");
+          var gpc = navigator.globalPrivacyControl === true;
+          if (choice === "refused" || (choice === null && gpc)) return;
+          var s = document.createElement("script");
+          s.defer = true;
+          s.src = "/_vercel/insights/script.js";
+          document.head.appendChild(s);
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/logo.png" />
 
@@ -184,6 +229,7 @@ const jsonLd = {
     </main>
     <Footer locale={locale} />
     {hideStickyCta ? null : <StickyCta locale={locale} />}
+    <ConsentNotice locale={locale} />
 
     <script>
       // Reveal-on-scroll : ajoute la classe "reveal-visible" aux éléments .reveal

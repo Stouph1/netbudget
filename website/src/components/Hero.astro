@@ -161,7 +161,15 @@ const videoSrc = "/videos/netbudget-logo-reveal.mp4";
     function playIfWanted() {
       if (!wanted) return;
       const p = video.play();
-      if (p && typeof p.catch === "function") p.catch(function () {});
+      // Lecture refusée par le navigateur (Safari en économie d'énergie,
+      // Firefox avec lecture auto bloquée, économiseur de données) : le
+      // bouton passe en « lancer », sinon il afficherait « pause » sur une
+      // vidéo arrêtée et il faudrait cliquer deux fois.
+      if (p && typeof p.catch === "function")
+        p.catch(function () {
+          wanted = false;
+          render();
+        });
     }
 
     if (reduced) {
@@ -169,6 +177,9 @@ const videoSrc = "/videos/netbudget-logo-reveal.mp4";
       video.pause();
     }
     render();
+    // L'attribut autoplay a pu être ignoré sans qu'aucune promesse ne nous le
+    // dise : on demande explicitement, et le refus éventuel met le bouton à jour.
+    playIfWanted();
 
     if (toggle) {
       toggle.addEventListener("click", function () {

@@ -22,6 +22,12 @@ const fr: Catalog = {
   "nav.faq": "FAQ",
   "nav.legal": "Légal",
   "a11y.skip": "Aller au contenu",
+  "consent.label": "Mesure d'audience",
+  "consent.text": "Ce site ne pose aucun cookie. Une mesure d'audience anonyme, sans cookie ni identifiant, nous dit seulement quelles pages sont lues. Tu peux la refuser.",
+  "consent.more": "En savoir plus",
+  "consent.ok": "D'accord",
+  "consent.refuse": "Refuser la mesure",
+  "footer.consent": "Mesure d'audience : revoir mon choix",
   "hero.video.pause": "Mettre l\'animation en pause",
   "hero.video.play": "Lancer l\'animation",
   "nav.label": "Navigation principale",
@@ -281,7 +287,7 @@ const fr: Catalog = {
 
   "page.privacy.section6.title": "Sous-traitants",
   "page.privacy.section6.body":
-    "Supabase héberge les données de compte. Apple et Google interviennent si tu utilises leur méthode de connexion, et pour la vente et l'encaissement des abonnements. RevenueCat, qui gère les abonnements pour notre compte, reçoit un identifiant de compte et les informations d'achat transmises par la boutique — jamais tes données budgétaires, qu'il ne pourrait pas lire, et jamais tes coordonnées bancaires, que nous ne voyons pas davantage. open.er-api.com fournit les taux de change. Aucun autre tiers ne reçoit tes données : dans l'application, il n'y a ni publicité, ni mesure d'audience, ni traceur, ni revente. Le site netbudget.app est hébergé par Vercel, qui en mesure la fréquentation de façon agrégée — pages vues, pays, type d'appareil — sans cookie ni identifiant permanent, et sans aucun lien avec un compte de l'application. Nous ne vendons pas de données, et ce n'est pas notre modèle économique — l'application se finance par l'abonnement.",
+    "Supabase héberge les données de compte. Apple et Google interviennent si tu utilises leur méthode de connexion, et pour la vente et l'encaissement des abonnements. RevenueCat, qui gère les abonnements pour notre compte, reçoit un identifiant de compte et les informations d'achat transmises par la boutique — jamais tes données budgétaires, qu'il ne pourrait pas lire, et jamais tes coordonnées bancaires, que nous ne voyons pas davantage. open.er-api.com fournit les taux de change. Aucun autre tiers ne reçoit tes données : dans l'application, il n'y a ni publicité, ni mesure d'audience, ni traceur, ni revente. Le site netbudget.app est hébergé par Vercel, qui en mesure la fréquentation de façon agrégée — pages vues, pays, type d'appareil — sans cookie ni identifiant permanent, et sans aucun lien avec un compte de l'application. Tu peux refuser cette mesure depuis l'encart qui s'affiche à la première visite, ou à tout moment depuis le pied de page ; le signal Global Privacy Control de ton navigateur est respecté. Nous ne vendons pas de données, et ce n'est pas notre modèle économique — l'application se finance par l'abonnement.",
 
   "page.privacy.section7.title": "Permissions demandées",
   "page.privacy.section7.body":
@@ -388,6 +394,12 @@ const en: Catalog = {
   "nav.faq": "FAQ",
   "nav.legal": "Legal",
   "a11y.skip": "Skip to content",
+  "consent.label": "Audience measurement",
+  "consent.text": "This site sets no cookies. An anonymous audience measurement, with no cookie or identifier, only tells us which pages are read. You can refuse it.",
+  "consent.more": "Learn more",
+  "consent.ok": "OK",
+  "consent.refuse": "Refuse measurement",
+  "footer.consent": "Audience measurement: review my choice",
   "hero.video.pause": "Pause the animation",
   "hero.video.play": "Play the animation",
   "nav.label": "Main navigation",
@@ -647,7 +659,7 @@ const en: Catalog = {
 
   "page.privacy.section6.title": "Processors",
   "page.privacy.section6.body":
-    "Supabase hosts account data. Apple and Google are involved if you use their sign-in method, and for selling and charging subscriptions. RevenueCat, which manages subscriptions on our behalf, receives an account identifier and the purchase information passed on by the store — never your budget data, which it could not read anyway, and never your payment details, which we do not see either. open.er-api.com supplies exchange rates. No other third party receives your data: inside the app there is no advertising, no analytics, no tracker, no resale. The netbudget.app website is hosted by Vercel, which measures its traffic in aggregate — page views, country, device type — without cookies or persistent identifiers, and with no link to any app account. We do not sell data, and it is not our business model — the app is funded by subscriptions.",
+    "Supabase hosts account data. Apple and Google are involved if you use their sign-in method, and for selling and charging subscriptions. RevenueCat, which manages subscriptions on our behalf, receives an account identifier and the purchase information passed on by the store — never your budget data, which it could not read anyway, and never your payment details, which we do not see either. open.er-api.com supplies exchange rates. No other third party receives your data: inside the app there is no advertising, no analytics, no tracker, no resale. The netbudget.app website is hosted by Vercel, which measures its traffic in aggregate — page views, country, device type — without cookies or persistent identifiers, and with no link to any app account. You can refuse this measurement from the notice shown on your first visit, or at any time from the footer; your browser's Global Privacy Control signal is honoured. We do not sell data, and it is not our business model — the app is funded by subscriptions.",
 
   "page.privacy.section7.title": "Permissions requested",
   "page.privacy.section7.body":

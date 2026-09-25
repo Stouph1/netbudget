@@ -66,11 +66,24 @@ export const GET: APIRoute = () => {
   // perdre du budget d'exploration.
   const serve = (p: string) => (p === "/" ? "/" : p.replace(/\/+$/, ""));
 
+  // Chaque URL déclare sa jumelle dans l'autre langue : Google apprend ainsi
+  // que /faq et /en/faq sont la même page en deux langues, et sert la bonne
+  // selon la personne, au lieu de les voir comme deux pages concurrentes.
+  const alternates = (p: string) => {
+    const bare = p.replace(/^\/en(?=\/|$)/, "") || "/";
+    const fr = `${SITE}${serve(bare)}`;
+    const en = `${SITE}${serve(bare === "/" ? "/en/" : `/en${bare}`)}`;
+    return `    <xhtml:link rel="alternate" hreflang="fr" href="${fr}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${en}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${fr}"/>`;
+  };
+
   const urls = paths
     .map((p) => {
       const { priority, changefreq } = weight(p);
       return `  <url>
     <loc>${SITE}${serve(p)}</loc>
+${alternates(p)}
     <lastmod>${lastmod}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
@@ -79,7 +92,7 @@ export const GET: APIRoute = () => {
     .join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls}
 </urlset>
 `;
