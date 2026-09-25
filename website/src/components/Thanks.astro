@@ -23,6 +23,7 @@ const ratingCount = store && store.ratingCount > 0 ? store.ratingCount : null;
 const APP_STORE = "https://apps.apple.com/app/netbudget/id6763551701";
 const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
 
+const people = ["p1", "p2", "p3", "p4", "p5"] as const;
 const groups = ["installed", "rated", "wrote", "tested", "close"] as const;
 const changes = ["android", "percent", "tour"] as const;
 ---
@@ -45,6 +46,28 @@ const changes = ["android", "percent", "tour"] as const;
       <p class="body-lg mt-6 max-w-2xl text-balance">{t("thanks.lead")}</p>
     </div>
   </header>
+
+  {/* Avant tout. Ce bloc passe avant la lettre parce que c'est l'ordre que
+      Stéphane veut : Dieu d'abord, puis les personnes qui le portent. Sobre,
+      sans ornement : un remerciement sincère n'a pas besoin de décor. */}
+  <section class="container-app pb-12 md:pb-16">
+    <div class="mx-auto max-w-3xl border-l-2 border-mint-500/60 pl-6 md:pl-8">
+      <span class="eyebrow">{t("thanks.first.eyebrow")}</span>
+      <h2 class="heading-2 mt-4 text-balance">{t("thanks.first.title")}</h2>
+      <p class="body-lg mt-4 max-w-2xl">{t("thanks.first.body")}</p>
+      <p class="mt-8 text-text-2">{t("thanks.first.people")}</p>
+      <ul class="mt-4 space-y-2">
+        {
+          people.map((k) => (
+            <li class="text-lg text-text-1">
+              <span class="font-semibold">{t(`thanks.first.${k}.name`)}</span>{t(`thanks.first.${k}.role`) ? <span class="text-text-2">{`, ${t(`thanks.first.${k}.role`)}`}</span> : null}
+            </li>
+          ))
+        }
+      </ul>
+      <p class="mt-6 text-text-1">{t("thanks.first.close")}</p>
+    </div>
+  </section>
 
   {/* La lettre. Colonne de lecture étroite : c'est un texte, pas une page
       de fonctionnalités. */}
