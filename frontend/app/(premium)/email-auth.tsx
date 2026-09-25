@@ -5,7 +5,7 @@
 
 import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { goBack } from "../../src/lib/nav";
 import { useRef, useState, useMemo } from "react";
 import {
@@ -37,7 +37,10 @@ export default function EmailAuth() {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp, lang } = useLang();
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  // `?mode=signin` : on arrive d'un lien de confirmation, l'adresse existe
+  // déjà — proposer « créer un compte » serait un contresens.
+  const entry = useLocalSearchParams<{ mode?: string }>();
+  const [mode, setMode] = useState<"signup" | "signin">(entry.mode === "signin" ? "signin" : "signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");

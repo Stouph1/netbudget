@@ -39,7 +39,7 @@ export default function AuthCallback() {
         return;
       }
       notify(t("auth.callback.confirmed.title"), t("auth.callback.confirmed.body"));
-      router.replace("/email-auth");
+      router.replace({ pathname: "/email-auth", params: { mode: "signin" } });
     })();
     return () => {
       alive = false;
