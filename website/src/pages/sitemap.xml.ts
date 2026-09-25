@@ -13,13 +13,12 @@ const SITE = "https://www.netbudget.app";
 
 /**
  * Pages volontairement absentes du sitemap.
- *  - `merci` / `thank-you` : n'ont de sens qu'après avoir écrit un message.
  *  - `404` : par définition, on ne veut pas qu'on y entre.
  *  - `sitemap` : ne s'indexe pas lui-même.
  */
-// Les chemins produits finissent par un slash (`/merci/`), d'où le `\/` dans
+// Les chemins produits finissent par un slash (`/faq/`), d’où le `\/` dans
 // l'alternative de fin — sans lui rien ne correspondait et tout passait.
-const EXCLUDE = /(^|\/)(merci|thank-you|404|sitemap)(\/|\.|$)/;
+const EXCLUDE = /(^|\/)(404|sitemap)(\/|\.|$)/;
 
 /** Priorité et fréquence selon la nature de la page, pas au hasard. */
 function weight(path: string): { priority: string; changefreq: string } {
@@ -35,7 +34,7 @@ function weight(path: string): { priority: string; changefreq: string } {
  *
  * `import.meta.glob` renvoie des clés RELATIVES commençant par `./`. Les
  * oublier laissait passer des URL en `https://netbudget.app/./faq/`, et surtout
- * empêchait les exclusions de correspondre — la 404 et la page de remerciement
+ * empêchait les exclusions de correspondre — la 404
  * se retrouvaient dans le sitemap.
  */
 function toUrlPath(file: string): string {

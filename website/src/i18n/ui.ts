@@ -61,8 +61,6 @@ const fr: Catalog = {
   "teaser.seconds": "sec",
   "teaser.hintLabel": "Indice :",
   "teaser.hint": "tu ne compteras plus tout seul·e.",
-  "teaser.cta": "Être prévenu·e le jour J",
-  "teaser.note": "Aucune carte bancaire, aucun spam. Un seul email, le 15.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "Le spot · 22 sec",
@@ -217,12 +215,6 @@ const fr: Catalog = {
   "page.faq.desc": "Combien ça coûte, où vont tes données, dans quels pays ça marche : les réponses aux questions qu'on nous pose vraiment.",
   "page.privacy.desc": "Ce que NETbudget fait de tes données, précisément. Sans compte, rien ne quitte ton téléphone ; avec un compte, tu choisis ce que tu enregistres.",
   "page.terms.desc": "Les conditions d'utilisation de NETbudget : ce que l'application fait, ce qu'elle ne promet pas, et tes droits.",
-  "page.thanks.title": "Merci",
-  "page.thanks.desc": "Ton message est parti.",
-  "page.thanks.h1": "Message reçu",
-  "page.thanks.body": "Merci d'avoir écrit. C'est une personne qui lit, pas un robot — et ça change la qualité de la réponse.",
-  "page.thanks.delay": "Réponse sous 48 heures en semaine.",
-  "page.thanks.follow": "En attendant, les nouveautés sont publiées sur",
 
   // --- Page 404 --------------------------------------------------------
   "nf.title": "Cette page n'existe pas",
@@ -439,8 +431,6 @@ const en: Catalog = {
   "teaser.seconds": "sec",
   "teaser.hintLabel": "Hint:",
   "teaser.hint": "you won't be counting alone anymore.",
-  "teaser.cta": "Tell me on the day",
-  "teaser.note": "No card, no spam. One email, on the 15th.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "The spot · 22 sec",
@@ -595,12 +585,6 @@ const en: Catalog = {
   "page.faq.desc": "What it costs, where your data goes, which countries are covered: answers to the questions people actually ask.",
   "page.privacy.desc": "Exactly what NETbudget does with your data. Without an account nothing leaves your phone; with one, you choose what gets stored.",
   "page.terms.desc": "NETbudget's terms of use: what the app does, what it does not promise, and your rights.",
-  "page.thanks.title": "Thank you",
-  "page.thanks.desc": "Your message has been sent.",
-  "page.thanks.h1": "Message received",
-  "page.thanks.body": "Thanks for writing. A person reads these, not a bot — and it shows in the answer.",
-  "page.thanks.delay": "Reply within 48 hours on weekdays.",
-  "page.thanks.follow": "In the meantime, updates are posted on",
 
   // --- 404 page ---------------------------------------------------------
   "nf.title": "This page does not exist",

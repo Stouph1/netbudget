@@ -16,7 +16,7 @@ interface Props {
   ogImage?: string;
   /** Données structurées supplémentaires (FAQ, fil d'Ariane…). */
   schema?: unknown;
-  /** Retire la page de l'index — pages sans intérêt d'entrée (remerciement, 404). */
+  /** Retire la page de l'index — pages sans intérêt d'entrée (404). */
   noindex?: boolean;
   /** Masque la barre d'action mobile : inutile sur une page légale ou d'erreur. */
   hideStickyCta?: boolean;
@@ -66,7 +66,7 @@ const canonical = new URL(cleanPath, SITE).href;
 
 // Variantes de langue de CETTE page. Elles pointaient toutes vers l'accueil :
 // depuis /faq, « en » menait à /en au lieu de /en/faq, et les moteurs
-// recevaient une carte fausse. Une page hors index (merci, 404) n'en déclare
+// recevaient une carte fausse. Une page hors index (404) n'en déclare
 // pas : elle n'a pas de jumelle indexable.
 const pathSansLocale = cleanPath.replace(/^\/en(?=\/|$)/, "") || "/";
 const alternates = noindex
