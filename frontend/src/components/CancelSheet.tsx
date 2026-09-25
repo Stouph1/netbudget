@@ -27,10 +27,11 @@ import { alpha } from "../theme/accents";
 import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { useState, useMemo } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useLang } from "../contexts/LangContext";
 import type { Tier } from "../lib/entitlements";
-import { useSheetBottom } from "../hooks/useSheetBottom";
+import { useKeyboardLift, useSheetBottom } from "../hooks/useSheetBottom";
+import { DETAILS_MAX, sendDepartureFeedback } from "../lib/departure";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -85,22 +86,31 @@ export function CancelSheet({
 }) {
   const GOLD = useAccent().main;
   const s = useMemo(() => makeS(GOLD), [GOLD]);
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const sheetBottom = useSheetBottom(28);
+  const lift = useKeyboardLift();
   const [reason, setReason] = useState<CancelReason | null>(null);
+  const [details, setDetails] = useState("");
 
   const offer = reason ? offerFor(reason, tier) : null;
+
+  // Le motif part quand la personne continue vers la boutique. Au mieux, et
+  // sans attendre : la sortie ne dépend pas du réseau.
+  function continueToStore() {
+    void sendDepartureFeedback({ kind: "cancel_subscription", reason, details, lang });
+    onContinue();
+  }
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={s.backdrop} onPress={onClose}>
-        <Pressable style={[s.sheet, { paddingBottom: sheetBottom }]} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={[s.sheet, { paddingBottom: Math.max(sheetBottom, lift) }]} onPress={(e) => e.stopPropagation()}>
           <View style={s.grabber} />
 
           <Text style={s.title}>{t("cancel.title")}</Text>
           <Text style={s.sub}>{t("cancel.sub")}</Text>
 
-          <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false}>
+          <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {REASONS.map((r) => {
               const active = reason === r.id;
               return (
@@ -121,6 +131,20 @@ export function CancelSheet({
               );
             })}
 
+            {reason ? (
+              <TextInput
+                value={details}
+                onChangeText={(v) => setDetails(v.slice(0, DETAILS_MAX))}
+                placeholder={t("cancel.details.placeholder")}
+                placeholderTextColor={TEXT_3}
+                multiline
+                maxLength={DETAILS_MAX}
+                style={s.details}
+                accessibilityLabel={t("cancel.details.placeholder")}
+                testID="cancel-details"
+              />
+            ) : null}
+
             {offer ? (
               <View style={s.offer}>
                 <Text style={s.offerTitle}>{t(`cancel.offer.${offer}.title`)}</Text>
@@ -139,9 +163,10 @@ export function CancelSheet({
           </ScrollView>
 
           {/* LA SORTIE. Toujours visible, dès l'ouverture, sans condition. */}
+          <Text style={s.farewell}>{t("cancel.farewell")}</Text>
           <TouchableOpacity
             style={s.continueBtn}
-            onPress={onContinue}
+            onPress={continueToStore}
             activeOpacity={0.8}
             accessibilityRole="button"
             testID="cancel-continue"
@@ -210,7 +235,21 @@ const makeS = (GOLD: string) =>
     alignItems: "center",
   },
   offerBtnText: { color: "#04140B", fontSize: 14, fontWeight: "800" },
-  continueBtn: { alignItems: "center", paddingVertical: 15, marginTop: 6 },
+  details: {
+    minHeight: 64,
+    textAlignVertical: "top",
+    color: TEXT_1,
+    fontSize: 13.5,
+    lineHeight: 19,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: SURFACE,
+    marginBottom: 8,
+  },
+  farewell: { color: TEXT_2, fontSize: 13, lineHeight: 18, textAlign: "center", marginTop: 10 },
+  continueBtn: { alignItems: "center", paddingVertical: 15, marginTop: 2 },
   continueText: { color: DANGER, fontSize: 14.5, fontWeight: "700" },
   note: { color: TEXT_3, fontSize: 11, lineHeight: 16, textAlign: "center" },
   });

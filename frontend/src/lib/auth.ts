@@ -12,7 +12,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
 import { NativeModules, Platform, TurboModuleRegistry } from "react-native";
-import * as Linking from "expo-linking";
 import { supabase } from "./supabase";
 
 export type AuthResult =
@@ -256,11 +255,15 @@ export async function signInWithGoogle(): Promise<AuthResult> {
 export async function signUpWithEmail(
   email: string,
   password: string,
+  lang = "fr",
 ): Promise<AuthResult | { ok: false; reason: "confirm_email" }> {
   try {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
+      // Sans cette option, le lien de confirmation ramenait sur l'URL « Site »
+      // du projet Supabase — localhost en développement.
+      options: { emailRedirectTo: emailReturnUrl("signup", lang) },
     });
     if (error) return { ok: false, reason: "error", message: error.message };
     if (data.user && !data.session) {
@@ -295,22 +298,49 @@ export async function signInWithEmail(
   }
 }
 
+// ============================================================================
+// Où les liens reçus par e-mail ramènent
+//
+// PAS un deep link direct. Un lien `netbudget://…` dans un e-mail est refusé
+// ou ignoré par la plupart des clients mail, et sur un ordinateur il ne mène
+// nulle part. En développement, `Linking.createURL` donnait même
+// `http://localhost:8081/…` — une page inaccessible pour la personne qui
+// vient de s'inscrire.
+//
+// On passe donc par une page du site : elle confirme visuellement que c'est
+// bon, puis un bouton ouvre l'app avec le `code` que Supabase a joint à
+// l'URL. Le code est échangé DANS l'app (flux PKCE, voir supabase.ts) : la
+// page du site ne peut rien en faire, et c'est voulu.
+//
+// Cette adresse doit figurer dans Supabase → Authentication → URL
+// Configuration → Redirect URLs (`https://www.netbudget.app/confirmation`).
+// ============================================================================
+
+const SITE = "https://www.netbudget.app";
+
+export type EmailLinkKind = "signup" | "recovery" | "magiclink";
+
+export function emailReturnUrl(kind: EmailLinkKind, lang = "fr"): string {
+  // Web : la page courante, où `detectSessionInUrl` récupère le jeton.
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    return `${window.location.origin}/${kind === "recovery" ? "reset-password" : "auth-callback"}`;
+  }
+  return `${SITE}/confirmation?type=${kind}&lang=${encodeURIComponent(lang)}`;
+}
+
 // Email magic link : envoie un lien dans la boîte mail. L'utilisateur clique,
 // retombe sur l'app via deep link, et la session est créée.
 export async function signInWithEmailMagicLink(
   email: string,
+  lang = "fr",
 ): Promise<AuthResult> {
   try {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Deep link construit par Expo depuis le scheme d'app.json — jamais
-        // codé en dur. ⚠️ Un custom scheme n'est PAS vérifiable sur Android :
-        // avant de câbler ce flux dans un écran, passer aux App Links vérifiés
-        // (https://www.netbudget.app/auth-callback + assetlinks.json).
-        // Le flux PKCE (voir supabase.ts) limite déjà l'impact d'une
-        // interception : le code seul est inexploitable.
-        emailRedirectTo: Linking.createURL("/auth-callback"),
+        // Le flux PKCE (voir supabase.ts) limite l'impact d'une interception
+        // du lien : le code seul, sans l'app qui l'a demandé, est inexploitable.
+        emailRedirectTo: emailReturnUrl("magiclink", lang),
       },
     });
     if (error) {
@@ -333,15 +363,6 @@ export async function signInWithEmailMagicLink(
 // c'est heureux).
 // ============================================================================
 
-/** Où le lien de l'e-mail doit ramener, selon la plateforme. */
-function recoveryRedirect(): string {
-  // Web : la page courante, où `detectSessionInUrl` récupérera le jeton.
-  if (Platform.OS === "web" && typeof window !== "undefined") {
-    return `${window.location.origin}/reset-password`;
-  }
-  // Mobile : deep link construit depuis le scheme d'app.json.
-  return Linking.createURL("/reset-password");
-}
 
 /**
  * Envoie le lien de réinitialisation.
@@ -352,11 +373,12 @@ function recoveryRedirect(): string {
  */
 export async function sendPasswordReset(
   email: string,
+  lang = "fr",
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
-      { redirectTo: recoveryRedirect() },
+      { redirectTo: emailReturnUrl("recovery", lang) },
     );
     // Une erreur de limitation de débit doit remonter : elle est actionnable
     // (« réessaie dans une minute »), contrairement à « adresse inconnue ».

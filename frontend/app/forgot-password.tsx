@@ -39,7 +39,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function ForgotPassword() {
   const GOLD = useAccent().main;
   const s = useMemo(() => makeS(GOLD), [GOLD]);
-  const { t, tp } = useLang();
+  const { t, tp, lang } = useLang();
   // L'écran de connaissance passe l'adresse déjà saisie : la retaper serait
   // une corvée gratuite.
   const params = useLocalSearchParams<{ email?: string }>();
@@ -56,7 +56,7 @@ export default function ForgotPassword() {
       return;
     }
     setBusy(true);
-    const result = await sendPasswordReset(mail);
+    const result = await sendPasswordReset(mail, lang);
     setBusy(false);
     if (!result.ok) {
       notify(t("auth.forgot.failed.title"), result.error ?? t("auth.error.unknown"));

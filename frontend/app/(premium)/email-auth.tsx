@@ -36,7 +36,7 @@ const BORDER = "rgba(255,255,255,0.08)";
 export default function EmailAuth() {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
-  const { t, tp } = useLang();
+  const { t, tp, lang } = useLang();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,7 +91,7 @@ export default function EmailAuth() {
 
     setBusy(true);
     const result = isSignup
-      ? await signUpWithEmail(mail, password)
+      ? await signUpWithEmail(mail, password, lang)
       : await signInWithEmail(mail, password);
     setBusy(false);
 

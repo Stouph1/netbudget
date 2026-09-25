@@ -33,6 +33,8 @@ import PremiumHomePanel from "../src/components/PremiumHomePanel";
 import EventsPanel, { eventNeedsAttention } from "../src/components/EventsPanel";
 import { useSession } from "../src/contexts/SessionContext";
 import { deleteAccount } from "../src/lib/auth";
+import { DeleteAccountSheet } from "../src/components/DeleteAccountSheet";
+import { sendDepartureFeedback, type DepartureReason } from "../src/lib/departure";
 import { notify } from "../src/utils/notify";
 import BirthdayCelebration from "../src/components/BirthdayCelebration";
 import { TierUnlock } from "../src/components/TierUnlock";
@@ -1195,41 +1197,34 @@ export default function Index() {
     });
   }
 
-  // Suppression du COMPTE (cloud) — double confirmation, irréversible.
-  // Le budget local du téléphone n'est pas touché (free tier préservé).
+  // Suppression du COMPTE (cloud). D'abord la feuille (ce qui part, ce qui
+  // reste, un motif facultatif), puis UNE confirmation irréversible. Le budget
+  // local du téléphone n'est pas touché (free tier préservé).
+  const [deleteOpen, setDeleteOpen] = useState(false);
   function askDeleteAccount() {
-    setConfirm({
-      open: true,
-      title: "Supprimer ton compte ?",
-      message:
-        "Ton compte, tes espaces partagés (dont tu es propriétaire) et toutes tes données cloud seront définitivement effacés. Ton budget local sur ce téléphone n'est pas touché.",
-      danger: true,
-      confirmLabel: "Continuer",
-      onConfirm: () => {
-        // Deuxième confirmation après fermeture de la première modale
-        setTimeout(() => {
-          setConfirm({
-            open: true,
-            title: "Dernière confirmation",
-            message:
-              "Cette action est irréversible. Supprimer définitivement le compte ?",
-            danger: true,
-            confirmLabel: "Supprimer définitivement",
-            onConfirm: async () => {
-              const res = await deleteAccount();
-              if (res.ok) {
-                notify(
-                  "Compte supprimé",
-                  "Ton compte et tes données cloud ont été effacés. L'app reste utilisable en local, sans compte.",
-                );
-              } else {
-                notify("Suppression impossible", res.error ?? "Erreur inconnue");
-              }
-            },
-          });
-        }, 400);
-      },
-    });
+    setDeleteOpen(true);
+  }
+  function confirmDeleteAccount(feedback: { reason: DepartureReason | null; details: string }) {
+    setDeleteOpen(false);
+    setTimeout(() => {
+      setConfirm({
+        open: true,
+        title: t("account.delete.final.title"),
+        message: t("account.delete.final.body"),
+        danger: true,
+        confirmLabel: t("account.delete.final.cta"),
+        onConfirm: async () => {
+          // Le motif part AVANT la suppression : après, il n'y a plus de session.
+          await sendDepartureFeedback({ kind: "delete_account", ...feedback, lang });
+          const res = await deleteAccount();
+          if (res.ok) {
+            notify(t("account.deleted.title"), t("account.deleted.body"));
+          } else {
+            notify(t("account.deleteFailed.title"), res.error ?? t("auth.error.unknown"));
+          }
+        },
+      });
+    }, 400);
   }
 
   return (
@@ -1627,6 +1622,11 @@ export default function Index() {
       />
 
       {/* Confirm Modal */}
+      <DeleteAccountSheet
+        visible={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={confirmDeleteAccount}
+      />
       <ConfirmModal
         confirm={confirm}
         t={t}

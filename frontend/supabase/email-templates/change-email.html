@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Nouvelle adresse à confirmer</title>
+</head>
+<body style="margin:0;padding:0;background:#0A0A0C;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<!-- Aperçu dans la boîte de réception, invisible dans le mail -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Confirme le changement d'adresse de ton compte.</div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0A0A0C;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;">
+
+<tr><td align="center" style="padding:0 0 24px 0;">
+  <img src="https://www.netbudget.app/logo.png" width="56" height="56" alt="NETbudget" style="display:block;border-radius:14px;">
+  <p style="margin:12px 0 0 0;font-size:18px;font-weight:700;color:#F5F5F7;letter-spacing:-0.01em;">NETbudget</p>
+</td></tr>
+
+<tr><td style="background:#141418;border:1px solid rgba(255,255,255,0.10);border-radius:20px;padding:32px 28px;">
+  <p style="margin:0;font-size:40px;line-height:1;">📮</p>
+  <h1 style="margin:16px 0 8px 0;font-size:24px;line-height:1.25;color:#F5F5F7;letter-spacing:-0.02em;">Nouvelle adresse à confirmer</h1>
+  <p style="margin:0 0 20px 0;font-size:16px;line-height:1.55;color:#B4B4BE;">Tu as demandé à passer ton compte NETbudget de {{ .Email }} à {{ .NewEmail }}. Confirme pour que le changement prenne effet.</p>
+  <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 16px 0;">
+  <tr><td style="background:#10B981;border-radius:14px;">
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 26px;font-size:16px;font-weight:700;color:#04140B;text-decoration:none;">Confirmer la nouvelle adresse 📮</a>
+  </td></tr></table>
+  <p style="margin:0 0 20px 0;font-size:12px;line-height:1.5;color:#7C7C88;word-break:break-all;">Si le bouton ne marche pas, copie ce lien : <a href="{{ .ConfirmationURL }}" style="color:#34D399;">{{ .ConfirmationURL }}</a></p>
+  <p style="margin:0 0 24px 0;font-size:13px;line-height:1.5;color:#7C7C88;">Tu n'as rien demandé ? N'ouvre pas le lien et écris-nous : contact@netbudget.app.</p>
+
+  <hr style="border:0;border-top:1px solid rgba(255,255,255,0.10);margin:0 0 24px 0;">
+
+  <p lang="en" style="margin:0 0 6px 0;font-size:17px;line-height:1.3;font-weight:700;color:#F5F5F7;">New address to confirm</p>
+  <p lang="en" style="margin:0 0 16px 0;font-size:15px;line-height:1.55;color:#B4B4BE;">You asked to move your NETbudget account from {{ .Email }} to {{ .NewEmail }}. Confirm so the change takes effect.</p>
+  <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 12px 0;">
+  <tr><td style="background:#10B981;border-radius:14px;">
+    <a href="{{ .ConfirmationURL }}" lang="en" style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:700;color:#04140B;text-decoration:none;">Confirm the new address 📮</a>
+  </td></tr></table>
+  <p lang="en" style="margin:0;font-size:13px;line-height:1.5;color:#7C7C88;">Didn't ask for this? Don't open the link and write to us: contact@netbudget.app.</p>
+</td></tr>
+
+<tr><td style="padding:24px 8px 0 8px;">
+  <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#7C7C88;">
+    Tu reçois ce message parce que cette adresse a été utilisée dans l'application NETbudget. Si ce n'est pas toi, ignore-le : rien ne se passera sans ce lien. 🙂<br>
+    <span lang="en">You are receiving this because this address was used in the NETbudget app. If that wasn't you, just ignore it: nothing happens without this link.</span>
+  </p>
+  <p style="margin:0;font-size:12px;line-height:1.6;color:#7C7C88;">
+    <a href="https://www.netbudget.app" style="color:#34D399;text-decoration:none;">netbudget.app</a> ·
+    <a href="mailto:contact@netbudget.app" style="color:#34D399;text-decoration:none;">contact@netbudget.app</a> ·
+    <a href="https://www.netbudget.app/privacy" style="color:#7C7C88;">Confidentialité</a>
+  </p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
