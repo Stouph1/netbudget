@@ -35,7 +35,7 @@ function weight(path: string): { priority: string; changefreq: string } {
  * `import.meta.glob` renvoie des clés RELATIVES commençant par `./`. Les
  * oublier laissait passer des URL en `https://netbudget.app/./faq/`, et surtout
  * empêchait les exclusions de correspondre — la 404
- * se retrouvaient dans le sitemap.
+ * se retrouvait dans le sitemap.
  */
 function toUrlPath(file: string): string {
   const rel = file
