@@ -45,19 +45,24 @@ const fr: Catalog = {
   "hero.cta.learn": "Voir les fonctionnalités",
   "hero.note": "Gratuit. Sans publicité. Aucune donnée n'est envoyée.",
 
-  // Links hub (destination unique : App Store + Google Play + waitlist)
+  // Links hub (destination unique : App Store + Google Play + compte à rebours)
   "links.eyebrow": "Tous les liens ici",
   "links.title": "Télécharge NETbudget",
   "links.subtitle": "Disponible sur iPhone et Android. Gratuit, sans publicité, sans compte.",
 
-  // Premium waitlist ("first 100")
-  "waitlist.eyebrow": "Offre de lancement",
-  "waitlist.badge": "100 places seulement",
-  "waitlist.title": "Les 100 premiers inscrits reçoivent 2 mois de Premium offerts",
-  "waitlist.subtitle":
-    "NETbudget Premium arrive mi-novembre 2026 : budgets partagés en couple ou en famille, conseils personnalisés selon ta situation, synchronisation chiffrée de bout en bout. Inscris-toi maintenant pour réserver ta place.",
-  "waitlist.cta": "Réserver ma place",
-  "waitlist.note": "Aucune carte bancaire requise. Tu seras averti·e par email au lancement.",
+  // Le 15 octobre : compte à rebours et indice, sans dire quoi.
+  "teaser.eyebrow": "15 octobre",
+  "teaser.title": "Quelque chose arrive.",
+  "teaser.live": "C'est là.",
+  "teaser.dateLong": "Rendez-vous le 15 octobre 2026.",
+  "teaser.days": "jours",
+  "teaser.hours": "heures",
+  "teaser.minutes": "min",
+  "teaser.seconds": "sec",
+  "teaser.hintLabel": "Indice :",
+  "teaser.hint": "tu ne compteras plus tout seul·e.",
+  "teaser.cta": "Être prévenu·e le jour J",
+  "teaser.note": "Aucune carte bancaire, aucun spam. Un seul email, le 15.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "Le spot · 22 sec",
@@ -185,6 +190,7 @@ const fr: Catalog = {
   "footer.madeby": "Conçu et développé par",
   "footer.links": "Liens",
   "footer.follow": "Suivre",
+  "footer.hint": "15.10 — tu comprendras.",
   "footer.privacy": "Politique de confidentialité",
   "footer.terms": "Conditions d'utilisation",
   "footer.contact": "Contact",
@@ -417,19 +423,24 @@ const en: Catalog = {
   "hero.cta.learn": "See features",
   "hero.note": "Free. No ads. No data leaves your device.",
 
-  // Links hub (single destination: App Store + Google Play + waitlist)
+  // Links hub (single destination: App Store + Google Play + countdown)
   "links.eyebrow": "All links here",
   "links.title": "Download NETbudget",
   "links.subtitle": "Available on iPhone and Android. Free, no ads, no account.",
 
-  // Premium waitlist ("first 100")
-  "waitlist.eyebrow": "Launch offer",
-  "waitlist.badge": "Only 100 spots",
-  "waitlist.title": "The first 100 sign-ups get 2 months of Premium free",
-  "waitlist.subtitle":
-    "NETbudget Premium arrives mid-November 2026: shared budgets for couples and families, advice tailored to your situation, end-to-end encrypted sync. Sign up now to reserve your spot.",
-  "waitlist.cta": "Reserve my spot",
-  "waitlist.note": "No card required. We'll email you at launch.",
+  // October 15: countdown and a hint, without saying what.
+  "teaser.eyebrow": "October 15",
+  "teaser.title": "Something is coming.",
+  "teaser.live": "It's here.",
+  "teaser.dateLong": "See you on October 15, 2026.",
+  "teaser.days": "days",
+  "teaser.hours": "hours",
+  "teaser.minutes": "min",
+  "teaser.seconds": "sec",
+  "teaser.hintLabel": "Hint:",
+  "teaser.hint": "you won't be counting alone anymore.",
+  "teaser.cta": "Tell me on the day",
+  "teaser.note": "No card, no spam. One email, on the 15th.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "The spot · 22 sec",
@@ -557,6 +568,7 @@ const en: Catalog = {
   "footer.madeby": "Designed and built by",
   "footer.links": "Links",
   "footer.follow": "Follow",
+  "footer.hint": "15.10 — you'll see.",
   "footer.privacy": "Privacy policy",
   "footer.terms": "Terms of use",
   "footer.contact": "Contact",

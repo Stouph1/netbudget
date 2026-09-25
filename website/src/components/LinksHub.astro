@@ -11,6 +11,9 @@ const { locale } = Astro.props;
 const t = useTranslations(locale);
 
 const FORM_URL = "https://forms.gle/2YgnD2ReFVGpnXCa6";
+// Le jour J : 15 octobre 2026, heure de Paris. Une seule source, lue par le
+// script du compte à rebours et par la phrase de repli sans JavaScript.
+const TEASER_AT = "2026-10-15T00:00:00+02:00";
 const APPSTORE_URL = "https://apps.apple.com/app/netbudget/id6763551701";
 const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
 ---
@@ -45,20 +48,93 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
 
       <div class="mx-auto my-10 h-px w-full max-w-md bg-white/10"></div>
 
-      <div class="inline-flex items-center gap-2 rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-semibold text-mint-400">
-        {t("waitlist.badge")}
+      {/* Le compte à rebours. La date est la seule donnée : tout le reste
+          (jours, heures, minutes, secondes) est calculé dans le navigateur,
+          et le bloc bascule seul en « c'est là » une fois l'heure passée.
+          Sans JavaScript, la date en toutes lettres reste lisible. */}
+      <div id="teaser" class="scroll-mt-24" data-teaser-at={TEASER_AT}>
+        <div class="inline-flex items-center gap-2 rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-mint-400">
+          <span aria-hidden="true" class="relative flex h-2 w-2">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint-400 opacity-75 motion-reduce:hidden"></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-mint-400"></span>
+          </span>
+          {t("teaser.eyebrow")}
+        </div>
+
+        <h3 class="mx-auto mt-5 max-w-2xl text-balance text-2xl font-bold tracking-tight md:text-3xl">
+          <span data-teaser="before">{t("teaser.title")}</span>
+          <span data-teaser="after" hidden>{t("teaser.live")}</span>
+        </h3>
+
+        <p class="sr-only" data-teaser="before">{t("teaser.dateLong")}</p>
+        <div
+          data-teaser="before"
+          class="mx-auto mt-7 grid max-w-md grid-cols-4 gap-2 sm:gap-3"
+          role="timer"
+          aria-live="off"
+        >
+          {
+            (["days", "hours", "minutes", "seconds"] as const).map((unit) => (
+              <div class="rounded-2xl border border-white/10 bg-ink-900/60 px-2 py-4 sm:py-5">
+                <span data-unit={unit} class="block text-3xl font-bold tabular-nums tracking-tight text-text-1 sm:text-4xl">
+                  --
+                </span>
+                <span class="mt-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-text-3">
+                  {t(`teaser.${unit}`)}
+                </span>
+              </div>
+            ))
+          }
+        </div>
+
+        <p class="body-lg mx-auto mt-6 max-w-xl text-balance">
+          <span class="font-semibold text-text-1">{t("teaser.hintLabel")}</span> {t("teaser.hint")}
+        </p>
+
+        <a href={FORM_URL} target="_blank" rel="noopener noreferrer" class="btn-primary mt-8 inline-flex">
+          {t("teaser.cta")}
+        </a>
+        <p class="mt-4 text-xs text-text-3">{t("teaser.note")}</p>
       </div>
-
-      <h3 class="mx-auto mt-5 max-w-2xl text-balance text-2xl font-bold tracking-tight md:text-3xl">
-        {t("waitlist.title")}
-      </h3>
-      <p class="body-lg mx-auto mt-4 max-w-xl text-balance">{t("waitlist.subtitle")}</p>
-
-      <a href={FORM_URL} target="_blank" rel="noopener noreferrer" class="btn-primary mt-8 inline-flex">
-        {t("waitlist.cta")}
-      </a>
-
-      <p class="mt-4 text-xs text-text-3">{t("waitlist.note")}</p>
     </div>
   </div>
 </section>
+
+<script is:inline>
+  (function () {
+    var root = document.getElementById("teaser");
+    if (!root) return;
+    var at = new Date(root.getAttribute("data-teaser-at")).getTime();
+    var units = {
+      days: root.querySelector('[data-unit="days"]'),
+      hours: root.querySelector('[data-unit="hours"]'),
+      minutes: root.querySelector('[data-unit="minutes"]'),
+      seconds: root.querySelector('[data-unit="seconds"]'),
+    };
+    var before = root.querySelectorAll('[data-teaser="before"]');
+    var after = root.querySelectorAll('[data-teaser="after"]');
+    var pad = function (n) { return n < 10 ? "0" + n : String(n); };
+    var timer;
+    function tick() {
+      var left = at - Date.now();
+      if (left <= 0) {
+        before.forEach(function (el) { el.hidden = true; });
+        after.forEach(function (el) { el.hidden = false; });
+        if (timer) clearInterval(timer);
+        return;
+      }
+      var s = Math.floor(left / 1000);
+      units.days.textContent = String(Math.floor(s / 86400));
+      units.hours.textContent = pad(Math.floor((s % 86400) / 3600));
+      units.minutes.textContent = pad(Math.floor((s % 3600) / 60));
+      units.seconds.textContent = pad(s % 60);
+    }
+    tick();
+    timer = setInterval(tick, 1000);
+    // Onglet en arrière-plan : on ne compte pas dans le vide.
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) clearInterval(timer);
+      else { tick(); timer = setInterval(tick, 1000); }
+    });
+  })();
+</script>
