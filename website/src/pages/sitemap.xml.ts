@@ -15,10 +15,11 @@ const SITE = "https://www.netbudget.app";
  * Pages volontairement absentes du sitemap.
  *  - `404` : par définition, on ne veut pas qu'on y entre.
  *  - `sitemap` : ne s'indexe pas lui-même.
+ *  - `confirmation` : page de retour des e-mails, sans intérêt hors de ce parcours.
  */
 // Les chemins produits finissent par un slash (`/faq/`), d’où le `\/` dans
 // l'alternative de fin — sans lui rien ne correspondait et tout passait.
-const EXCLUDE = /(^|\/)(404|sitemap)(\/|\.|$)/;
+const EXCLUDE = /(^|\/)(404|sitemap|confirmation)(\/|\.|$)/;
 
 /** Priorité et fréquence selon la nature de la page, pas au hasard. */
 function weight(path: string): { priority: string; changefreq: string } {

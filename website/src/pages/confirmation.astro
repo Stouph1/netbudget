@@ -1,0 +1,191 @@
+---
+// Page de retour des e-mails de compte : confirmation d'adresse, nouveau mot
+// de passe, lien magique, changement d'adresse.
+//
+// POURQUOI UNE PAGE WEB ET PAS UN DEEP LINK DIRECT. Un lien `netbudget://…`
+// dans un e-mail est ignoré par la plupart des clients mail ; et ouvert sur un
+// ordinateur, il ne mène nulle part. Ici, Supabase vérifie d'abord le jeton,
+// puis renvoie sur cette page avec un `code`. La page dit « c'est bon », et
+// UN BOUTON ouvre l'app avec ce code : c'est l'app qui l'échange contre une
+// session (flux PKCE). La page ne peut rien en faire, et c'est voulu.
+//
+// UNE SEULE PAGE, BILINGUE. Supabase n'accepte qu'une adresse de retour par
+// envoi ; l'app y joint `lang`, et le script n'affiche que la langue
+// demandée. Sans JavaScript, le français reste visible.
+//
+// HORS INDEX : cette page n'a de sens qu'en sortie d'un e-mail.
+import Layout from "../layouts/Layout.astro";
+import { useTranslations } from "../i18n/utils";
+
+const fr = useTranslations("fr");
+const en = useTranslations("en");
+const KINDS = ["signup", "recovery", "magiclink", "email_change", "error"] as const;
+
+const APP_STORE = "https://apps.apple.com/app/netbudget/id6763551701";
+const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
+---
+
+<Layout
+  locale="fr"
+  title={`${fr("confirm.title")} — NETbudget`}
+  description={fr("confirm.desc")}
+  pageKind="page"
+  noindex={true}
+  hideStickyCta={true}
+>
+  <section class="container-app py-14 md:py-24" id="confirm" data-state="signup">
+    <div class="mx-auto max-w-lg text-center">
+      {/* L'illustration : un cercle qui se trace, puis la coche. Sous
+          « Réduire les animations », tout est déjà dessiné. */}
+      <div class="mx-auto h-36 w-36" aria-hidden="true">
+        <svg viewBox="0 0 160 160" class="h-full w-full" fill="none">
+          <defs>
+            <linearGradient id="g-mint" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#6EE7B7" />
+              <stop offset="1" stop-color="#10B981" />
+            </linearGradient>
+          </defs>
+          <circle cx="80" cy="80" r="70" stroke="rgba(110,231,183,0.18)" stroke-width="2" />
+          <circle class="c-ring" cx="80" cy="80" r="70" stroke="url(#g-mint)" stroke-width="4" stroke-linecap="round" />
+          <circle class="c-fill" cx="80" cy="80" r="56" fill="url(#g-mint)" />
+          <path class="c-check" d="M52 82 L71 101 L110 60" stroke="#04140B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+          <g class="c-spark">
+            <circle cx="24" cy="40" r="3" fill="#6EE7B7" />
+            <circle cx="138" cy="30" r="2.5" fill="#22D3EE" />
+            <circle cx="146" cy="118" r="3" fill="#6EE7B7" />
+            <circle cx="18" cy="122" r="2" fill="#22D3EE" />
+          </g>
+          <g class="c-cross">
+            <path d="M60 60 L100 100 M100 60 L60 100" stroke="#04140B" stroke-width="9" stroke-linecap="round" />
+          </g>
+        </svg>
+      </div>
+
+      {
+        (["fr", "en"] as const).map((l) => {
+          const t = l === "fr" ? fr : en;
+          return (
+            <div data-lang={l} lang={l} class={l === "en" ? "hidden" : ""}>
+              {KINDS.map((k) => (
+                <div data-kind={k} class={k === "signup" ? "" : "hidden"}>
+                  <span class="eyebrow">{t(`confirm.${k}.eyebrow`)}</span>
+                  <h1 class="heading-2 mt-4 text-balance">{t(`confirm.${k}.title`)}</h1>
+                  <p class="body-lg mx-auto mt-4 max-w-md text-balance">{t(`confirm.${k}.body`)}</p>
+                </div>
+              ))}
+
+              <div data-open class="mt-8">
+                <a href="netbudget://auth-callback" data-open-app class="btn-primary text-base">
+                  {t("confirm.open")}
+                </a>
+                <p class="mt-4 text-sm text-text-3">{t("confirm.fallback")}</p>
+                <p class="mt-2 text-sm text-text-3">{t("confirm.otherDevice")}</p>
+              </div>
+
+              <div class="mt-10 border-t border-white/10 pt-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-text-3">{t("confirm.noApp")}</p>
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-3">
+                  <a href={APP_STORE} target="_blank" rel="noopener noreferrer" class="btn-secondary text-sm">
+                    {t("hero.cta.appstore")}
+                  </a>
+                  <a href={PLAY_STORE} target="_blank" rel="noopener noreferrer" class="btn-secondary text-sm">
+                    {t("hero.cta.googleplay")}
+                  </a>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .c-ring {
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    animation: c-draw 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .c-fill {
+    transform: scale(0);
+    transform-origin: 50% 50%;
+    animation: c-pop 0.5s 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  .c-check {
+    stroke-dasharray: 90;
+    stroke-dashoffset: 90;
+    animation: c-draw 0.45s 0.95s ease-out forwards;
+  }
+  .c-spark {
+    opacity: 0;
+    animation: c-fade 0.6s 1.2s ease-out forwards;
+  }
+  .c-cross {
+    display: none;
+  }
+  /* État d'erreur : le cercle rouge et une croix, sans célébration. */
+  [data-state="error"] .c-fill { fill: #FB7185; }
+  [data-state="error"] .c-ring { stroke: #FB7185; }
+  [data-state="error"] .c-check,
+  [data-state="error"] .c-spark { display: none; }
+  [data-state="error"] .c-cross { display: block; }
+
+  @keyframes c-draw { to { stroke-dashoffset: 0; } }
+  @keyframes c-pop { to { transform: scale(1); } }
+  @keyframes c-fade { to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .c-ring, .c-fill, .c-check, .c-spark { animation: none; }
+    .c-ring, .c-check { stroke-dashoffset: 0; }
+    .c-fill { transform: none; }
+    .c-spark { opacity: 1; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var root = document.getElementById("confirm");
+    if (!root) return;
+    var q = new URLSearchParams(location.search);
+    // Supabase met les erreurs (lien expiré, déjà utilisé) dans le fragment.
+    var h = new URLSearchParams(location.hash.replace(/^#/, ""));
+    var get = function (k) { return q.get(k) || h.get(k) || ""; };
+
+    var lang = (get("lang") || navigator.language || "fr").slice(0, 2) === "en" ? "en" : "fr";
+    var type = get("type");
+    var isError = !!(get("error") || get("error_code") || get("error_description"));
+    var kind = isError
+      ? "error"
+      : type === "recovery" ? "recovery"
+      : type === "magiclink" ? "magiclink"
+      : type === "email_change" ? "email_change"
+      : "signup";
+
+    document.documentElement.lang = lang;
+    root.setAttribute("data-state", kind);
+    root.querySelectorAll("[data-lang]").forEach(function (el) {
+      el.classList.toggle("hidden", el.getAttribute("data-lang") !== lang);
+    });
+    root.querySelectorAll("[data-kind]").forEach(function (el) {
+      el.classList.toggle("hidden", el.getAttribute("data-kind") !== kind);
+    });
+
+    // Le lien vers l'app : on lui transmet tout ce que Supabase a mis dans
+    // l'URL (le `code`, ou les jetons du fragment), sans rien interpréter.
+    var path = kind === "recovery" ? "reset-password" : "auth-callback";
+    var params = new URLSearchParams(location.search);
+    h.forEach(function (v, k) { if (!params.has(k)) params.set(k, v); });
+    params.delete("lang");
+    var deep = "netbudget://" + path + (params.toString() ? "?" + params.toString() : "");
+    root.querySelectorAll("[data-open-app]").forEach(function (a) { a.setAttribute("href", deep); });
+    root.querySelectorAll("[data-open]").forEach(function (el) { el.classList.toggle("hidden", isError); });
+
+    // Sur téléphone, on tente l'ouverture tout seul ; le bouton reste là si le
+    // navigateur demande un geste.
+    if (!isError && /iPhone|iPad|Android/i.test(navigator.userAgent)) {
+      setTimeout(function () { location.href = deep; }, 700);
+    }
+  })();
+</script>
