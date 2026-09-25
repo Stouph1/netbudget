@@ -1,0 +1,32 @@
+---
+// Page de remerciement, en français. Le contenu vit dans components/Thanks.
+import Layout from "../layouts/Layout.astro";
+import Breadcrumb from "../components/Breadcrumb.astro";
+import Thanks from "../components/Thanks.astro";
+import { useTranslations } from "../i18n/utils";
+
+const locale = "fr" as const;
+const t = useTranslations(locale);
+
+const crumbSchema = {
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: t("breadcrumb.home"), item: "https://www.netbudget.app/" },
+    { "@type": "ListItem", position: 2, name: t("page.thanks.title"), item: "https://www.netbudget.app/merci" },
+  ],
+};
+---
+
+<Layout
+  locale={locale}
+  title={`${t("page.thanks.title")} — NETbudget`}
+  description={t("page.thanks.desc")}
+  pageKind="page"
+  schema={crumbSchema}
+  hideStickyCta={true}
+>
+  <div class="container-app pt-8">
+    <Breadcrumb locale={locale} items={[{ label: t("page.thanks.title") }]} />
+  </div>
+  <Thanks locale={locale} />
+</Layout>

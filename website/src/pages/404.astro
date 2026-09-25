@@ -1,19 +1,26 @@
 ---
-// Page 404 avec un jeu : garder la balle en l'air avec une raquette.
+// Page 404 avec un jeu : « Reste à vivre ».
 //
 // POURQUOI UN JEU ICI. Une 404 est un cul-de-sac : la personne cherchait
 // quelque chose et ne l'a pas trouvé. Deux réactions possibles — repartir
 // agacée, ou sourire. Le jeu ne répare pas l'erreur, il change le souvenir.
+//
+// LE JEU. Des rentrées d'argent et des dépenses tombent ; on déplace un
+// porte-monnaie pour attraper les premières et éviter les secondes. Ce qui
+// donne envie de rejouer, ce n'est pas le graphisme, ce sont trois mécaniques :
+//  - le multiplicateur, qui monte à chaque rentrée attrapée d'affilée et
+//    retombe à la moindre faute — on veut protéger sa série ;
+//  - le rythme, qui accélère doucement : la partie finit toujours par
+//    dépasser le joueur, jamais tout de suite ;
+//  - le record, mémorisé sur l'appareil, et le rang obtenu en fin de partie.
 //
 // TROIS CONTRAINTES que je me suis données :
 //  - les vraies portes de sortie restent AU-DESSUS du jeu. Un jeu qui retient
 //    quelqu'un qui veut partir est une nuisance, pas une attention.
 //  - le jeu ne démarre qu'au clic. Une animation qui part seule consomme de la
 //    batterie et distrait de la seule chose utile : les liens.
-//  - il se met en pause dès que l'onglet passe en arrière-plan.
-//
-// La balle est le logo : elle a un sens ici, ce n'est pas un jeu collé au
-// hasard sur une page d'erreur.
+//  - il se met en pause dès que l'onglet passe en arrière-plan, et reprend
+//    là où il en était.
 import Layout from "../layouts/Layout.astro";
 import { useTranslations, localizedPath, getLocaleFromUrl } from "../i18n/utils";
 
@@ -21,6 +28,21 @@ import { useTranslations, localizedPath, getLocaleFromUrl } from "../i18n/utils"
 // demandé plutôt que de figer le français.
 const locale = getLocaleFromUrl(Astro.url);
 const t = useTranslations(locale);
+
+// Les textes dont le script a besoin, passés par des attributs data : la page
+// est traduite côté serveur, le script ne réintroduit pas de français en dur.
+const gameText = {
+  start: t("nf.game.start"),
+  play: t("nf.game.play"),
+  again: t("nf.game.again"),
+  resume: t("nf.game.resume"),
+  paused: t("nf.game.paused"),
+  over: t("nf.game.over"),
+  best: t("nf.game.best"),
+  newBest: t("nf.game.newBest"),
+  games: t("nf.game.games"),
+  ranks: [0, 1, 2, 3, 4].map((i) => t(`nf.game.rank.${i}`)).join("|"),
+};
 ---
 
 <Layout
@@ -69,6 +91,7 @@ const t = useTranslations(locale);
       <div class="flex items-end justify-between gap-4">
         <div>
           <p class="eyebrow">{t("nf.game.eyebrow")}</p>
+          <p class="mt-1 font-display text-xl font-bold text-text-1">{t("nf.game.title")}</p>
           <p class="mt-1 text-sm text-text-2">{t("nf.game.hint")}</p>
         </div>
         <div class="shrink-0 text-right">
@@ -79,38 +102,51 @@ const t = useTranslations(locale);
           >
             0
           </p>
+          <p id="g-lives" class="mt-1 text-xs tracking-[0.2em] text-rose-400" aria-live="polite"></p>
         </div>
       </div>
 
       <div
         id="g-wrap"
         class="relative mt-4 overflow-hidden rounded-2xl border border-white/10 bg-ink-800/60"
+        data-text={JSON.stringify(gameText)}
       >
         <canvas
           id="g-canvas"
-          class="block h-[300px] w-full touch-none"
+          class="block h-[380px] w-full touch-none select-none"
           role="img"
           aria-label={t("nf.game.a11y")}></canvas>
 
-        <!-- Écran d'accueil et de fin, superposés au canevas -->
+        <!-- Écrans d'accueil, de pause et de fin, superposés au canevas -->
         <div
           id="g-overlay"
-          class="absolute inset-0 grid place-items-center bg-ink-900/70 backdrop-blur-sm"
+          class="absolute inset-0 grid place-items-center bg-ink-900/75 backdrop-blur-sm"
         >
-          <div class="px-6 text-center">
-            <p
-              id="g-msg"
-              class="text-base font-semibold text-text-1"
-              data-over={t("nf.game.over")}
-            >
+          <div class="max-w-xs px-6 text-center">
+            <p id="g-rank" class="text-xs font-semibold uppercase tracking-[0.18em] text-mint-400"></p>
+            <p id="g-msg" class="mt-2 text-base font-semibold leading-snug text-text-1">
               {t("nf.game.start")}
             </p>
-            <p id="g-best" class="mt-1 text-xs text-text-3" data-best={t("nf.game.best")}></p>
+            <p id="g-final" class="mt-2 font-display text-4xl font-black tabular-nums text-text-1" hidden></p>
+            <p id="g-best" class="mt-2 text-xs text-text-3"></p>
+            <ul class="mt-4 space-y-1 text-left text-xs text-text-3" id="g-legend">
+              <li class="flex items-center gap-2">
+                <span aria-hidden="true" class="inline-block h-3 w-3 rounded-full bg-mint-400"></span>
+                {t("nf.game.legend.income")}
+              </li>
+              <li class="flex items-center gap-2">
+                <span aria-hidden="true" class="inline-block h-3 w-3 rounded-[3px] bg-rose-400"></span>
+                {t("nf.game.legend.expense")}
+              </li>
+              <li class="flex items-center gap-2">
+                <span aria-hidden="true" class="inline-block h-3 w-3 rotate-45 rounded-[2px] bg-amber-300"></span>
+                {t("nf.game.legend.bonus")}
+              </li>
+            </ul>
             <button
               id="g-btn"
               type="button"
-              class="mt-4 rounded-xl bg-mint-500 px-5 py-2.5 text-sm font-bold text-ink-900 transition hover:bg-mint-400"
-              data-again={t("nf.game.again")}
+              class="mt-5 rounded-xl bg-mint-500 px-6 py-2.5 text-sm font-bold text-ink-900 transition hover:bg-mint-400 active:scale-95"
             >
               {t("nf.game.play")}
             </button>
@@ -124,28 +160,44 @@ const t = useTranslations(locale);
 </Layout>
 
 <script>
-  // Jeu de raquette. Volontairement court et sans dépendance : une page
-  // d'erreur ne doit pas télécharger un moteur de jeu.
+  // « Reste à vivre ». Volontairement sans dépendance : une page d'erreur ne
+  // doit pas télécharger un moteur de jeu.
   const canvas = document.getElementById("g-canvas") as HTMLCanvasElement | null;
+  const wrap = document.getElementById("g-wrap");
   const overlay = document.getElementById("g-overlay");
   const btn = document.getElementById("g-btn");
   const msgEl = document.getElementById("g-msg");
+  const rankEl = document.getElementById("g-rank");
+  const finalEl = document.getElementById("g-final");
   const bestEl = document.getElementById("g-best");
+  const legendEl = document.getElementById("g-legend");
   const scoreEl = document.getElementById("g-score");
+  const livesEl = document.getElementById("g-lives");
 
-  if (canvas && overlay && btn && msgEl && bestEl && scoreEl) {
+  if (canvas && wrap && overlay && btn && msgEl && rankEl && finalEl && bestEl && legendEl && scoreEl && livesEl) {
     const ctx = canvas.getContext("2d")!;
+    const T = JSON.parse(wrap.dataset.text ?? "{}") as Record<string, string>;
+    const RANKS = (T.ranks ?? "").split("|");
     const BEST_KEY = "netbudget:404:best";
+    const GAMES_KEY = "netbudget:404:games";
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Textes lus depuis le DOM : la page est traduite côté serveur, le script
-    // ne doit pas réintroduire du français en dur.
-    const T = {
-      start: msgEl.textContent ?? "",
-      over: msgEl.dataset.over ?? "",
-      again: btn.dataset.again ?? btn.textContent ?? "",
-      play: btn.textContent ?? "",
-      best: bestEl.dataset.best ?? "",
+    const COLORS = {
+      income: "#34D399",
+      incomeDark: "#065F46",
+      expense: "#FB7185",
+      expenseDark: "#881337",
+      bonus: "#FCD34D",
+      bonusDark: "#92400E",
+      wallet: "#10B981",
+      ink: "#0A0A0C",
+      text: "#F5F5F7",
     };
+
+    type Kind = "income" | "expense" | "bonus";
+    type Item = { kind: Kind; x: number; y: number; vy: number; r: number; value: number; spin: number; wobble: number };
+    type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; r: number };
+    type Floater = { x: number; y: number; text: string; life: number; color: string };
 
     let W = 0;
     let H = 0;
@@ -153,27 +205,48 @@ const t = useTranslations(locale);
 
     const logo = new Image();
     let logoReady = false;
-    logo.onload = () => {
-      logoReady = true;
-    };
-    logo.src = "/logo.png";
+    logo.onload = () => (logoReady = true);
+    logo.src = "/logo-64.png";
 
-    const state = {
-      running: false,
+    const S = {
+      phase: "idle" as "idle" | "running" | "paused" | "over",
       score: 0,
-      ballX: 0,
-      ballY: 0,
-      vx: 0,
-      vy: 0,
-      r: 17,
+      lives: 3,
+      combo: 0,
+      mult: 1,
+      elapsed: 0,
+      spawnIn: 0,
+      items: [] as Item[],
+      particles: [] as Particle[],
+      floaters: [] as Floater[],
       padX: 0,
+      padTarget: 0,
       padW: 96,
-      padH: 12,
+      padH: 18,
+      squash: 0,
+      shake: 0,
+      flash: 0,
+      keys: { left: false, right: false },
       raf: 0,
+      last: 0,
+      hitFlashColor: "",
     };
+
+    // ---- Difficulté. Tout dépend du temps écoulé : le jeu ne « change pas
+    // de niveau », il glisse, et on ne voit pas venir le moment où ça dérape.
+    const ramp = (a: number, b: number, t: number) => a + (b - a) * Math.min(1, t);
+    function difficulty() {
+      const t = S.elapsed / 75; // plein régime après 75 s
+      return {
+        spawn: ramp(0.95, 0.36, t), // secondes entre deux objets
+        speed: ramp(0.36, 0.95, t), // fraction de H par seconde
+        expense: ramp(0.22, 0.46, t), // part de dépenses
+        bonus: 0.045,
+      };
+    }
 
     function resize() {
-      // Rendu à la densité réelle de l'écran : sans ça, le cercle bave.
+      // Rendu à la densité réelle de l'écran : sans ça, tout bave.
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = canvas.getBoundingClientRect();
       W = rect.width;
@@ -181,29 +254,215 @@ const t = useTranslations(locale);
       canvas.width = Math.round(W * dpr);
       canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // La raquette rétrécit sur petit écran, sinon elle couvre tout.
-      state.padW = Math.max(64, Math.min(110, W * 0.24));
-      state.padX = Math.min(state.padX, W - state.padW);
-      if (!state.running) draw();
+      // Le porte-monnaie rétrécit sur petit écran, sinon il couvre tout.
+      S.padW = Math.max(72, Math.min(120, W * 0.26));
+      S.padX = Math.min(S.padX, W - S.padW);
+      S.padTarget = S.padX;
+      if (S.phase !== "running") draw();
+    }
+
+    function readInt(key: string) {
+      try {
+        return parseInt(localStorage.getItem(key) ?? "0", 10) || 0;
+      } catch {
+        return 0; // navigation privée : on joue sans mémoire, ce n'est pas grave
+      }
+    }
+    function writeInt(key: string, v: number) {
+      try {
+        localStorage.setItem(key, String(v));
+      } catch {
+        /* idem */
+      }
+    }
+
+    function renderHud() {
+      scoreEl.textContent = String(S.score);
+      livesEl.textContent = "●".repeat(S.lives) + "○".repeat(Math.max(0, 3 - S.lives));
     }
 
     function reset() {
-      state.score = 0;
-      scoreEl.textContent = "0";
-      state.r = Math.max(13, Math.min(19, W * 0.035));
-      state.ballX = W / 2;
-      state.ballY = H * 0.3;
-      // Départ légèrement de biais, jamais parfaitement vertical : un aller-
-      // retour strictement droit n'a aucun intérêt.
-      state.vx = (Math.random() > 0.5 ? 1 : -1) * (W * 0.0032 + Math.random() * W * 0.0016);
-      state.vy = H * 0.006;
-      state.padX = (W - state.padW) / 2;
+      S.score = 0;
+      S.lives = 3;
+      S.combo = 0;
+      S.mult = 1;
+      S.elapsed = 0;
+      S.spawnIn = 0.4;
+      S.items = [];
+      S.particles = [];
+      S.floaters = [];
+      S.padX = (W - S.padW) / 2;
+      S.padTarget = S.padX;
+      S.squash = 0;
+      S.shake = 0;
+      S.flash = 0;
+      renderHud();
+    }
+
+    // ---- Objets
+    function spawn() {
+      const d = difficulty();
+      const roll = Math.random();
+      const kind: Kind = roll < d.bonus ? "bonus" : roll < d.bonus + d.expense ? "expense" : "income";
+      const r = kind === "bonus" ? 15 : 14;
+      const value =
+        kind === "income"
+          ? [20, 30, 40, 50, 80][Math.floor(Math.random() * 5)]
+          : kind === "bonus"
+            ? 150
+            : 0;
+      S.items.push({
+        kind,
+        x: r + 8 + Math.random() * (W - 2 * r - 16),
+        y: -r - 4,
+        vy: H * d.speed * (0.85 + Math.random() * 0.3),
+        r,
+        value,
+        spin: Math.random() * Math.PI * 2,
+        wobble: (Math.random() - 0.5) * 30,
+      });
+    }
+
+    function burst(x: number, y: number, color: string, n: number) {
+      if (reduced) return;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = 60 + Math.random() * 180;
+        S.particles.push({
+          x,
+          y,
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp - 60,
+          life: 0,
+          max: 0.45 + Math.random() * 0.35,
+          color,
+          r: 1.5 + Math.random() * 2.5,
+        });
+      }
+    }
+
+    function floater(x: number, y: number, text: string, color: string) {
+      S.floaters.push({ x, y, text, life: 0, color });
+    }
+
+    function catchItem(it: Item) {
+      const padCx = S.padX + S.padW / 2;
+      if (it.kind === "expense") {
+        S.lives -= 1;
+        S.combo = 0;
+        S.mult = 1;
+        S.shake = reduced ? 0 : 0.35;
+        S.flash = 0.25;
+        S.hitFlashColor = "rgba(251,113,133,0.22)";
+        burst(it.x, it.y, COLORS.expense, 14);
+        floater(padCx, H - 70, "−1", COLORS.expense);
+        renderHud();
+        if (S.lives <= 0) gameOver();
+        return;
+      }
+      if (it.kind === "bonus") {
+        S.lives = Math.min(3, S.lives + 1);
+        S.score += it.value * S.mult;
+        S.flash = 0.2;
+        S.hitFlashColor = "rgba(252,211,77,0.16)";
+        burst(it.x, it.y, COLORS.bonus, 26);
+        floater(it.x, it.y, `+${it.value * S.mult}`, COLORS.bonus);
+        renderHud();
+        return;
+      }
+      S.combo += 1;
+      // Le multiplicateur monte tous les cinq objets d'affilée, jusqu'à ×5.
+      S.mult = Math.min(5, 1 + Math.floor(S.combo / 5));
+      S.score += it.value * S.mult;
+      S.squash = 1;
+      burst(it.x, it.y, COLORS.income, 10);
+      floater(it.x, it.y, S.mult > 1 ? `+${it.value} ×${S.mult}` : `+${it.value}`, COLORS.income);
+      if (S.combo % 5 === 0 && S.mult > 1) floater(padCx, H - 78, `×${S.mult}`, COLORS.text);
+      renderHud();
+    }
+
+    function missIncome() {
+      // Une rentrée manquée ne coûte pas de vie : elle casse la série. C'est
+      // suffisant pour faire mal, et ça garde le jeu jouable au doigt.
+      if (S.combo > 0) {
+        S.combo = 0;
+        S.mult = 1;
+        floater(S.padX + S.padW / 2, H - 78, "×1", "rgba(245,245,247,0.6)");
+      }
+    }
+
+    // ---- Boucle
+    function update(dt: number) {
+      S.elapsed += dt;
+      const d = difficulty();
+
+      // Clavier : déplacement continu tant que la touche est tenue.
+      const kv = W * 0.9 * dt;
+      if (S.keys.left) S.padTarget -= kv;
+      if (S.keys.right) S.padTarget += kv;
+      S.padTarget = Math.max(0, Math.min(W - S.padW, S.padTarget));
+      // Suivi souple du pointeur : moins nerveux, plus agréable.
+      S.padX += (S.padTarget - S.padX) * Math.min(1, dt * 22);
+
+      S.spawnIn -= dt;
+      if (S.spawnIn <= 0) {
+        spawn();
+        S.spawnIn = d.spawn * (0.8 + Math.random() * 0.4);
+      }
+
+      const padTop = H - S.padH - 14;
+      for (let i = S.items.length - 1; i >= 0; i--) {
+        const it = S.items[i];
+        it.y += it.vy * dt;
+        it.spin += dt * 2.5;
+        const x = it.x + Math.sin(it.spin) * it.wobble * 0.15;
+        const inPadX = x + it.r * 0.7 >= S.padX && x - it.r * 0.7 <= S.padX + S.padW;
+        if (it.y + it.r >= padTop && it.y - it.r <= padTop + S.padH && inPadX) {
+          S.items.splice(i, 1);
+          catchItem(it);
+          if (S.phase !== "running") return;
+          continue;
+        }
+        if (it.y - it.r > H) {
+          S.items.splice(i, 1);
+          if (it.kind === "income") missIncome();
+        }
+      }
+
+      for (let i = S.particles.length - 1; i >= 0; i--) {
+        const p = S.particles[i];
+        p.life += dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 420 * dt;
+        if (p.life >= p.max) S.particles.splice(i, 1);
+      }
+      for (let i = S.floaters.length - 1; i >= 0; i--) {
+        const f = S.floaters[i];
+        f.life += dt;
+        f.y -= 38 * dt;
+        if (f.life > 0.9) S.floaters.splice(i, 1);
+      }
+      S.squash = Math.max(0, S.squash - dt * 5);
+      S.shake = Math.max(0, S.shake - dt);
+      S.flash = Math.max(0, S.flash - dt);
+    }
+
+    function roundRect(x: number, y: number, w: number, h: number, r: number) {
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") ctx.roundRect(x, y, w, h, r);
+      else ctx.rect(x, y, w, h); // Safari < 16 : un rectangle net vaut mieux que rien
     }
 
     function draw() {
+      ctx.save();
       ctx.clearRect(0, 0, W, H);
+      if (S.shake > 0) {
+        const a = S.shake * 8;
+        ctx.translate((Math.random() - 0.5) * a, (Math.random() - 0.5) * a);
+      }
 
-      // Ligne de sol : sans repère, on ne sait pas où la balle se perd.
+      // Sol
       ctx.strokeStyle = "rgba(255,255,255,0.07)";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -211,134 +470,197 @@ const t = useTranslations(locale);
       ctx.lineTo(W, H - 4);
       ctx.stroke();
 
-      // Raquette
-      const py = H - state.padH - 10;
-      ctx.fillStyle = "#10B981";
-      const r = state.padH / 2;
-      ctx.beginPath();
-      if (typeof ctx.roundRect === "function") {
-        ctx.roundRect(state.padX, py, state.padW, state.padH, r);
-        ctx.fill();
-      } else {
-        // Safari < 16 ne connaît pas roundRect : un rectangle net vaut mieux
-        // qu'une raquette absente.
-        ctx.fillRect(state.padX, py, state.padW, state.padH);
+      // Objets
+      for (const it of S.items) {
+        const x = it.x + Math.sin(it.spin) * it.wobble * 0.15;
+        if (it.kind === "income") {
+          ctx.fillStyle = COLORS.income;
+          ctx.beginPath();
+          ctx.arc(x, it.y, it.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255,255,255,0.35)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, it.y, it.r - 4, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = COLORS.incomeDark;
+          ctx.font = "bold 15px system-ui, -apple-system, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("+", x, it.y + 1);
+        } else if (it.kind === "expense") {
+          ctx.save();
+          ctx.translate(x, it.y);
+          ctx.rotate(Math.sin(it.spin) * 0.25);
+          ctx.fillStyle = COLORS.expense;
+          roundRect(-it.r, -it.r, it.r * 2, it.r * 2, 6);
+          ctx.fill();
+          ctx.fillStyle = COLORS.expenseDark;
+          ctx.font = "bold 16px system-ui, -apple-system, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("−", 0, 1);
+          ctx.restore();
+        } else {
+          ctx.save();
+          ctx.translate(x, it.y);
+          ctx.rotate(it.spin);
+          ctx.shadowColor = COLORS.bonus;
+          ctx.shadowBlur = 16;
+          ctx.fillStyle = COLORS.bonus;
+          roundRect(-it.r * 0.8, -it.r * 0.8, it.r * 1.6, it.r * 1.6, 4);
+          ctx.fill();
+          ctx.restore();
+          ctx.fillStyle = COLORS.bonusDark;
+          ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("+1", x, it.y + 1);
+        }
       }
 
-      // Balle : le logo, ou un disque si l'image n'est pas encore chargée.
+      // Porte-monnaie : s'écrase un peu à chaque prise, c'est le retour tactile.
+      const py = H - S.padH - 14;
+      const sq = S.squash * 4;
+      ctx.fillStyle = COLORS.wallet;
+      roundRect(S.padX - sq, py + sq * 0.6, S.padW + sq * 2, S.padH - sq * 0.6, S.padH / 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      roundRect(S.padX + 6, py + 3, S.padW - 12, 4, 2);
+      ctx.fill();
       if (logoReady) {
+        const lr = 13;
+        const cx = S.padX + S.padW / 2;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(state.ballX, state.ballY, state.r, 0, Math.PI * 2);
-        ctx.closePath();
+        ctx.arc(cx, py - 2, lr, 0, Math.PI * 2);
         ctx.clip();
-        ctx.drawImage(
-          logo,
-          state.ballX - state.r,
-          state.ballY - state.r,
-          state.r * 2,
-          state.r * 2,
-        );
+        ctx.drawImage(logo, cx - lr, py - 2 - lr, lr * 2, lr * 2);
         ctx.restore();
-      } else {
-        ctx.fillStyle = "#6EE7B7";
+      }
+      // Multiplicateur, collé au porte-monnaie : c'est lui qu'on protège.
+      if (S.mult > 1) {
+        ctx.fillStyle = COLORS.text;
+        ctx.font = "bold 12px system-ui, -apple-system, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`×${S.mult}`, S.padX + S.padW / 2, py + S.padH + 8 - 2);
+      }
+
+      for (const p of S.particles) {
+        ctx.globalAlpha = 1 - p.life / p.max;
+        ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(state.ballX, state.ballY, state.r, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      for (const f of S.floaters) {
+        ctx.globalAlpha = 1 - f.life / 0.9;
+        ctx.fillStyle = f.color;
+        ctx.font = "bold 14px system-ui, -apple-system, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(f.text, f.x, f.y);
+      }
+      ctx.globalAlpha = 1;
+
+      if (S.flash > 0) {
+        ctx.fillStyle = S.hitFlashColor;
+        ctx.globalAlpha = S.flash / 0.25;
+        ctx.fillRect(-20, -20, W + 40, H + 40);
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
+
+    function frame(now: number) {
+      if (S.phase !== "running") return;
+      const dt = Math.min(0.05, (now - S.last) / 1000 || 0);
+      S.last = now;
+      update(dt);
+      if (S.phase === "running") {
+        draw();
+        S.raf = requestAnimationFrame(frame);
       }
     }
 
-    function gameOver() {
-      state.running = false;
-      cancelAnimationFrame(state.raf);
-      let best = 0;
-      try {
-        best = parseInt(localStorage.getItem(BEST_KEY) ?? "0", 10) || 0;
-        if (state.score > best) {
-          best = state.score;
-          localStorage.setItem(BEST_KEY, String(best));
-        }
-      } catch {
-        // Navigation privée : on joue sans mémoire, ce n'est pas grave.
+    // ---- Écrans
+    function rankFor(score: number) {
+      const i = score >= 6000 ? 4 : score >= 3000 ? 3 : score >= 1200 ? 2 : score >= 400 ? 1 : 0;
+      return RANKS[i] ?? "";
+    }
+
+    function showOverlay(kind: "idle" | "paused" | "over") {
+      const best = readInt(BEST_KEY);
+      const games = readInt(GAMES_KEY);
+      rankEl.textContent = "";
+      finalEl.hidden = true;
+      legendEl.hidden = kind !== "idle";
+      if (kind === "idle") {
+        msgEl.textContent = T.start;
+        btn.textContent = T.play;
+      } else if (kind === "paused") {
+        msgEl.textContent = T.paused;
+        btn.textContent = T.resume;
+      } else {
+        rankEl.textContent = rankFor(S.score);
+        msgEl.textContent = S.score > 0 && S.score >= best ? T.newBest : T.over;
+        finalEl.textContent = String(S.score);
+        finalEl.hidden = false;
+        btn.textContent = T.again;
       }
-      msgEl.textContent = T.over;
-      bestEl.textContent = best > 0 ? `${T.best} ${best}` : "";
-      btn.textContent = T.again;
+      bestEl.textContent =
+        best > 0 ? `${T.best} ${best}${games > 1 ? ` · ${games} ${T.games}` : ""}` : "";
       overlay.classList.remove("hidden");
     }
 
-    function step() {
-      if (!state.running) return;
-
-      state.ballX += state.vx;
-      state.ballY += state.vy;
-      // Gravité douce : le jeu doit rester jouable au doigt sur un téléphone.
-      state.vy += H * 0.00035;
-
-      // Murs latéraux
-      if (state.ballX - state.r < 0) {
-        state.ballX = state.r;
-        state.vx = Math.abs(state.vx);
-      } else if (state.ballX + state.r > W) {
-        state.ballX = W - state.r;
-        state.vx = -Math.abs(state.vx);
-      }
-
-      // Plafond
-      if (state.ballY - state.r < 0) {
-        state.ballY = state.r;
-        state.vy = Math.abs(state.vy);
-      }
-
-      // Raquette
-      const py = H - state.padH - 10;
-      if (
-        state.vy > 0 &&
-        state.ballY + state.r >= py &&
-        state.ballY + state.r <= py + state.padH + Math.abs(state.vy) &&
-        state.ballX >= state.padX - state.r &&
-        state.ballX <= state.padX + state.padW + state.r
-      ) {
-        state.ballY = py - state.r;
-        state.vy = -Math.abs(state.vy) * 1.015;
-        // L'angle dépend du point d'impact : c'est ce qui rend le jeu pilotable
-        // au lieu de subir la balle.
-        const hit = (state.ballX - (state.padX + state.padW / 2)) / (state.padW / 2);
-        state.vx += hit * W * 0.0022;
-        // Vitesse horizontale bornée, sinon la balle devient intraçable.
-        const max = W * 0.011;
-        state.vx = Math.max(-max, Math.min(max, state.vx));
-        state.score += 1;
-        scoreEl.textContent = String(state.score);
-      }
-
-      if (state.ballY - state.r > H) {
-        gameOver();
-        return;
-      }
-
+    function gameOver() {
+      S.phase = "over";
+      cancelAnimationFrame(S.raf);
+      // On enregistre AVANT d'afficher : l'écran de fin lit le record.
+      writeInt(GAMES_KEY, readInt(GAMES_KEY) + 1);
+      if (S.score > readInt(BEST_KEY)) writeInt(BEST_KEY, S.score);
+      showOverlay("over");
       draw();
-      state.raf = requestAnimationFrame(step);
     }
 
     function start() {
       reset();
       overlay.classList.add("hidden");
-      state.running = true;
-      state.raf = requestAnimationFrame(step);
+      S.phase = "running";
+      S.last = performance.now();
+      S.raf = requestAnimationFrame(frame);
+    }
+    function pause() {
+      if (S.phase !== "running") return;
+      S.phase = "paused";
+      cancelAnimationFrame(S.raf);
+      showOverlay("paused");
+    }
+    function resume() {
+      overlay.classList.add("hidden");
+      S.phase = "running";
+      S.last = performance.now();
+      S.raf = requestAnimationFrame(frame);
     }
 
+    btn.addEventListener("click", () => {
+      if (S.phase === "paused") resume();
+      else start();
+    });
+
+    // ---- Commandes
     function movePad(clientX: number) {
       const rect = canvas.getBoundingClientRect();
-      state.padX = Math.max(
-        0,
-        Math.min(W - state.padW, clientX - rect.left - state.padW / 2),
-      );
-      if (!state.running) draw();
+      S.padTarget = Math.max(0, Math.min(W - S.padW, clientX - rect.left - S.padW / 2));
+      if (S.phase !== "running") {
+        S.padX = S.padTarget;
+        draw();
+      }
     }
-
-    btn.addEventListener("click", start);
     canvas.addEventListener("pointermove", (e) => movePad(e.clientX), { passive: true });
+    canvas.addEventListener("pointerdown", (e) => movePad(e.clientX), { passive: true });
     canvas.addEventListener(
       "touchmove",
       (e) => {
@@ -348,25 +670,29 @@ const t = useTranslations(locale);
       },
       { passive: false },
     );
-
-    // Clavier : le jeu doit être jouable sans souris ni écran tactile.
+    // Clavier : jouable sans souris ni écran tactile. Espace ou P met en pause.
     window.addEventListener("keydown", (e) => {
-      if (!state.running) return;
-      const stepPx = W * 0.06;
-      if (e.key === "ArrowLeft") {
-        state.padX = Math.max(0, state.padX - stepPx);
-      } else if (e.key === "ArrowRight") {
-        state.padX = Math.min(W - state.padW, state.padX + stepPx);
-      }
+      if (e.key === "ArrowLeft") S.keys.left = true;
+      else if (e.key === "ArrowRight") S.keys.right = true;
+      else if ((e.key === " " || e.key.toLowerCase() === "p") && S.phase === "running") {
+        e.preventDefault();
+        pause();
+      } else return;
+      if (S.phase === "running") e.preventDefault();
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft") S.keys.left = false;
+      else if (e.key === "ArrowRight") S.keys.right = false;
     });
 
-    // Onglet en arrière-plan : on arrête tout. Faire tourner une boucle
-    // d'animation invisible ne sert qu'à vider la batterie.
+    // Onglet en arrière-plan : pause, pas de boucle qui tourne dans le vide.
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden && state.running) gameOver();
+      if (document.hidden) pause();
     });
 
     window.addEventListener("resize", resize);
     resize();
+    reset();
+    showOverlay("idle");
   }
 </script>

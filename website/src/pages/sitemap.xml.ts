@@ -25,6 +25,7 @@ function weight(path: string): { priority: string; changefreq: string } {
   if (path === "/") return { priority: "1.0", changefreq: "weekly" };
   if (path === "/en/") return { priority: "0.9", changefreq: "weekly" };
   if (path.includes("/faq")) return { priority: "0.8", changefreq: "monthly" };
+  if (path.includes("/merci") || path.includes("/thank-you")) return { priority: "0.5", changefreq: "monthly" };
   // Mentions légales : utiles, rarement modifiées, jamais des pages d'entrée.
   return { priority: "0.4", changefreq: "yearly" };
 }

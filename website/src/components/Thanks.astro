@@ -1,0 +1,149 @@
+---
+// Page de remerciement. Pas un accusé de réception : une lettre.
+//
+// Elle s'adresse aux personnes qui font exister l'application — celles qui
+// l'ont installée, notée, celles qui ont écrit, celles qui ont testé. Rien
+// n'y est inventé : le seul chiffre affiché vient de la boutique, lu au build
+// (voir lib/appStore), et les exemples de retours sont de vrais retours.
+//
+// Le ton : direct, sans flatterie, sans demande déguisée. On remercie, on dit
+// ce que ça a changé, et on s'arrête là.
+import { useTranslations, type Locale } from "../i18n/utils";
+import { getAppStoreFacts } from "../lib/appStore";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const store = await getAppStoreFacts();
+const ratingCount = store && store.ratingCount > 0 ? store.ratingCount : null;
+
+const APP_STORE = "https://apps.apple.com/app/netbudget/id6763551701";
+const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
+
+const groups = ["installed", "rated", "wrote", "tested", "close"] as const;
+const changes = ["android", "percent", "tour"] as const;
+---
+
+<article class="relative overflow-hidden">
+  {/* Halo discret, le même que l'accueil : la page appartient au site. */}
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-radial from-mint-500/12 to-transparent blur-3xl"
+  >
+  </div>
+
+  <header class="container-app pb-12 pt-10 md:pb-16 md:pt-16">
+    <div class="mx-auto max-w-3xl">
+      <span class="eyebrow">{t("thanks.eyebrow")}</span>
+      <h1 class="heading-1 mt-4 text-balance">
+        {t("thanks.title")}
+        <span class="text-mint-400">{t("thanks.title.accent")}</span>
+      </h1>
+      <p class="body-lg mt-6 max-w-2xl text-balance">{t("thanks.lead")}</p>
+    </div>
+  </header>
+
+  {/* La lettre. Colonne de lecture étroite : c'est un texte, pas une page
+      de fonctionnalités. */}
+  <section class="container-app">
+    <div class="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/[0.03] p-7 md:p-12">
+      <div class="flex items-center gap-4">
+        <picture>
+          <source srcset="/avatar-320.webp" type="image/webp" />
+          <img
+            src="/avatar-320.jpg"
+            width="56"
+            height="56"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            class="h-14 w-14 rounded-full object-cover ring-1 ring-white/10"
+          />
+        </picture>
+        <div>
+          <p class="font-semibold text-text-1">{t("maker.name")}</p>
+          <p class="text-sm text-text-3">{t("maker.role")}</p>
+        </div>
+      </div>
+
+      <div class="prose-letter mt-8 space-y-5 text-[17px] leading-relaxed text-text-2">
+        <p>{t("thanks.letter.p1")}</p>
+        <p>{t("thanks.letter.p2")}</p>
+        <p>{t("thanks.letter.p3")}</p>
+        <p class="text-text-1">{t("thanks.letter.p4")}</p>
+      </div>
+
+      <p class="mt-8 font-display text-lg font-semibold text-text-1">{t("thanks.letter.sign")}</p>
+    </div>
+  </section>
+
+  {/* À qui. Une liste, parce que chacun·e doit pouvoir s'y reconnaître. */}
+  <section class="container-app py-16 md:py-24">
+    <div class="mx-auto max-w-3xl">
+      <h2 class="heading-2 text-balance">{t("thanks.who.title")}</h2>
+      <ul class="mt-10 divide-y divide-white/[0.07]">
+        {
+          groups.map((g, i) => (
+            <li class="reveal grid gap-2 py-6 md:grid-cols-[auto_1fr] md:gap-8">
+              <span class="font-display text-sm font-bold tabular-nums text-mint-400">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div>
+                <p class="text-lg font-semibold text-text-1">
+                  {g === "rated" && ratingCount
+                    ? t("thanks.who.rated.title.count").replace("{n}", String(ratingCount))
+                    : t(`thanks.who.${g}.title`)}
+                </p>
+                <p class="mt-1 text-text-2">{t(`thanks.who.${g}.body`)}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        ratingCount ? (
+          <p class="mt-4 text-xs text-text-3">{t("thanks.who.source")}</p>
+        ) : null
+      }
+    </div>
+  </section>
+
+  {/* Ce que ça a changé. Des faits, pas des promesses : chaque ligne est un
+      retour reçu et ce qu'il a produit. */}
+  <section class="container-app pb-16 md:pb-24">
+    <div class="mx-auto max-w-3xl">
+      <h2 class="heading-2 text-balance">{t("thanks.changed.title")}</h2>
+      <p class="body-lg mt-4 max-w-2xl">{t("thanks.changed.lead")}</p>
+      <div class="mt-10 grid gap-4 md:grid-cols-3">
+        {
+          changes.map((c) => (
+            <div class="reveal rounded-2xl border border-white/10 bg-ink-800/60 p-6">
+              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-text-3">{t("thanks.changed.from")}</p>
+              <p class="mt-2 text-text-1">{t(`thanks.changed.${c}.from`)}</p>
+              <div aria-hidden="true" class="my-4 h-px w-8 bg-mint-500/60"></div>
+              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-mint-400">{t("thanks.changed.to")}</p>
+              <p class="mt-2 text-text-2">{t(`thanks.changed.${c}.to`)}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* La suite : trois façons d'aider, aucune obligation. Le texte le dit. */}
+  <section class="container-app pb-20 md:pb-28">
+    <div class="mx-auto max-w-3xl rounded-3xl border border-mint-500/20 bg-gradient-to-br from-mint-500/10 via-transparent to-cyan-400/5 p-7 md:p-12">
+      <h2 class="heading-2 text-balance">{t("thanks.next.title")}</h2>
+      <p class="body-lg mt-4 max-w-2xl">{t("thanks.next.lead")}</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href={APP_STORE} target="_blank" rel="noopener noreferrer" class="btn-primary">{t("thanks.next.rate")}</a>
+        <a href={PLAY_STORE} target="_blank" rel="noopener noreferrer" class="btn-secondary">{t("thanks.next.ratePlay")}</a>
+        <a href="mailto:contact@netbudget.app" class="btn-secondary">{t("thanks.next.write")}</a>
+      </div>
+      <p class="mt-6 text-sm text-text-3">{t("thanks.next.note")}</p>
+    </div>
+  </section>
+</article>
