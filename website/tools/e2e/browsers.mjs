@@ -64,6 +64,11 @@ for (const [name, launch] of targets) {
     // EN + 404
     await page.goto(BASE + "/en/faq", { waitUntil: "networkidle" });
     ok("FAQ EN : H1 et hreflang", (await page.$$("h1")).length === 1 && (await page.$$eval('link[rel="alternate"]', ls => ls.some(l => l.href.endsWith("/en/faq")))));
+    // page de retour des e-mails : langue, etat, lien vers l'app
+    await page.goto(BASE + "/confirmation?type=recovery&lang=en&code=k1", { waitUntil: "networkidle" });
+    ok("confirmation : EN + nouveau mot de passe + lien vers l'app", await page.evaluate(() => document.documentElement.lang === "en" && document.getElementById("confirm").dataset.state === "recovery" && [...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent && a.getAttribute("href") === "netbudget://reset-password?type=recovery&code=k1")));
+    await page.goto(BASE + "/confirmation?lang=fr#error=access_denied&error_code=otp_expired", { waitUntil: "networkidle" });
+    ok("confirmation : lien expire sans bouton d'ouverture", await page.evaluate(() => document.getElementById("confirm").dataset.state === "error" && ![...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent)));
     const r = await page.goto(BASE + "/nimporte-quoi", { waitUntil: "networkidle" });
     ok("404", r.status() === 404);
     ok("aucune erreur console", errors.length === 0, errors.slice(0, 2).join(" | "));

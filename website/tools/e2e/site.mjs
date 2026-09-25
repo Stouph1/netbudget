@@ -64,6 +64,8 @@ try {
   await page.evaluate(() => document.querySelector("#screens").scrollIntoView()); await new Promise(r=>setTimeout(r,1200));
   ok("captures en WebP avec dimensions", await page.$$eval("#screens img", is => is.every(i => i.currentSrc.endsWith(".webp") && i.getAttribute("width")==="720")), await page.$$eval("#screens img", is => is.map(i=>i.currentSrc.split("/").pop()).join(",")));
   // 404
+  await page.goto(BASE + "/confirmation?type=signup&lang=fr&code=k1", { waitUntil: "networkidle0" });
+  ok("confirmation : FR, adresse confirmee, lien vers l'app", await page.evaluate(() => document.documentElement.lang === "fr" && document.getElementById("confirm").dataset.state === "signup" && [...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent && a.getAttribute("href") === "netbudget://auth-callback?type=signup&code=k1")));
   const r404 = await page.goto(BASE + "/nimporte-quoi", { waitUntil: "networkidle0" });
   ok("404 rend la page d'erreur", r404.status()===404 && (await page.title()).length>0, `status ${r404.status()}`);
   // clavier : tab depuis le haut atteint le lien d'evitement puis le logo
