@@ -1,0 +1,124 @@
+---
+// Page d'invitation à un espace partagé. C'est le lien que l'app met dans le
+// message de partage (WhatsApp, SMS, mail) : `/rejoindre?code=…&lang=…`.
+//
+// POURQUOI UNE PAGE ET PAS UN LIEN `netbudget://`. Les messageries ne rendent
+// pas un schéma d'app cliquable, et sans l'app installée il ne mène nulle
+// part. Ici : un aperçu avec le logo dans la conversation, un bouton qui
+// ouvre l'app sur la feuille « Rejoindre » déjà remplie, et sinon la boutique
+// et le code à coller.
+//
+// LE CODE N'EST PAS UN SECRET DE PLUS que le message qui le contient : il est
+// à usage unique, expire en 14 jours, et le serveur vérifie la formule du
+// propriétaire avant d'accepter. La page ne fait que le montrer.
+//
+// Bilingue, hors index, comme la page de confirmation.
+import Layout from "../layouts/Layout.astro";
+import { useTranslations } from "../i18n/utils";
+
+const fr = useTranslations("fr");
+const en = useTranslations("en");
+const APP_STORE = "https://apps.apple.com/app/netbudget/id6763551701";
+const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
+---
+
+<Layout
+  locale="fr"
+  title={`${fr("join.title")} — NETbudget`}
+  description={fr("join.desc")}
+  pageKind="page"
+  noindex={true}
+  hideStickyCta={true}
+>
+  <section class="container-app py-14 md:py-24" id="join" data-state="ok">
+    <div class="mx-auto max-w-lg text-center">
+      <div class="mx-auto flex h-28 w-28 items-center justify-center" aria-hidden="true">
+        <div class="relative">
+          <img src="/logo.png" width="88" height="88" alt="" class="h-22 w-22 rounded-[22px] shadow-[0_0_50px_-10px_rgba(110,231,183,0.6)]" />
+          <span class="absolute -bottom-2 -right-2 grid h-9 w-9 place-items-center rounded-full bg-mint-500 text-lg ring-4 ring-ink-900">👋</span>
+        </div>
+      </div>
+
+      {
+        (["fr", "en"] as const).map((l) => {
+          const t = l === "fr" ? fr : en;
+          return (
+            <div data-lang={l} lang={l} class={l === "en" ? "hidden" : ""}>
+              <div data-kind="ok">
+                <span class="eyebrow mt-6 inline-block">{t("join.eyebrow")}</span>
+                <h1 class="heading-2 mt-4 text-balance">{t("join.h1")}</h1>
+                <p class="body-lg mx-auto mt-4 max-w-md text-balance">{t("join.body")}</p>
+
+                <a href="netbudget://workspaces" data-open-app class="btn-primary mt-8 text-base">
+                  {t("join.open")}
+                </a>
+
+                <div class="mx-auto mt-8 max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left">
+                  <p class="text-xs font-semibold uppercase tracking-[0.16em] text-text-3">{t("join.code")}</p>
+                  <p data-code class="mt-2 break-all font-mono text-sm leading-relaxed text-text-1"></p>
+                  <button type="button" data-copy data-copied={t("join.copied")} class="btn-secondary mt-3 text-sm">
+                    {t("join.copy")}
+                  </button>
+                  <p class="mt-3 text-xs text-text-3">{t("join.expiry")}</p>
+                </div>
+
+                <div class="mt-10 border-t border-white/10 pt-6">
+                  <p class="text-xs font-semibold uppercase tracking-[0.16em] text-text-3">{t("join.noApp")}</p>
+                  <p class="mt-2 text-sm text-text-2">{t("join.noApp.body")}</p>
+                  <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                    <a href={APP_STORE} target="_blank" rel="noopener noreferrer" class="btn-secondary text-sm">{t("hero.cta.appstore")}</a>
+                    <a href={PLAY_STORE} target="_blank" rel="noopener noreferrer" class="btn-secondary text-sm">{t("hero.cta.googleplay")}</a>
+                  </div>
+                </div>
+              </div>
+
+              <div data-kind="missing" class="hidden">
+                <span class="eyebrow mt-6 inline-block">{t("join.eyebrow")}</span>
+                <h1 class="heading-2 mt-4 text-balance">{t("join.missing.h1")}</h1>
+                <p class="body-lg mx-auto mt-4 max-w-md text-balance">{t("join.missing.body")}</p>
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </section>
+</Layout>
+
+<script is:inline>
+  (function () {
+    var root = document.getElementById("join");
+    if (!root) return;
+    var q = new URLSearchParams(location.search);
+    var code = (q.get("code") || "").trim();
+    var lang = (q.get("lang") || navigator.language || "fr").slice(0, 2) === "en" ? "en" : "fr";
+    var kind = code ? "ok" : "missing";
+
+    document.documentElement.lang = lang;
+    root.setAttribute("data-state", kind);
+    root.querySelectorAll("[data-lang]").forEach(function (el) {
+      el.classList.toggle("hidden", el.getAttribute("data-lang") !== lang);
+    });
+    root.querySelectorAll("[data-kind]").forEach(function (el) {
+      el.classList.toggle("hidden", el.getAttribute("data-kind") !== kind);
+    });
+    if (!code) return;
+
+    // Le même chemin que l'app utilise pour son écran des espaces, avec le
+    // code : la feuille « Rejoindre » s'ouvre déjà remplie.
+    var deep = "netbudget:///(premium)/workspaces?join=" + encodeURIComponent(code);
+    root.querySelectorAll("[data-open-app]").forEach(function (a) { a.setAttribute("href", deep); });
+    root.querySelectorAll("[data-code]").forEach(function (el) { el.textContent = code; });
+    root.querySelectorAll("[data-copy]").forEach(function (b) {
+      var label = b.textContent;
+      b.addEventListener("click", function () {
+        var done = function () { b.textContent = b.getAttribute("data-copied"); setTimeout(function () { b.textContent = label; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, done);
+        else done();
+      });
+    });
+    if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
+      setTimeout(function () { location.href = deep; }, 700);
+    }
+  })();
+</script>

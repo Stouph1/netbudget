@@ -66,6 +66,8 @@ try {
   // 404
   await page.goto(BASE + "/confirmation?type=signup&lang=fr&code=k1", { waitUntil: "networkidle0" });
   ok("confirmation : FR, adresse confirmee, lien vers l'app", await page.evaluate(() => document.documentElement.lang === "fr" && document.getElementById("confirm").dataset.state === "signup" && [...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent && a.getAttribute("href") === "netbudget://auth-callback?type=signup&code=k1")));
+  await page.goto(BASE + "/rejoindre?code=ABC_def-123&lang=fr", { waitUntil: "networkidle0" });
+  ok("invitation : FR, code affiche, lien vers l'app", await page.evaluate(() => document.documentElement.lang === "fr" && [...document.querySelectorAll("[data-code]")].some(e => e.offsetParent && e.textContent === "ABC_def-123") && [...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent && a.getAttribute("href") === "netbudget:///(premium)/workspaces?join=ABC_def-123")));
   const r404 = await page.goto(BASE + "/nimporte-quoi", { waitUntil: "networkidle0" });
   ok("404 rend la page d'erreur", r404.status()===404 && (await page.title()).length>0, `status ${r404.status()}`);
   // clavier : tab depuis le haut atteint le lien d'evitement puis le logo

@@ -69,6 +69,10 @@ for (const [name, launch] of targets) {
     ok("confirmation : EN + nouveau mot de passe + lien vers l'app", await page.evaluate(() => document.documentElement.lang === "en" && document.getElementById("confirm").dataset.state === "recovery" && [...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent && a.getAttribute("href") === "netbudget://reset-password?type=recovery&code=k1")));
     await page.goto(BASE + "/confirmation?lang=fr#error=access_denied&error_code=otp_expired", { waitUntil: "networkidle" });
     ok("confirmation : lien expire sans bouton d'ouverture", await page.evaluate(() => document.getElementById("confirm").dataset.state === "error" && ![...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent)));
+    await page.goto(BASE + "/rejoindre?code=ABC_def-123&lang=en", { waitUntil: "networkidle" });
+    ok("invitation : EN, code affiche, lien vers l'app", await page.evaluate(() => document.documentElement.lang === "en" && [...document.querySelectorAll("[data-code]")].some(e => e.offsetParent && e.textContent === "ABC_def-123") && [...document.querySelectorAll("[data-open-app]")].some(a => a.offsetParent && a.getAttribute("href") === "netbudget:///(premium)/workspaces?join=ABC_def-123")));
+    await page.goto(BASE + "/rejoindre", { waitUntil: "networkidle" });
+    ok("invitation : sans code, message explicite", await page.evaluate(() => document.getElementById("join").dataset.state === "missing"));
     const r = await page.goto(BASE + "/nimporte-quoi", { waitUntil: "networkidle" });
     ok("404", r.status() === 404);
     ok("aucune erreur console", errors.length === 0, errors.slice(0, 2).join(" | "));
