@@ -1249,7 +1249,7 @@ export const pt: Catalog = {
   "ws.joined.title": "Bem-vindo!",
   "ws.joined.msg": "Entraste no espaço.",
   "ws.share.fallbackName": "o nosso espaço",
-  "ws.share.message": "Junta-te a «{name}» no NetBudget para gerirmos o nosso orçamento juntos.\n\nCódigo de convite: {token}\n\nAbre a ligação no teu telemóvel: {link}\n(ou cola o código em «Entrar com um código» na app)",
+  "ws.share.message": "👋 Junta-te a «{name}» no NETbudget: gerimos o nosso orçamento juntos 💚\n\n🔗 {link}\n\n🔑 Código de convite: {token}\n\nSe a ligação não abrir, instala o NETbudget e cola o código em «Entrar com um código». Válido 14 dias ⏳",
   "ws.share.title": "Convite — {name}",
   "ws.err.emailInvalid.title": "E-mail inválido",
   "ws.err.emailInvalid.msg": "Indica um endereço de e-mail válido.",

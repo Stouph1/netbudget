@@ -1249,7 +1249,7 @@ export const ja: Catalog = {
   "ws.joined.title": "ようこそ！",
   "ws.joined.msg": "スペースに参加しました。",
   "ws.share.fallbackName": "私たちのスペース",
-  "ws.share.message": "NetBudget の「{name}」に参加して、一緒に家計を管理しましょう。\n\n招待コード: {token}\n\nスマートフォンでリンクを開いてください: {link}\n（またはアプリの「コードで参加」にコードを貼り付けてください）",
+  "ws.share.message": "👋 NETbudget の「{name}」に参加して、一緒に家計を管理しましょう 💚\n\n🔗 {link}\n\n🔑 招待コード: {token}\n\nリンクが開かない場合は NETbudget をインストールし、「コードで参加」にコードを貼り付けてください。有効期限は14日間 ⏳",
   "ws.share.title": "招待 — {name}",
   "ws.err.emailInvalid.title": "メールアドレスが無効です",
   "ws.err.emailInvalid.msg": "有効なメールアドレスを入力してください。",

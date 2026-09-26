@@ -1249,7 +1249,7 @@ export const ar: Catalog = {
   "ws.joined.title": "مرحبًا بك!",
   "ws.joined.msg": "لقد انضممت إلى المساحة.",
   "ws.share.fallbackName": "مساحتنا",
-  "ws.share.message": "انضم إلى «{name}» على NetBudget لندير ميزانيتنا معًا.\n\nرمز الدعوة: {token}\n\nافتح الرابط من هاتفك: {link}\n(أو الصق الرمز في «الانضمام برمز» داخل التطبيق)",
+  "ws.share.message": "👋 انضم إلى «{name}» على NETbudget: لندير ميزانيتنا معًا 💚\n\n🔗 {link}\n\n🔑 رمز الدعوة: {token}\n\nإذا لم يُفتح الرابط، ثبّت NETbudget ثم الصق الرمز في «الانضمام برمز». صالح لمدة 14 يومًا ⏳",
   "ws.share.title": "دعوة — {name}",
   "ws.err.emailInvalid.title": "بريد إلكتروني غير صالح",
   "ws.err.emailInvalid.msg": "أدخل عنوان بريد إلكتروني صالحًا.",

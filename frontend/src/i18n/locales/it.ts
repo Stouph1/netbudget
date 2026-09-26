@@ -1249,7 +1249,7 @@ export const it: Catalog = {
   "ws.joined.title": "Benvenuto!",
   "ws.joined.msg": "Ti sei unito allo spazio.",
   "ws.share.fallbackName": "il nostro spazio",
-  "ws.share.message": "Unisciti a «{name}» su NetBudget così gestiamo il budget insieme.\n\nCodice d’invito: {token}\n\nApri il link dal tuo telefono: {link}\n(oppure incolla il codice in «Unisciti con un codice» nell’app)",
+  "ws.share.message": "👋 Unisciti a «{name}» su NETbudget: gestiamo il budget insieme 💚\n\n🔗 {link}\n\n🔑 Codice d'invito: {token}\n\nSe il link non si apre, installa NETbudget e incolla il codice in «Unisciti con un codice». Valido 14 giorni ⏳",
   "ws.share.title": "Invito — {name}",
   "ws.err.emailInvalid.title": "E-mail non valida",
   "ws.err.emailInvalid.msg": "Inserisci un indirizzo e-mail valido.",

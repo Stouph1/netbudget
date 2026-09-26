@@ -1304,7 +1304,7 @@ export const fr: Catalog = {
   "ws.joined.title": "Bienvenue !",
   "ws.joined.msg": "Tu as rejoint l’espace.",
   "ws.share.fallbackName": "notre espace",
-  "ws.share.message": "Rejoins « {name} » sur NetBudget pour qu’on gère notre budget ensemble.\n\nCode d’invitation : {token}\n\nOuvre le lien depuis ton téléphone : {link}\n(ou colle le code dans « Rejoindre via un code » dans l’app)",
+  "ws.share.message": "👋 Rejoins « {name} » sur NETbudget : on gère notre budget ensemble 💚\n\n🔗 {link}\n\n🔑 Code d'invitation : {token}\n\nSi le lien ne s'ouvre pas, installe NETbudget puis colle le code dans « Rejoindre via un code ». Valable 14 jours ⏳",
   "ws.share.title": "Invitation — {name}",
   "ws.err.emailInvalid.title": "E-mail invalide",
   "ws.err.emailInvalid.msg": "Renseigne une adresse e-mail valide.",

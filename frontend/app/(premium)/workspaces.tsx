@@ -11,9 +11,9 @@ import { alpha } from "../../src/theme/accents";
 import { useAccent } from "../../src/contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import * as Linking from "expo-linking";
 import { confirmDialog, notify } from "../../src/utils/notify";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { goBack } from "../../src/lib/nav";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import {
@@ -96,6 +96,9 @@ const DATE_LOCALES: Record<Lang, string> = {
   ja: "ja-JP",
 };
 
+const SITE = "https://www.netbudget.app";
+const PENDING_JOIN_KEY = "netbudget:pendingJoin";
+
 export default function WorkspacesScreen() {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
@@ -108,7 +111,29 @@ export default function WorkspacesScreen() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [joinToken, setJoinToken] = useState<string | undefined>(undefined);
   const [detailWs, setDetailWs] = useState<Workspace | null>(null);
+
+  // Lien d'invitation (netbudget.app/rejoindre?code=… → ?join=…). Le code
+  // ouvre la feuille « Rejoindre » déjà rempli : la personne n'a plus qu'à
+  // confirmer. Si elle n'est pas encore connectée, on garde le code de côté
+  // et on le ressort dès qu'elle l'est — un lien cliqué ne doit pas se perdre
+  // dans un écran de connexion.
+  const params = useLocalSearchParams<{ join?: string }>();
+  useEffect(() => {
+    (async () => {
+      const fromLink = typeof params.join === "string" ? params.join.trim() : "";
+      if (!user) {
+        if (fromLink) await AsyncStorage.setItem(PENDING_JOIN_KEY, fromLink).catch(() => {});
+        return;
+      }
+      const pending = fromLink || (await AsyncStorage.getItem(PENDING_JOIN_KEY).catch(() => null)) || "";
+      if (!pending) return;
+      await AsyncStorage.removeItem(PENDING_JOIN_KEY).catch(() => {});
+      setJoinToken(pending);
+      setJoinOpen(true);
+    })();
+  }, [params.join, user]);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -292,7 +317,11 @@ export default function WorkspacesScreen() {
 
       <JoinModal
         visible={joinOpen}
-        onClose={() => setJoinOpen(false)}
+        initialToken={joinToken}
+        onClose={() => {
+          setJoinOpen(false);
+          setJoinToken(undefined);
+        }}
         onJoined={async () => {
           setJoinOpen(false);
           await reload();
@@ -529,14 +558,17 @@ function JoinModal({
   visible,
   onClose,
   onJoined,
+  initialToken,
 }: {
   visible: boolean;
   onClose: () => void;
   onJoined: () => void;
+  /** Code arrivé par un lien d'invitation : la feuille s'ouvre déjà remplie. */
+  initialToken?: string;
 }) {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
-  const { t } = useLang();
+  const { t, tp, lang } = useLang();
   const sheetBottom = useSheetBottom(36);
   const keyboardHeight = useKeyboardLift();
   const [token, setToken] = useState("");
@@ -544,10 +576,10 @@ function JoinModal({
 
   useEffect(() => {
     if (visible) {
-      setToken("");
+      setToken(initialToken ?? "");
       setBusy(false);
     }
-  }, [visible]);
+  }, [visible, initialToken]);
 
   async function submit() {
     if (!token.trim()) {
@@ -691,8 +723,13 @@ function WorkspaceDetailModal({
   // Partage du lien d'invitation via la feuille système (WhatsApp, Mail, SMS).
   // Le lien profond ouvre l'app directement sur l'écran « rejoindre » ; le code
   // reste écrit en clair pour ceux qui n'ont pas encore installé l'app.
+  //
+  // Le lien est une page du site, pas un `netbudget://` : WhatsApp et les SMS
+  // ne rendent pas un schéma d'app cliquable, et sans l'app installée il ne
+  // mène nulle part. La page montre le logo en aperçu, ouvre l'app si elle
+  // est là, et sinon indique la boutique et le code à coller.
   async function shareInvite(token: string) {
-    const link = Linking.createURL("/(premium)/workspaces", { queryParams: { join: token } });
+    const link = `${SITE}/rejoindre?code=${encodeURIComponent(token)}&lang=${lang}`;
     const name = workspace.name ?? t("ws.share.fallbackName");
     try {
       await Share.share({
