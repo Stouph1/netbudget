@@ -3412,4 +3412,7 @@ export const es: Catalog = {
   "auth.callback.signedIn.body": "Tu dirección está confirmada y ya has iniciado sesión.",
   "auth.callback.confirmed.title": "Dirección confirmada ✅",
   "auth.callback.confirmed.body": "Ya puedes iniciar sesión con tu contraseña.",
+  "ws.invited.title": "Te invitan a unirte a un espacio 💚",
+  "ws.invited.body": "Inicia sesión o crea una cuenta: la invitación se abrirá justo después, con el código ya rellenado.",
+  "ws.invited.cta": "Iniciar sesión o crear una cuenta",
 };

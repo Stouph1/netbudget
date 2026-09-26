@@ -3412,4 +3412,7 @@ export const ar: Catalog = {
   "auth.callback.signedIn.body": "تم تأكيد عنوانك وأنت مسجّل الدخول الآن.",
   "auth.callback.confirmed.title": "تم تأكيد العنوان ✅",
   "auth.callback.confirmed.body": "يمكنك الآن تسجيل الدخول بكلمة المرور.",
+  "ws.invited.title": "تمت دعوتك للانضمام إلى مساحة 💚",
+  "ws.invited.body": "سجّل الدخول أو أنشئ حسابًا: ستُفتح الدعوة مباشرة بعد ذلك مع الرمز معبّأ مسبقًا.",
+  "ws.invited.cta": "تسجيل الدخول أو إنشاء حساب",
 };

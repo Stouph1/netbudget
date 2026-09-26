@@ -25,6 +25,7 @@ import { signInWithEmail, signUpWithEmail } from "../../src/lib/auth";
 import { recordConsent } from "../../src/lib/profile";
 import { notify } from "../../src/utils/notify";
 import { loadProfileBasics } from "../../src/lib/profile";
+import { hasPendingJoin } from "../../src/lib/pendingJoin";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -62,6 +63,10 @@ export default function EmailAuth() {
     const basics = await loadProfileBasics(userId);
     if (!basics.username) {
       router.replace("/(premium)/complete-profile" as never);
+    } else if (await hasPendingJoin()) {
+      // Venu d'un lien d'invitation : on retourne aux espaces, où la feuille
+      // « Rejoindre » s'ouvre avec le code.
+      router.replace("/(premium)/workspaces" as never);
     } else {
       goBack();
     }

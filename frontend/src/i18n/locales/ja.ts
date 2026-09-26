@@ -3412,4 +3412,7 @@ export const ja: Catalog = {
   "auth.callback.signedIn.body": "メールアドレスが確認され、サインインしました。",
   "auth.callback.confirmed.title": "メールアドレスを確認しました ✅",
   "auth.callback.confirmed.body": "パスワードでサインインできます。",
+  "ws.invited.title": "スペースに招待されています 💚",
+  "ws.invited.body": "サインインまたはアカウントを作成してください。招待はその直後に、コードが入力された状態で開きます。",
+  "ws.invited.cta": "サインインまたはアカウント作成",
 };

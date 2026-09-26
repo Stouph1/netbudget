@@ -3466,4 +3466,7 @@ export const fr: Catalog = {
   "auth.callback.signedIn.body": "Ton adresse est confirmée et tu es connecté·e.",
   "auth.callback.confirmed.title": "Adresse confirmée ✅",
   "auth.callback.confirmed.body": "Tu peux maintenant te connecter avec ton mot de passe.",
+  "ws.invited.title": "On t'invite à rejoindre un espace 💚",
+  "ws.invited.body": "Connecte-toi ou crée un compte : l'invitation s'ouvrira juste après, avec le code déjà rempli.",
+  "ws.invited.cta": "Me connecter ou créer un compte",
 };

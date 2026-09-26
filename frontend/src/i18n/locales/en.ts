@@ -3412,4 +3412,7 @@ export const en: Catalog = {
   "auth.callback.signedIn.body": "Your address is confirmed and you're signed in.",
   "auth.callback.confirmed.title": "Address confirmed ✅",
   "auth.callback.confirmed.body": "You can now sign in with your password.",
+  "ws.invited.title": "You're invited to join a space 💚",
+  "ws.invited.body": "Sign in or create an account: the invitation opens right after, with the code already filled in.",
+  "ws.invited.cta": "Sign in or create an account",
 };

@@ -13,7 +13,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { confirmDialog, notify } from "../../src/utils/notify";
 import { router, useLocalSearchParams } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setPendingJoin, takePendingJoin } from "../../src/lib/pendingJoin";
 import { goBack } from "../../src/lib/nav";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import {
@@ -97,7 +97,6 @@ const DATE_LOCALES: Record<Lang, string> = {
 };
 
 const SITE = "https://www.netbudget.app";
-const PENDING_JOIN_KEY = "netbudget:pendingJoin";
 
 export default function WorkspacesScreen() {
   const GOLD = useAccent().main;
@@ -120,20 +119,19 @@ export default function WorkspacesScreen() {
   // et on le ressort dès qu'elle l'est — un lien cliqué ne doit pas se perdre
   // dans un écran de connexion.
   const params = useLocalSearchParams<{ join?: string }>();
+  const fromLink = typeof params.join === "string" ? params.join.trim() : "";
   useEffect(() => {
     (async () => {
-      const fromLink = typeof params.join === "string" ? params.join.trim() : "";
       if (!user) {
-        if (fromLink) await AsyncStorage.setItem(PENDING_JOIN_KEY, fromLink).catch(() => {});
+        if (fromLink) await setPendingJoin(fromLink);
         return;
       }
-      const pending = fromLink || (await AsyncStorage.getItem(PENDING_JOIN_KEY).catch(() => null)) || "";
+      const pending = fromLink || (await takePendingJoin()) || "";
       if (!pending) return;
-      await AsyncStorage.removeItem(PENDING_JOIN_KEY).catch(() => {});
       setJoinToken(pending);
       setJoinOpen(true);
     })();
-  }, [params.join, user]);
+  }, [fromLink, user]);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -163,16 +161,29 @@ export default function WorkspacesScreen() {
       ? t("ws.personalShort")
       : workspaces.find((w) => w.id === activeId)?.name ?? t("ws.deletedSpace");
 
+  // Sans session. Deux cas, et aucun ne doit être un cul-de-sac :
+  //  - on arrive par un lien d'invitation : on le dit, et on propose de se
+  //    connecter — le code attend (setPendingJoin) et ressort juste après ;
+  //  - on arrive par la navigation : même bouton, message générique.
   if (!user) {
+    const invited = !!fromLink;
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.center}>
-          <Feather name="lock" size={32} color={TEXT_3} />
-          <Text style={styles.emptyTitle}>{t("common.premiumRequired")}</Text>
+          <Feather name={invited ? "users" : "lock"} size={32} color={invited ? GOLD : TEXT_3} />
+          <Text style={styles.emptyTitle}>{t(invited ? "ws.invited.title" : "common.premiumRequired")}</Text>
+          {invited ? <Text style={styles.invitedBody}>{t("ws.invited.body")}</Text> : null}
           <TouchableOpacity
-            onPress={() => goBack()}
-            style={styles.emptyBtn}
+            onPress={() => router.push("/(premium)/email-auth" as never)}
+            style={[styles.primaryBtn, { marginTop: 20, alignSelf: "stretch" }]}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            testID="ws-signin"
           >
+            <Feather name="log-in" size={18} color="#000" />
+            <Text style={styles.primaryBtnText}>{t("ws.invited.cta")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => goBack()} style={styles.emptyBtn} accessibilityRole="button">
             <Text style={styles.emptyBtnText}>{t("common.back")}</Text>
           </TouchableOpacity>
         </View>
@@ -1348,6 +1359,7 @@ const makeStyles = (GOLD: string) =>
   dangerBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
 
   emptyTitle: { color: TEXT_1, fontSize: 16, fontWeight: "600", marginTop: 16, textAlign: "center" },
+  invitedBody: { color: TEXT_2, fontSize: 13.5, lineHeight: 19, marginTop: 8, textAlign: "center", maxWidth: 320 },
   emptyBtn: {
     marginTop: 20,
     paddingVertical: 12,
