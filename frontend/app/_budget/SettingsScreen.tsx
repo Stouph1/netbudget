@@ -47,7 +47,6 @@ export default function SettingsScreen({
   onDeleteAccount,
   onReplayTour,
   onTestNotification,
-  isTester,
   onReplayBirthday,
   forcedTier,
   onForceTier,
@@ -100,7 +99,10 @@ export default function SettingsScreen({
 
   // En développement, le panneau est toujours là. En production, il faut être
   // marqué testeur côté serveur.
-  const showTesterPanel = __DEV__ || isTester;
+  // Panneau « Test » : seulement dans une build de développement. Jamais dans
+  // une build de boutique, testeurs compris — ils reçoivent la même app que
+  // tout le monde, et l'app ne leur affiche pas d'outils internes.
+  const showTesterPanel = __DEV__;
 
   // Dons & cadeaux. Le pourcentage est saisi en texte : un clavier numérique
   // sans validation intermédiaire, la valeur n'est poussée qu'au blur — sinon
