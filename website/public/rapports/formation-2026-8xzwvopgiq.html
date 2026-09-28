@@ -76,6 +76,14 @@
   .tl .step.done .dt::after{content:" ✓";color:var(--mint);font-weight:700}
   .next{background:var(--navy);color:#fff;border-radius:10px;padding:12px 18px;margin:12px 0 0;font-size:15.5px}
   .next b{color:var(--gold)}
+  /* filtre de période */
+  .pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--cloud);
+        border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:26px 0 4px}
+  .pbar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 14px;
+        font:inherit;font-size:14px;cursor:pointer;color:var(--ink)}
+  .pbar button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .pbar input[type=date]{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font:inherit;font-size:13.5px}
+  .pbar .sep{color:var(--slate);font-size:13.5px;margin-left:6px}
   @media (max-width:640px){ .bar{grid-template-columns:110px 1fr 52px} .stats{margin-top:-60px} }
 </style>
 </head>
@@ -104,6 +112,15 @@
   <p class="lede">Où en est-on : chaque étape à sa date, de la session générale au bilan à 3 mois.</p>
   <div class="tl" id="timeline"></div>
   <div class="next" id="nextRdv" style="display:none"></div>
+
+  <div class="pbar">
+    <button data-p="7">7 jours</button>
+    <button data-p="30">30 jours</button>
+    <button data-p="all" class="on">Toute la session</button>
+    <span class="sep">ou du</span> <input type="date" id="pFrom">
+    <span class="sep">au</span> <input type="date" id="pTo">
+  </div>
+  <div class="gauges" id="periodeGauges" style="margin-top:10px"></div>
 
   <h2>Qui s'est inscrit</h2>
   <p class="lede">Les inscriptions au fil des jours, et les profils qui composent la session — le contenu des ateliers (Camille, Thomas, Nadia…) parle à chacun d'eux.</p>
@@ -144,8 +161,8 @@
    1) Colle ici l'URL de déploiement Apps Script (…/exec)
    2) Colle le TOKEN défini dans l'onglet Config du classeur
    Tant que SCRIPT_URL est vide, la page affiche des données de DÉMONSTRATION. */
-const SCRIPT_URL = "";
-const TOKEN = "";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxadu-dby14hif6Aiu2qPeDv1xveqqZ-zEpdzrjcvXIfPjtvKp-5BDIThX1NoIQZWnL/exec";
+const TOKEN = "88c939f2umkmrju0oads37ic";
 const REFRESH_S = 60;
 
 const DEMO = {
@@ -169,6 +186,15 @@ const DEMO = {
     atelierPrefere:{"Épargne":7,"Budget":5,"Dettes & crédit":4,"Investissement":3} },
   bilan3mois: { reponses:17, budgetTenu:76, virementActif:82, detteAttaquee:71, peaOuvert:35, netbudget:65 },
   formateurs: { retours:11, actifs:3, noteMoyenne:4.3, alertes:1 },
+  series: (function(){
+    const j = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
+    return {
+      inscriptions: [16,16,15,14,14,13,12,12,11,10,10,9,8,8,8,7,6,6,5,4,4,3,3,2,2,1,0].map(j),
+      formateurs: [13,12,7,6,5,1,0].map(j),
+      feedback: [2,1,1,0,0].map(j),
+      bilan: [],
+    };
+  })(),
   calendrier: (function(){
     const j = n => { const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
     const t = n => new Date(new Date().getTime()+n*86400000).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
@@ -182,11 +208,53 @@ const DEMO = {
   })(),
 };
 
-let charts = {};
+let charts = {}, lastData = null, lastDemo = false;
+let periode = { mode: "all", from: null, to: null };
+function inPeriode(iso){
+  if(!iso) return false;
+  if(periode.mode==="all") return true;
+  const d = iso.slice(0,10);
+  return (!periode.from || d>=periode.from) && (!periode.to || d<=periode.to);
+}
+function setPeriode(mode){
+  periode.mode = mode;
+  if(mode!=="custom"){
+    document.getElementById("pFrom").value=""; document.getElementById("pTo").value="";
+    if(mode==="all"){ periode.from=null; periode.to=null; }
+    else {
+      const to=new Date(), from=new Date(); from.setDate(from.getDate()-(+mode)+1);
+      periode.from=from.toISOString().slice(0,10); periode.to=to.toISOString().slice(0,10);
+    }
+  }
+  document.querySelectorAll(".pbar button").forEach(b=>b.classList.toggle("on", b.dataset.p===mode));
+  if(lastData) render(lastData, lastDemo);
+}
+document.addEventListener("click", e=>{ if(e.target.matches(".pbar button")) setPeriode(e.target.dataset.p); });
+document.addEventListener("change", e=>{
+  if(e.target.id==="pFrom"||e.target.id==="pTo"){
+    periode.mode="custom";
+    periode.from=document.getElementById("pFrom").value||null;
+    periode.to=document.getElementById("pTo").value||null;
+    document.querySelectorAll(".pbar button").forEach(b=>b.classList.remove("on"));
+    if(lastData) render(lastData, lastDemo);
+  }
+});
 function el(id){return document.getElementById(id)}
 function pct(v){return v===null||v===undefined?"—":v+" %"}
 
 function render(d, demo){
+  lastData = d; lastDemo = demo;
+  // --- bloc "sur la période" (compte les événements datés dans l'intervalle) ---
+  const S = d.series||{};
+  const nP = k => (S[k]||[]).filter(inPeriode).length;
+  const libP = periode.mode==="all" ? "toute la session"
+    : (periode.mode==="custom" ? "du "+(periode.from||"début")+" au "+(periode.to||"aujourd'hui")
+    : "les "+periode.mode+" derniers jours");
+  el("periodeGauges").innerHTML =
+    gauge(nP("inscriptions"),"nouveaux inscrits — "+libP)+
+    gauge(nP("formateurs"),"retours formateurs — "+libP)+
+    gauge(nP("feedback"),"avis de fin reçus — "+libP)+
+    gauge(nP("bilan"),"réponses bilan 3 mois — "+libP);
   el("session").textContent = d.session + " · mis à jour le " +
     new Date(d.updated).toLocaleString("fr-FR",{dateStyle:"long",timeStyle:"short"});
   el("badgeTxt").textContent = demo ? "Mode démonstration — script non connecté" : "Données en direct";
@@ -201,10 +269,16 @@ function render(d, demo){
   el("kAlertBox").classList.toggle("alert", d.formateurs.alertes>0);
   el("seuilTxt").textContent = d.assiduite.seuil;
 
-  // cumul inscriptions
+  // cumul inscriptions (filtré sur la période si des séries sont disponibles)
+  let cumul = d.inscrits.cumul;
+  if(S.inscriptions){
+    const days = {};
+    S.inscriptions.filter(inPeriode).forEach(x=>{ const k=x.slice(0,10); days[k]=(days[k]||0)+1; });
+    let c=0; cumul = Object.keys(days).sort().map(k=>{ c+=days[k]; return {date:k,total:c}; });
+  }
   mkChart("chartCumul","line",{
-    labels:d.inscrits.cumul.map(p=>p.date.slice(5)),
-    datasets:[{data:d.inscrits.cumul.map(p=>p.total),borderColor:"#028090",
+    labels:cumul.map(p=>p.date.slice(5)),
+    datasets:[{data:cumul.map(p=>p.total),borderColor:"#028090",
       backgroundColor:"rgba(2,128,144,.12)",fill:true,tension:.3,pointRadius:3}]},
     {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}});
 
