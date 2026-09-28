@@ -132,6 +132,13 @@ export type NotifContext = {
   /** Le budget du mois a-t-il été renseigné ? */
   budgetFilledThisMonth: boolean;
   /**
+   * Reste à vivre du mois en cours, déjà formaté avec la devise (« 412 € »).
+   * Absent si le budget n'est pas renseigné. C'est LE chiffre de l'app, et le
+   * seul qui vaille une notification chaque semaine : il change, il est
+   * personnel, et le lire suffit à ouvrir l'app « juste pour voir ».
+   */
+  remainingLabel?: string;
+  /**
    * Abonnement en cours, quand il y en a un.
    *
    * VOLONTAIREMENT INUTILISÉ. Le moteur reçoit cette information et n'en tire
@@ -355,6 +362,34 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   // --- 6. BUDGET DU MOIS non rempli ---------------------------------------
   // Seulement si le mois est déjà bien entamé : relancer le 2 du mois est du
   // bruit, relancer le 10 est un service.
+  // --- Le pouls de la semaine : le reste à vivre, chaque dimanche soir ----
+  //
+  // Un seul chiffre, pas de conseil, pas de demande. On l'envoie même si la
+  // personne n'a rien fait de la semaine : c'est justement ce qui la ramène.
+  // Pas de pouls pendant les dix derniers jours du mois : le rappel de fin de
+  // mois (28) prend le relais, et deux messages sur le même sujet se nuisent.
+  if (ctx.budgetFilledThisMonth && ctx.remainingLabel) {
+    const sunday = new Date(now);
+    const ahead = (7 - sunday.getDay()) % 7;
+    sunday.setDate(sunday.getDate() + ahead);
+    let at = atHour(sunday, prefs.hour);
+    if (at.getTime() <= now.getTime()) at = atHour(new Date(sunday.getTime() + 7 * DAY_MS), prefs.hour);
+    const monthEnd = new Date(at.getFullYear(), at.getMonth() + 1, 0);
+    if (monthEnd.getDate() - at.getDate() >= 10 && at.getMonth() === now.getMonth()) {
+      const week = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${at.getDate()}`;
+      push({
+        id: `budget-pulse-${week}`,
+        category: "budget",
+        titleKey: "notif.budget.pulse.title",
+        bodyKey: "notif.budget.pulse.body",
+        params: { amount: ctx.remainingLabel },
+        score: 60,
+        at,
+        route: "/",
+      });
+    }
+  }
+
   if (!ctx.budgetFilledThisMonth && now.getDate() >= 8) {
     push({
       id: `budget-${now.getFullYear()}-${now.getMonth()}`,

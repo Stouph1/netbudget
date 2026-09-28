@@ -23,6 +23,8 @@ import type { UserProfile } from "../types/advice";
 import type { SavingsGoal } from "../types/premium";
 import type { CurrencyCode } from "./currency";
 import { parseNumber } from "./finance";
+import { formatCurrency } from "./currency";
+import { monthKey } from "../lib/streak";
 import { firstPayment, type LoanRepayment } from "./loanSchedule";
 import {
   isBudgetFilledThisMonth,
@@ -197,6 +199,18 @@ export async function buildSyncInput(opts: BuildSyncInputOptions): Promise<SyncI
     events: toNotifEvents(events, now),
     loans: toNotifLoans(parseStoredLoans(state?.loans ?? []), now),
     budgetFilledThisMonth: isBudgetFilledThisMonth(history, now),
+    remainingLabel: remainingLabelFor(history, now, displayCurrency),
     subscription,
   };
+}
+
+/** Reste à vivre du mois en cours, formaté, ou rien si le mois n'est pas renseigné. */
+export function remainingLabelFor(
+  history: BudgetHistoryPoint[],
+  now: Date,
+  currency?: CurrencyCode,
+): string | undefined {
+  const point = history.find((h) => h.month === monthKey(now));
+  if (!point || !Number.isFinite(point.remaining)) return undefined;
+  return formatCurrency(Math.round(point.remaining), currency ?? "EUR");
 }

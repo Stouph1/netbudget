@@ -482,3 +482,34 @@ describe("decorateTitle", () => {
     expect(decorateTitle("autre", "Titre")).toBe("Titre");
   });
 });
+
+describe("pouls hebdomadaire du reste à vivre", () => {
+  const pulse = (c: { id: string }) => c.id.startsWith("budget-pulse-");
+
+  it("programme le dimanche à l'heure choisie, avec le montant", () => {
+    // Samedi 15 août 2026 : le prochain dimanche est le 16.
+    const out = buildCandidates(baseCtx({ remainingLabel: "412 €" }));
+    const p = out.find(pulse);
+    expect(p).toBeDefined();
+    expect(p!.at.getDay()).toBe(0);
+    expect(p!.at.getHours()).toBe(DEFAULT_NOTIF_PREFS.hour);
+    expect(p!.params).toEqual({ amount: "412 €" });
+  });
+
+  it("rien sans budget renseigné, rien sans montant", () => {
+    expect(buildCandidates(baseCtx({ budgetFilledThisMonth: false, remainingLabel: "1 €" })).some(pulse)).toBe(false);
+    expect(buildCandidates(baseCtx({ remainingLabel: undefined })).some(pulse)).toBe(false);
+  });
+
+  it("se tait dans les dix derniers jours du mois : le rappel de fin de mois suffit", () => {
+    // Mardi 25 août : le dimanche suivant est le 30, à un jour de la fin du mois.
+    const out = buildCandidates(baseCtx({ now: new Date("2026-08-25T10:00:00Z"), remainingLabel: "50 €" }));
+    expect(out.some(pulse)).toBe(false);
+  });
+
+  it("jamais deux fois le même dimanche", () => {
+    const first = buildCandidates(baseCtx({ remainingLabel: "412 €" })).find(pulse)!;
+    const again = buildCandidates(baseCtx({ remainingLabel: "412 €", alreadySent: { [first.id]: "x" } }));
+    expect(again.some(pulse)).toBe(false);
+  });
+});

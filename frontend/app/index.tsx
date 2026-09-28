@@ -84,9 +84,12 @@ import {
   ensureMonthlyRemindersScheduled,
   getMonthlyEnabled,
   pickMonthlyVariants,
+  requestPermissionOnce,
   setMonthlyReminderEnabled,
   setupNotificationHandler,
 } from "../src/utils/notifications";
+import { NotificationPrimer } from "../src/components/NotificationPrimer";
+import * as Notifications from "expo-notifications";
 import { CITIES, City } from "../src/constants/cities";
 import { parseNumber } from "../src/utils/finance";
 import {
@@ -213,7 +216,7 @@ export default function Index() {
   // Langue
   // Langue partagée avec tous les écrans (contexte) : un changement dans les
   // Réglages se propage au Coach, aux Projets et à l'inscription.
-  const { lang, setLang } = useLang();
+  const { lang, setLang, tp } = useLang();
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const t = (k: string) => tr(k, lang);
   // Traducteurs passés aux modules de DONNÉES (moteur de conseils, cartes
@@ -822,6 +825,33 @@ export default function Index() {
     lang,
   });
 
+  // Panneau testeur : une notification dans dix secondes, avec le vrai texte
+  // du pouls hebdomadaire. C'est le seul moyen de vérifier sur un appareil que
+  // la chaîne complète marche — permission, canal Android, son, tap.
+  const sendTestNotification = useCallback(async () => {
+    const granted = await requestPermissionOnce();
+    if (!granted) {
+      notify(t("settings.notifications.title"), t("settings.notifications.denied"));
+      return;
+    }
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: tp("notif.budget.pulse.title", { amount: formatCurrency(Math.round(annualRemaining / 12), currency) }),
+          body: t("notif.budget.pulse.body"),
+          sound: "default",
+          data: { route: "/", category: "budget", notifKey: "test" },
+          ...(Platform.OS === "android" ? { channelId: "personal" } : {}),
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 10 },
+      });
+      notify("Notification de test", "Elle arrive dans 10 secondes. Mets l'app en arrière-plan pour la voir.");
+    } catch (e) {
+      notify("Notification de test", String((e as Error)?.message ?? e));
+    }
+  }, [t, tp, annualRemaining, currency]);
+
+
   const filteredCountries = useMemo(() => filterCountries(citySearch), [citySearch]);
   const globalCitySuggestions = useMemo(
     () => suggestCitiesGlobally(citySearch),
@@ -1345,6 +1375,7 @@ export default function Index() {
             onResetAll={askResetAll}
             onDeleteAccount={askDeleteAccount}
             onReplayTour={() => void tour.replay()}
+            onTestNotification={() => void sendTestNotification()}
             isTester={isTester}
             onReplayBirthday={(kind) => void replayBirthday(kind)}
             forcedTier={forcedTier}
@@ -1622,6 +1653,7 @@ export default function Index() {
       />
 
       {/* Confirm Modal */}
+      <NotificationPrimer />
       <DeleteAccountSheet
         visible={deleteOpen}
         onClose={() => setDeleteOpen(false)}

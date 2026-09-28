@@ -46,6 +46,7 @@ export default function SettingsScreen({
   onResetAll,
   onDeleteAccount,
   onReplayTour,
+  onTestNotification,
   isTester,
   onReplayBirthday,
   forcedTier,
@@ -74,6 +75,7 @@ export default function SettingsScreen({
   onDeleteAccount: () => void;
   /** Remet la visite guidée à zéro. Développement et phase de test. */
   onReplayTour: () => void;
+  onTestNotification: () => void;
   /** Compte marqué testeur côté serveur. Voir la migration 019. */
   isTester: boolean;
   /** Rejoue une fête d'anniversaire. Phase de test. */
@@ -488,6 +490,17 @@ export default function SettingsScreen({
           >
             <Feather name="compass" size={20} color={TEXT_3} style={{ marginRight: 12 }} />
             <Text style={[styles.toggleLabel, { flex: 1 }]}>{"Rejouer la visite guidée"}</Text>
+            <Feather name="chevron-right" size={18} color={TEXT_3} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onTestNotification}
+            style={styles.toggleRow}
+            activeOpacity={0.7}
+            testID="test-notification"
+          >
+            <Feather name="bell" size={20} color={TEXT_3} style={{ marginRight: 12 }} />
+            <Text style={[styles.toggleLabel, { flex: 1 }]}>{"Envoyer une notification de test (10 s)"}</Text>
             <Feather name="chevron-right" size={18} color={TEXT_3} />
           </TouchableOpacity>
 

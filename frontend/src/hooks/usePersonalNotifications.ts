@@ -25,6 +25,7 @@ import {
   syncPersonalNotifications,
 } from "../utils/notificationScheduler";
 import { buildSyncInput } from "../utils/notificationSources";
+import { onNotificationsGranted } from "../utils/notificationPrimer";
 import { checkWorkspaceActivity } from "../utils/workspaceActivityNotify";
 import { formatCurrency } from "../utils/currency";
 
@@ -66,6 +67,10 @@ export function usePersonalNotifications(): void {
   useEffect(() => {
     void sync();
   }, [sync]);
+
+  // Permission accordée depuis l'écran d'explication : on programme tout de
+  // suite, sans attendre la prochaine ouverture.
+  useEffect(() => onNotificationsGranted(() => void sync()), [sync]);
 
   useEffect(() => {
     const onChange = (state: AppStateStatus) => {

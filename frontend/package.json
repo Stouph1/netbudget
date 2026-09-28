@@ -13,7 +13,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "verify": "tsc --noEmit && eslint app src && jest",
-    "fetch:inflation": "node scripts/fetch-inflation.mjs"
+    "fetch:inflation": "node scripts/fetch-inflation.mjs",
+    "bump": "node scripts/bump-build.mjs"
   },
   "dependencies": {
     "@babel/runtime": "^7.20.6",
