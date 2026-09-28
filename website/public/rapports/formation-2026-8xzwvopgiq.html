@@ -6,91 +6,70 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="no-referrer">
 <title>Commande tes finances — suivi de la session</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root{
-    --navy:#0B2027; --navy2:#13323D; --teal:#028090; --sea:#00A896;
-    --mint:#02C39A; --gold:#F4B860; --ink:#13242B; --slate:#5A6B72;
-    --cloud:#F4F7F8; --line:#E4EAEC; --brick:#B23A30;
+    --navy:#0B2027; --navy2:#13323D; --teal:#028090; --mint:#02C39A;
+    --gold:#F4B860; --ink:#13242B; --slate:#5A6B72; --cloud:#F4F7F8;
+    --line:#E4EAEC; --brick:#B23A30;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Carlito","Calibri","Segoe UI",system-ui,sans-serif;
-       color:var(--ink);background:#fff;font-size:17px;line-height:1.55}
-  .wrap{max-width:920px;margin:0 auto;padding:0 22px 80px}
-  header{background:var(--navy);color:#fff;padding:46px 0 40px;margin-bottom:44px}
-  header .wrap{padding-bottom:0}
-  .kicker{color:var(--mint);font-weight:700;letter-spacing:.14em;font-size:13px;margin:0 0 10px}
-  h1{font-family:"Caladea","Cambria",Georgia,serif;font-size:clamp(30px,5vw,44px);
-     margin:0 0 10px;line-height:1.08}
-  .sub{color:#C9D6DA;font-size:16px;max-width:640px}
-  .live{display:inline-flex;align-items:center;gap:8px;margin-top:18px;background:var(--navy2);
-        border:1px solid var(--teal);border-radius:999px;padding:7px 16px;font-size:14px;color:#EAF1F3}
-  .dot{width:9px;height:9px;border-radius:50%;background:var(--mint);animation:pulse 2s infinite}
+  body{margin:0;color:var(--ink);background:#fff;font-size:16px;line-height:1.55;
+       font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px 70px}
+  header{background:var(--navy);color:#fff;padding:42px 0 84px}
+  .kicker{color:var(--mint);font-weight:700;letter-spacing:.14em;font-size:12px;margin:0 0 10px}
+  h1{font-size:clamp(28px,4.6vw,40px);font-weight:800;letter-spacing:-.02em;margin:0 0 8px;line-height:1.1}
+  .sub{color:#C9D6DA;font-size:15px}
+  .live{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:var(--navy2);
+        border:1px solid var(--teal);border-radius:999px;padding:6px 15px;font-size:13.5px;color:#EAF1F3}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--mint);animation:pulse 2s infinite}
   .live.demo .dot{background:var(--gold);animation:none}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  h2{font-family:"Caladea","Cambria",Georgia,serif;font-size:26px;margin:52px 0 6px;color:var(--ink)}
-  .lede{color:var(--slate);margin:0 0 20px;max-width:680px}
-  /* rangée de chiffres clés */
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:-78px}
-  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px 14px;
+  h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin:46px 0 4px}
+  .lede{color:var(--slate);margin:0 0 16px;font-size:15px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px;margin-top:-58px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px 13px;
         box-shadow:0 10px 26px rgba(11,32,39,.10)}
-  .stat .n{font-family:"Caladea",Georgia,serif;font-size:40px;font-weight:700;color:var(--navy);line-height:1}
-  .stat .n small{font-size:20px;color:var(--slate);font-weight:400}
-  .stat .l{color:var(--slate);font-size:14px;margin-top:6px}
+  .stat .n{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--navy);line-height:1.05}
+  .stat .n small{font-size:17px;color:var(--slate);font-weight:600}
+  .stat .l{color:var(--slate);font-size:13px;margin-top:5px}
   .stat.alert .n{color:var(--brick)}
-  /* barres maison */
-  .bars{margin:10px 0 0}
-  .bar{display:grid;grid-template-columns:170px 1fr 64px;gap:12px;align-items:center;margin:9px 0;font-size:15px}
-  .bar .track{background:var(--cloud);border-radius:6px;height:22px;overflow:hidden}
-  .bar .fill{height:100%;background:var(--teal);border-radius:6px;min-width:2px;transition:width .6s}
-  .bar.mint .fill{background:var(--mint)} .bar.gold .fill{background:var(--gold)}
-  .bar .v{text-align:right;font-weight:700;color:var(--navy)}
-  /* jauges bilan */
-  .gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
-  .gauge{background:var(--cloud);border-radius:12px;padding:16px;text-align:center}
-  .gauge .p{font-family:"Caladea",Georgia,serif;font-size:34px;font-weight:700;color:var(--teal)}
-  .gauge .t{font-size:13.5px;color:var(--slate);margin-top:4px;line-height:1.3}
-  canvas{max-width:100%}
-  .panel{background:var(--cloud);border-radius:12px;padding:20px 22px;margin:14px 0}
-  table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}
-  th{background:var(--navy);color:#fff;text-align:left;padding:9px 12px;font-weight:700}
-  td{padding:8px 12px;border-bottom:1px solid var(--line)}
-  .verse{background:#FBEFD6;border-radius:10px;padding:14px 18px;font-style:italic;margin:40px 0 0}
-  .verse b{color:var(--teal);font-style:normal}
-  .method{border-top:2px solid var(--line);margin-top:56px;padding-top:20px;font-size:14.5px;color:var(--slate)}
-  .method h2{font-size:20px;margin-top:0}
-  footer{color:#8FA3A9;font-size:13px;margin-top:34px}
-  #err{display:none;background:#FDECEA;color:#B23A30;border-radius:10px;padding:14px 18px;margin:20px 0}
-  /* frise chronologique */
-  .tl{display:flex;gap:0;margin:18px 0 6px;flex-wrap:wrap}
-  .tl .step{flex:1;min-width:120px;position:relative;text-align:center;padding:0 6px 4px}
-  .tl .step::before{content:"";position:absolute;top:13px;left:0;right:0;height:3px;background:var(--line)}
-  .tl .step:first-child::before{left:50%} .tl .step:last-child::before{right:50%}
-  .tl .pin{position:relative;width:26px;height:26px;border-radius:50%;margin:0 auto 8px;
-           background:#fff;border:3px solid var(--line);z-index:1;line-height:20px;font-size:13px;color:#fff}
-  .tl .step.done .pin{background:var(--mint);border-color:var(--mint)}
-  .tl .step.done::before{background:var(--mint)}
-  .tl .step.today .pin{background:var(--gold);border-color:var(--gold);animation:pulse 1.6s infinite}
-  .tl .lab{font-weight:700;font-size:14px;color:var(--ink);line-height:1.25}
-  .tl .dt{font-size:12.5px;color:var(--slate)}
-  .tl .step.done .dt::after{content:" ✓";color:var(--mint);font-weight:700}
-  .next{background:var(--navy);color:#fff;border-radius:10px;padding:12px 18px;margin:12px 0 0;font-size:15.5px}
-  .next b{color:var(--gold)}
-  /* filtre de période */
-  .pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--cloud);
-        border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:26px 0 4px}
-  .pbar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 14px;
-        font:inherit;font-size:14px;cursor:pointer;color:var(--ink)}
+  .next{background:var(--cloud);border:1px solid var(--line);border-radius:12px;
+        padding:11px 16px;margin:16px 0 0;font-size:14.5px;color:var(--ink)}
+  .next b{color:var(--teal)}
+  #err{display:none;background:#FDECEA;color:var(--brick);border-radius:12px;padding:13px 17px;margin:18px 0 0;font-size:14.5px}
+  .pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+  .pbar button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 13px;
+        font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--ink)}
   .pbar button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
-  .pbar input[type=date]{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font:inherit;font-size:13.5px}
-  .pbar .sep{color:var(--slate);font-size:13.5px;margin-left:6px}
-  @media (max-width:640px){ .bar{grid-template-columns:110px 1fr 52px} .stats{margin-top:-60px} }
+  .pbar input[type=date]{border:1px solid var(--line);border-radius:9px;padding:5px 8px;font:inherit;font-size:13px}
+  .pbar .sep{color:var(--slate);font-size:13px}
+  .panel{background:var(--cloud);border-radius:14px;padding:18px 20px;margin:0 0 16px}
+  .panel .cap{font-size:13.5px;color:var(--slate);margin:0 0 10px}
+  .panel .cap b{color:var(--teal)}
+  svg{display:block;width:100%;height:auto}
+  .bars{margin:6px 0 0}
+  .bar{display:grid;grid-template-columns:190px 1fr 58px;gap:12px;align-items:center;margin:8px 0;font-size:14px}
+  .bar .track{background:var(--cloud);border-radius:6px;height:20px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--teal);border-radius:6px;min-width:2px;transition:width .5s}
+  .bar.mint .fill{background:var(--mint)} .bar.gold .fill{background:var(--gold)} .bar.navy .fill{background:var(--navy)} .bar.brick .fill{background:var(--brick)}
+  .bar .v{text-align:right;font-weight:700;color:var(--navy)}
+  .gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px}
+  .gauge{background:var(--cloud);border-radius:13px;padding:15px;text-align:center}
+  .gauge .p{font-size:29px;font-weight:800;letter-spacing:-.02em;color:var(--teal)}
+  .gauge .t{font-size:12.5px;color:var(--slate);margin-top:4px;line-height:1.3}
+  .verse{background:#FBEFD6;border-radius:11px;padding:13px 17px;font-style:italic;margin:42px 0 0;font-size:15px}
+  .verse b{color:var(--teal);font-style:normal}
+  .method{border-top:2px solid var(--line);margin-top:50px;padding-top:18px;font-size:13.5px;color:var(--slate)}
+  .method h2{font-size:17px;margin:0 0 6px}
+  footer{color:#8FA3A9;font-size:12.5px;margin-top:30px}
+  @media (max-width:640px){ .bar{grid-template-columns:110px 1fr 48px} .stats{margin-top:-48px} }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="wrap">
+  <div class="wrap" style="padding-bottom:0">
     <p class="kicker">EJP SOCIAL · RAPPORT DE SUIVI</p>
     <h1>Commande tes finances — la session en chiffres</h1>
     <p class="sub" id="session">—</p>
@@ -105,14 +84,11 @@
     <div class="stat"><div class="n" id="kNote">—</div><div class="l">note de fin de formation</div></div>
     <div class="stat" id="kAlertBox"><div class="n" id="kAlertes">—</div><div class="l">alertes formateurs ouvertes</div></div>
   </div>
-
+  <div class="next" id="nextRdv" style="display:none"></div>
   <div id="err"></div>
 
-  <h2>Le fil de la session</h2>
-  <p class="lede">Où en est-on : chaque étape à sa date, de la session générale au bilan à 3 mois.</p>
-  <div class="tl" id="timeline"></div>
-  <div class="next" id="nextRdv" style="display:none"></div>
-
+  <h2>Les inscriptions</h2>
+  <p class="lede">Le rythme des arrivées et les profils de la session.</p>
   <div class="pbar">
     <button data-p="7">7 jours</button>
     <button data-p="30">30 jours</button>
@@ -120,264 +96,276 @@
     <span class="sep">ou du</span> <input type="date" id="pFrom">
     <span class="sep">au</span> <input type="date" id="pTo">
   </div>
-  <div class="gauges" id="periodeGauges" style="margin-top:10px"></div>
-
-  <h2>Qui s'est inscrit</h2>
-  <p class="lede">Les inscriptions au fil des jours, et les profils qui composent la session — le contenu des ateliers (Camille, Thomas, Nadia…) parle à chacun d'eux.</p>
-  <div class="panel"><canvas id="chartCumul" height="110"></canvas></div>
+  <div class="panel">
+    <p class="cap" id="curveCap"></p>
+    <div id="curve"></div>
+  </div>
   <div class="bars" id="profils"></div>
-  <p class="lede" style="margin-top:22px">La répartition dans les groupes d'accompagnement.</p>
-  <div class="bars" id="groupes"></div>
+  <div class="bars" id="groupes" style="margin-top:14px"></div>
 
-  <h2>Le cœur du sujet : l'assiduité</h2>
-  <p class="lede">Présents à chaque séance, de la session générale à l'atelier 4. Un « assidu » a suivi au moins <span id="seuilTxt">4</span> séances sur 5 — c'est le chiffre qui dira si la formation transforme.</p>
-  <div class="panel"><canvas id="chartFunnel" height="120"></canvas></div>
-  <div class="bars" id="defis"></div>
+  <h2>L'assiduité, séance par séance</h2>
+  <p class="lede">Présents à chaque étape. Un « assidu » suit au moins <span id="seuilTxt">4</span> séances sur 5.</p>
+  <div class="bars" id="funnel"></div>
+  <div class="bars" id="defis" style="margin-top:14px"></div>
 
-  <h2>Ce qu'ils en disent en sortant</h2>
-  <p class="lede" id="fbLede">Le questionnaire de fin de formation.</p>
-  <div class="gauges" id="fbGauges"></div>
-  <div class="bars" id="fbAteliers"></div>
+  <section id="secFb" style="display:none">
+    <h2>Ce qu'ils en disent en sortant</h2>
+    <p class="lede" id="fbLede"></p>
+    <div class="gauges" id="fbGauges"></div>
+    <div class="bars" id="fbAteliers" style="margin-top:14px"></div>
+  </section>
 
-  <h2>Trois mois après : est-ce que ça tient ?</h2>
-  <p class="lede" id="blLede">La vraie mesure du succès — relevée lors du bilan collectif, feuille de route en main. Les « non concernés » (pas de dette, pas prêt pour le PEA) sont exclus des pourcentages.</p>
-  <div class="gauges" id="blGauges"></div>
+  <section id="secBl" style="display:none">
+    <h2>Trois mois après : est-ce que ça tient ?</h2>
+    <p class="lede" id="blLede"></p>
+    <div class="gauges" id="blGauges"></div>
+    <div class="bars" id="blAcc" style="margin-top:14px"></div>
+  </section>
 
   <h2>Côté formateurs</h2>
-  <p class="lede">Les retours hebdomadaires des formateurs sur leurs groupes.</p>
+  <p class="lede">Les retours hebdomadaires sur les groupes.</p>
   <div class="gauges" id="fmGauges"></div>
 
   <div class="verse">« Connais bien l'état de ton troupeau, donne tes soins à tes brebis. » <b>— Proverbes 27:23</b></div>
 
   <div class="method">
     <h2>Sources et méthode</h2>
-    <p>Les chiffres proviennent du classeur de suivi de la formation (inscriptions, feuilles de présence remplies par les formateurs, questionnaires de fin de formation et de bilan à 3 mois, retours hebdomadaires des formateurs). Ils sont recalculés à chaque affichage de cette page — l'horodatage sous le titre fait foi. Les pourcentages du bilan à 3 mois excluent les personnes non concernées. Aucun chiffre individuel n'est publié : uniquement des agrégats, conformément à la règle de confidentialité de la formation.</p>
+    <p>Chiffres recalculés à chaque affichage depuis le classeur de suivi (inscriptions, présences, questionnaires, retours formateurs) — l'horodatage sous le titre fait foi. Les pourcentages du bilan à 3 mois excluent les « non concernés ». Uniquement des agrégats : aucun chiffre individuel n'est publié.</p>
   </div>
   <footer>Commande tes finances · EJP Social · page privée non indexée — merci de ne pas partager le lien hors de l'équipe.</footer>
 </div>
 
 <script>
 /* ============ CONFIGURATION ============
-   1) Colle ici l'URL de déploiement Apps Script (…/exec)
-   2) Colle le TOKEN défini dans l'onglet Config du classeur
-   Tant que SCRIPT_URL est vide, la page affiche des données de DÉMONSTRATION. */
+   1) URL de déploiement Apps Script (…/exec)   2) TOKEN de l'onglet Config
+   SCRIPT_URL vide = données de DÉMONSTRATION. */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxadu-dby14hif6Aiu2qPeDv1xveqqZ-zEpdzrjcvXIfPjtvKp-5BDIThX1NoIQZWnL/exec";
 const TOKEN = "88c939f2umkmrju0oads37ic";
 const REFRESH_S = 60;
 
 const DEMO = {
   updated: new Date().toISOString(),
-  session: "Session pilote — automne 2026 (données de démonstration)",
+  session: "Session pilote — automne 2026 (démonstration)",
   objectif: 30,
   inscrits: { total: 27,
     parProfil: {"Étudiant":11,"Jeune travailleur":9,"Collégien/Lycéen":4,"Parent":3},
     parGroupe: {"Groupe étudiant":8,"Groupe jeune actif":8,"Groupe ados":4,"Groupe jeune maman":4,"Groupe autre ressources":3},
-    cumul: [{date:"2026-09-15",total:6},{date:"2026-09-17",total:11},{date:"2026-09-19",total:16},
-            {date:"2026-09-21",total:20},{date:"2026-09-23",total:24},{date:"2026-09-25",total:27}] },
+    cumul: [] },
   seances: [
     {code:"SG",label:"Session générale",presents:26,renseigne:true},
-    {code:"A1",label:"Atelier 1",presents:24,renseigne:true},
-    {code:"A2",label:"Atelier 2",presents:23,renseigne:true},
-    {code:"A3",label:"Atelier 3",presents:21,renseigne:true},
-    {code:"A4",label:"Atelier 4",presents:20,renseigne:true}],
+    {code:"A1",label:"Atelier 1 · Budget",presents:24,renseigne:true},
+    {code:"A2",label:"Atelier 2 · Dettes",presents:23,renseigne:true},
+    {code:"A3",label:"Atelier 3 · Épargne",presents:21,renseigne:true},
+    {code:"A4",label:"Atelier 4 · Investissement",presents:0,renseigne:false}],
   assiduite: { seuil:4, assidus:21, complets:17, taux:78 },
   defis: {"Atelier 1":{faits:21,total:26},"Atelier 2":{faits:19,total:25},"Atelier 3":{faits:20,total:24}},
   feedback: { reponses:19, noteMoyenne:4.6, recommande:95,
     atelierPrefere:{"Épargne":7,"Budget":5,"Dettes & crédit":4,"Investissement":3} },
-  bilan3mois: { reponses:17, budgetTenu:76, virementActif:82, detteAttaquee:71, peaOuvert:35, netbudget:65 },
-  formateurs: { retours:11, actifs:3, noteMoyenne:4.3, alertes:1 },
+  bilan3mois: { reponses:17, budgetTenu:76, virementActif:82, detteAttaquee:71, peaOuvert:35, netbudget:65,
+    accompagnement:{ progresse:13, sansEffet:3, ralenti:1 } },
+  formateurs: { retours:11, actifs:5, noteMoyenne:4.3, alertes:1 },
   series: (function(){
     const j = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
-    return {
-      inscriptions: [16,16,15,14,14,13,12,12,11,10,10,9,8,8,8,7,6,6,5,4,4,3,3,2,2,1,0].map(j),
-      formateurs: [13,12,7,6,5,1,0].map(j),
-      feedback: [2,1,1,0,0].map(j),
-      bilan: [],
-    };
+    return { inscriptions:[16,16,15,14,14,13,12,12,11,10,10,9,8,8,8,7,6,6,5,4,4,3,3,2,2,1,0].map(j),
+             formateurs:[13,12,7,6,5,1,0].map(j), feedback:[2,1,1,0,0].map(j), bilan:[] };
   })(),
   calendrier: (function(){
     const j = n => { const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
-    const t = n => new Date(new Date().getTime()+n*86400000).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+    const t = n => new Date(Date.now()+n*86400000).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
     return [
       {code:"SG",label:"Session générale",date:j(-14),texte:t(-14)},
       {code:"A1",label:"Atelier 1 · Budget",date:j(-7),texte:t(-7)},
-      {code:"A2",label:"Atelier 2 · Dettes",date:j(0),texte:t(0)},
-      {code:"A3",label:"Atelier 3 · Épargne",date:j(7),texte:t(7)},
-      {code:"A4",label:"Atelier 4 · Investissement",date:j(14),texte:t(14)},
-      {code:"BILAN",label:"Bilan 3 mois",date:j(104),texte:"vers le "+t(104)}];
+      {code:"A2",label:"Atelier 2 · Dettes",date:j(-1),texte:t(-1)},
+      {code:"A3",label:"Atelier 3 · Épargne",date:j(6),texte:t(6)},
+      {code:"A4",label:"Atelier 4 · Investissement",date:j(13),texte:t(13)},
+      {code:"BILAN",label:"Bilan 3 mois",date:j(103),texte:"vers le "+t(103)}];
   })(),
 };
 
-let charts = {}, lastData = null, lastDemo = false;
-let periode = { mode: "all", from: null, to: null };
+let lastData=null, lastDemo=false;
+let periode={mode:"all",from:null,to:null};
+const el=id=>document.getElementById(id);
+const pct=v=>v==null?"—":v+" %";
+
 function inPeriode(iso){
   if(!iso) return false;
   if(periode.mode==="all") return true;
-  const d = iso.slice(0,10);
-  return (!periode.from || d>=periode.from) && (!periode.to || d<=periode.to);
+  const d=iso.slice(0,10);
+  return (!periode.from||d>=periode.from)&&(!periode.to||d<=periode.to);
 }
 function setPeriode(mode){
-  periode.mode = mode;
+  periode.mode=mode;
   if(mode!=="custom"){
-    document.getElementById("pFrom").value=""; document.getElementById("pTo").value="";
-    if(mode==="all"){ periode.from=null; periode.to=null; }
-    else {
-      const to=new Date(), from=new Date(); from.setDate(from.getDate()-(+mode)+1);
-      periode.from=from.toISOString().slice(0,10); periode.to=to.toISOString().slice(0,10);
-    }
+    el("pFrom").value=""; el("pTo").value="";
+    if(mode==="all"){periode.from=null;periode.to=null;}
+    else{const to=new Date(),from=new Date();from.setDate(from.getDate()-(+mode)+1);
+      periode.from=from.toISOString().slice(0,10);periode.to=to.toISOString().slice(0,10);}
   }
-  document.querySelectorAll(".pbar button").forEach(b=>b.classList.toggle("on", b.dataset.p===mode));
-  if(lastData) render(lastData, lastDemo);
+  document.querySelectorAll(".pbar button").forEach(b=>b.classList.toggle("on",b.dataset.p===mode));
+  if(lastData) draw(lastData,lastDemo);
 }
-document.addEventListener("click", e=>{ if(e.target.matches(".pbar button")) setPeriode(e.target.dataset.p); });
-document.addEventListener("change", e=>{
+document.addEventListener("click",e=>{if(e.target.matches(".pbar button"))setPeriode(e.target.dataset.p);});
+document.addEventListener("change",e=>{
   if(e.target.id==="pFrom"||e.target.id==="pTo"){
     periode.mode="custom";
-    periode.from=document.getElementById("pFrom").value||null;
-    periode.to=document.getElementById("pTo").value||null;
+    periode.from=el("pFrom").value||null; periode.to=el("pTo").value||null;
     document.querySelectorAll(".pbar button").forEach(b=>b.classList.remove("on"));
-    if(lastData) render(lastData, lastDemo);
+    if(lastData) draw(lastData,lastDemo);
   }
 });
-function el(id){return document.getElementById(id)}
-function pct(v){return v===null||v===undefined?"—":v+" %"}
-
-function render(d, demo){
-  lastData = d; lastDemo = demo;
-  // --- bloc "sur la période" (compte les événements datés dans l'intervalle) ---
-  const S = d.series||{};
-  const nP = k => (S[k]||[]).filter(inPeriode).length;
-  const libP = periode.mode==="all" ? "toute la session"
-    : (periode.mode==="custom" ? "du "+(periode.from||"début")+" au "+(periode.to||"aujourd'hui")
-    : "les "+periode.mode+" derniers jours");
-  el("periodeGauges").innerHTML =
-    gauge(nP("inscriptions"),"nouveaux inscrits — "+libP)+
-    gauge(nP("formateurs"),"retours formateurs — "+libP)+
-    gauge(nP("feedback"),"avis de fin reçus — "+libP)+
-    gauge(nP("bilan"),"réponses bilan 3 mois — "+libP);
-  el("session").textContent = d.session + " · mis à jour le " +
-    new Date(d.updated).toLocaleString("fr-FR",{dateStyle:"long",timeStyle:"short"});
-  el("badgeTxt").textContent = demo ? "Mode démonstration — script non connecté" : "Données en direct";
-  el("badge").classList.toggle("demo", !!demo);
-
-  el("kInscrits").textContent = d.inscrits.total;
-  el("kObjectif").textContent = d.objectif ? "inscrits — objectif : "+d.objectif : "inscrits";
-  el("kAssidus").innerHTML = (d.assiduite.taux??"—") + "<small> %</small>";
-  el("kAssidusL").textContent = "d'assidus ("+d.assiduite.assidus+" pers. · ≥ "+d.assiduite.seuil+" séances)";
-  el("kNote").innerHTML = (d.feedback.noteMoyenne??"—") + "<small> / 5</small>";
-  el("kAlertes").textContent = d.formateurs.alertes;
-  el("kAlertBox").classList.toggle("alert", d.formateurs.alertes>0);
-  el("seuilTxt").textContent = d.assiduite.seuil;
-
-  // cumul inscriptions (filtré sur la période si des séries sont disponibles)
-  let cumul = d.inscrits.cumul;
-  if(S.inscriptions){
-    const days = {};
-    S.inscriptions.filter(inPeriode).forEach(x=>{ const k=x.slice(0,10); days[k]=(days[k]||0)+1; });
-    let c=0; cumul = Object.keys(days).sort().map(k=>{ c+=days[k]; return {date:k,total:c}; });
-  }
-  mkChart("chartCumul","line",{
-    labels:cumul.map(p=>p.date.slice(5)),
-    datasets:[{data:cumul.map(p=>p.total),borderColor:"#028090",
-      backgroundColor:"rgba(2,128,144,.12)",fill:true,tension:.3,pointRadius:3}]},
-    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}});
-
-  // profils + groupes
-  bars("profils", Object.entries(d.inscrits.parProfil), d.inscrits.total, "");
-  bars("groupes", Object.entries(d.inscrits.parGroupe||{}), d.inscrits.total, "gold");
-
-  // frise chronologique + prochain rendez-vous
-  const today = new Date(); today.setHours(0,0,0,0);
-  const cal = d.calendrier||[];
-  el("timeline").innerHTML = cal.map(e=>{
-    const dt = e.date? new Date(e.date+"T00:00:00") : null;
-    const cls = dt? (dt<today? "done" : (+dt===+today? "today":"")) : "";
-    return `<div class="step ${cls}"><div class="pin">${cls==="done"?"✓":""}</div><div class="lab">${e.label}</div><div class="dt">${e.texte}</div></div>`;
-  }).join("");
-  const next = cal.find(e=>e.date && new Date(e.date+"T00:00:00")>=today);
-  if(next){
-    const dn = new Date(next.date+"T00:00:00");
-    const j = Math.round((dn-today)/86400000);
-    const quand = j===0? "c'est aujourd'hui !" : (j===1? "demain" : "dans "+j+" jours");
-    el("nextRdv").style.display="block";
-    el("nextRdv").innerHTML = "Prochain rendez-vous : <b>"+next.label+"</b> — "+next.texte+" ("+quand+")";
-  } else { el("nextRdv").style.display="none"; }
-  const dateParCode = {}; cal.forEach(e=>{ if(e.date) dateParCode[e.code]=e.date.slice(8,10)+"/"+e.date.slice(5,7); });
-
-  // funnel séances (avec dates)
-  mkChart("chartFunnel","bar",{
-    labels:d.seances.map(s=>s.label + (dateParCode[s.code]? " · "+dateParCode[s.code] : "")),
-    datasets:[{data:d.seances.map(s=>s.renseigne?s.presents:null),
-      backgroundColor:["#0B2027","#028090","#00A896","#02C39A","#F4B860"],borderRadius:6}]},
-    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}});
-
-  // défis
-  const dEntries = Object.entries(d.defis).map(([k,v])=>[k+" — défis réalisés", v.faits, v.total]);
-  el("defis").innerHTML = dEntries.map(([l,f,t])=>{
-    const p = t? Math.round(100*f/t):0;
-    return `<div class="bar mint"><div>${l}</div><div class="track"><div class="fill" style="width:${p}%"></div></div><div class="v">${f}/${t}</div></div>`;
-  }).join("");
-
-  // feedback
-  el("fbLede").textContent = "Le questionnaire de fin de formation — " + d.feedback.reponses + " réponses.";
-  el("fbGauges").innerHTML =
-    gauge(d.feedback.noteMoyenne!==null? d.feedback.noteMoyenne+" / 5":"—","Note globale moyenne")+
-    gauge(pct(d.feedback.recommande),"recommanderaient la formation");
-  bars("fbAteliers", Object.entries(d.feedback.atelierPrefere||{}), d.feedback.reponses, "gold");
-
-  // bilan 3 mois
-  el("blLede").textContent = "La vraie mesure du succès — " + d.bilan3mois.reponses +
-    " réponses au bilan à 3 mois. Les « non concernés » sont exclus des pourcentages.";
-  const b=d.bilan3mois;
-  el("blGauges").innerHTML =
-    gauge(pct(b.budgetTenu),"tiennent leur budget")+
-    gauge(pct(b.virementActif),"ont un virement d'épargne automatique actif")+
-    gauge(pct(b.detteAttaquee),"ont attaqué leur dette cible")+
-    gauge(pct(b.peaOuvert),"ont ouvert leur PEA")+
-    gauge(pct(b.netbudget),"utilisent NetBudget");
-
-  // formateurs
-  const f=d.formateurs;
-  el("fmGauges").innerHTML =
-    gauge(f.actifs,"formateurs actifs")+
-    gauge(f.retours,"points hebdo remontés")+
-    gauge(f.noteMoyenne!==null? f.noteMoyenne+" / 5":"—","ressenti moyen des séances")+
-    gauge(f.alertes,"demandes d'aide en cours");
-}
 
 function gauge(v,label){return `<div class="gauge"><div class="p">${v}</div><div class="t">${label}</div></div>`}
-function bars(id, entries, total, cls){
-  entries.sort((a,b)=>b[1]-a[1]);
-  el(id).innerHTML = entries.map(([k,v])=>{
-    const p = total? Math.round(100*v/total):0;
+function bars(id,entries,total,cls){
+  entries=entries.slice().sort((a,b)=>b[1]-a[1]);
+  el(id).innerHTML=entries.map(([k,v])=>{
+    const p=total?Math.round(100*v/total):0;
     return `<div class="bar ${cls}"><div>${k}</div><div class="track"><div class="fill" style="width:${p}%"></div></div><div class="v">${v}</div></div>`;
   }).join("");
 }
-function mkChart(id,type,data,opts){
-  if(charts[id]) charts[id].destroy();
-  charts[id]=new Chart(el(id),{type,data,options:Object.assign({responsive:true,animation:{duration:500}},opts)});
+
+// Courbe SVG maison (cumul par jour) — zéro dépendance
+function svgCurve(dates){
+  const days={};
+  dates.forEach(x=>{const k=x.slice(0,10);days[k]=(days[k]||0)+1;});
+  const keys=Object.keys(days).sort();
+  let c=0; const pts=keys.map(k=>{c+=days[k];return{d:k,v:c};});
+  if(!pts.length){el("curve").innerHTML='<p style="color:var(--slate);font-size:14px;margin:6px 0">Aucune inscription sur cette période.</p>';return 0;}
+  const W=600,H=150,P=8,max=pts[pts.length-1].v;
+  const X=i=>pts.length===1?W/2:P+(W-2*P)*i/(pts.length-1);
+  const Y=v=>H-P-(H-2*P-18)*v/max;
+  const line=pts.map((p,i)=>`${X(i).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ");
+  const area=`${P},${H-P} ${line} ${X(pts.length-1).toFixed(1)},${H-P}`;
+  const last=pts[pts.length-1], first=pts[0];
+  const fmt=k=>k.slice(8,10)+"/"+k.slice(5,7);
+  el("curve").innerHTML=
+   `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Inscriptions cumulées">
+      <polygon points="${area}" fill="rgba(2,128,144,.12)"/>
+      <polyline points="${line}" fill="none" stroke="#028090" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${X(pts.length-1)}" cy="${Y(last.v)}" r="4.5" fill="#028090"/>
+      <text x="${Math.min(X(pts.length-1),W-30)}" y="${Math.max(Y(last.v)-10,14)}" font-size="13" font-weight="700" fill="#0B2027" text-anchor="middle">${last.v}</text>
+      <text x="${P}" y="${H-1}" font-size="11" fill="#5A6B72">${fmt(first.d)}</text>
+      <text x="${W-P}" y="${H-1}" font-size="11" fill="#5A6B72" text-anchor="end">${fmt(last.d)}</text>
+    </svg>`;
+  return dates.filter(x=>true).length;
+}
+
+function draw(d,demo){
+  lastData=d; lastDemo=demo;
+  el("session").textContent=d.session+" · mis à jour le "+
+    new Date(d.updated).toLocaleString("fr-FR",{dateStyle:"long",timeStyle:"short"});
+  el("badgeTxt").textContent=demo?"Mode démonstration — script non connecté":"Données en direct";
+  el("badge").classList.toggle("demo",!!demo);
+
+  el("kInscrits").textContent=d.inscrits.total;
+  el("kObjectif").textContent=d.objectif?"inscrits — objectif : "+d.objectif:"inscrits";
+  el("kAssidus").innerHTML=(d.assiduite.taux??"—")+"<small> %</small>";
+  el("kAssidusL").textContent="d'assidus ("+d.assiduite.assidus+" pers. · ≥ "+d.assiduite.seuil+" séances)";
+  el("kNote").innerHTML=(d.feedback.noteMoyenne??"—")+"<small> / 5</small>";
+  el("kAlertes").textContent=d.formateurs.alertes;
+  el("kAlertBox").classList.toggle("alert",d.formateurs.alertes>0);
+  el("seuilTxt").textContent=d.assiduite.seuil;
+
+  // prochain rendez-vous (une ligne)
+  const today=new Date(); today.setHours(0,0,0,0);
+  const next=(d.calendrier||[]).find(e=>e.date&&new Date(e.date+"T00:00:00")>=today);
+  if(next){
+    const j=Math.round((new Date(next.date+"T00:00:00")-today)/86400000);
+    const quand=j===0?"c'est aujourd'hui !":(j===1?"demain":"dans "+j+" jours");
+    el("nextRdv").style.display="block";
+    el("nextRdv").innerHTML="📅 Prochain rendez-vous : <b>"+next.label+"</b> — "+next.texte+" ("+quand+")";
+  } else el("nextRdv").style.display="none";
+
+  // courbe filtrée + libellé période
+  const dates=(d.series&&d.series.inscriptions)?d.series.inscriptions.filter(inPeriode)
+              :(d.inscrits.cumul||[]).map(p=>p.date).filter(inPeriode);
+  svgCurve(dates);
+  const lib=periode.mode==="all"?"toute la session"
+    :periode.mode==="custom"?("du "+(periode.from||"début")+" au "+(periode.to||"aujourd'hui"))
+    :"les "+periode.mode+" derniers jours";
+  el("curveCap").innerHTML="<b>+"+dates.length+" inscrit"+(dates.length>1?"s":"")+"</b> sur "+lib+" — cumul jour par jour.";
+
+  bars("profils",Object.entries(d.inscrits.parProfil||{}),d.inscrits.total,"");
+  bars("groupes",Object.entries(d.inscrits.parGroupe||{}),d.inscrits.total,"gold");
+
+  // funnel maison (avec dates si dispo)
+  const dpc={};(d.calendrier||[]).forEach(e=>{if(e.date)dpc[e.code]=e.date.slice(8,10)+"/"+e.date.slice(5,7);});
+  const maxP=Math.max(d.inscrits.total,1);
+  el("funnel").innerHTML=d.seances.map(s=>{
+    const lab=s.label+(dpc[s.code]?" · "+dpc[s.code]:"");
+    if(!s.renseigne)return `<div class="bar"><div>${lab}</div><div class="track"></div><div class="v" style="color:var(--slate);font-weight:400">à venir</div></div>`;
+    const p=Math.round(100*s.presents/maxP);
+    return `<div class="bar navy"><div>${lab}</div><div class="track"><div class="fill" style="width:${p}%"></div></div><div class="v">${s.presents}</div></div>`;
+  }).join("");
+  const dE=Object.entries(d.defis||{});
+  el("defis").innerHTML=dE.map(([k,v])=>{
+    const p=v.total?Math.round(100*v.faits/v.total):0;
+    return `<div class="bar mint"><div>${k} — défis réalisés</div><div class="track"><div class="fill" style="width:${p}%"></div></div><div class="v">${v.faits}/${v.total}</div></div>`;
+  }).join("");
+
+  // avis de fin — masqué tant que vide
+  const fbOn=d.feedback&&d.feedback.reponses>0;
+  el("secFb").style.display=fbOn?"block":"none";
+  if(fbOn){
+    el("fbLede").textContent=d.feedback.reponses+" réponse"+(d.feedback.reponses>1?"s":"")+" au questionnaire de fin.";
+    el("fbGauges").innerHTML=
+      gauge(d.feedback.noteMoyenne!=null?d.feedback.noteMoyenne+" / 5":"—","note globale moyenne")+
+      gauge(pct(d.feedback.recommande),"recommanderaient la formation");
+    bars("fbAteliers",Object.entries(d.feedback.atelierPrefere||{}),d.feedback.reponses,"gold");
+  }
+
+  // bilan 3 mois — masqué tant que vide
+  const b=d.bilan3mois, blOn=b&&b.reponses>0;
+  el("secBl").style.display=blOn?"block":"none";
+  if(blOn){
+    el("blLede").textContent=b.reponses+" réponse"+(b.reponses>1?"s":"")+" au bilan — les « non concernés » sont exclus des pourcentages.";
+    el("blGauges").innerHTML=
+      gauge(pct(b.budgetTenu),"tiennent leur budget")+
+      gauge(pct(b.virementActif),"ont un virement d'épargne automatique")+
+      gauge(pct(b.detteAttaquee),"ont attaqué leur dette cible")+
+      gauge(pct(b.peaOuvert),"ont ouvert leur PEA")+
+      gauge(pct(b.netbudget),"utilisent NetBudget");
+    const a=b.accompagnement||{};
+    const tot=(a.progresse||0)+(a.sansEffet||0)+(a.ralenti||0);
+    el("blAcc").innerHTML = tot===0 ? "" :
+      `<div class="bar mint"><div>L'accompagnement m'a fait progresser</div><div class="track"><div class="fill" style="width:${Math.round(100*(a.progresse||0)/tot)}%"></div></div><div class="v">${a.progresse||0}</div></div>`+
+      `<div class="bar gold"><div>Sans effet particulier</div><div class="track"><div class="fill" style="width:${Math.round(100*(a.sansEffet||0)/tot)}%"></div></div><div class="v">${a.sansEffet||0}</div></div>`+
+      `<div class="bar brick"><div>M'a plutôt ralenti</div><div class="track"><div class="fill" style="width:${Math.round(100*(a.ralenti||0)/tot)}%"></div></div><div class="v">${a.ralenti||0}</div></div>`;
+  }
+
+  const f=d.formateurs;
+  el("fmGauges").innerHTML=
+    gauge(f.actifs,"formateurs actifs")+
+    gauge(f.retours,"points hebdo remontés")+
+    gauge(f.noteMoyenne!=null?f.noteMoyenne+" / 5":"—","ressenti moyen des séances")+
+    gauge(f.alertes,"demandes d'aide en cours");
 }
 
 async function load(){
-  if(!SCRIPT_URL){ render(DEMO,true); return; }
+  if(!SCRIPT_URL){ safeDraw(DEMO,true); return; }
+  let d;
   try{
-    const r = await fetch(SCRIPT_URL+"?token="+encodeURIComponent(TOKEN));
-    const d = await r.json();
-    if(d.error) throw new Error(d.error==="unauthorized"?"Token invalide — vérifie TOKEN dans cette page et dans l'onglet Config.":d.error);
-    el("err").style.display="none";
-    render(d,false);
+    const r=await fetch(SCRIPT_URL+"?token="+encodeURIComponent(TOKEN));
+    d=await r.json();
+    if(d.error) throw new Error(d.error==="unauthorized"?"token invalide (compare la page et l'onglet Config)":d.error);
   }catch(e){
     el("err").style.display="block";
-    let msg = "Impossible de charger les données : "+e.message;
-    if(/failed to fetch|networkerror|load failed/i.test(e.message)){
-      msg += " — si le JSON s'affiche pourtant dans TON navigateur, le déploiement du script est sans doute réglé sur « personnes disposant d'un compte Google » : passe-le sur « Tout le monde » (Apps Script → Déployer → Gérer les déploiements → ✏️ → Nouvelle version).";
-    }
-    el("err").textContent = msg;
-    el("badgeTxt").textContent = "Hors ligne — nouvelle tentative dans "+REFRESH_S+" s";
+    el("err").textContent="Connexion au script impossible : "+e.message+
+      (/failed to fetch|networkerror|load failed/i.test(e.message)
+        ?" — vérifie que le déploiement Apps Script est en accès « Tout le monde ».":"");
+    el("badgeTxt").textContent="Hors ligne — nouvelle tentative dans "+REFRESH_S+" s";
+    return;
+  }
+  safeDraw(d,false);
+}
+function safeDraw(d,demo){
+  try{ el("err").style.display="none"; draw(d,demo); }
+  catch(e){
+    el("err").style.display="block";
+    el("err").textContent="Les données sont arrivées mais l'affichage a rencontré une erreur ("+e.message+"). Préviens Stéphane avec ce message.";
   }
 }
 load();
-setInterval(load, REFRESH_S*1000);
+setInterval(load,REFRESH_S*1000);
 </script>
 </body>
 </html>
