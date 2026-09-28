@@ -1,0 +1,191 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stand EJP Tech · ce que disent les réponses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#EEF2F7;--panel:#FFFFFF;--ink:#14213D;--mute:#5E6B85;--line:#D5DCE7;--acc:#3050D6;--acc2:#9DB0F2;--warn:#C9831F;--track:#E3E8F1;
+--q:#3050D6;--h:#8FA3EE;--r:#C9D2E6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1522;--panel:#172033;--ink:#E7ECF5;--mute:#9AA6BF;--line:#2A3650;--acc:#7F9BFF;--acc2:#44579A;--warn:#E7A64A;--track:#243049;--q:#7F9BFF;--h:#4A5E9F;--r:#33405C}}
+:root[data-theme="dark"]{--bg:#0F1522;--panel:#172033;--ink:#E7ECF5;--mute:#9AA6BF;--line:#2A3650;--acc:#7F9BFF;--acc2:#44579A;--warn:#E7A64A;--track:#243049;--q:#7F9BFF;--h:#4A5E9F;--r:#33405C}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding:48px 22px 80px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:0}
+h1{font-size:clamp(2rem,5.2vw,3.6rem);line-height:1.05;font-weight:800;max-width:20ch}
+h2{font-size:1.55rem;font-weight:700;margin-bottom:6px}
+h3{font-size:1.05rem;font-weight:700;margin-bottom:12px}
+p{margin:0 0 12px;max-width:68ch}
+.lede{font-size:1.12rem;color:var(--mute);margin-top:18px;max-width:60ch}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;padding-bottom:36px;border-bottom:1px solid var(--line)}
+.grid79{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;max-width:360px;justify-self:end;width:100%}
+.d{aspect-ratio:1;border-radius:50%;display:block;background:var(--r)}
+.d.Q{background:var(--q)}.d.H{background:var(--h)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--mute);margin-top:12px;justify-content:flex-end}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:28px 0 8px}
+.facts div{padding:14px 18px 14px 0;border-right:1px solid var(--line)}
+.facts div:last-child{border-right:0}
+.facts strong{font-family:"Bricolage Grotesque",sans-serif;font-size:1.9rem;font-weight:700;display:block;line-height:1.1}
+.facts span{font-size:.9rem;color:var(--mute)}
+section{padding:44px 0 8px}
+.intro{color:var(--mute);margin-bottom:22px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
+.bar{display:grid;grid-template-columns:minmax(120px,210px) 1fr 76px;gap:12px;align-items:center;padding:6px 0;font-size:.93rem}
+.track{height:12px;background:var(--track);border-radius:6px;overflow:hidden}
+.fill{display:block;height:100%;background:var(--acc2);border-radius:6px}
+.bar.hi .fill{background:var(--acc)}
+.bar.warn .fill{background:var(--warn)}
+.val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.val small{font-weight:400;color:var(--mute)}
+.insight{border-left:3px solid var(--acc);padding:4px 0 4px 16px;margin:18px 0 0;font-size:.96rem}
+.insight.warn{border-color:var(--warn)}
+blockquote{margin:0;padding:20px 22px;background:var(--panel);border:1px solid var(--line);border-radius:14px;font-family:"Bricolage Grotesque",sans-serif;font-size:1.12rem;line-height:1.4}
+blockquote cite{display:block;font:500 .85rem "Public Sans",sans-serif;color:var(--mute);margin-top:10px;font-style:normal}
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+ol.actions{margin:0;padding-left:1.3em;max-width:72ch}
+ol.actions li{margin-bottom:14px;padding-left:6px}
+ol.actions li strong{display:block}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+td,th{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600}
+.scroll{overflow-x:auto}
+footer{margin-top:48px;font-size:.85rem;color:var(--mute)}
+@media (max-width:820px){.hero,.two,.quotes{grid-template-columns:1fr}.grid79{justify-self:start}.legend{justify-content:flex-start}.facts{grid-template-columns:1fr 1fr}.facts div:nth-child(2){border-right:0}.bar{grid-template-columns:1fr 70px}.bar .lab{grid-column:1/-1}}
+</style></head><body><main>
+
+<header class="hero">
+<div>
+<h1>Ils utilisent l'IA tous les jours, mais ne lui confient pas leurs données.</h1>
+<p class="lede">Analyse des 79 réponses recueillies au stand EJP Tech entre le 20 et le 27 septembre 2026. Chaque point à droite est une personne interrogée, colorée selon sa fréquence d'usage.</p>
+</div>
+<div><div class="grid79" aria-label="79 répondants par fréquence d'usage"><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, -18"></i><i class="d Q" title="Actif non-tech, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, -18"></i><i class="d Q" title="Étudiant / jeune actif, -18"></i><i class="d Q" title="Entrepreneur / indépendant, 26-35"></i><i class="d Q" title="Reconversion / curieux, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, -18"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Actif non-tech, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 26-35"></i><i class="d Q" title="Actif non-tech, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, -18"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Reconversion / curieux, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Autre, 26-35"></i><i class="d Q" title="Entrepreneur / indépendant, 18-25"></i><i class="d Q" title="Autre, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Entrepreneur / indépendant, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 26-35"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Actif non-tech, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Étudiant / jeune actif, 18-25"></i><i class="d Q" title="Reconversion / curieux, 18-25"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d H" title="Étudiant / jeune actif, -18"></i><i class="d H" title="Étudiant / jeune actif, -18"></i><i class="d H" title="Étudiant / jeune actif, 26-35"></i><i class="d H" title="Actif non-tech, 26-35"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d H" title="Étudiant / jeune actif, 18-25"></i><i class="d R" title="Autre, 18-25"></i><i class="d R" title="Étudiant / jeune actif, -18"></i><i class="d R" title="Étudiant / jeune actif, 18-25"></i><i class="d R" title="Étudiant / jeune actif, 18-25"></i><i class="d R" title="Actif non-tech, 26-35"></i><i class="d R" title="Étudiant / jeune actif, 18-25"></i><i class="d R" title="Étudiant / jeune actif, 18-25"></i><i class="d R" title="Étudiant / jeune actif, 18-25"></i><i class="d R" title="Étudiant / jeune actif, -18"></i><i class="d R" title="Actif non-tech, 26-35"></i></div>
+<div class="legend"><span><b style="background:var(--q)"></b>Quotidien 57</span><span><b style="background:var(--h)"></b>Hebdomadaire 12</span><span><b style="background:var(--r)"></b>Rarement 10</span></div></div>
+</header>
+
+<div class="facts">
+<div><strong>72 %</strong><span>utilisent l'IA chaque jour</span></div>
+<div><strong>96 %</strong><span>passent par ChatGPT</span></div>
+<div><strong>31 %</strong><span>citent les données personnelles comme frein n°1</span></div>
+<div><strong>31</strong><span>acceptent d'être recontactés</span></div>
+</div>
+
+<section><h2>Qui a répondu</h2><p class="intro">Un public très homogène : l'enquête parle surtout aux étudiants et jeunes actifs de 18 à 25 ans.</p>
+<div class="two"><div class="panel"><h3>Profil</h3><div class="bar hi"><span class="lab">Étudiant / jeune actif</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">63<small> · 80%</small></span></div>
+<div class="bar"><span class="lab">Actif non-tech</span><span class="track"><span class="fill" style="width:11.1%"></span></span><span class="val">7<small> · 9%</small></span></div>
+<div class="bar"><span class="lab">Autre (prompts, limites, personnalité)</span><span class="track"><span class="fill" style="width:4.8%"></span></span><span class="val">3<small> · 4%</small></span></div>
+<div class="bar"><span class="lab">Entrepreneur / indépendant</span><span class="track"><span class="fill" style="width:4.8%"></span></span><span class="val">3<small> · 4%</small></span></div>
+<div class="bar"><span class="lab">Reconversion / curieux</span><span class="track"><span class="fill" style="width:4.8%"></span></span><span class="val">3<small> · 4%</small></span></div></div><div class="panel"><h3>Tranche d'âge</h3><div class="bar hi"><span class="lab">18-25</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">55<small> · 70%</small></span></div>
+<div class="bar"><span class="lab">26-35</span><span class="track"><span class="fill" style="width:27.3%"></span></span><span class="val">15<small> · 19%</small></span></div>
+<div class="bar"><span class="lab">-18</span><span class="track"><span class="fill" style="width:16.4%"></span></span><span class="val">9<small> · 11%</small></span></div></div></div>
+<p class="insight">80 % d'étudiants ou jeunes actifs et 70 % de 18-25 ans. Les actifs non-tech, entrepreneurs et personnes en reconversion pèsent 16 répondants au total : trop peu pour tirer des conclusions par segment. 61 réponses sur 79 ont été collectées le 20 septembre, 15 le 27.</p>
+</section>
+
+<section><h2>Les outils</h2><p class="intro">ChatGPT est la porte d'entrée quasi universelle. Claude arrive deuxième, loin devant Gemini.</p>
+<div class="two"><div class="panel"><h3>Outils utilisés</h3><div class="bar hi"><span class="lab">ChatGPT</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">76<small> · 96%</small></span></div>
+<div class="bar hi"><span class="lab">Claude</span><span class="track"><span class="fill" style="width:53.9%"></span></span><span class="val">41<small> · 52%</small></span></div>
+<div class="bar"><span class="lab">Gemini</span><span class="track"><span class="fill" style="width:36.8%"></span></span><span class="val">28<small> · 35%</small></span></div>
+<div class="bar"><span class="lab">Canva IA</span><span class="track"><span class="fill" style="width:26.3%"></span></span><span class="val">20<small> · 25%</small></span></div>
+<div class="bar"><span class="lab">Copilot</span><span class="track"><span class="fill" style="width:9.2%"></span></span><span class="val">7<small> · 9%</small></span></div>
+<div class="bar"><span class="lab">Meta IA</span><span class="track"><span class="fill" style="width:1.3%"></span></span><span class="val">1<small> · 1%</small></span></div>
+<div class="bar"><span class="lab">Hermes</span><span class="track"><span class="fill" style="width:1.3%"></span></span><span class="val">1<small> · 1%</small></span></div>
+<div class="bar"><span class="lab">Google / Bing</span><span class="track"><span class="fill" style="width:1.3%"></span></span><span class="val">1<small> · 1%</small></span></div>
+<div class="bar"><span class="lab">Suno</span><span class="track"><span class="fill" style="width:1.3%"></span></span><span class="val">1<small> · 1%</small></span></div></div>
+<div class="panel"><h3>Nombre d'outils par personne</h3><div class="bar hi"><span class="lab">2 outils</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">34<small> · 43%</small></span></div>
+<div class="bar"><span class="lab">1 outil</span><span class="track"><span class="fill" style="width:64.7%"></span></span><span class="val">22<small> · 28%</small></span></div>
+<div class="bar"><span class="lab">3 outils</span><span class="track"><span class="fill" style="width:32.4%"></span></span><span class="val">11<small> · 14%</small></span></div>
+<div class="bar"><span class="lab">4 outils</span><span class="track"><span class="fill" style="width:20.6%"></span></span><span class="val">7<small> · 9%</small></span></div>
+<div class="bar"><span class="lab">5 outils</span><span class="track"><span class="fill" style="width:14.7%"></span></span><span class="val">5<small> · 6%</small></span></div>
+<p class="insight">72 % combinent au moins deux outils. 20 personnes n'utilisent que ChatGPT : c'est le public le plus facile à faire progresser avec une comparaison d'outils.</p></div></div>
+</section>
+
+<section><h2>Les usages</h2><p class="intro">Écrire et apprendre dominent. Le code reste marginal, ce public n'est pas technique.</p>
+<div class="panel"><div class="bar hi"><span class="lab">Rédiger / reformuler</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">66<small> · 84%</small></span></div>
+<div class="bar hi"><span class="lab">Apprendre / réviser</span><span class="track"><span class="fill" style="width:78.8%"></span></span><span class="val">52<small> · 66%</small></span></div>
+<div class="bar"><span class="lab">Créer des visuels</span><span class="track"><span class="fill" style="width:74.2%"></span></span><span class="val">49<small> · 62%</small></span></div>
+<div class="bar"><span class="lab">Résumer des documents</span><span class="track"><span class="fill" style="width:69.7%"></span></span><span class="val">46<small> · 58%</small></span></div>
+<div class="bar"><span class="lab">S'organiser / planifier</span><span class="track"><span class="fill" style="width:63.6%"></span></span><span class="val">42<small> · 53%</small></span></div>
+<div class="bar"><span class="lab">Traduire</span><span class="track"><span class="fill" style="width:40.9%"></span></span><span class="val">27<small> · 34%</small></span></div>
+<div class="bar"><span class="lab">Coder</span><span class="track"><span class="fill" style="width:15.2%"></span></span><span class="val">10<small> · 13%</small></span></div>
+<div class="bar"><span class="lab">Questions santé / recherche</span><span class="track"><span class="fill" style="width:1.5%"></span></span><span class="val">1<small> · 1%</small></span></div></div>
+<p class="insight">En moyenne 3,7 usages par personne. Le trio rédiger, apprendre, créer des visuels couvre l'essentiel : c'est là que les contenus EJP Tech auront le plus d'audience. Seulement 10 personnes codent.</p>
+</section>
+
+<section><h2>Ce qui freine</h2><p class="intro">Deux inquiétudes ressortent nettement : la vie privée et la fiabilité des réponses. Le prix passe loin derrière.</p>
+<div class="panel"><div class="bar hi"><span class="lab">Inquiétude sur les données</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">23<small> · 31%</small></span></div>
+<div class="bar"><span class="lab">Aucun frein</span><span class="track"><span class="fill" style="width:69.6%"></span></span><span class="val">16<small> · 21%</small></span></div>
+<div class="bar"><span class="lab">Manque de confiance dans les réponses</span><span class="track"><span class="fill" style="width:60.9%"></span></span><span class="val">14<small> · 19%</small></span></div>
+<div class="bar"><span class="lab">Trop cher</span><span class="track"><span class="fill" style="width:30.4%"></span></span><span class="val">7<small> · 9%</small></span></div>
+<div class="bar"><span class="lab">Manque de temps pour apprendre</span><span class="track"><span class="fill" style="width:21.7%"></span></span><span class="val">5<small> · 7%</small></span></div>
+<div class="bar"><span class="lab">Ne sait pas par où commencer</span><span class="track"><span class="fill" style="width:17.4%"></span></span><span class="val">4<small> · 5%</small></span></div>
+<div class="bar"><span class="lab">Autre (prompts, limites, personnalité)</span><span class="track"><span class="fill" style="width:13.0%"></span></span><span class="val">3<small> · 4%</small></span></div>
+<div class="bar"><span class="lab">Impact environnemental</span><span class="track"><span class="fill" style="width:8.7%"></span></span><span class="val">2<small> · 3%</small></span></div>
+<div class="bar"><span class="lab">Peur de ne plus réfléchir seul</span><span class="track"><span class="fill" style="width:4.3%"></span></span><span class="val">1<small> · 1%</small></span></div></div>
+<div class="two" style="margin-top:0">
+<p class="insight warn">Chez ceux qui utilisent rarement l'IA, le frein n°1 n'est plus les données mais la confiance dans les réponses (4 sur 10). Montrer comment vérifier une réponse est le levier pour les faire passer à un usage régulier.</p>
+<p class="insight warn">Chez les utilisateurs hebdomadaires, 3 sur 11 disent ne pas savoir par où commencer. Pour eux, un parcours guidé vaut plus qu'un décryptage d'actu.</p>
+</div>
+<p class="insight">16 personnes (21 %) ne déclarent aucun frein : ce sont les ambassadeurs naturels pour les ateliers.</p>
+</section>
+
+<section><h2>Ce qui les aiderait, et sous quelle forme</h2><p class="intro">La demande est claire : du pratique, en format court.</p>
+<div class="two"><div class="panel"><h3>Ce qui aiderait le plus <small style="font-weight:400;color:var(--mute)">(71 réponses)</small></h3><div class="bar hi"><span class="lab">Tutos pratiques</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">52<small> · 73%</small></span></div>
+<div class="bar"><span class="lab">Ateliers en présentiel</span><span class="track"><span class="fill" style="width:42.3%"></span></span><span class="val">22<small> · 31%</small></span></div>
+<div class="bar"><span class="lab">Accompagnement personnalisé</span><span class="track"><span class="fill" style="width:38.5%"></span></span><span class="val">20<small> · 28%</small></span></div>
+<div class="bar"><span class="lab">Décryptages de l'actu</span><span class="track"><span class="fill" style="width:38.5%"></span></span><span class="val">20<small> · 28%</small></span></div>
+<div class="bar"><span class="lab">Apprendre à prompter</span><span class="track"><span class="fill" style="width:1.9%"></span></span><span class="val">1<small> · 1%</small></span></div></div>
+<div class="panel"><h3>Format préféré <small style="font-weight:400;color:var(--mute)">(73 réponses)</small></h3><div class="bar hi"><span class="lab">Vidéo courte (TikTok, Reels)</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">63<small> · 86%</small></span></div>
+<div class="bar"><span class="lab">Podcast</span><span class="track"><span class="fill" style="width:39.7%"></span></span><span class="val">25<small> · 34%</small></span></div>
+<div class="bar"><span class="lab">En présentiel</span><span class="track"><span class="fill" style="width:31.7%"></span></span><span class="val">20<small> · 27%</small></span></div>
+<div class="bar"><span class="lab">Newsletter</span><span class="track"><span class="fill" style="width:14.3%"></span></span><span class="val">9<small> · 12%</small></span></div>
+<div class="bar"><span class="lab">LinkedIn</span><span class="track"><span class="fill" style="width:11.1%"></span></span><span class="val">7<small> · 10%</small></span></div>
+<div class="bar"><span class="lab">Écrit</span><span class="track"><span class="fill" style="width:1.6%"></span></span><span class="val">1<small> · 1%</small></span></div></div></div>
+<p class="insight">Tutos pratiques + vidéo courte : c'est le format par défaut pour 73 % et 86 % des répondants. Le présentiel reste demandé par 1 personne sur 4, ce qui justifie un atelier récurrent en complément des contenus en ligne. LinkedIn et newsletter sont des canaux secondaires.</p>
+</section>
+
+<section><h2>Les corvées qu'ils voudraient déléguer</h2><p class="intro">Réponses libres regroupées par thème (questions « ce qui prend le plus de temps » et « la corvée à enlever », 58 mentions exploitables).</p>
+<div class="panel"><div class="bar hi"><span class="lab">Rédiger (cours, courriers, messages)</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">11<small> · 19%</small></span></div>
+<div class="bar hi"><span class="lab">S'organiser, planifier</span><span class="track"><span class="fill" style="width:100.0%"></span></span><span class="val">11<small> · 19%</small></span></div>
+<div class="bar"><span class="lab">Réviser, faire des fiches</span><span class="track"><span class="fill" style="width:81.8%"></span></span><span class="val">9<small> · 16%</small></span></div>
+<div class="bar"><span class="lab">Lire, résumer des textes longs</span><span class="track"><span class="fill" style="width:63.6%"></span></span><span class="val">7<small> · 12%</small></span></div>
+<div class="bar"><span class="lab">Chercher la bonne information</span><span class="track"><span class="fill" style="width:45.5%"></span></span><span class="val">5<small> · 9%</small></span></div>
+<div class="bar"><span class="lab">Excel, recopier des données</span><span class="track"><span class="fill" style="width:36.4%"></span></span><span class="val">4<small> · 7%</small></span></div>
+<div class="bar"><span class="lab">Échanges clients, messages</span><span class="track"><span class="fill" style="width:36.4%"></span></span><span class="val">4<small> · 7%</small></span></div>
+<div class="bar"><span class="lab">Administratif, inventaire</span><span class="track"><span class="fill" style="width:18.2%"></span></span><span class="val">2<small> · 3%</small></span></div></div>
+<p class="insight">Rédaction et organisation arrivent à égalité. Un tuto « planifier sa semaine avec l'IA » et un autre « faire ses fiches de révision » répondent à la moitié des corvées citées.</p>
+</section>
+
+<section><h2>Ce qu'ils disent</h2><p class="intro">Extraits anonymisés des réponses libres.</p>
+<div class="quotes">
+<blockquote>La recherche d'une réponse rapide devient une conversation fleuve où il faut préciser le contexte de multiples fois.<cite>Étudiant, 18-25 ans, usage quotidien</cite></blockquote>
+<blockquote>De rappeler à une IA une tâche dans une nouvelle conversation.<cite>Étudiant, 26-35 ans, à propos de ce qui lui prend le plus de temps</cite></blockquote>
+<blockquote>Inquiétude sur la capacité à réfléchir par soi-même.<cite>Moins de 18 ans, usage quotidien</cite></blockquote>
+</div>
+</section>
+
+<section><h2>Plan d'action proposé</h2><p class="intro">Classé par impact attendu sur le nombre de personnes touchées.</p>
+<div class="panel"><ol class="actions">
+<li><strong>Série de vidéos courtes « l'IA au quotidien »</strong>Rédiger, réviser, planifier. Un geste par vidéo, moins de 60 secondes. Cible : 80 % du public.</li>
+<li><strong>Un épisode dédié aux données personnelles</strong>Ce qu'on peut partager ou non, les réglages de confidentialité de ChatGPT et Claude. Répond au frein n°1.</li>
+<li><strong>Un format « vérifier une réponse »</strong>Comment repérer une hallucination, demander ses sources, recouper. Levier pour les utilisateurs occasionnels.</li>
+<li><strong>Atelier présentiel mensuel</strong>Pour les 20 personnes qui le demandent, avec un parcours débutant pour ceux qui ne savent pas par où commencer.</li>
+<li><strong>Recontacter les 31 volontaires</strong>Leur proposer de tester les premiers contenus et d'animer les ateliers, en priorité ceux qui ne déclarent aucun frein.</li>
+</ol></div>
+</section>
+
+<section><h2>Qualité des données et conformité</h2><p class="intro">Points à corriger avant la prochaine collecte.</p>
+<div class="panel scroll"><table>
+<tr><th>Constat</th><th>Impact</th><th>Correction</th></tr>
+<tr><td>5 réponses « Non » au recontact contiennent quand même un nom ou un e-mail</td><td>Donnée collectée sans consentement de recontact</td><td>Supprimer ces contacts, rendre le champ conditionnel dans le formulaire</td></tr>
+<tr><td>9 répondants ont moins de 18 ans</td><td>Consentement portant sur l'appartenance à l'église : donnée sensible au sens du RGPD, a fortiori pour des mineurs</td><td>Prévoir un consentement parental ou exclure les mineurs de la collecte nominative</td></tr>
+<tr><td>Colonne « Verbatim » vide à 100 %</td><td>Champ inutilisé sur le stand</td><td>Supprimer ou fusionner avec « Notes libres »</td></tr>
+<tr><td>Réponses libres bruitées (« Oui », « ? », « . », noms d'outils)</td><td>Environ un quart des réponses libres inexploitables</td><td>Passer ces questions en choix multiples avec option « Autre »</td></tr>
+<tr><td>Formats saisis hors liste (Snapchat, « Écrit »)</td><td>Catégories à consolider</td><td>Ajouter les options manquantes</td></tr>
+</table></div>
+</section>
+
+<footer>Source : Google Sheets « Stand EJP Tech - Réponses », 79 réponses exploitées (lignes 2 à 80, l'export lu s'arrête à la ligne 81). Aucune donnée de contact n'est affichée sur cette page. Pourcentages calculés sur le nombre de répondants à chaque question.</footer>
+</main></body></html>
