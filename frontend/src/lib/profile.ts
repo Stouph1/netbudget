@@ -215,3 +215,17 @@ export async function updateGiving(
     .eq("id", userId);
   return error ? { ok: false, error: error.message } : { ok: true };
 }
+
+/**
+ * Publie le mois du dernier point mensuel (« 2026-09 »), pour les co-membres
+ * d'un espace (migration 029). Au mieux : sans session ou hors ligne, rien ne
+ * se passe et le point reste valable en local.
+ */
+export async function syncCheckInMonth(month: string): Promise<void> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    const id = data.user?.id;
+    if (!id) return;
+    await supabase.from("profiles").update({ last_checkin_month: month }).eq("id", id);
+  } catch {}
+}

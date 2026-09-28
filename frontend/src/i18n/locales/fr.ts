@@ -3479,4 +3479,10 @@ export const fr: Catalog = {
   "notifPrimer.later": "Plus tard",
   "notif.budget.pulse.title": "💚 Il te reste {amount} ce mois-ci",
   "notif.budget.pulse.body": "Un coup d'œil pour finir le mois serein·e ?",
+  "weekly.title": "Ton conseil de la semaine 🎁",
+  "weekly.locked": "Touche pour le découvrir. Un seul, choisi pour ta situation.",
+  "weekly.open": "Voir dans le Coach",
+  "weekly.renew": "Un nouveau chaque lundi.",
+  "notif.ws.checkin.title": "✅ {who} a fait son point du mois",
+  "notif.ws.checkin.body": "Dans « {space} ». Deux minutes pour faire le tien ?",
 };

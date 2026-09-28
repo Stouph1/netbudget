@@ -3425,4 +3425,10 @@ export const ja: Catalog = {
   "notifPrimer.later": "あとで",
   "notif.budget.pulse.title": "💚 今月はあと {amount} 残っています",
   "notif.budget.pulse.body": "落ち着いて月末を迎えるために、ちょっと確認しませんか？",
+  "weekly.title": "今週のアドバイス 🎁",
+  "weekly.locked": "タップして表示。あなたの状況に合わせて1つだけ。",
+  "weekly.open": "コーチで見る",
+  "weekly.renew": "毎週月曜日に新しくなります。",
+  "notif.ws.checkin.title": "✅ {who} さんが今月のチェックを済ませました",
+  "notif.ws.checkin.body": "「{space}」にて。あなたも2分でどうですか？",
 };

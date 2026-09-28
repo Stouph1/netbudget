@@ -269,3 +269,26 @@ describe("budget du mois", () => {
     expect(isBudgetFilledThisMonth([], NOW)).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Point du mois d'un co-membre (workspaceActivity)
+// ---------------------------------------------------------------------------
+import { diffWorkspace } from "../src/lib/workspaceActivity";
+
+describe("point du mois partagé", () => {
+  const ws = { id: "w", name: "Foyer" };
+  const members = { me: "Moi", her: "Marie" };
+  it("signale le point d'un co-membre, jamais le mien, jamais deux fois", () => {
+    const prev = { members, checkins: {} };
+    const next = { members, checkins: { her: "2026-09", me: "2026-09" } };
+    const out = diffWorkspace(prev, next, ws, "me");
+    expect(out).toEqual([{ kind: "checkin", workspaceId: "w", workspaceName: "Foyer", who: "Marie", month: "2026-09" }]);
+    expect(diffWorkspace(next, next, ws, "me")).toEqual([]);
+  });
+  it("rien à la première lecture ni pour quelqu'un qui vient d'arriver", () => {
+    expect(diffWorkspace(undefined, { members, checkins: { her: "2026-09" } }, ws, "me")).toEqual([]);
+    const prev = { members: { me: "Moi" }, checkins: {} };
+    const next = { members, checkins: { her: "2026-09" } };
+    expect(diffWorkspace(prev, next, ws, "me").some((a) => a.kind === "checkin")).toBe(false);
+  });
+});

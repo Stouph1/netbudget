@@ -255,9 +255,14 @@ export default function Index() {
 
   // Retour depuis les écrans Premium (icône maison) : ils naviguent vers "/"
   // avec ?tab=premium pour rouvrir l'app sur l'onglet Profil AVEC la tab bar.
+  // Appliqué UNE fois par valeur reçue : le paramètre pouvait être relu
+  // après que la visite guidée avait ouvert l'onglet Budget, et ramener
+  // l'écran sur le Profil pendant que la visite y désignait un bouton.
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const lastTabParam = useRef<string | null>(null);
   useEffect(() => {
-    if (!tabParam) return;
+    if (!tabParam || lastTabParam.current === tabParam) return;
+    lastTabParam.current = tabParam;
     if ((TAB_ORDER as string[]).includes(tabParam)) {
       setTab(tabParam as Tab);
     }

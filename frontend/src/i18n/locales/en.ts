@@ -3425,4 +3425,10 @@ export const en: Catalog = {
   "notifPrimer.later": "Later",
   "notif.budget.pulse.title": "💚 You have {amount} left this month",
   "notif.budget.pulse.body": "A quick look to end the month with peace of mind?",
+  "weekly.title": "Your tip of the week 🎁",
+  "weekly.locked": "Tap to reveal it. Just one, picked for your situation.",
+  "weekly.open": "Open in Coach",
+  "weekly.renew": "A new one every Monday.",
+  "notif.ws.checkin.title": "✅ {who} did the monthly check-in",
+  "notif.ws.checkin.body": "In “{space}”. Two minutes to do yours?",
 };

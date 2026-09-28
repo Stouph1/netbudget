@@ -18,13 +18,16 @@ export type WorkspaceSnapshot = {
   /** Total mensuel des dépenses saisies dans l'espace (postes + prêts). */
   budgetTotal?: number;
   goalsCount?: number;
+  /** user_id → mois (AAAA-MM) du dernier point mensuel publié. */
+  checkins?: Record<string, string>;
 };
 
 export type WorkspaceActivity =
   | { kind: "joined"; workspaceId: string; workspaceName: string; who: string }
   | { kind: "left"; workspaceId: string; workspaceName: string; who: string }
   | { kind: "budget"; workspaceId: string; workspaceName: string; from: number; to: number }
-  | { kind: "goals"; workspaceId: string; workspaceName: string; from: number; to: number };
+  | { kind: "goals"; workspaceId: string; workspaceName: string; from: number; to: number }
+  | { kind: "checkin"; workspaceId: string; workspaceName: string; who: string; month: string };
 
 /** En dessous, un changement de budget est une retouche, pas une nouvelle. */
 export const BUDGET_CHANGE_RATIO = 0.15;
@@ -64,6 +67,15 @@ export function diffWorkspace(
     isBigBudgetChange(prev.budgetTotal, next.budgetTotal)
   ) {
     out.push({ kind: "budget", workspaceId: ws.id, workspaceName: ws.name, from: prev.budgetTotal, to: next.budgetTotal });
+  }
+  // Un co-membre vient de faire son point du mois : c'est l'incitation la
+  // plus efficace à faire le sien. Seulement les autres, et seulement si le
+  // mois a changé depuis la dernière lecture.
+  for (const [id, month] of Object.entries(next.checkins ?? {})) {
+    if (id === selfId || !month) continue;
+    if ((prev.checkins ?? {})[id] === month) continue;
+    if (!(id in prev.members)) continue; // arrivé entre-temps : « a rejoint » suffit
+    out.push({ kind: "checkin", workspaceId: ws.id, workspaceName: ws.name, who: next.members[id] ?? "", month });
   }
   if (
     prev.goalsCount !== undefined &&

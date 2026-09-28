@@ -28,6 +28,8 @@ function render(a: WorkspaceActivity, t: Translate, format: (n: number) => strin
       return { title: t("notif.ws.joined.title", p), body: t("notif.ws.joined.body", p) };
     case "left":
       return { title: t("notif.ws.left.title", p), body: t("notif.ws.left.body", p) };
+    case "checkin":
+      return { title: t("notif.ws.checkin.title", p), body: t("notif.ws.checkin.body", p) };
     case "budget":
       return {
         title: t("notif.ws.budget.title", p),
@@ -69,6 +71,9 @@ export async function checkWorkspaceActivity(
         ),
         budgetTotal: budgetTotalOf(budget),
         goalsCount: s1?.goals?.length ?? 0,
+        checkins: Object.fromEntries(
+          members.filter((m) => m.last_checkin_month).map((m) => [m.user_id, m.last_checkin_month as string]),
+        ),
       };
       next[ws.id] = snap;
       found.push(...diffWorkspace(snapshots[ws.id], snap, { id: ws.id, name: ws.name }, userId));

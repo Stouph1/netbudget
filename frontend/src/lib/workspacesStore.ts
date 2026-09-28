@@ -136,6 +136,8 @@ export type MemberWithProfile = WorkspaceMember & {
   username: string | null;
   avatar_url: string | null;
   first_name: string | null;
+  /** Mois (AAAA-MM) du dernier point mensuel de ce membre, s'il l'a publié. */
+  last_checkin_month: string | null;
 };
 
 export async function listMembersWithProfiles(
@@ -149,7 +151,7 @@ export async function listMembersWithProfiles(
   // naissance, ville, statut pro et dîme aux co-membres (migration 011).
   const { data } = await supabase
     .from("member_profiles")
-    .select("id, username, avatar_url, first_name")
+    .select("id, username, avatar_url, first_name, last_checkin_month")
     .in("id", ids);
 
   const profileById = new Map(
@@ -162,6 +164,7 @@ export async function listMembersWithProfiles(
       username: (p?.username as string | null) ?? null,
       avatar_url: (p?.avatar_url as string | null) ?? null,
       first_name: (p?.first_name as string | null) ?? null,
+      last_checkin_month: (p?.last_checkin_month as string | null) ?? null,
     };
   });
 }

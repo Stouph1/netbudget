@@ -14,6 +14,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { addSnapshot, previousSnapshot, type Snapshot } from "./recap";
 import { computeStreak, markCheckIn, monthKey, type Month, type Streak } from "./streak";
+import { syncCheckInMonth } from "./profile";
 
 const KEY = "netbudget:streak";
 
@@ -89,6 +90,7 @@ export async function recordCheckIn(
 ): Promise<Streak> {
   const stored = await read();
   const months = markCheckIn(stored.months, now);
+  void syncCheckInMonth(monthKey(now)); // co-membres : « X a fait son point »
   const snapshots = figures
     ? addSnapshot(stored.snapshots, { month: monthKey(now), ...figures })
     : stored.snapshots;

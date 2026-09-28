@@ -30,6 +30,7 @@ import { useLang } from "../contexts/LangContext";
 import { useCurrency } from "../contexts/CurrencyContext";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
+import { WeeklyAdviceCard } from "./WeeklyAdviceCard";
 import { useVault } from "../hooks/useVault";
 import {
   hasPasswordIdentity,
@@ -623,6 +624,9 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           })}
         </Text>
       </TouchableOpacity>
+
+      {/* Le conseil de la semaine : une carte fermée, un conseil, chaque lundi. */}
+      {user?.id ? <WeeklyAdviceCard userId={user.id} workspaceId={workspaceId} /> : null}
 
       {/* Tuiles navigation */}
       <View style={styles.tilesRow}>

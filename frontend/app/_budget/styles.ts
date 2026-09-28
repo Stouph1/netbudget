@@ -728,14 +728,20 @@ export const makeBudgetStyles = (GOLD: string) =>
   confirmTitle: { color: TEXT, fontSize: 18, fontWeight: "800", marginBottom: 8 },
   confirmMessage: { color: TEXT_2, fontSize: 14, lineHeight: 20 },
   confirmActions: { flexDirection: "row", gap: 10, marginTop: 18 },
+  // Libellés longs : les boutons passent l'un sous l'autre, l'action
+  // principale en premier (column-reverse : le bouton OK est déclaré après).
+  confirmActionsStacked: { flexDirection: "column-reverse" },
+  confirmBtnStacked: { flex: 0, alignSelf: "stretch" },
   confirmCancelBtn: {
-    flex: 1, paddingVertical: 14, borderRadius: 14,
+    flex: 1, paddingVertical: 14, borderRadius: 14, justifyContent: "center",
     borderWidth: 1, borderColor: BORDER, alignItems: "center", backgroundColor: "transparent",
   },
   confirmCancelText: { color: TEXT_2, fontWeight: "600", fontSize: 14 },
+  // Plus de marginTop ici : dans une rangée, il décalait le bouton OK vers le
+  // bas par rapport au bouton Annuler.
   confirmOkBtn: {
-    flex: 1, paddingVertical: 14, borderRadius: 14,
-    alignItems: "center", backgroundColor: GOLD, marginTop: 10,
+    flex: 1, paddingVertical: 14, borderRadius: 14, justifyContent: "center",
+    alignItems: "center", backgroundColor: GOLD,
   },
   confirmOkText: { color: "#000", fontWeight: "800", fontSize: 14 },
 

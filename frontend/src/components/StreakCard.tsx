@@ -22,7 +22,7 @@ import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useLang } from "../contexts/LangContext";
 import { buildRecap, type Recap, type Snapshot } from "../lib/recap";
@@ -63,8 +63,14 @@ export function StreakCard({
     };
   }, []);
 
+  // La récompense arrive AU MOMENT du geste : une petite salve de points qui
+  // partent du bouton, 700 ms, puis le bilan. Rien de plus : une app d'argent
+  // qui fait des feux d'artifice à chaque clic finit par ne plus être crue.
+  const [burst, setBurst] = useState(false);
   const check = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    setBurst(true);
+    setTimeout(() => setBurst(false), 900);
 
     // On lit l'instantané précédent AVANT d'écrire le nouveau : après, le
     // dernier point serait celui de ce mois-ci et la comparaison serait vide.
@@ -92,6 +98,7 @@ export function StreakCard({
   if (recap) {
     return (
       <Reanimated.View entering={FadeIn} exiting={FadeOut} style={[s.card, s.cardWin, s.cardCol]}>
+        {burst ? <CheckInBurst color={GOLD} /> : null}
         <View style={s.row}>
           <Feather name="bar-chart-2" size={17} color={GOLD} />
           <Text style={[s.title, { flex: 1 }]}>{t("recap.title")}</Text>
@@ -215,3 +222,37 @@ const makeS = (GOLD: string) =>
   },
   ctaText: { color: "#04140B", fontSize: 12.5, fontWeight: "800" },
   });
+
+/** Quatorze points qui s'écartent du centre et s'effacent. Pas de dépendance. */
+function CheckInBurst({ color }: { color: string }) {
+  const progress = useMemo(() => new Animated.Value(0), []);
+  useEffect(() => {
+    Animated.timing(progress, { toValue: 1, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [progress]);
+  const dots = Array.from({ length: 14 }, (_, i) => {
+    const angle = (i / 14) * Math.PI * 2;
+    const dist = 56 + (i % 3) * 14;
+    return (
+      <Animated.View
+        key={i}
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: 6,
+          height: 6,
+          borderRadius: 3,
+          backgroundColor: i % 4 === 0 ? "#FBBF24" : color,
+          opacity: progress.interpolate({ inputRange: [0, 0.7, 1], outputRange: [1, 0.9, 0] }),
+          transform: [
+            { translateX: progress.interpolate({ inputRange: [0, 1], outputRange: [0, Math.cos(angle) * dist] }) },
+            { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [0, Math.sin(angle) * dist] }) },
+            { scale: progress.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0.4, 1.2, 0.6] }) },
+          ],
+        }}
+      />
+    );
+  });
+  return <>{dots}</>;
+}

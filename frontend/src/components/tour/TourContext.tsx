@@ -176,6 +176,20 @@ export function TourProvider({ children }: { children: ReactNode }) {
       // Le carrousel glisse en 220 ms. Mesurer pendant le glissement donne des
       // coordonnées d'un écran qui n'est pas encore en place.
       await new Promise((r) => setTimeout(r, SLIDE_MS));
+      // Sur Android, `measureInWindow` ignore la translation du carrousel : la
+      // cible d'un onglet caché se mesure comme si son écran était affiché,
+      // et le projecteur se posait au bon endroit… du mauvais écran (vu au
+      // premier lancement, quand l'app s'ouvre sur le Profil). On exige donc
+      // d'être VRAIMENT sur l'onglet de l'étape ; sinon on redemande une fois,
+      // puis on saute l'étape.
+      if (activeTab.current !== step.tab) {
+        await goToTab(step.tab);
+        await new Promise((r) => setTimeout(r, SLIDE_MS));
+        if (activeTab.current !== step.tab) {
+          void show(list, i + 1);
+          return;
+        }
+      }
 
       // La cible ne s'éclaire qu'IMMOBILE. Une lecture prise pendant que la
       // page défile encore donnait un projecteur posé sur du vide, et un
@@ -184,7 +198,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       // identiques, avec une borne pour ne jamais bloquer la visite.
       const measure = (attempt: number, previous: TargetRect | null) => {
         const view = targets.current.get(step.target);
-        if (!view) {
+        if (!view || activeTab.current !== step.tab) {
           void show(list, i + 1);
           return;
         }

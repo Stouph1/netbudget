@@ -20,6 +20,13 @@ export default function ConfirmModal({
   onCloseKeepingState: () => void;
 }) {
   const { styles } = useBudgetTheme();
+  // Deux boutons côte à côte ne tiennent qu'avec des libellés courts. Dès
+  // qu'un libellé dépasse (« Supprimer définitivement »), le texte se
+  // coupait sur deux lignes et les deux boutons n'avaient plus la même
+  // hauteur. On empile : l'action principale en haut, pleine largeur.
+  const okLabel = confirm.confirmLabel || t("btn.confirm");
+  const cancelLabel = confirm.cancelLabel || t("btn.cancel");
+  const stacked = okLabel.length > 14 || cancelLabel.length > 14;
   return (
     <Modal
       visible={confirm.open}
@@ -31,9 +38,9 @@ export default function ConfirmModal({
         <View style={styles.confirmBox}>
           <Text style={styles.confirmTitle}>{confirm.title}</Text>
           <Text style={styles.confirmMessage}>{confirm.message}</Text>
-          <View style={styles.confirmActions}>
+          <View style={[styles.confirmActions, stacked && styles.confirmActionsStacked]}>
             <TouchableOpacity
-              style={styles.confirmCancelBtn}
+              style={[styles.confirmCancelBtn, stacked && styles.confirmBtnStacked]}
               onPress={() => {
                 const fn = confirm.onCancel;
                 onCloseKeepingState();
@@ -41,12 +48,14 @@ export default function ConfirmModal({
               }}
               testID="confirm-cancel"
             >
-              <Text style={styles.confirmCancelText}>
-                {confirm.cancelLabel || t("btn.cancel")}
-              </Text>
+              <Text style={styles.confirmCancelText}>{cancelLabel}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.confirmOkBtn, confirm.danger && { backgroundColor: DANGER }]}
+              style={[
+                styles.confirmOkBtn,
+                stacked && styles.confirmBtnStacked,
+                confirm.danger && { backgroundColor: DANGER },
+              ]}
               onPress={() => {
                 const fn = confirm.onConfirm;
                 onCloseKeepingState();
@@ -54,8 +63,8 @@ export default function ConfirmModal({
               }}
               testID="confirm-ok"
             >
-              <Text style={[styles.confirmOkText, confirm.danger && { color: "#fff" }]}>
-                {confirm.confirmLabel || t("btn.confirm")}
+              <Text style={[styles.confirmOkText, confirm.danger && { color: "#fff" }]} numberOfLines={1}>
+                {okLabel}
               </Text>
             </TouchableOpacity>
           </View>
