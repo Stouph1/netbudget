@@ -18,6 +18,8 @@ export type Workspace = {
   kind: WorkspaceKind;
   description?: string | null;
   photo_url?: string | null;
+  /** Pictogramme partagé, deviné depuis le nom ou choisi par le propriétaire. */
+  emoji?: string | null;
   /**
    * Le contenu de l'espace est chiffré avec une clé d'espace.
    *

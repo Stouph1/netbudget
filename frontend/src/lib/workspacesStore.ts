@@ -43,21 +43,28 @@ export async function createWorkspace(
   name: string,
   kind: WorkspaceKind = "family",
   description?: string,
+  emoji?: string | null,
 ): Promise<{ ok: boolean; workspace?: Workspace; error?: string }> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user?.id) {
     return { ok: false, error: "Non authentifié" };
   }
-  const { data, error } = await supabase
+  const row: Record<string, unknown> = {
+    owner_id: userData.user.id,
+    name: name.trim(),
+    kind,
+    description: description?.trim() || null,
+  };
+  let { data, error } = await supabase
     .from("workspaces")
-    .insert({
-      owner_id: userData.user.id,
-      name: name.trim(),
-      kind,
-      description: description?.trim() || null,
-    })
+    .insert(emoji ? { ...row, emoji } : row)
     .select()
     .single();
+  // Base sans la colonne `emoji` (migration 030 pas encore appliquée) : on
+  // crée l'espace quand même, sans pictogramme, plutôt que d'échouer.
+  if (error && emoji && /emoji/i.test(error.message)) {
+    ({ data, error } = await supabase.from("workspaces").insert(row).select().single());
+  }
   if (error) return { ok: false, error: error.message };
 
   const workspace = data as Workspace;
@@ -78,6 +85,15 @@ export async function createWorkspace(
   }
 
   return { ok: true, workspace };
+}
+
+export async function updateWorkspaceEmoji(
+  workspaceId: string,
+  emoji: string | null,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.from("workspaces").update({ emoji }).eq("id", workspaceId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }
 
 export async function updateWorkspaceDescription(

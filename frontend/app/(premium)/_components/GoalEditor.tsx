@@ -24,6 +24,8 @@ import { confirmDialog, notify } from "../../../src/utils/notify";
 import type { SavingsGoal } from "../../../src/types/premium";
 import { useKeyboardLift, useSheetBottom } from "../../../src/hooks/useSheetBottom";
 import { switchStyle } from "../../../src/theme/controls";
+import { EmojiChip, EmojiPickerSheet } from "../../../src/components/EmojiPickerSheet";
+import { suggestEmoji } from "../../../src/lib/expenseEmoji";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -76,6 +78,9 @@ export default function GoalEditor({
   const maxSheetHeight = screenH - insets.top - 12 - keyboardHeight;
 
   const [label, setLabel] = useState("");
+  const [emoji, setEmoji] = useState<string | null>(null);
+  const [emojiPicked, setEmojiPicked] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [target, setTarget] = useState("");
   const [current, setCurrent] = useState("");
   const [monthly, setMonthly] = useState("");
@@ -99,6 +104,8 @@ export default function GoalEditor({
   useEffect(() => {
     if (visible) {
       setLabel(goal?.label ?? "");
+      setEmoji(goal?.emoji ?? (goal?.label ? suggestEmoji(goal.label) : null));
+      setEmojiPicked(!!goal?.emoji);
       setTarget(goal?.targetAmount ? String(goal.targetAmount) : "");
       setCurrent(goal?.currentAmount ? String(goal.currentAmount) : "");
       setMonthly(
@@ -138,6 +145,7 @@ export default function GoalEditor({
       targetDate,
       priority,
       color: goal?.color,
+      emoji: emoji ?? undefined,
       createdAt: goal?.createdAt ?? now,
       updatedAt: now,
     };
@@ -188,13 +196,28 @@ export default function GoalEditor({
               showsVerticalScrollIndicator={false}
             >
             <Text style={styles.label}>{t("goals.field.name")}</Text>
-            <TextInput
-              style={styles.input}
-              value={label}
-              onChangeText={setLabel}
-              placeholder={t("goals.name.placeholder")}
-              placeholderTextColor={TEXT_3}
-              autoFocus={!goal}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <EmojiChip emoji={emoji} onPress={() => setPickerOpen(true)} testID="goal-emoji" />
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={label}
+                onChangeText={(v) => {
+                  setLabel(v);
+                  if (!emojiPicked) setEmoji(suggestEmoji(v));
+                }}
+                placeholder={t("goals.name.placeholder")}
+                placeholderTextColor={TEXT_3}
+                autoFocus={!goal}
+              />
+            </View>
+            <EmojiPickerSheet
+              visible={pickerOpen}
+              current={emoji}
+              onPick={(e) => {
+                setEmoji(e);
+                setEmojiPicked(true);
+              }}
+              onClose={() => setPickerOpen(false)}
             />
 
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>

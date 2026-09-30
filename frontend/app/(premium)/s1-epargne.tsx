@@ -500,9 +500,11 @@ export default function S1Epargne() {
                   activeOpacity={0.85}
                 >
                   <View style={styles.goalHeader}>
-                    <View
-                      style={[styles.colorDot, { backgroundColor: color }]}
-                    />
+                    {item.emoji ? (
+                      <Text style={{ fontSize: 22, marginRight: 10 }}>{item.emoji}</Text>
+                    ) : (
+                      <View style={[styles.colorDot, { backgroundColor: color }]} />
+                    )}
                     <View style={{ flex: 1 }}>
                       <Text style={styles.goalLabel}>{item.label}</Text>
                       <View

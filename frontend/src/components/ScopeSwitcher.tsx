@@ -118,6 +118,8 @@ export default function ScopeSwitcher({ visible, onClose }: Props) {
                   <View style={styles.iconWrap}>
                     {ws.photo_url ? (
                       <Image source={{ uri: ws.photo_url }} style={styles.iconImg} />
+                    ) : ws.emoji ? (
+                      <Text style={{ fontSize: 20 }}>{ws.emoji}</Text>
                     ) : (
                       <Feather
                         name={KIND_ICON[ws.kind] ?? "users"}

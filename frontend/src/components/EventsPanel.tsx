@@ -47,6 +47,8 @@ import { PaywallSheet } from "./PaywallSheet";
 import { SyncBanner } from "./SyncBanner";
 import { usePaywall } from "../hooks/usePaywall";
 import { useTourTarget } from "./tour/TourContext";
+import { EmojiChip, EmojiPickerSheet } from "./EmojiPickerSheet";
+import { suggestEmoji } from "../lib/expenseEmoji";
 import type { UserProfile } from "../types/advice";
 import { scheduleEventNotifications } from "../utils/eventNotify";
 import { notify } from "../utils/notify";
@@ -112,6 +114,11 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   const [creating, setCreating] = useState(false);
   const [type, setType] = useState<string | null>(null);
   const [name, setName] = useState("");
+  // Pictogramme du projet : celui du modèle, sauf si le nom en suggère un plus
+  // précis (« Marathon de Paris » → 🏃) ou si la personne en choisit un.
+  const [evEmoji, setEvEmoji] = useState<string | null>(null);
+  const [evEmojiPicked, setEvEmojiPicked] = useState(false);
+  const [evPickerOpen, setEvPickerOpen] = useState(false);
   const [dateStr, setDateStr] = useState("");
   const [guests, setGuests] = useState("");
   const [tier, setTier] = useState<EventTier>("mid");
@@ -222,7 +229,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
       id: `ev-${Date.now()}`,
       type: tpl.type,
       name: name.trim() || t(tpl.labelKey),
-      emoji: tpl.emoji,
+      emoji: evEmoji ?? tpl.emoji,
       dateIso: iso,
       guests: g,
       tier,
@@ -267,6 +274,8 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     setCreating(false);
     setType(null);
     setName("");
+    setEvEmoji(null);
+    setEvEmojiPicked(false);
     setDateStr("");
     setGuests("");
     setTier("mid");
@@ -466,15 +475,30 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 </Text>
                 <InfoTip title={t("help.eventForm.title")} body={t("help.eventForm.body")} />
               </View>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder={tp("events.form.namePlaceholder", {
-                  label: t(tpl.labelKey),
-                  year: new Date().getFullYear() + 1,
-                })}
-                placeholderTextColor={TEXT_3}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <EmojiChip emoji={evEmoji ?? tpl.emoji} onPress={() => setEvPickerOpen(true)} testID="event-emoji" />
+                <TextInput
+                  style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                  value={name}
+                  onChangeText={(v) => {
+                    setName(v);
+                    if (!evEmojiPicked) setEvEmoji(suggestEmoji(v));
+                  }}
+                  placeholder={tp("events.form.namePlaceholder", {
+                    label: t(tpl.labelKey),
+                    year: new Date().getFullYear() + 1,
+                  })}
+                  placeholderTextColor={TEXT_3}
+                />
+              </View>
+              <EmojiPickerSheet
+                visible={evPickerOpen}
+                current={evEmoji ?? tpl.emoji}
+                onPick={(e) => {
+                  setEvEmoji(e);
+                  setEvEmojiPicked(true);
+                }}
+                onClose={() => setEvPickerOpen(false)}
               />
               <TextInput
                 style={styles.input}

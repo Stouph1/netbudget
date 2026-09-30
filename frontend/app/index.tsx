@@ -715,7 +715,7 @@ export default function Index() {
   // pas choisi un elle-même.
   const [newItemEmoji, setNewItemEmoji] = useState<string | null>(null);
   const [newItemEmojiPicked, setNewItemEmojiPicked] = useState(false);
-  const [emojiFor, setEmojiFor] = useState<ExpenseItem | "new" | null>(null);
+  const [emojiFor, setEmojiFor] = useState<ExpenseItem | null>(null);
   const [newItemLabel, setNewItemLabel] = useState<string>("");
   const [newItemAmount, setNewItemAmount] = useState<string>("0");
 
@@ -1761,7 +1761,10 @@ export default function Index() {
           if (!newItemEmojiPicked) setNewItemEmoji(suggestEmoji(v));
         }}
         newItemEmoji={newItemEmoji}
-        onPickEmoji={() => setEmojiFor("new")}
+        onEmojiPicked={(e) => {
+          setNewItemEmoji(e);
+          setNewItemEmojiPicked(true);
+        }}
         onAmountChange={setNewItemAmount}
         onMonthsChange={setNewItemMonths}
         onSave={saveNewItem}
@@ -1771,15 +1774,10 @@ export default function Index() {
       {/* Emoji d'un poste, nouveau ou existant */}
       <EmojiPicker
         visible={emojiFor !== null}
-        current={emojiFor === "new" ? (newItemEmoji ?? undefined) : emojiFor?.emoji}
+        current={emojiFor?.emoji}
         t={t}
         onPick={(e) => {
-          if (emojiFor === "new") {
-            setNewItemEmoji(e);
-            setNewItemEmojiPicked(true);
-          } else if (emojiFor) {
-            updateItemEmoji(emojiFor.id, e);
-          }
+          if (emojiFor) updateItemEmoji(emojiFor.id, e);
         }}
         onClose={() => setEmojiFor(null)}
       />

@@ -1,6 +1,6 @@
 // Ajout d'une catégorie de dépense personnalisée dans une famille.
 import { useBudgetTheme } from "../useBudgetTheme";
-import React from "react";
+import React, { useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -18,6 +18,7 @@ import { GOLD, TEXT_2 } from "../constants";
 import { styles } from "../styles";
 import { Field } from "../ui";
 import { MonthChips } from "./MonthChips";
+import EmojiPicker from "./EmojiPicker";
 import type { ExpenseFamily, Translate } from "../types";
 
 export default function AddItemModal({
@@ -33,7 +34,7 @@ export default function AddItemModal({
   onLabelChange,
   onAmountChange,
   onMonthsChange,
-  onPickEmoji,
+  onEmojiPicked,
   onSave,
   onClose,
 }: {
@@ -52,11 +53,15 @@ export default function AddItemModal({
   onLabelChange: (next: string) => void;
   onAmountChange: (next: string) => void;
   onMonthsChange: (next: number[] | undefined) => void;
-  onPickEmoji: () => void;
+  /** La personne a choisi un emoji dans la grille. */
+  onEmojiPicked: (emoji: string) => void;
   onSave: () => void;
   onClose: () => void;
 }) {
   const { styles, GOLD, sheetBottom, sheetTop } = useBudgetTheme();
+  // La grille est rendue ICI, dans la modale : sur iOS, une modale ouverte
+  // depuis l'extérieur de la modale parente reste invisible derrière elle.
+  const [pickerOpen, setPickerOpen] = useState(false);
   return (
     <Modal
       visible={family !== null}
@@ -102,7 +107,7 @@ export default function AddItemModal({
               <Field
                 label={t("income.name")}
                 icon={
-                  <TouchableOpacity onPress={onPickEmoji} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("emoji.title")} testID="new-item-emoji">
+                  <TouchableOpacity onPress={() => setPickerOpen(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("emoji.title")} testID="new-item-emoji">
                     {newItemEmoji ? <Text style={{ fontSize: 20 }}>{newItemEmoji}</Text> : <Feather name="tag" size={18} color={GOLD} />}
                   </TouchableOpacity>
                 }
@@ -138,6 +143,13 @@ export default function AddItemModal({
           </View>
         </KeyboardAvoidingView>
       </View>
+      <EmojiPicker
+        visible={pickerOpen}
+        current={newItemEmoji ?? undefined}
+        t={t}
+        onPick={onEmojiPicked}
+        onClose={() => setPickerOpen(false)}
+      />
     </Modal>
   );
 }

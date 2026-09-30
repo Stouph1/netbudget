@@ -24,6 +24,7 @@ export type SavingsGoal = {
   monthlyContribution?: number; // versement mensuel prévu
   extraP: boolean;            // "ExtraP" = extra-budgétaire (n'entre pas dans le grand total)
   color?: string;             // pour la data-viz (hex)
+  emoji?: string;             // pictogramme, deviné depuis le nom ou choisi
   createdAt: string;
   updatedAt: string;
 };

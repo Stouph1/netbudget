@@ -51,6 +51,7 @@ import {
   listPendingInvites,
   type MemberWithProfile,
   listMyWorkspaces,
+  updateWorkspaceEmoji,
 } from "../../src/lib/workspacesStore";
 import type {
   Workspace,
@@ -58,6 +59,8 @@ import type {
   WorkspaceMember,
 } from "../../src/types/workspaces";
 import { useKeyboardLift, useSheetBottom } from "../../src/hooks/useSheetBottom";
+import { EmojiChip, EmojiPickerSheet } from "../../src/components/EmojiPickerSheet";
+import { suggestEmoji } from "../../src/lib/expenseEmoji";
 import { limitsFor } from "../../src/lib/entitlements";
 
 const MIDNIGHT = "#0F172A";
@@ -277,6 +280,7 @@ export default function WorkspacesScreen() {
                 })()
               }
               icon={KIND_OPTIONS.find((k) => k.value === ws.kind)?.icon ?? "users"}
+              emoji={ws.emoji}
               photoUrl={ws.photo_url}
               active={activeId === ws.id}
               onSwitch={() => onSwitchScope(ws.id, ws.name, ws.kind)}
@@ -368,6 +372,7 @@ function ScopeCard({
   name,
   subtitle,
   icon,
+  emoji,
   photoUrl,
   active,
   onSwitch,
@@ -377,6 +382,7 @@ function ScopeCard({
   name: string;
   subtitle: string;
   icon: keyof typeof Feather.glyphMap;
+  emoji?: string | null;
   photoUrl?: string | null;
   active: boolean;
   onSwitch: () => void;
@@ -394,6 +400,8 @@ function ScopeCard({
             source={{ uri: photoUrl }}
             style={{ width: 40, height: 40, borderRadius: 20 }}
           />
+        ) : emoji ? (
+          <Text style={{ fontSize: 22 }}>{emoji}</Text>
         ) : (
           <Feather name={icon} size={20} color={active ? "#000" : GOLD} />
         )}
@@ -460,6 +468,10 @@ function CreateModal({
   const [description, setDescription] = useState("");
   const [kind, setKind] = useState<WorkspaceKind>("family");
   const [busy, setBusy] = useState(false);
+  // Pictogramme : deviné depuis le nom tant qu'il n'a pas été choisi à la main.
+  const [emoji, setEmoji] = useState<string | null>(null);
+  const [emojiPicked, setEmojiPicked] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -467,6 +479,8 @@ function CreateModal({
       setDescription("");
       setKind("family");
       setBusy(false);
+      setEmoji(null);
+      setEmojiPicked(false);
     }
   }, [visible]);
 
@@ -476,7 +490,7 @@ function CreateModal({
       return;
     }
     setBusy(true);
-    const result = await createWorkspace(name.trim(), kind, description);
+    const result = await createWorkspace(name.trim(), kind, description, emoji);
     setBusy(false);
     if (!result.ok || !result.workspace) {
       notify(t("common.error"), result.error ?? t("ws.err.createFailed"));
@@ -501,13 +515,28 @@ function CreateModal({
           </View>
 
           <Text style={styles.label}>{t("ws.field.name")}</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder={t("ws.name.placeholder")}
-            placeholderTextColor={TEXT_3}
-            autoFocus
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <EmojiChip emoji={emoji} onPress={() => setPickerOpen(true)} testID="ws-emoji" />
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              value={name}
+              onChangeText={(v) => {
+                setName(v);
+                if (!emojiPicked) setEmoji(suggestEmoji(v));
+              }}
+              placeholder={t("ws.name.placeholder")}
+              placeholderTextColor={TEXT_3}
+              autoFocus
+            />
+          </View>
+          <EmojiPickerSheet
+            visible={pickerOpen}
+            current={emoji}
+            onPick={(e) => {
+              setEmoji(e);
+              setEmojiPicked(true);
+            }}
+            onClose={() => setPickerOpen(false)}
           />
 
           <Text style={styles.label}>{t("ws.field.description")}</Text>
@@ -686,6 +715,8 @@ function WorkspaceDetailModal({
   const [inviteEmail, setInviteEmail] = useState("");
   const [pendingToken, setPendingToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [wsEmoji, setWsEmoji] = useState<string | null>(workspace.emoji ?? null);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(
     workspace.photo_url ?? null,
   );
@@ -867,6 +898,11 @@ function WorkspaceDetailModal({
               <Text style={styles.sheetTitle} numberOfLines={1}>
                 {workspace.name}
               </Text>
+              {isOwner ? (
+                <EmojiChip emoji={wsEmoji} onPress={() => setEmojiPickerOpen(true)} size={36} testID="ws-detail-emoji" />
+              ) : wsEmoji ? (
+                <Text style={{ fontSize: 22 }}>{wsEmoji}</Text>
+              ) : null}
             </View>
             <TouchableOpacity
               accessibilityRole="button"
@@ -874,6 +910,15 @@ function WorkspaceDetailModal({
               <Feather name="x" size={22} color={TEXT_2} />
             </TouchableOpacity>
           </View>
+          <EmojiPickerSheet
+            visible={emojiPickerOpen}
+            current={wsEmoji}
+            onPick={(e) => {
+              setWsEmoji(e);
+              void updateWorkspaceEmoji(workspace.id, e);
+            }}
+            onClose={() => setEmojiPickerOpen(false)}
+          />
 
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={styles.label}>
