@@ -22,7 +22,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "27"
+      "buildNumber": "28"
     },
     "android": {
       "package": "com.stouph.netbudget",
@@ -46,7 +46,7 @@
         "android.permission.READ_MEDIA_VIDEO"
       ],
       "softwareKeyboardLayoutMode": "resize",
-      "versionCode": 27
+      "versionCode": 28
     },
     "web": {
       "bundler": "metro",
