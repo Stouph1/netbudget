@@ -463,7 +463,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 90,
     figures: [
       { label: "adv.emergency-fund-locataire.fig.0.label", value: "22 950 €" },
-      { label: "adv.emergency-fund-locataire.fig.1.label", value: "1,5%" },
+      { label: "adv.emergency-fund-locataire.fig.1.label", value: "1,7%" },
     ],
     sources: [
       "https://www.economie.gouv.fr/actualites/epargne-reglementee-de-nouveaux-taux-pour-le-livret-et-le-lep-au-1er-fevrier-2026",
@@ -726,11 +726,11 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     },
     appliesWhen: kids("12-15", "16-18"),
     priority: 78,
-    nominalRatePct: 1.5,
+    nominalRatePct: 1.7,
     figures: [
       { label: "adv.livret-jeune-ado.fig.0.label", value: "adv.livret-jeune-ado.fig.0.value" },
       { label: "adv.livret-jeune-ado.fig.1.label", value: "1 600 €" },
-      { label: "adv.livret-jeune-ado.fig.2.label", value: "1,50%" },
+      { label: "adv.livret-jeune-ado.fig.2.label", value: "1,70%" },
       { label: "adv.livret-jeune-ado.fig.3.label", value: "adv.livret-jeune-ado.fig.3.value" },
     ],
     sources: ["https://www.service-public.fr/particuliers/vosdroits/F2904"],
@@ -845,11 +845,11 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     },
     appliesWhen: ageIn("under_18"),
     priority: 90,
-    nominalRatePct: 1.5,
+    nominalRatePct: 1.7,
     figures: [
       { label: "adv.under18-livret-jeune.fig.0.label", value: "adv.under18-livret-jeune.fig.0.value" },
       { label: "adv.under18-livret-jeune.fig.1.label", value: "1 600 €" },
-      { label: "adv.under18-livret-jeune.fig.2.label", value: "1,5%" },
+      { label: "adv.under18-livret-jeune.fig.2.label", value: "1,7%" },
     ],
     sources: ["https://www.service-public.fr/particuliers/vosdroits/F2367"],
     lastVerified: VERIFIED,

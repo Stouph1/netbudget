@@ -92,14 +92,14 @@ export const TRACKED_FIGURES = [
     label: "PAJE — allocation de base, taux plein (enfants nés après 2018)",
     path: "prestations_sociales.prestations_familiales.petite_enfance.paje.paje_cm.montant.allocation_base_taux_plein.apres_2018.taux",
     kind: "bmaf",
-    expected: 198.17,
+    expected: 198.16, // service-public.gouv.fr, montant au 1er avril 2026
   },
   {
     cardId: "fr-ars-primaire",
     label: "Allocation de rentrée scolaire — primaire",
     path: "prestations_sociales.prestations_familiales.education_presence_parentale.ars.ars_m.taux_primaire",
     kind: "bmaf",
-    expected: 0, // renseigné au premier passage du vérificateur
+    expected: 426.87, // service-public.gouv.fr, ARS 2026 6-10 ans (11-14 : 450,41 ; 15-18 : 466,02)
   },
   {
     cardId: "reference",

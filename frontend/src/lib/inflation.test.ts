@@ -138,7 +138,7 @@ describe("cohérence du catalogue", () => {
 // ---------------------------------------------------------------------------
 
 describe("classement des conseils selon l'inflation", () => {
-  const loser = ADVICE_CATALOG_FR.find((c) => c.nominalRatePct === 1.5)!;
+  const loser = ADVICE_CATALOG_FR.find((c) => c.nominalRatePct === 1.7)!;
   const neutral = ADVICE_CATALOG_FR.find((c) => c.nominalRatePct === undefined)!;
 
   it("ne change rien quand l'inflation est inconnue", () => {
@@ -152,12 +152,12 @@ describe("classement des conseils selon l'inflation", () => {
 
   it("ne pénalise pas un placement qui bat les prix", () => {
     expect(inflationPenalty(loser, 1.0)).toBe(0);
-    expect(inflationPenalty(loser, 1.5)).toBe(0);
+    expect(inflationPenalty(loser, 1.7)).toBe(0);
   });
 
   it("pénalise proportionnellement à l'écart", () => {
-    expect(inflationPenalty(loser, 2.5)).toBe(8);
-    expect(inflationPenalty(loser, 3.5)).toBe(16);
+    expect(inflationPenalty(loser, 2.7)).toBe(8);
+    expect(inflationPenalty(loser, 3.7)).toBe(16);
   });
 
   // Plafonné : au-delà, on classerait un conseil correct derrière des

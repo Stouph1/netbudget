@@ -100,7 +100,7 @@ async function fromOecd() {
   const SDMX = "application/vnd.sdmx.data+json;version=1.0";
   const BASE =
     "https://sdmx.oecd.org/public/rest/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/";
-  const TAIL = "?lastNObservations=1&dimensionAtObservation=AllDimensions";
+  const TAIL = "?lastNObservations=1&dimensionAtObservation=AllDimensions&format=jsondata";
   const toCountry = Object.fromEntries(Object.entries(OECD).map(([k, v]) => [v, k]));
 
   // Le serveur SDMX de l'OCDE rend des 500 selon la FORME de la clé, et pas
