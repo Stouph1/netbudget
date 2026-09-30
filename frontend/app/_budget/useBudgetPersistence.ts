@@ -21,7 +21,7 @@ import {
   saveBudget,
 } from "../../src/lib/premiumStore";
 import { DEFAULT_ITEMS } from "./constants";
-import { backfillItemLabels, displayItemLabel } from "./helpers";
+import { backfillItemLabels, displayItemLabel, pruneUntouchedDefaults } from "./helpers";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
 export function useBudgetPersistence({
@@ -99,7 +99,7 @@ export function useBudgetPersistence({
       setRent(typeof d?.rent === "string" ? d.rent : "0");
       setExpenseItems(
         Array.isArray(d?.expenseItems) && d.expenseItems.length > 0
-          ? backfillItemLabels(d.expenseItems as ExpenseItem[])
+          ? pruneUntouchedDefaults(backfillItemLabels(d.expenseItems as ExpenseItem[]))
           : DEFAULT_ITEMS,
       );
       setLoans(Array.isArray(d?.loans) ? (d.loans as Loan[]) : []);

@@ -117,3 +117,27 @@ export function relativeAgoParts(
   if (diffH < 24) return { unit: "hour", value: diffH };
   return { unit: "day", value: Math.round(diffH / 24) };
 }
+
+/**
+ * Retire les anciennes lignes par défaut jamais utilisées.
+ *
+ * Les budgets enregistrés avant la réduction à un poste par famille portent
+ * encore douze lignes à 0 €. Une ligne dont le montant est à zéro et dont le
+ * libellé n'a pas été changé n'a jamais servi : on la retire. Tout ce qui a
+ * été renseigné ou renommé reste. Une famille ne se retrouve jamais vide :
+ * on y remet la ligne par défaut.
+ */
+export function pruneUntouchedDefaults(items: ExpenseItem[]): ExpenseItem[] {
+  const keepIds = new Set(DEFAULT_ITEMS.map((d) => d.id));
+  const legacy = new Map(LEGACY_DEFAULT_ITEMS.map((d) => [d.id, d]));
+  const kept = items.filter((it) => {
+    const def = legacy.get(it.id);
+    if (!def || keepIds.has(it.id)) return true;
+    const untouched = parseNumber(it.amount) === 0 && (it.labelKey === def.labelKey || it.label === def.label);
+    return !untouched;
+  });
+  for (const d of DEFAULT_ITEMS) {
+    if (!kept.some((it) => it.family === d.family)) kept.push({ ...d });
+  }
+  return kept;
+}

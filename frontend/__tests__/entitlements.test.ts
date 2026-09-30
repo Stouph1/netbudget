@@ -237,3 +237,16 @@ describe("anniversaires du foyer", () => {
     }
   });
 });
+
+describe("sources de revenus", () => {
+  const { canAddIncomeSource } = require("../src/lib/entitlements") as typeof import("../src/lib/entitlements");
+  it("deux sans abonnement, la troisième demande une formule", () => {
+    expect(canAddIncomeSource("free", 0).allowed).toBe(true);
+    expect(canAddIncomeSource("free", 1).allowed).toBe(true);
+    expect(canAddIncomeSource("free", 2).allowed).toBe(false);
+  });
+  it("sans limite dès Solo", () => {
+    expect(canAddIncomeSource("solo", 9).allowed).toBe(true);
+    expect(canAddIncomeSource("family", 30).allowed).toBe(true);
+  });
+});

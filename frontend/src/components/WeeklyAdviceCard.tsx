@@ -28,6 +28,35 @@ const TEXT_2 = "#94A3B8";
 const BORDER = "rgba(255,255,255,0.10)";
 const REVEALED_KEY = "netbudget:weeklyAdvice:revealed";
 
+/**
+ * Version verrouillée : ce que verrait un abonné, sans le contenu. Pour les
+ * comptes gratuits et les personnes sans compte. Le bouton mène aux formules.
+ */
+export function WeeklyAdviceLocked() {
+  const GOLD = useAccent().main;
+  const s = useMemo(() => makeS(GOLD), [GOLD]);
+  const { t } = useLang();
+  return (
+    <TouchableOpacity
+      style={[s.card, s.locked]}
+      onPress={() => router.push("/plans" as never)}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      testID="weekly-advice-paywall"
+    >
+      <View style={s.gift}>
+        <Feather name="lock" size={18} color={GOLD} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={s.title}>{t("weekly.title")}</Text>
+        <Text style={s.body}>{t("weekly.lockedFree.body")}</Text>
+        <Text style={[s.ctaText, { marginTop: 6 }]}>{t("weekly.lockedFree.cta")}</Text>
+      </View>
+      <Feather name="chevron-right" size={18} color={TEXT_2} />
+    </TouchableOpacity>
+  );
+}
+
 export function WeeklyAdviceCard({
   userId,
   workspaceId,
@@ -41,6 +70,10 @@ export function WeeklyAdviceCard({
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [card, setCard] = useState<AdviceCard | null>(null);
   const [revealed, setRevealed] = useState(false);
+  // Une fois lu, le conseil se replie en une ligne : il a fait son travail, et
+  // l'écran d'accueil ne doit pas le répéter en grand chaque jour. Un geste
+  // le rouvre.
+  const [expanded, setExpanded] = useState(false);
   const key = weekKey(new Date());
 
   useEffect(() => {
@@ -75,6 +108,7 @@ export function WeeklyAdviceCard({
   async function reveal() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setRevealed(true);
+    setExpanded(true);
     try {
       await AsyncStorage.setItem(REVEALED_KEY, key);
     } catch {}
@@ -95,11 +129,32 @@ export function WeeklyAdviceCard({
     );
   }
 
+  if (!expanded) {
+    return (
+      <TouchableOpacity
+        style={[s.card, s.locked, s.compact]}
+        onPress={() => setExpanded(true)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        testID="weekly-advice-compact"
+      >
+        <Feather name="gift" size={15} color={GOLD} />
+        <Text style={[s.compactText, { flex: 1 }]} numberOfLines={1}>
+          {resolveTitle(card, i18n)}
+        </Text>
+        <Feather name="chevron-down" size={16} color={TEXT_2} />
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <View style={s.card} testID="weekly-advice-open">
       <View style={s.row}>
         <Feather name="gift" size={15} color={GOLD} />
-        <Text style={s.eyebrow}>{t("weekly.title")}</Text>
+        <Text style={[s.eyebrow, { flex: 1 }]}>{t("weekly.title")}</Text>
+        <TouchableOpacity onPress={() => setExpanded(false)} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("weekly.collapse")} testID="weekly-advice-collapse">
+          <Feather name="chevron-up" size={16} color={TEXT_2} />
+        </TouchableOpacity>
       </View>
       <Text style={s.adviceTitle}>{resolveTitle(card, i18n)}</Text>
       <Text style={s.adviceBody} numberOfLines={4}>
@@ -130,6 +185,8 @@ const makeS = (GOLD: string) =>
       marginBottom: 14,
     },
     locked: { flexDirection: "row", alignItems: "center", gap: 12 },
+    compact: { paddingVertical: 12 },
+    compactText: { color: TEXT_1, fontSize: 14, fontWeight: "700" },
     gift: {
       width: 44,
       height: 44,

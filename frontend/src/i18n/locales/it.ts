@@ -3448,4 +3448,8 @@ export const it: Catalog = {
   "pdf.incomes": "Entrate",
   "pdf.detail": "Dettaglio delle spese del mese",
   "pdf.generatedOn": "Generato il {date}",
+  "weekly.lockedFree.body": "Ogni lunedì, un consiglio scelto per la tua situazione, con la sua fonte ufficiale. Incluso in tutte le formule.",
+  "weekly.lockedFree.cta": "Vedi le formule",
+  "weekly.collapse": "Riduci",
+  "paywall.feature.incomes": "Due fonti di reddito sono incluse senza abbonamento. Le successive fanno parte delle formule, a partire da Solo.",
 };

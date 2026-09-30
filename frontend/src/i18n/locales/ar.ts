@@ -3448,4 +3448,8 @@ export const ar: Catalog = {
   "pdf.incomes": "الدخل",
   "pdf.detail": "تفاصيل مصروفات الشهر",
   "pdf.generatedOn": "أُنشئ في {date}",
+  "weekly.lockedFree.body": "كل يوم اثنين، نصيحة مختارة لوضعك مع مصدرها الرسمي. مشمولة في جميع الاشتراكات.",
+  "weekly.lockedFree.cta": "عرض الاشتراكات",
+  "weekly.collapse": "تصغير",
+  "paywall.feature.incomes": "مصدران للدخل مشمولان بدون اشتراك. ما بعدهما جزء من الاشتراكات، ابتداءً من Solo.",
 };

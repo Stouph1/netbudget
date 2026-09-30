@@ -16,6 +16,7 @@ import {
   canCreateSharedGoal,
   limitsFor,
   type Tier,
+  canAddIncomeSource,
 } from "../lib/entitlements";
 import { loadTier, onTierChange } from "../lib/tier";
 
@@ -37,7 +38,9 @@ export type Gate =
    * compte pas — on demande simplement un abonnement. Voir
    * canCreateSharedGoal().
    */
-  | { feature: "goal"; currentCount: number; shared?: boolean };
+  | { feature: "goal"; currentCount: number; shared?: boolean }
+  /** Ajouter une source de revenus de plus (deux sans abonnement). */
+  | { feature: "income"; currentCount: number };
 
 export function usePaywall() {
   const { user } = useSession();
@@ -91,6 +94,8 @@ export function usePaywall() {
           return gate.shared
             ? canCreateSharedGoal(tier).allowed
             : canCreateGoal(tier, gate.currentCount).allowed;
+        case "income":
+          return canAddIncomeSource(tier, gate.currentCount).allowed;
       }
     },
     [tier],
@@ -128,6 +133,10 @@ export function usePaywall() {
         return false;
       }
 
+      if (gate.feature === "income") {
+        setReason({ kind: "needsSubscription", featureKey: "paywall.feature.incomes" });
+        return false;
+      }
       if (gate.feature === "event") {
         const verdict = canCreateEvent(tier, gate.currentCount, gate.type);
         if (!verdict.allowed && verdict.reason === "typeLocked") {

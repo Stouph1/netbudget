@@ -3502,4 +3502,8 @@ export const fr: Catalog = {
   "pdf.incomes": "Revenus",
   "pdf.detail": "Détail des dépenses du mois",
   "pdf.generatedOn": "Édité le {date}",
+  "weekly.lockedFree.body": "Chaque lundi, un conseil choisi pour ta situation, avec sa source officielle. Inclus dans toutes les formules.",
+  "weekly.lockedFree.cta": "Voir les formules",
+  "weekly.collapse": "Réduire",
+  "paywall.feature.incomes": "Deux sources de revenus sont incluses sans abonnement. Les suivantes font partie des formules, à partir de Solo.",
 };

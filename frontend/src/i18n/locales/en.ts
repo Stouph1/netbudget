@@ -3448,4 +3448,8 @@ export const en: Catalog = {
   "pdf.incomes": "Income",
   "pdf.detail": "This month's expenses in detail",
   "pdf.generatedOn": "Generated on {date}",
+  "weekly.lockedFree.body": "Every Monday, one tip picked for your situation, with its official source. Included in every plan.",
+  "weekly.lockedFree.cta": "See the plans",
+  "weekly.collapse": "Collapse",
+  "paywall.feature.incomes": "Two income sources are included without a subscription. More are part of the plans, from Solo.",
 };

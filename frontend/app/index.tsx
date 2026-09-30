@@ -55,6 +55,8 @@ import { useWhatsNew } from "../src/hooks/useWhatsNew";
 import { WhatsNewSheet } from "../src/components/WhatsNewSheet";
 import { TourOverlay } from "../src/components/tour/TourOverlay";
 import { useTour, useTourTarget } from "../src/components/tour/TourContext";
+import { usePaywall } from "../src/hooks/usePaywall";
+import { PaywallSheet } from "../src/components/PaywallSheet";
 import {
   buildBirthdayCards,
   buildChildBirthdayCards,
@@ -138,6 +140,7 @@ import type {
 } from "./_budget/types";
 import {
   backfillItemLabels,
+  pruneUntouchedDefaults,
   convertOne,
   isoToMonthInput,
   loanMonthlyPayment,
@@ -458,6 +461,7 @@ export default function Index() {
   // elle attend d'y être avant de mesurer sa cible, au lieu de parier sur un
   // délai. Sans ça, le projecteur se posait au bon endroit du mauvais écran.
   const { setActiveTab } = useTour();
+  const paywall = usePaywall();
   const tourSettings = useTourTarget("home:settings");
   const [settingsOpen, setSettingsOpen] = useState(false);
   useEffect(() => {
@@ -795,7 +799,7 @@ export default function Index() {
         }
         if (stored.rent !== undefined) setRent(stored.rent as string);
         if (Array.isArray(stored.expenseItems) && stored.expenseItems.length > 0) {
-          setExpenseItems(backfillItemLabels(stored.expenseItems as ExpenseItem[]));
+          setExpenseItems(pruneUntouchedDefaults(backfillItemLabels(stored.expenseItems as ExpenseItem[])));
         }
         if (Array.isArray(stored.loans)) setLoans(stored.loans as Loan[]);
         if (stored.cityId) {
@@ -1054,6 +1058,8 @@ export default function Index() {
     });
   }
   function openAddIncome() {
+    // Deux sources sans abonnement : la troisième ouvre les formules.
+    if (!paywall.require({ feature: "income", currentCount: incomes.length })) return;
     setEditingIncome(null);
     setIncomeForm({
       id: `inc-${Date.now()}`,
@@ -1639,6 +1645,8 @@ export default function Index() {
         onClose={() => setMonthEditor(null)}
       />
 
+
+      <PaywallSheet visible={paywall.visible} reason={paywall.reason} onClose={paywall.close} />
 
       {/* Réglages : plus un onglet, une page qui s'ouvre depuis le Profil. */}
       <Modal

@@ -52,6 +52,12 @@ export type Limits = {
   /** Conseils personnalisés et sourcés. */
   advice: boolean;
   /**
+   * Sources de revenus qu'on peut saisir. Deux sans abonnement : un salaire et
+   * un complément, de quoi voir ce que l'app fait. Au-delà, c'est un budget
+   * qui mérite la formule.
+   */
+  maxIncomeSources: number | null;
+  /**
    * Anniversaires : la fête du jour J et les cartes de conseils liées à l'âge,
    * pour soi et pour ses enfants.
    *
@@ -73,6 +79,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: 1,
     loanScheduleYears: 1,
     advice: false,
+    maxIncomeSources: 2,
     birthdays: false,
   },
   // Solo : jusqu'à six événements en parallèle, et pas le mariage.
@@ -90,6 +97,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: 3,
     loanScheduleYears: null,
     advice: true,
+    maxIncomeSources: null,
     birthdays: false,
   },
   duo: {
@@ -100,6 +108,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: null,
     loanScheduleYears: null,
     advice: true,
+    maxIncomeSources: null,
     birthdays: false,
   },
   family: {
@@ -110,6 +119,7 @@ export const LIMITS: Record<Tier, Limits> = {
     maxGoals: null,
     loanScheduleYears: null,
     advice: true,
+    maxIncomeSources: null,
     birthdays: true,
   },
 };
@@ -216,6 +226,13 @@ export function remainingEvents(
  * continuer d'occuper la place : sinon la limite se transforme en « nombre
  * d'objectifs que tu auras eus dans ta vie », ce que personne n'achète.
  */
+/** Peut-on ajouter une source de revenus de plus ? */
+export function canAddIncomeSource(tier: Tier, currentCount: number): Denial {
+  const max = limitsFor(tier).maxIncomeSources;
+  if (max === null || currentCount < max) return { allowed: true };
+  return { allowed: false, reason: "needsSubscription", upgradeTo: "solo" };
+}
+
 export function canCreateGoal(tier: Tier, currentGoalCount: number): Denial {
   const max = limitsFor(tier).maxGoals;
   if (max === null || currentGoalCount < max) return { allowed: true };

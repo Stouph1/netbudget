@@ -3448,4 +3448,8 @@ export const es: Catalog = {
   "pdf.incomes": "Ingresos",
   "pdf.detail": "Detalle de los gastos del mes",
   "pdf.generatedOn": "Generado el {date}",
+  "weekly.lockedFree.body": "Cada lunes, un consejo elegido para tu situación, con su fuente oficial. Incluido en todos los planes.",
+  "weekly.lockedFree.cta": "Ver los planes",
+  "weekly.collapse": "Reducir",
+  "paywall.feature.incomes": "Dos fuentes de ingresos están incluidas sin suscripción. Las siguientes forman parte de los planes, desde Solo.",
 };

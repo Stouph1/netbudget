@@ -30,7 +30,7 @@ import { useLang } from "../contexts/LangContext";
 import { useCurrency } from "../contexts/CurrencyContext";
 import { useSession } from "../contexts/SessionContext";
 import { useActiveScope } from "../hooks/useActiveScope";
-import { WeeklyAdviceCard } from "./WeeklyAdviceCard";
+import { WeeklyAdviceCard, WeeklyAdviceLocked } from "./WeeklyAdviceCard";
 import { useVault } from "../hooks/useVault";
 import {
   hasPasswordIdentity,
@@ -290,6 +290,9 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       onScroll={tourScroll.onScroll}
       scrollEventThrottle={64}
     >
+        {/* Ce qu'un abonnement apporte, montré avant même le compte. */}
+        <WeeklyAdviceLocked />
+
         <View style={styles.signinHero}>
           <View style={styles.signinIconWrap}>
             <Feather name="user" size={36} color={GOLD} />
@@ -628,7 +631,9 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       {/* Le conseil de la semaine : une carte fermée, un conseil, chaque lundi. */}
       {user?.id && paywall.tier !== "free" ? (
         <WeeklyAdviceCard userId={user.id} workspaceId={workspaceId} />
-      ) : null}
+      ) : (
+        <WeeklyAdviceLocked />
+      )}
 
       {/* Tuiles navigation */}
       <View style={styles.tilesRow}>

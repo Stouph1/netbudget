@@ -3448,4 +3448,8 @@ export const de: Catalog = {
   "pdf.incomes": "Einnahmen",
   "pdf.detail": "Ausgaben des Monats im Detail",
   "pdf.generatedOn": "Erstellt am {date}",
+  "weekly.lockedFree.body": "Jeden Montag ein Tipp, passend zu deiner Situation, mit offizieller Quelle. In jedem Abo enthalten.",
+  "weekly.lockedFree.cta": "Abos ansehen",
+  "weekly.collapse": "Einklappen",
+  "paywall.feature.incomes": "Zwei Einnahmequellen sind ohne Abo enthalten. Weitere gehören zu den Abos, ab Solo.",
 };

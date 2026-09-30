@@ -3448,4 +3448,8 @@ export const pt: Catalog = {
   "pdf.incomes": "Rendimentos",
   "pdf.detail": "Detalhe das despesas do mês",
   "pdf.generatedOn": "Gerado a {date}",
+  "weekly.lockedFree.body": "Todas as segundas, um conselho escolhido para a tua situação, com a sua fonte oficial. Incluído em todos os planos.",
+  "weekly.lockedFree.cta": "Ver os planos",
+  "weekly.collapse": "Reduzir",
+  "paywall.feature.incomes": "Duas fontes de rendimento estão incluídas sem subscrição. As seguintes fazem parte dos planos, a partir do Solo.",
 };

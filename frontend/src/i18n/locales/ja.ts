@@ -3448,4 +3448,8 @@ export const ja: Catalog = {
   "pdf.incomes": "収入",
   "pdf.detail": "今月の支出の内訳",
   "pdf.generatedOn": "{date} 作成",
+  "weekly.lockedFree.body": "毎週月曜日、あなたの状況に合わせたアドバイスを公式ソース付きでお届け。すべてのプランに含まれます。",
+  "weekly.lockedFree.cta": "プランを見る",
+  "weekly.collapse": "折りたたむ",
+  "paywall.feature.incomes": "収入源は2つまでサブスクリプションなしで登録できます。それ以上は Solo 以上のプランに含まれます。",
 };
