@@ -25,6 +25,8 @@ import type { CurrencyCode } from "./currency";
 import { parseNumber } from "./finance";
 import { formatCurrency } from "./currency";
 import { monthKey } from "../lib/streak";
+import { loadStreak } from "../lib/streakStore";
+import { loadTier } from "../lib/tier";
 import { firstPayment, type LoanRepayment } from "./loanSchedule";
 import {
   isBudgetFilledThisMonth,
@@ -200,6 +202,8 @@ export async function buildSyncInput(opts: BuildSyncInputOptions): Promise<SyncI
     loans: toNotifLoans(parseStoredLoans(state?.loans ?? []), now),
     budgetFilledThisMonth: isBudgetFilledThisMonth(history, now),
     remainingLabel: remainingLabelFor(history, now, displayCurrency),
+    checkInDone: await loadStreak(now).then((st) => st.doneThisMonth).catch(() => undefined),
+    tier: await loadTier().catch(() => "free" as const),
     subscription,
   };
 }

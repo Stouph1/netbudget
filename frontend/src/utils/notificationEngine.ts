@@ -80,9 +80,9 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   comeback: true,
   billing: true,
   workspace: true,
-  // 3 par semaine : au-delà, le taux d'ouverture s'effondre et l'utilisateur
-  // coupe TOUT — on perd alors même les rappels utiles.
-  maxPerWeek: 3,
+  // 5 par semaine : assez pour exister, pas assez pour lasser. Au-delà,
+  // l'utilisateur coupe TOUT — on perd alors même les rappels utiles.
+  maxPerWeek: 5,
   hour: 19, // début de soirée : l'app se consulte au calme, pas au travail
 };
 
@@ -131,6 +131,10 @@ export type NotifContext = {
   }[];
   /** Le budget du mois a-t-il été renseigné ? */
   budgetFilledThisMonth: boolean;
+  /** Le point mensuel (série) est-il fait ce mois-ci ? Absent = inconnu. */
+  checkInDone?: boolean;
+  /** Formule en cours : le conseil de la semaine n'existe qu'avec un abonnement. */
+  tier?: "free" | "solo" | "duo" | "family";
   /**
    * Reste à vivre du mois en cours, déjà formaté avec la devise (« 412 € »).
    * Absent si le budget n'est pas renseigné. C'est LE chiffre de l'app, et le
@@ -394,7 +398,38 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     }
   }
 
-  if (!ctx.budgetFilledThisMonth && now.getDate() >= 8) {
+  // --- Le point du mois pas encore fait : un rappel vers la fin du mois ----
+  if (ctx.checkInDone === false && now.getDate() >= 20) {
+    push({
+      id: `checkin-${now.getFullYear()}-${now.getMonth()}`,
+      category: "budget",
+      titleKey: "notif.checkin.title",
+      bodyKey: "notif.checkin.body",
+      score: 58,
+      at: atHour(new Date(now.getTime() + DAY_MS), prefs.hour),
+      route: "/",
+    });
+  }
+
+  // --- Le conseil de la semaine, le mercredi, pour les abonnés ---------------
+  if (ctx.tier && ctx.tier !== "free") {
+    const wed = new Date(now);
+    const ahead = (3 - wed.getDay() + 7) % 7;
+    wed.setDate(wed.getDate() + ahead);
+    let at = atHour(wed, prefs.hour);
+    if (at.getTime() <= now.getTime()) at = atHour(new Date(wed.getTime() + 7 * DAY_MS), prefs.hour);
+    push({
+      id: `weekly-advice-${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${at.getDate()}`,
+      category: "rights",
+      titleKey: "notif.weekly.title",
+      bodyKey: "notif.weekly.body",
+      score: 57,
+      at,
+      route: "/?tab=premium",
+    });
+  }
+
+  if (!ctx.budgetFilledThisMonth && now.getDate() >= 3) {
     push({
       id: `budget-${now.getFullYear()}-${now.getMonth()}`,
       category: "budget",
@@ -411,7 +446,7 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   if (ctx.lastOpenedAt) {
     const away = daysBetween(ctx.lastOpenedAt, now);
     const fresh = ctx.unseenRights.length + (ctx.seasonalRights?.length ?? 0);
-    if (away >= 21 && fresh >= 3) {
+    if (away >= 7 && fresh >= 1) {
       push({
         id: `comeback-${now.getFullYear()}-${now.getMonth()}`,
         category: "comeback",

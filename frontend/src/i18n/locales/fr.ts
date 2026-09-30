@@ -447,7 +447,7 @@ export const fr: Catalog = {
   "pdf.needsLine": "Besoins (loyer, prêts, courses…)",
   "pdf.totalExpenses": "Total des dépenses",
   "pdf.noAdvice": "Aucun conseil pour le moment.",
-  "pdf.footer": "Généré par Budget — données privées.",
+  "pdf.footer": "Généré par NETbudget — données privées.",
 
   // Advice cards
   "advice.noIncome.title": "Saisis tes revenus",
@@ -3494,4 +3494,12 @@ export const fr: Catalog = {
   "onboarding.hero.cta": "Ajouter un revenu",
   "notif.welcome.title": "🔔 C'est activé !",
   "notif.welcome.body": "Tu recevras ton point du mois le 1er, et ton reste à vivre le dimanche soir. Jamais plus de trois par semaine.",
+  "expense.epargne": "Épargne mensuelle",
+  "notif.checkin.title": "📅 Ton point du mois n'est pas fait",
+  "notif.checkin.body": "Deux minutes, et la série continue.",
+  "notif.weekly.title": "🎁 Ton conseil de la semaine t'attend",
+  "notif.weekly.body": "Un seul, choisi pour ta situation. Touche pour le découvrir.",
+  "pdf.incomes": "Revenus",
+  "pdf.detail": "Détail des dépenses du mois",
+  "pdf.generatedOn": "Édité le {date}",
 };

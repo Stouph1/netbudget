@@ -393,7 +393,7 @@ export const de: Catalog = {
   "pdf.needsLine": "Bedürfnisse (Miete, Kredite, Einkäufe…)",
   "pdf.totalExpenses": "Gesamtausgaben",
   "pdf.noAdvice": "Derzeit kein Rat verfügbar.",
-  "pdf.footer": "Erstellt von Budget — private Daten.",
+  "pdf.footer": "Erstellt von NETbudget — private Daten.",
 
   "advice.noIncome.title": "Gib deine Einnahmen ein",
   "advice.noIncome.msg": "Trage dein Gehalt und deine Ausgaben ein, um personalisierte Empfehlungen nach der 50/30/20-Regel zu erhalten.",
@@ -3440,4 +3440,12 @@ export const de: Catalog = {
   "onboarding.hero.cta": "Einnahme hinzufügen",
   "notif.welcome.title": "🔔 Aktiviert!",
   "notif.welcome.body": "Du bekommst deinen Monatscheck am 1. und dein verfügbares Geld jeden Sonntagabend. Nie mehr als drei pro Woche.",
+  "expense.epargne": "Monatliches Sparen",
+  "notif.checkin.title": "📅 Dein Monatscheck fehlt noch",
+  "notif.checkin.body": "Zwei Minuten, und die Serie geht weiter.",
+  "notif.weekly.title": "🎁 Dein Tipp der Woche wartet",
+  "notif.weekly.body": "Nur einer, passend zu deiner Situation. Tippe, um ihn zu sehen.",
+  "pdf.incomes": "Einnahmen",
+  "pdf.detail": "Ausgaben des Monats im Detail",
+  "pdf.generatedOn": "Erstellt am {date}",
 };

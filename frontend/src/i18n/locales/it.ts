@@ -393,7 +393,7 @@ export const it: Catalog = {
   "pdf.needsLine": "Bisogni (affitto, prestiti, spesa…)",
   "pdf.totalExpenses": "Totale spese",
   "pdf.noAdvice": "Nessun consiglio per ora.",
-  "pdf.footer": "Generato da Budget — dati privati.",
+  "pdf.footer": "Generato da NETbudget — dati privati.",
 
   "advice.noIncome.title": "Inserisci le tue entrate",
   "advice.noIncome.msg": "Inserisci stipendio e spese per ottenere consigli personalizzati basati sulla regola 50/30/20.",
@@ -3440,4 +3440,12 @@ export const it: Catalog = {
   "onboarding.hero.cta": "Aggiungi un'entrata",
   "notif.welcome.title": "🔔 Attivato!",
   "notif.welcome.body": "Riceverai il punto del mese il 1° e quanto ti resta per vivere ogni domenica sera. Mai più di tre a settimana.",
+  "expense.epargne": "Risparmio mensile",
+  "notif.checkin.title": "📅 Il punto del mese non è fatto",
+  "notif.checkin.body": "Due minuti e la serie continua.",
+  "notif.weekly.title": "🎁 Il tuo consiglio della settimana ti aspetta",
+  "notif.weekly.body": "Uno solo, scelto per la tua situazione. Tocca per scoprirlo.",
+  "pdf.incomes": "Entrate",
+  "pdf.detail": "Dettaglio delle spese del mese",
+  "pdf.generatedOn": "Generato il {date}",
 };

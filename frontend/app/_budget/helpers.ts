@@ -6,7 +6,7 @@ import { parseNumber } from "../../src/utils/finance";
 import { firstPayment } from "../../src/utils/loanSchedule";
 import { convert } from "../../src/utils/exchangeRates";
 import type { CurrencyCode } from "../../src/utils/currency";
-import { DEFAULT_ITEMS } from "./constants";
+import { DEFAULT_ITEMS, LEGACY_DEFAULT_ITEMS } from "./constants";
 import type { ExpenseItem, Loan, Translate } from "./types";
 
 // La date de 1re échéance se saisit en MM/AAAA (le jour n'a pas d'importance
@@ -74,7 +74,7 @@ export function displayItemLabel(item: ExpenseItem, tt: Translate): string {
 export function backfillItemLabels(items: ExpenseItem[]): ExpenseItem[] {
   return items.map((it) => {
     if (it.labelKey) return it;
-    const def = DEFAULT_ITEMS.find((d) => d.id === it.id);
+    const def = [...DEFAULT_ITEMS, ...LEGACY_DEFAULT_ITEMS].find((d) => d.id === it.id);
     if (def && def.labelKey && it.label === def.label) {
       return { ...it, labelKey: def.labelKey };
     }

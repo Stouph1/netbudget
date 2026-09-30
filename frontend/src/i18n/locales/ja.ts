@@ -393,7 +393,7 @@ export const ja: Catalog = {
   "pdf.needsLine": "ニーズ（家賃、ローン、食費など）",
   "pdf.totalExpenses": "支出合計",
   "pdf.noAdvice": "現在アドバイスはありません。",
-  "pdf.footer": "Budget により生成 — プライベートデータ。",
+  "pdf.footer": "NETbudget により生成 — プライベートデータ。",
 
   "advice.noIncome.title": "収入を入力してください",
   "advice.noIncome.msg": "給与と支出を入力すると、50/30/20ルールに基づくパーソナライズされたアドバイスが得られます。",
@@ -3440,4 +3440,12 @@ export const ja: Catalog = {
   "onboarding.hero.cta": "収入を追加",
   "notif.welcome.title": "🔔 オンになりました！",
   "notif.welcome.body": "毎月1日に今月のチェック、毎週日曜の夜に残りの生活費をお知らせします。週に3件を超えることはありません。",
+  "expense.epargne": "毎月の貯蓄",
+  "notif.checkin.title": "📅 今月のチェックがまだです",
+  "notif.checkin.body": "2分で、連続記録が続きます。",
+  "notif.weekly.title": "🎁 今週のアドバイスが届いています",
+  "notif.weekly.body": "あなたの状況に合わせて1つだけ。タップして表示。",
+  "pdf.incomes": "収入",
+  "pdf.detail": "今月の支出の内訳",
+  "pdf.generatedOn": "{date} 作成",
 };

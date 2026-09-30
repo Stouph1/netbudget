@@ -63,7 +63,7 @@ const CATEGORIES: { key: NotifCategory; icon: keyof typeof Feather.glyphMap }[] 
   { key: "comeback", icon: "refresh-cw" },
 ];
 
-const FREQUENCIES = [1, 2, 3, 5];
+const FREQUENCIES = [2, 3, 5, 7];
 const HOURS = [9, 12, 19, 21];
 
 export default function NotificationSettings() {

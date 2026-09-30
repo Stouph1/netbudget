@@ -24,7 +24,17 @@ export const FAMILY_META: Record<ExpenseFamily, FamilyMeta> = {
 
 export const FAMILY_ORDER: ExpenseFamily[] = ["besoins", "loisirs", "epargne"];
 
+// Un seul poste par famille au départ. Douze lignes à 0 € donnaient un écran
+// plein avant d'avoir rien saisi ; chacun ajoute les siens en un geste.
 export const DEFAULT_ITEMS: ExpenseItem[] = [
+  { id: "alimentation", family: "besoins", label: "Alimentation", labelKey: "expense.alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
+  { id: "sorties", family: "loisirs", label: "Sorties / Restos", labelKey: "expense.sorties", icon: "coffee", color: "#A855F7", amount: "0" },
+  { id: "epargne", family: "epargne", label: "Épargne mensuelle", labelKey: "expense.epargne", icon: "save", color: "#F59E0B", amount: "0" },
+];
+
+// L'ancienne liste complète, gardée pour retrouver la clé de traduction des
+// postes que les budgets existants portent encore (voir helpers.ts).
+export const LEGACY_DEFAULT_ITEMS: ExpenseItem[] = [
   { id: "alimentation", family: "besoins", label: "Alimentation", labelKey: "expense.alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
   { id: "transport", family: "besoins", label: "Transport", labelKey: "expense.transport", icon: "navigation", color: "#F59E0B", amount: "0" },
   { id: "sante", family: "besoins", label: "Santé / Mutuelle", labelKey: "expense.sante", icon: "heart", color: "#06B6D4", amount: "0" },

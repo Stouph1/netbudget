@@ -393,7 +393,7 @@ export const ar: Catalog = {
   "pdf.needsLine": "ضروريات (إيجار، قروض، طعام…)",
   "pdf.totalExpenses": "إجمالي النفقات",
   "pdf.noAdvice": "لا توجد نصائح حاليا.",
-  "pdf.footer": "تم إنشاؤه بواسطة Budget — بيانات خاصة.",
+  "pdf.footer": "تم إنشاؤه بواسطة NETbudget — بيانات خاصة.",
 
   "advice.noIncome.title": "أدخل دخلك",
   "advice.noIncome.msg": "أدخل راتبك ونفقاتك للحصول على نصائح شخصية بناءً على قاعدة 50/30/20.",
@@ -3440,4 +3440,12 @@ export const ar: Catalog = {
   "onboarding.hero.cta": "إضافة دخل",
   "notif.welcome.title": "🔔 تم التفعيل!",
   "notif.welcome.body": "ستتلقى مراجعة الشهر في اليوم الأول، وما يتبقى لك للعيش كل مساء أحد. لا أكثر من ثلاثة في الأسبوع.",
+  "expense.epargne": "ادخار شهري",
+  "notif.checkin.title": "📅 مراجعة الشهر لم تُنجز بعد",
+  "notif.checkin.body": "دقيقتان، وتستمر السلسلة.",
+  "notif.weekly.title": "🎁 نصيحتك لهذا الأسبوع بانتظارك",
+  "notif.weekly.body": "نصيحة واحدة مختارة لوضعك. المس لاكتشافها.",
+  "pdf.incomes": "الدخل",
+  "pdf.detail": "تفاصيل مصروفات الشهر",
+  "pdf.generatedOn": "أُنشئ في {date}",
 };

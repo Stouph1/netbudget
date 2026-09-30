@@ -118,6 +118,7 @@ import {
   STATUS_DEFAULT_CHARGES,
   TYPE_DEFAULT_CHARGES,
   defaultIncomeSource,
+  monthlyNetForSource,
 } from "../src/utils/income";
 import { loadState, saveState } from "../src/utils/storage";
 
@@ -126,6 +127,7 @@ import {
   FAMILY_PALETTE,
   TAB_ORDER,
   TEXT_2,
+  MONTH_KEYS_SHORT,
 } from "./_budget/constants";
 import type {
   ConfirmState,
@@ -140,6 +142,7 @@ import {
   isoToMonthInput,
   loanMonthlyPayment,
   loanTermYears,
+  displayItemLabel,
 } from "./_budget/helpers";
 import { SCREEN_H, styles } from "./_budget/styles";
 import SettingsScreen from "./_budget/SettingsScreen";
@@ -164,7 +167,7 @@ import IncomeModal from "./_budget/modals/IncomeModal";
 import MonthEditorModal from "./_budget/modals/MonthEditorModal";
 import AddItemModal from "./_budget/modals/AddItemModal";
 import PeriodModal from "./_budget/modals/PeriodModal";
-import { normalizeMonths } from "./_budget/expensePeriod";
+import { normalizeMonths, amountForMonth, periodLabel } from "./_budget/expensePeriod";
 import LoanModal from "./_budget/modals/LoanModal";
 import ConfirmModal from "./_budget/modals/ConfirmModal";
 import UpdateModal from "./_budget/modals/UpdateModal";
@@ -1190,7 +1193,33 @@ export default function Index() {
   }
 
   function buildPdfData(): PdfData {
+    const shortMonth = (i: number) => t(MONTH_KEYS_SHORT[i]);
+    const currentMonth = new Date().getMonth();
+    const familyOf = (key: ExpenseFamily) => ({
+      key,
+      label: t(`family.${key}.label`),
+      total: familyTotals[key],
+      items: itemsByFamily[key].map((it) => ({
+        label: displayItemLabel(it, t),
+        amount: amountForMonth(it, currentMonth, parseNumber),
+        period: it.activeMonths ? periodLabel(it.activeMonths, shortMonth, t("period.all")) : undefined,
+      })),
+    });
     return {
+      date: new Date().toLocaleDateString(lang === "en" ? "en-GB" : lang, { day: "numeric", month: "long", year: "numeric" }),
+      scopeLabel: resolvedScopeLabel,
+      incomes: incomes.map((src) => ({
+        label: src.label,
+        net: monthlyNetForSource(src, currentMonth, tithePercent),
+      })),
+      families: (["besoins", "loisirs", "epargne"] as ExpenseFamily[]).map(familyOf),
+      months: months.map((m) => ({
+        name: m.name,
+        income: m.income,
+        expenses: m.expenses,
+        remaining: m.remaining,
+        current: m.index === currentMonth,
+      })),
       cityName: city.name,
       cityRegion: city.region,
       cityIndex: city.index,

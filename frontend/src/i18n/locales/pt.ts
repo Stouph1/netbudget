@@ -393,7 +393,7 @@ export const pt: Catalog = {
   "pdf.needsLine": "Necessidades (renda, empréstimos, compras…)",
   "pdf.totalExpenses": "Total das despesas",
   "pdf.noAdvice": "Sem conselhos por enquanto.",
-  "pdf.footer": "Gerado por Budget — dados privados.",
+  "pdf.footer": "Gerado por NETbudget — dados privados.",
 
   "advice.noIncome.title": "Indica os teus rendimentos",
   "advice.noIncome.msg": "Preenche o teu salário e as tuas despesas para receber conselhos personalizados baseados na regra 50/30/20.",
@@ -3440,4 +3440,12 @@ export const pt: Catalog = {
   "onboarding.hero.cta": "Adicionar um rendimento",
   "notif.welcome.title": "🔔 Está ativado!",
   "notif.welcome.body": "Vais receber o teu ponto do mês no dia 1 e o que te sobra para viver ao domingo à noite. Nunca mais de três por semana.",
+  "expense.epargne": "Poupança mensal",
+  "notif.checkin.title": "📅 O teu ponto do mês não está feito",
+  "notif.checkin.body": "Dois minutos e a sequência continua.",
+  "notif.weekly.title": "🎁 O teu conselho da semana espera-te",
+  "notif.weekly.body": "Só um, escolhido para a tua situação. Toca para o descobrir.",
+  "pdf.incomes": "Rendimentos",
+  "pdf.detail": "Detalhe das despesas do mês",
+  "pdf.generatedOn": "Gerado a {date}",
 };

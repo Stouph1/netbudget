@@ -201,9 +201,9 @@ describe("budget du mois", () => {
     expect(out.some((c) => c.category === "budget")).toBe(true);
   });
 
-  it("ne relance PAS en début de mois — ce serait du bruit", () => {
+  it("ne relance PAS les deux premiers jours du mois — ce serait du bruit", () => {
     const out = buildCandidates(
-      baseCtx({ now: new Date("2026-08-03T10:00:00Z"), budgetFilledThisMonth: false }),
+      baseCtx({ now: new Date("2026-08-02T10:00:00Z"), budgetFilledThisMonth: false }),
     );
     expect(out.some((c) => c.category === "budget")).toBe(false);
   });
@@ -228,10 +228,10 @@ describe("reprise après absence", () => {
     expect(avecDuNeuf.some((c) => c.category === "comeback")).toBe(true);
   });
 
-  it("laisse tranquille avant 3 semaines d'absence", () => {
+  it("laisse tranquille avant une semaine d'absence", () => {
     const out = buildCandidates(
       baseCtx({
-        lastOpenedAt: new Date("2026-08-05T10:00:00Z"), // 10 jours
+        lastOpenedAt: new Date("2026-08-11T10:00:00Z"), // 4 jours
         unseenRights: [
           { id: "a", titleKey: "t", priority: 50 },
           { id: "b", titleKey: "t", priority: 40 },
@@ -511,5 +511,24 @@ describe("pouls hebdomadaire du reste à vivre", () => {
     const first = buildCandidates(baseCtx({ remainingLabel: "412 €" })).find(pulse)!;
     const again = buildCandidates(baseCtx({ remainingLabel: "412 €", alreadySent: { [first.id]: "x" } }));
     expect(again.some(pulse)).toBe(false);
+  });
+});
+
+describe("davantage de notifications", () => {
+  it("rappelle le point du mois à partir du 20 quand il n'est pas fait", () => {
+    const late = new Date("2026-08-22T10:00:00Z");
+    expect(buildCandidates(baseCtx({ now: late, checkInDone: false })).some((c) => c.id.startsWith("checkin-"))).toBe(true);
+    expect(buildCandidates(baseCtx({ now: late, checkInDone: true })).some((c) => c.id.startsWith("checkin-"))).toBe(false);
+    expect(buildCandidates(baseCtx({ now: NOW, checkInDone: false })).some((c) => c.id.startsWith("checkin-"))).toBe(false);
+  });
+  it("le conseil de la semaine part le mercredi, pour les abonnés seulement", () => {
+    const c = buildCandidates(baseCtx({ tier: "solo" })).find((x) => x.id.startsWith("weekly-advice-"));
+    expect(c).toBeDefined();
+    expect(c!.at.getDay()).toBe(3);
+    expect(buildCandidates(baseCtx({ tier: "free" })).some((x) => x.id.startsWith("weekly-advice-"))).toBe(false);
+    expect(buildCandidates(baseCtx({})).some((x) => x.id.startsWith("weekly-advice-"))).toBe(false);
+  });
+  it("le plafond par défaut est de cinq par semaine", () => {
+    expect(DEFAULT_NOTIF_PREFS.maxPerWeek).toBe(5);
   });
 });
