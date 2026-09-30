@@ -13,6 +13,7 @@ import {
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -45,6 +46,7 @@ import { styles } from "./styles";
 import { Field, Section } from "./ui";
 import { useTourScroller, useTourTarget } from "../../src/components/tour/TourContext";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
+import { periodLabel } from "./expensePeriod";
 import { SyncBanner } from "../../src/components/SyncBanner";
 
 export default function BudgetScreen({
@@ -99,6 +101,7 @@ export default function BudgetScreen({
   onOpenBudgetSwitcher,
   onCloseBudgetSwitcher,
   onAddIncome,
+  onItemPeriod,
   onEditIncome,
   onDeleteIncome,
   onPressMonth,
@@ -158,6 +161,8 @@ export default function BudgetScreen({
   onOpenBudgetSwitcher: () => void;
   onCloseBudgetSwitcher: () => void;
   onAddIncome: () => void;
+  /** Ouvre le choix des mois où ce poste s'applique. */
+  onItemPeriod: (item: ExpenseItem) => void;
   onEditIncome: (src: IncomeSource) => void;
   onDeleteIncome: (id: string) => void;
   /** Tap sur un mois du budget mois par mois. */
@@ -181,6 +186,8 @@ export default function BudgetScreen({
   const tourExport = useTourTarget("budget:export");
   // Permet à la visite d'aller chercher une cible sous le pli.
   const tourScroll = useTourScroller("budget");
+
+  const hasData = netMensuel > 0 || monthlyExpenses > 0;
 
   return (
     <ScrollView
@@ -267,24 +274,24 @@ export default function BudgetScreen({
 
       {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
       {netMensuel <= 0 ? (
+        // Vide : une seule chose à faire, et rien d'autre à lire. Le mode
+        // d'emploi en trois paragraphes remplissait l'écran d'une personne qui
+        // n'avait encore rien saisi.
         <View style={styles.onboardingCard} testID="onboarding-card">
           <View style={styles.onboardingHeader}>
-            <Feather name="compass" size={20} color={GOLD} />
-            <Text style={styles.onboardingTitle}>{t("onboarding.title")}</Text>
+            <Feather name="plus-circle" size={20} color={GOLD} />
+            <Text style={styles.onboardingTitle}>{t("onboarding.hero.title")}</Text>
           </View>
-          <Text style={styles.onboardingStep}>
-            <Text style={styles.onboardingNum}>1. </Text>
-            {t("onboarding.step1")}
-          </Text>
-          <Text style={styles.onboardingStep}>
-            <Text style={styles.onboardingNum}>2. </Text>
-            {t("onboarding.step2")}
-          </Text>
-          <Text style={styles.onboardingStep}>
-            <Text style={styles.onboardingNum}>3. </Text>
-            {t("onboarding.step3")}
-          </Text>
-          <Text style={styles.onboardingTip}>{t("onboarding.tip")}</Text>
+          <Text style={styles.onboardingStep}>{t("onboarding.hero.body")}</Text>
+          <TouchableOpacity
+            onPress={onAddIncome}
+            style={[styles.primaryBtn, { marginTop: 14 }]}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            testID="onboarding-add-income"
+          >
+            <Text style={styles.primaryBtnText}>{t("onboarding.hero.cta")}</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <View
@@ -602,20 +609,38 @@ export default function BudgetScreen({
               </View>
             ) : (
               items.map((it) => (
-                <Field
-                  key={it.id}
-                  label={displayItemLabel(it, t)}
-                  icon={<Feather name={it.icon} size={18} color={it.color} />}
-                  right={getCurrency(currency).symbol}
-                  value={it.amount}
-                  onChangeText={(v) => onItemAmountChange(it.id, v)}
-                  onLabelChange={(v) => onItemLabelChange(it.id, v)}
-                  onDelete={() => onDeleteItem(it.id)}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  renameHint={t("renameHint")}
-                  testID={`expense-${it.id}`}
-                />
+                <Pressable key={it.id} onLongPress={() => onItemPeriod(it)} delayLongPress={350}>
+                  <Field
+                    label={displayItemLabel(it, t)}
+                    icon={<Feather name={it.icon} size={18} color={it.color} />}
+                    right={getCurrency(currency).symbol}
+                    value={it.amount}
+                    onChangeText={(v) => onItemAmountChange(it.id, v)}
+                    onLabelChange={(v) => onItemLabelChange(it.id, v)}
+                    onDelete={() => onDeleteItem(it.id)}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    renameHint={t("renameHint")}
+                    testID={`expense-${it.id}`}
+                  />
+                  {/* La période n'apparaît que si elle est restreinte : douze lignes
+                      « toute l'année » sous douze postes, c'est du bruit. Un appui
+                      long sur le poste ouvre le choix des mois. */}
+                  {it.activeMonths ? (
+                    <TouchableOpacity
+                      onPress={() => onItemPeriod(it)}
+                      style={styles.periodLine}
+                      hitSlop={6}
+                      accessibilityRole="button"
+                      testID={`expense-period-${it.id}`}
+                    >
+                      <Feather name="calendar" size={12} color={it.color} />
+                      <Text style={[styles.periodLineText, { color: TEXT_2 }]}>
+                        {periodLabel(it.activeMonths, (i) => t(MONTH_KEYS_SHORT[i]), t("period.all"))}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </Pressable>
               ))
             )}
             <View style={styles.familyTotalRow}>
@@ -636,6 +661,10 @@ export default function BudgetScreen({
         </Text>
       </View>
 
+      {/* Tableau, conseils, camembert et export : seulement quand il y a
+          des chiffres. Sans données, ces blocs ne montrent que des zéros. */}
+      {hasData ? (
+        <>
       {/* Budget mois par mois */}
       <Section title={t("section.monthly.title")} info={{ title: t("help.monthly.title"), body: t("help.monthly.body") }}>
         <Text style={styles.familySub}>
@@ -809,6 +838,9 @@ export default function BudgetScreen({
           <Text style={styles.exportBtnTextDark}>{t("btn.exportPdf")}</Text>
         </TouchableOpacity>
       </View>
+
+        </>
+      ) : null}
 
       <View style={{ height: 40 }} />
     </ScrollView>

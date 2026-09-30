@@ -3431,4 +3431,13 @@ export const pt: Catalog = {
   "weekly.renew": "Um novo todas as segundas.",
   "notif.ws.checkin.title": "✅ {who} fez o ponto do mês",
   "notif.ws.checkin.body": "Em «{space}». Dois minutos para fazeres o teu?",
+  "period.title": "Período",
+  "period.hint": "Toca nos meses em que esta despesa se aplica.",
+  "period.all": "Todo o ano",
+  "period.fromNow": "A partir deste mês",
+  "onboarding.hero.title": "Começa pelos teus rendimentos",
+  "onboarding.hero.body": "Adiciona o que ganhas e depois o que gastas. O que te sobra para viver calcula-se sozinho.",
+  "onboarding.hero.cta": "Adicionar um rendimento",
+  "notif.welcome.title": "🔔 Está ativado!",
+  "notif.welcome.body": "Vais receber o teu ponto do mês no dia 1 e o que te sobra para viver ao domingo à noite. Nunca mais de três por semana.",
 };

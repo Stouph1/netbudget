@@ -3431,4 +3431,13 @@ export const ar: Catalog = {
   "weekly.renew": "نصيحة جديدة كل يوم اثنين.",
   "notif.ws.checkin.title": "✅ {who} أنجز مراجعة الشهر",
   "notif.ws.checkin.body": "في «{space}». دقيقتان لإنجاز مراجعتك؟",
+  "period.title": "الفترة",
+  "period.hint": "المس الأشهر التي ينطبق فيها هذا المصروف.",
+  "period.all": "طوال السنة",
+  "period.fromNow": "ابتداءً من هذا الشهر",
+  "onboarding.hero.title": "ابدأ بدخلك",
+  "onboarding.hero.body": "أضف ما تكسبه، ثم ما تنفقه. ما يتبقى لك للعيش يُحسب تلقائيًا.",
+  "onboarding.hero.cta": "إضافة دخل",
+  "notif.welcome.title": "🔔 تم التفعيل!",
+  "notif.welcome.body": "ستتلقى مراجعة الشهر في اليوم الأول، وما يتبقى لك للعيش كل مساء أحد. لا أكثر من ثلاثة في الأسبوع.",
 };

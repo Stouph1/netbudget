@@ -3431,4 +3431,13 @@ export const ja: Catalog = {
   "weekly.renew": "毎週月曜日に新しくなります。",
   "notif.ws.checkin.title": "✅ {who} さんが今月のチェックを済ませました",
   "notif.ws.checkin.body": "「{space}」にて。あなたも2分でどうですか？",
+  "period.title": "期間",
+  "period.hint": "この支出が当てはまる月をタップしてください。",
+  "period.all": "通年",
+  "period.fromNow": "今月から",
+  "onboarding.hero.title": "まずは収入から",
+  "onboarding.hero.body": "稼いだ額、次に使った額を追加してください。生活に残るお金は自動で計算されます。",
+  "onboarding.hero.cta": "収入を追加",
+  "notif.welcome.title": "🔔 オンになりました！",
+  "notif.welcome.body": "毎月1日に今月のチェック、毎週日曜の夜に残りの生活費をお知らせします。週に3件を超えることはありません。",
 };

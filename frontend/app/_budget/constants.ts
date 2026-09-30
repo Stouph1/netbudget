@@ -50,7 +50,7 @@ export const FAMILY_PALETTE: Record<ExpenseFamily, string[]> = {
 // Les 5 onglets sont rendus en rangée horizontale ; on translate le container
 // pour suivre le doigt en temps réel (style Instagram/Twitter), puis on snap
 // au plus proche au relâchement.
-export const TAB_ORDER: Tab[] = ["settings", "events", "budget", "converter", "premium"];
+export const TAB_ORDER: Tab[] = ["budget", "events", "converter", "premium"];
 
 export const GOLD = "#4ADE80";
 export const BG = "#0A0F1A";

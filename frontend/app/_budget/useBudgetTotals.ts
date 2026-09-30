@@ -25,7 +25,8 @@ import {
   MONTH_KEYS_LONG,
   MONTH_KEYS_SHORT,
 } from "./constants";
-import { displayItemLabel, loanMonthlyPayment, sumAmounts } from "./helpers";
+import { displayItemLabel, loanMonthlyPayment } from "./helpers";
+import { amountForMonth, expenseSeries } from "./expensePeriod";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
 export function useBudgetTotals({
@@ -83,15 +84,25 @@ export function useBudgetTotals({
     [expenseItems]
   );
 
+  // Les totaux « du mois » sont ceux du MOIS EN COURS : un poste qui ne
+  // s'applique qu'à partir de septembre ne compte pas en mars. Le tableau
+  // mois par mois, lui, applique la période de chaque poste à chaque ligne.
+  const currentMonthIndex = new Date().getMonth();
+  const sumThisMonth = (items: ExpenseItem[]) =>
+    items.reduce((s, it) => s + amountForMonth(it, currentMonthIndex, parseNumber), 0);
   const familyTotals: Record<ExpenseFamily, number> = {
-    besoins: sumAmounts(itemsByFamily.besoins),
-    loisirs: sumAmounts(itemsByFamily.loisirs),
-    epargne: sumAmounts(itemsByFamily.epargne),
+    besoins: sumThisMonth(itemsByFamily.besoins),
+    loisirs: sumThisMonth(itemsByFamily.loisirs),
+    epargne: sumThisMonth(itemsByFamily.epargne),
   };
 
   const totalExpenses = familyTotals.besoins + familyTotals.loisirs + familyTotals.epargne;
 
   const monthlyExpenses = rentNum + loansMonthly + totalExpenses;
+  const expensesByMonth = useMemo(
+    () => expenseSeries(expenseItems, rentNum + loansMonthly, parseNumber),
+    [expenseItems, rentNum, loansMonthly],
+  );
   const remaining = netMensuel - monthlyExpenses;
   const remainingColor = remaining >= 0 ? GOLD : DANGER;
 
@@ -123,12 +134,12 @@ export function useBudgetTotals({
     if (rentNum > 0) segs.push({ label: t("donut.rent"), value: rentNum, color: COLOR_LOYER });
     if (loansMonthly > 0) segs.push({ label: t("donut.loans"), value: loansMonthly, color: COLOR_PRETS });
     for (const it of expenseItems) {
-      const v = parseNumber(it.amount);
+      const v = amountForMonth(it, currentMonthIndex, parseNumber);
       if (v > 0) segs.push({ label: displayItemLabel(it, t), value: v, color: it.color });
     }
     segs.push({ label: t("donut.remaining"), value: remaining > 0 ? remaining : 0, color: GOLD });
     return segs;
-  }, [rentNum, loansMonthly, expenseItems, remaining, lang]);
+  }, [rentNum, loansMonthly, expenseItems, remaining, lang, currentMonthIndex]);
 
   // Projection mensuelle : utilise directement la série de nets calculée par income.ts
   const months: MonthRow[] = useMemo(
@@ -138,15 +149,14 @@ export function useBudgetTotals({
         name: t(MONTH_KEYS_LONG[i]),
         shortName: t(MONTH_KEYS_SHORT[i]),
         income,
-        expenses: monthlyExpenses,
-        remaining: income - monthlyExpenses,
+        expenses: expensesByMonth[i],
+        remaining: income - expensesByMonth[i],
       })),
-    [netSeries, monthlyExpenses, lang]
+    [netSeries, expensesByMonth, lang]
   );
   const annualIncome = months.reduce((s, m) => s + m.income, 0);
-  const annualExpenses = monthlyExpenses * 12;
+  const annualExpenses = expensesByMonth.reduce((s, v) => s + v, 0);
   const annualRemaining = annualIncome - annualExpenses;
-  const currentMonthIndex = new Date().getMonth();
 
   return {
     netMensuel,

@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLang } from "../contexts/LangContext";
 import { useAccent } from "../contexts/ThemeContext";
-import { matchAdvice } from "../lib/adviceEngine";
+import { matchAdvice, universalAdvice } from "../lib/adviceEngine";
 import { loadAdviceProfile } from "../lib/premiumStore";
 import { alpha } from "../theme/accents";
 import { resolveBody, resolveTitle, type AdviceCard, type UserProfile } from "../types/advice";
@@ -48,10 +48,16 @@ export function WeeklyAdviceCard({
     (async () => {
       try {
         const p = await loadAdviceProfile(userId, workspaceId);
-        const matched = matchAdvice(p);
+        // Pays sans catalogue dédié : on pioche dans les conseils universels
+        // plutôt que de ne rien montrer.
+        let matched: AdviceCard[] = [];
+        try {
+          matched = matchAdvice(p);
+        } catch {}
+        const pool = matched.length > 0 ? matched : universalAdvice(p);
         if (!alive) return;
         setProfile(p);
-        setCard(pickWeekly(matched, key));
+        setCard(pickWeekly(pool, key));
         const seen = await AsyncStorage.getItem(REVEALED_KEY);
         if (alive) setRevealed(seen === key);
       } catch {

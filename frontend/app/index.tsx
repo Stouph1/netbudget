@@ -10,6 +10,7 @@ import {
   Keyboard,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
@@ -53,7 +54,7 @@ import { useTourRunner } from "../src/hooks/useTourRunner";
 import { useWhatsNew } from "../src/hooks/useWhatsNew";
 import { WhatsNewSheet } from "../src/components/WhatsNewSheet";
 import { TourOverlay } from "../src/components/tour/TourOverlay";
-import { useTour } from "../src/components/tour/TourContext";
+import { useTour, useTourTarget } from "../src/components/tour/TourContext";
 import {
   buildBirthdayCards,
   buildChildBirthdayCards,
@@ -124,6 +125,7 @@ import {
   DEFAULT_ITEMS,
   FAMILY_PALETTE,
   TAB_ORDER,
+  TEXT_2,
 } from "./_budget/constants";
 import type {
   ConfirmState,
@@ -161,6 +163,8 @@ import RatioInfoModal from "./_budget/modals/RatioInfoModal";
 import IncomeModal from "./_budget/modals/IncomeModal";
 import MonthEditorModal from "./_budget/modals/MonthEditorModal";
 import AddItemModal from "./_budget/modals/AddItemModal";
+import PeriodModal from "./_budget/modals/PeriodModal";
+import { normalizeMonths } from "./_budget/expensePeriod";
 import LoanModal from "./_budget/modals/LoanModal";
 import ConfirmModal from "./_budget/modals/ConfirmModal";
 import UpdateModal from "./_budget/modals/UpdateModal";
@@ -271,8 +275,8 @@ export default function Index() {
   }, [tabParam]);
 
   const screenW = Dimensions.get("window").width;
-  const tabIndexSV = useSharedValue(2); // 2 = budget par défaut
-  const swipeX = useSharedValue(-screenW * 2);
+  const tabIndexSV = useSharedValue(0); // 0 = budget, premier écran
+  const swipeX = useSharedValue(0);
 
   const setTabFromIndex = useCallback((idx: number) => {
     setTab(TAB_ORDER[idx]);
@@ -451,6 +455,8 @@ export default function Index() {
   // elle attend d'y être avant de mesurer sa cible, au lieu de parier sur un
   // délai. Sans ça, le projecteur se posait au bon endroit du mauvais écran.
   const { setActiveTab } = useTour();
+  const tourSettings = useTourTarget("home:settings");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   useEffect(() => {
     setActiveTab(tab);
   }, [tab, setActiveTab]);
@@ -690,6 +696,8 @@ export default function Index() {
 
   // Modal d'ajout d'une catégorie custom
   const [addItemFamily, setAddItemFamily] = useState<ExpenseFamily | null>(null);
+  const [newItemMonths, setNewItemMonths] = useState<number[] | undefined>(undefined);
+  const [periodItem, setPeriodItem] = useState<ExpenseItem | null>(null);
   const [newItemLabel, setNewItemLabel] = useState<string>("");
   const [newItemAmount, setNewItemAmount] = useState<string>("0");
 
@@ -1123,6 +1131,12 @@ export default function Index() {
     );
   }
 
+  function updateItemMonths(id: string, months: number[] | undefined) {
+    setExpenseItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, activeMonths: normalizeMonths(months) } : it)),
+    );
+  }
+
   function updateItemLabel(id: string, label: string) {
     setExpenseItems((prev) =>
       prev.map((it) => (it.id === id ? { ...it, label, labelKey: undefined } : it))
@@ -1166,11 +1180,13 @@ export default function Index() {
         icon: "tag",
         color,
         amount: newItemAmount || "0",
+        activeMonths: normalizeMonths(newItemMonths),
       },
     ]);
     setAddItemFamily(null);
     setNewItemLabel("");
     setNewItemAmount("0");
+    setNewItemMonths(undefined);
   }
 
   function buildPdfData(): PdfData {
@@ -1269,13 +1285,14 @@ export default function Index() {
         style={{ flex: 1 }}
       >
         <GestureDetector gesture={swipeGesture}>
-        <Animated.View style={[{ flex: 1, width: screenW * 5, flexDirection: "row" }, swipeAnimStyle]}>
-        {/* Écran Événements (onglet 1, entre Réglages et Budget) */}
+        <Animated.View style={[{ flex: 1, width: screenW * 4, flexDirection: "row" }, swipeAnimStyle]}>
+        {/* Écran Projets (onglet 2) */}
         <View style={{ width: screenW, position: "absolute", left: screenW, top: 0, bottom: 0 }}>
           <EventsPanel />
         </View>
 
-        <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
+        {/* Budget : premier écran, celui qu'on ouvre */}
+        <View style={{ width: screenW, position: "absolute", left: 0, top: 0, bottom: 0 }}>
         <BudgetScreen
           t={t}
           syncError={budgetSyncError}
@@ -1329,6 +1346,7 @@ export default function Index() {
           onOpenSchedule={setScheduleLoan}
           onAddItem={openAddItem}
           onItemAmountChange={updateItemAmount}
+          onItemPeriod={(it) => setPeriodItem(it)}
           onItemLabelChange={updateItemLabel}
           onDeleteItem={deleteItem}
           onExportPdf={exportPdf}
@@ -1336,7 +1354,7 @@ export default function Index() {
         </View>
 
         {/* ====== Converter tab (Google Translate style) ====== */}
-        <View style={{ width: screenW, position: "absolute", left: screenW * 3, top: 0, bottom: 0 }}>
+        <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
           <ConverterScreen
             convFrom={convFrom}
             convTo={convTo}
@@ -1355,57 +1373,25 @@ export default function Index() {
           />
         </View>
 
-        {/* ====== Settings tab ====== */}
-        <View style={{ width: screenW, position: "absolute", left: 0, top: 0, bottom: 0 }}>
-          <SettingsScreen
-            currency={currency}
-            lang={lang}
-            city={city}
-            monthlyReminder={monthlyReminder}
-            tithePercent={tithePercent}
-            onChangeGiving={(enabled, pct) => void setGiving(enabled, pct)}
-            locationFromProfile={!!premiumUser?.id}
-            canDeleteAccount={!!premiumUser}
-            t={t}
-            onOpenCurrencyPicker={() => setCurrencyPickerOpen(true)}
-            onOpenLangPicker={() => setLangPickerOpen(true)}
-            onOpenCityPicker={() => {
-              setPickerCountry(city.countryCode);
-              setPickerStep("country");
-              setCitySearch("");
-              setCityPickerOpen(true);
-            }}
-            onOpenCityInfo={() => setCityInfoOpen(true)}
-            onToggleMonthlyReminder={toggleMonthlyReminder}
-            onResetAll={askResetAll}
-            onDeleteAccount={askDeleteAccount}
-            onReplayTour={() => void tour.replay()}
-            onTestNotification={() => void sendTestNotification()}
-            isTester={isTester}
-            onReplayBirthday={(kind) => void replayBirthday(kind)}
-            forcedTier={forcedTier}
-            tier={forcedTier ?? testerTier}
-            occupation={profileOccupation}
-            onForceTier={(tier) => {
-              void setTierOverride(tier).then(() => {
-                setForcedTier(tier);
-                // On rediffuse le palier : les écrans déjà montés (pastille,
-                // gardes, tuiles) se remettent à jour sans relancer l'app.
-                // Un palier forcé est écrit localement : aucun webhook à attendre, une
-                // seule lecture suffit.
-                void refreshTier(undefined, 1);
-                reloadPremiumProfile();
-              });
-            }}
-          />
-        </View>
-
         {/* ====== Premium / Profil tab (style Instagram : tout à droite) ====== */}
-        <View style={{ width: screenW, position: "absolute", left: screenW * 4, top: 0, bottom: 0 }}>
-          <View style={[styles.header, { paddingHorizontal: 20 }]}>
+        <View style={{ width: screenW, position: "absolute", left: screenW * 3, top: 0, bottom: 0 }}>
+          <View style={[styles.header, { paddingHorizontal: 20, alignItems: "center" }]}>
             <View>
               <Text style={styles.eyebrow}>{t("tab.premium")}</Text>
               <Text style={styles.title}>NETbudget</Text>
+            </View>
+            {/* Les réglages vivent ici : un engrenage, comme partout ailleurs. */}
+            <View ref={tourSettings} collapsable={false}>
+              <TouchableOpacity
+                onPress={() => setSettingsOpen(true)}
+                style={styles.settingsGear}
+                accessibilityRole="button"
+                accessibilityLabel={t("tab.settings")}
+                testID="open-settings"
+                hitSlop={8}
+              >
+                <Feather name="settings" size={22} color={TEXT_2} />
+              </TouchableOpacity>
             </View>
           </View>
           <PremiumHomePanel onGoBudget={() => setTab("budget")} />
@@ -1624,19 +1610,83 @@ export default function Index() {
         onClose={() => setMonthEditor(null)}
       />
 
+
+      {/* Réglages : plus un onglet, une page qui s'ouvre depuis le Profil. */}
+      <Modal
+        visible={settingsOpen}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setSettingsOpen(false)}
+      >
+        <View style={[styles.safe, { paddingTop: insets.top }]}>
+          <SettingsScreen
+            onClose={() => setSettingsOpen(false)}
+            currency={currency}
+            lang={lang}
+            city={city}
+            monthlyReminder={monthlyReminder}
+            tithePercent={tithePercent}
+            onChangeGiving={(enabled, pct) => void setGiving(enabled, pct)}
+            locationFromProfile={!!premiumUser?.id}
+            canDeleteAccount={!!premiumUser}
+            t={t}
+            onOpenCurrencyPicker={() => setCurrencyPickerOpen(true)}
+            onOpenLangPicker={() => setLangPickerOpen(true)}
+            onOpenCityPicker={() => {
+              setPickerCountry(city.countryCode);
+              setPickerStep("country");
+              setCitySearch("");
+              setCityPickerOpen(true);
+            }}
+            onOpenCityInfo={() => setCityInfoOpen(true)}
+            onToggleMonthlyReminder={toggleMonthlyReminder}
+            onResetAll={askResetAll}
+            onDeleteAccount={askDeleteAccount}
+            onReplayTour={() => void tour.replay()}
+            onTestNotification={() => void sendTestNotification()}
+            isTester={isTester}
+            onReplayBirthday={(kind) => void replayBirthday(kind)}
+            forcedTier={forcedTier}
+            tier={forcedTier ?? testerTier}
+            occupation={profileOccupation}
+            onForceTier={(tier) => {
+              void setTierOverride(tier).then(() => {
+                setForcedTier(tier);
+                // On rediffuse le palier : les écrans déjà montés (pastille,
+                // gardes, tuiles) se remettent à jour sans relancer l'app.
+                // Un palier forcé est écrit localement : aucun webhook à attendre, une
+                // seule lecture suffit.
+                void refreshTier(undefined, 1);
+                reloadPremiumProfile();
+              });
+            }}
+          />
+        </View>
+      </Modal>
+
       {/* Add Custom Expense Item Modal */}
       <AddItemModal
         family={addItemFamily}
         newItemLabel={newItemLabel}
         newItemAmount={newItemAmount}
+        newItemMonths={newItemMonths}
         currency={currency}
         sheetHeight={sheetHeight}
         keyboardVerticalOffset={0}
         t={t}
         onLabelChange={setNewItemLabel}
         onAmountChange={setNewItemAmount}
+        onMonthsChange={setNewItemMonths}
         onSave={saveNewItem}
         onClose={() => setAddItemFamily(null)}
+      />
+
+      {/* Période d'un poste existant */}
+      <PeriodModal
+        item={periodItem}
+        t={t}
+        onSave={updateItemMonths}
+        onClose={() => setPeriodItem(null)}
       />
 
       {/* Loan Modal */}

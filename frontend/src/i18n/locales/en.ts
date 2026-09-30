@@ -3431,4 +3431,13 @@ export const en: Catalog = {
   "weekly.renew": "A new one every Monday.",
   "notif.ws.checkin.title": "✅ {who} did the monthly check-in",
   "notif.ws.checkin.body": "In “{space}”. Two minutes to do yours?",
+  "period.title": "Period",
+  "period.hint": "Tap the months this expense applies to.",
+  "period.all": "All year",
+  "period.fromNow": "From this month on",
+  "onboarding.hero.title": "Start with your income",
+  "onboarding.hero.body": "Add what you earn, then what you spend. What's left to live on is worked out for you.",
+  "onboarding.hero.cta": "Add an income",
+  "notif.welcome.title": "🔔 You're all set!",
+  "notif.welcome.body": "You'll get your monthly check-in on the 1st, and what's left to live on every Sunday evening. Never more than three a week.",
 };

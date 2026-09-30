@@ -30,9 +30,9 @@ describe("première visite", () => {
     // Une visite qui montre quatre choses sur quinze laisse croire que l'app
     // n'en fait que quatre — pire que de ne rien montrer.
     expect(ids("free", null).length).toBeGreaterThanOrEqual(9);
-    // Et elle touche les quatre onglets, pas seulement le budget.
+    // Et elle touche les trois onglets gratuits, pas seulement le budget.
     const tabs = new Set(stepsFor("free", null).map((s) => s.tab));
-    expect(tabs).toEqual(new Set(["budget", "converter", "premium", "settings"]));
+    expect(tabs).toEqual(new Set(["budget", "converter", "premium"]));
   });
 
   it("ne montre RIEN qui demande un abonnement", () => {

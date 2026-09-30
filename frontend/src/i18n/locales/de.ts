@@ -3431,4 +3431,13 @@ export const de: Catalog = {
   "weekly.renew": "Jeden Montag ein neuer.",
   "notif.ws.checkin.title": "✅ {who} hat den Monatscheck gemacht",
   "notif.ws.checkin.body": "In „{space}“. Zwei Minuten für deinen?",
+  "period.title": "Zeitraum",
+  "period.hint": "Tippe die Monate an, in denen diese Ausgabe gilt.",
+  "period.all": "Ganzes Jahr",
+  "period.fromNow": "Ab diesem Monat",
+  "onboarding.hero.title": "Beginne mit deinen Einnahmen",
+  "onboarding.hero.body": "Trag ein, was du verdienst, dann was du ausgibst. Was dir zum Leben bleibt, rechnet sich von selbst.",
+  "onboarding.hero.cta": "Einnahme hinzufügen",
+  "notif.welcome.title": "🔔 Aktiviert!",
+  "notif.welcome.body": "Du bekommst deinen Monatscheck am 1. und dein verfügbares Geld jeden Sonntagabend. Nie mehr als drei pro Woche.",
 };

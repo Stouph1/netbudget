@@ -136,8 +136,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   // --- Les réglages -------------------------------------------------------
   {
     id: "notifications",
-    tab: "settings",
-    target: "settings:notifications",
+    tab: "premium",
+    target: "home:settings",
     titleKey: "tour.notifs.title",
     bodyKey: "tour.notifs.body",
     from: "free",

@@ -4,6 +4,8 @@
 // semaine). Deux boutons, aucun piège : « Plus tard » ferme sans rien
 // demander, et on ne revient pas à la charge avant deux semaines.
 import { Feather } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLang } from "../contexts/LangContext";
@@ -59,6 +61,21 @@ export function NotificationPrimer({ delayMs = 1800 }: { delayMs?: number }) {
     if (granted) {
       await ensureMonthlyRemindersScheduled(pickMonthlyVariants(t));
       emitNotificationsGranted();
+      // Une première notification tout de suite : sans elle, la personne
+      // active, ne reçoit rien avant le 1er du mois, et conclut que ça ne
+      // marche pas. Elle dit aussi ce qui va suivre.
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: t("notif.welcome.title"),
+            body: t("notif.welcome.body"),
+            sound: "default",
+            data: { route: "/", category: "budget", notifKey: "welcome" },
+            ...(Platform.OS === "android" ? { channelId: "monthly-reminder" } : {}),
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 20 },
+        });
+      } catch {}
     }
     setBusy(false);
     setVisible(false);

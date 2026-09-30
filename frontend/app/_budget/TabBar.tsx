@@ -29,9 +29,8 @@ import { styles } from "./styles";
 import type { Tab, Translate } from "./types";
 
 const TAB_ICONS: { key: Tab; icon: keyof typeof Feather.glyphMap }[] = [
-  { key: "settings", icon: "settings" },
-  { key: "events", icon: "calendar" },
   { key: "budget", icon: "pie-chart" },
+  { key: "events", icon: "calendar" },
   { key: "converter", icon: "refresh-cw" },
   { key: "premium", icon: "user" },
 ];

@@ -3431,4 +3431,13 @@ export const it: Catalog = {
   "weekly.renew": "Uno nuovo ogni lunedì.",
   "notif.ws.checkin.title": "✅ {who} ha fatto il punto del mese",
   "notif.ws.checkin.body": "In «{space}». Due minuti per fare il tuo?",
+  "period.title": "Periodo",
+  "period.hint": "Tocca i mesi in cui si applica questa spesa.",
+  "period.all": "Tutto l'anno",
+  "period.fromNow": "Da questo mese",
+  "onboarding.hero.title": "Inizia dalle tue entrate",
+  "onboarding.hero.body": "Aggiungi ciò che guadagni, poi ciò che spendi. Quello che ti resta per vivere si calcola da solo.",
+  "onboarding.hero.cta": "Aggiungi un'entrata",
+  "notif.welcome.title": "🔔 Attivato!",
+  "notif.welcome.body": "Riceverai il punto del mese il 1° e quanto ti resta per vivere ogni domenica sera. Mai più di tre a settimana.",
 };

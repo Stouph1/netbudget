@@ -5531,6 +5531,23 @@ export function matchAdvice(
     );
 }
 
+/**
+ * Conseils valables partout, quand le pays de la personne n'a pas encore son
+ * catalogue : mieux qu'une carte vide. Un profil incomplet ne fait pas
+ * planter la sélection.
+ */
+export function universalAdvice(rawProfile: UserProfile): AdviceCard[] {
+  const profile = normalizeVehicle(rawProfile);
+  return ADVICE_CATALOG_FR.filter((card) => {
+    if (card.countries !== "all" || !monthMatches(card)) return false;
+    try {
+      return card.appliesWhen(profile);
+    } catch {
+      return false;
+    }
+  });
+}
+
 export function topAdvice(
   profile: UserProfile,
   count = 5,

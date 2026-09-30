@@ -375,7 +375,11 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     let at = atHour(sunday, prefs.hour);
     if (at.getTime() <= now.getTime()) at = atHour(new Date(sunday.getTime() + 7 * DAY_MS), prefs.hour);
     const monthEnd = new Date(at.getFullYear(), at.getMonth() + 1, 0);
-    if (monthEnd.getDate() - at.getDate() >= 10 && at.getMonth() === now.getMonth()) {
+    // Dans les dix derniers jours du mois, le rappel du 28 suffit. Un dimanche
+    // du mois SUIVANT reste valable : le plan est recalculé à chaque
+    // ouverture, avec le montant du moment.
+    const sameMonth = at.getMonth() === now.getMonth();
+    if (!sameMonth || monthEnd.getDate() - at.getDate() >= 10) {
       const week = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${at.getDate()}`;
       push({
         id: `budget-pulse-${week}`,

@@ -626,7 +626,9 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       </TouchableOpacity>
 
       {/* Le conseil de la semaine : une carte fermée, un conseil, chaque lundi. */}
-      {user?.id ? <WeeklyAdviceCard userId={user.id} workspaceId={workspaceId} /> : null}
+      {user?.id && paywall.tier !== "free" ? (
+        <WeeklyAdviceCard userId={user.id} workspaceId={workspaceId} />
+      ) : null}
 
       {/* Tuiles navigation */}
       <View style={styles.tilesRow}>

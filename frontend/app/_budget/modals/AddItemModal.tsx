@@ -17,18 +17,21 @@ import { CurrencyCode, getCurrency } from "../../../src/utils/currency";
 import { GOLD, TEXT_2 } from "../constants";
 import { styles } from "../styles";
 import { Field } from "../ui";
+import { MonthChips } from "./MonthChips";
 import type { ExpenseFamily, Translate } from "../types";
 
 export default function AddItemModal({
   family,
   newItemLabel,
   newItemAmount,
+  newItemMonths,
   currency,
   sheetHeight,
   keyboardVerticalOffset,
   t,
   onLabelChange,
   onAmountChange,
+  onMonthsChange,
   onSave,
   onClose,
 }: {
@@ -36,12 +39,15 @@ export default function AddItemModal({
   family: ExpenseFamily | null;
   newItemLabel: string;
   newItemAmount: string;
+  /** Mois où la dépense s'applique ; `undefined` = toute l'année. */
+  newItemMonths: number[] | undefined;
   currency: CurrencyCode;
   sheetHeight: number;
   keyboardVerticalOffset: number;
   t: Translate;
   onLabelChange: (next: string) => void;
   onAmountChange: (next: string) => void;
+  onMonthsChange: (next: number[] | undefined) => void;
   onSave: () => void;
   onClose: () => void;
 }) {
@@ -106,6 +112,8 @@ export default function AddItemModal({
                 placeholder="0"
                 testID="new-item-amount"
               />
+              <Text style={[styles.sectionSubtitle, { marginTop: 14 }]}>{t("period.title")}</Text>
+              <MonthChips months={newItemMonths} onChange={onMonthsChange} t={t} testID="new-item-period" />
             </ScrollView>
             <View style={styles.sheetFooter}>
               <TouchableOpacity

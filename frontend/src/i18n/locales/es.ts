@@ -3431,4 +3431,13 @@ export const es: Catalog = {
   "weekly.renew": "Uno nuevo cada lunes.",
   "notif.ws.checkin.title": "✅ {who} hizo su revisión del mes",
   "notif.ws.checkin.body": "En «{space}». ¿Dos minutos para hacer la tuya?",
+  "period.title": "Periodo",
+  "period.hint": "Toca los meses en los que se aplica este gasto.",
+  "period.all": "Todo el año",
+  "period.fromNow": "A partir de este mes",
+  "onboarding.hero.title": "Empieza por tus ingresos",
+  "onboarding.hero.body": "Añade lo que ganas y luego lo que gastas. Lo que te queda para vivir se calcula solo.",
+  "onboarding.hero.cta": "Añadir un ingreso",
+  "notif.welcome.title": "🔔 ¡Activado!",
+  "notif.welcome.body": "Recibirás tu revisión del mes el día 1 y lo que te queda para vivir cada domingo por la tarde. Nunca más de tres por semana.",
 };

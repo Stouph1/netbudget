@@ -46,6 +46,7 @@ export default function SettingsScreen({
   onResetAll,
   onDeleteAccount,
   onReplayTour,
+  onClose,
   onTestNotification,
   onReplayBirthday,
   forcedTier,
@@ -74,6 +75,8 @@ export default function SettingsScreen({
   onDeleteAccount: () => void;
   /** Remet la visite guidée à zéro. Développement et phase de test. */
   onReplayTour: () => void;
+  /** Présent quand l'écran est ouvert en page depuis le Profil : ferme. */
+  onClose?: () => void;
   onTestNotification: () => void;
   /** Compte marqué testeur côté serveur. Voir la migration 019. */
   isTester: boolean;
@@ -133,11 +136,23 @@ export default function SettingsScreen({
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { alignItems: "center" }]}>
         <View>
           <Text style={styles.eyebrow}>{t("tab.settings")}</Text>
           <Text style={styles.title}>{t("settings.title")}</Text>
         </View>
+        {onClose ? (
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.settingsGear}
+            accessibilityRole="button"
+            accessibilityLabel={t("common.close")}
+            testID="close-settings"
+            hitSlop={8}
+          >
+            <Feather name="x" size={22} color={TEXT_3} />
+          </TouchableOpacity>
+        ) : null}
       </View>
       <Text style={styles.sectionSubtitle}>{t("settings.intro")}</Text>
 

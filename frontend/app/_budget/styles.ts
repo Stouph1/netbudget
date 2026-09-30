@@ -727,6 +727,27 @@ export const makeBudgetStyles = (GOLD: string) =>
   },
   confirmTitle: { color: TEXT, fontSize: 18, fontWeight: "800", marginBottom: 8 },
   confirmMessage: { color: TEXT_2, fontSize: 14, lineHeight: 20 },
+  settingsGear: {
+    width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: BORDER, backgroundColor: "rgba(255,255,255,0.04)",
+  },
+  periodRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
+  periodChip: {
+    paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999,
+    borderWidth: 1, borderColor: BORDER, backgroundColor: "rgba(255,255,255,0.03)", minWidth: 58, alignItems: "center",
+  },
+  periodChipText: { color: TEXT_2, fontSize: 13, fontWeight: "600" },
+  periodPresets: { flexDirection: "row", gap: 8, marginTop: 12 },
+  periodPreset: {
+    paddingVertical: 9, paddingHorizontal: 14, borderRadius: 12,
+    borderWidth: 1, borderColor: BORDER,
+  },
+  periodPresetText: { color: TEXT_2, fontSize: 13, fontWeight: "700" },
+  periodLine: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    alignSelf: "flex-start", marginTop: -6, marginBottom: 10, marginLeft: 4, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 8,
+  },
+  periodLineText: { color: TEXT_2, fontSize: 12, fontWeight: "600" },
   confirmActions: { flexDirection: "row", gap: 10, marginTop: 18 },
   // Libellés longs : les boutons passent l'un sous l'autre, l'action
   // principale en premier (column-reverse : le bouton OK est déclaré après).

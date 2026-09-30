@@ -3485,4 +3485,13 @@ export const fr: Catalog = {
   "weekly.renew": "Un nouveau chaque lundi.",
   "notif.ws.checkin.title": "✅ {who} a fait son point du mois",
   "notif.ws.checkin.body": "Dans « {space} ». Deux minutes pour faire le tien ?",
+  "period.title": "Période",
+  "period.hint": "Touche les mois où cette dépense s'applique.",
+  "period.all": "Toute l'année",
+  "period.fromNow": "À partir de ce mois-ci",
+  "onboarding.hero.title": "Commence par tes revenus",
+  "onboarding.hero.body": "Ajoute ce que tu gagnes, puis ce que tu dépenses. Le reste à vivre se calcule tout seul.",
+  "onboarding.hero.cta": "Ajouter un revenu",
+  "notif.welcome.title": "🔔 C'est activé !",
+  "notif.welcome.body": "Tu recevras ton point du mois le 1er, et ton reste à vivre le dimanche soir. Jamais plus de trois par semaine.",
 };

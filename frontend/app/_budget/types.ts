@@ -38,6 +38,12 @@ export type ExpenseItem = {
   icon: keyof typeof Feather.glyphMap;
   color: string;
   amount: string;
+  /**
+   * Mois (0-11) où cette dépense s'applique. Absent = les douze. Même
+   * option que sur un revenu : un loyer qui commence en septembre ne doit pas
+   * mettre janvier dans le rouge.
+   */
+  activeMonths?: number[];
 };
 
 export type FamilyMeta = {
@@ -61,7 +67,9 @@ export type ConfirmState = {
 };
 
 /** Onglets du pager (ordre = ordre visuel de gauche à droite). */
-export type Tab = "settings" | "events" | "budget" | "converter" | "premium";
+// Quatre onglets. Les réglages ne sont plus un onglet : ils s'ouvrent depuis
+// le Profil, et le Budget est le premier écran — c'est l'app.
+export type Tab = "budget" | "events" | "converter" | "premium";
 
 export type ConvHistoryItem = {
   id: string;
