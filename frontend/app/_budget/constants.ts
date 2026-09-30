@@ -27,27 +27,33 @@ export const FAMILY_ORDER: ExpenseFamily[] = ["besoins", "loisirs", "epargne"];
 // Un seul poste par famille au départ. Douze lignes à 0 € donnaient un écran
 // plein avant d'avoir rien saisi ; chacun ajoute les siens en un geste.
 export const DEFAULT_ITEMS: ExpenseItem[] = [
-  { id: "alimentation", family: "besoins", label: "Alimentation", labelKey: "expense.alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
-  { id: "sorties", family: "loisirs", label: "Sorties / Restos", labelKey: "expense.sorties", icon: "coffee", color: "#A855F7", amount: "0" },
-  { id: "epargne", family: "epargne", label: "Épargne mensuelle", labelKey: "expense.epargne", icon: "save", color: "#F59E0B", amount: "0" },
+  // Le loyer est un besoin comme un autre : il vit ici, plus dans une
+  // section à part. Il reste identifié (id « loyer ») pour les conseils.
+  { id: "loyer", family: "besoins", label: "Loyer", labelKey: "expense.loyer", icon: "home", color: "#3B82F6", amount: "0", emoji: "🏠" },
+  { id: "alimentation", family: "besoins", label: "Alimentation", labelKey: "expense.alimentation", icon: "shopping-cart", color: "#10B981", amount: "0", emoji: "🛒" },
+  { id: "sorties", family: "loisirs", label: "Sorties / Restos", labelKey: "expense.sorties", icon: "coffee", color: "#A855F7", amount: "0", emoji: "🍽️" },
+  { id: "epargne", family: "epargne", label: "Épargne mensuelle", labelKey: "expense.epargne", icon: "save", color: "#F59E0B", amount: "0", emoji: "🐖" },
 ];
+
+/** Identifiant du poste « loyer », lu par les conseils et les repères. */
+export const RENT_ITEM_ID = "loyer";
 
 // L'ancienne liste complète, gardée pour retrouver la clé de traduction des
 // postes que les budgets existants portent encore (voir helpers.ts).
 export const LEGACY_DEFAULT_ITEMS: ExpenseItem[] = [
   { id: "alimentation", family: "besoins", label: "Alimentation", labelKey: "expense.alimentation", icon: "shopping-cart", color: "#10B981", amount: "0" },
-  { id: "transport", family: "besoins", label: "Transport", labelKey: "expense.transport", icon: "navigation", color: "#F59E0B", amount: "0" },
-  { id: "sante", family: "besoins", label: "Santé / Mutuelle", labelKey: "expense.sante", icon: "heart", color: "#06B6D4", amount: "0" },
-  { id: "energie", family: "besoins", label: "Énergie", labelKey: "expense.energie", icon: "zap", color: "#F97316", amount: "0" },
-  { id: "eau", family: "besoins", label: "Eau", labelKey: "expense.eau", icon: "droplet", color: "#38BDF8", amount: "0" },
-  { id: "abonnements", family: "besoins", label: "Abonnements (essentiels)", labelKey: "expense.abonnements", icon: "wifi", color: "#EC4899", amount: "0" },
+  { id: "transport", family: "besoins", label: "Transport", labelKey: "expense.transport", icon: "navigation", color: "#F59E0B", amount: "0", emoji: "🚌" },
+  { id: "sante", family: "besoins", label: "Santé / Mutuelle", labelKey: "expense.sante", icon: "heart", color: "#06B6D4", amount: "0", emoji: "🏥" },
+  { id: "energie", family: "besoins", label: "Énergie", labelKey: "expense.energie", icon: "zap", color: "#F97316", amount: "0", emoji: "⚡" },
+  { id: "eau", family: "besoins", label: "Eau", labelKey: "expense.eau", icon: "droplet", color: "#38BDF8", amount: "0", emoji: "💧" },
+  { id: "abonnements", family: "besoins", label: "Abonnements (essentiels)", labelKey: "expense.abonnements", icon: "wifi", color: "#EC4899", amount: "0", emoji: "📶" },
   { id: "sorties", family: "loisirs", label: "Sorties / Restos", labelKey: "expense.sorties", icon: "coffee", color: "#A855F7", amount: "0" },
-  { id: "vacances", family: "loisirs", label: "Vacances", labelKey: "expense.vacances", icon: "sun", color: "#C084FC", amount: "0" },
-  { id: "streaming", family: "loisirs", label: "Streaming / Hobbies", labelKey: "expense.streaming", icon: "play", color: "#D946EF", amount: "0" },
-  { id: "livret", family: "epargne", label: "Livret A / LDDS", labelKey: "expense.livret", icon: "save", color: "#F59E0B", amount: "0" },
-  { id: "pea", family: "epargne", label: "PEA", labelKey: "expense.pea", icon: "bar-chart-2", color: "#FBBF24", amount: "0" },
-  { id: "cto", family: "epargne", label: "CTO", labelKey: "expense.cto", icon: "trending-up", color: "#FDE047", amount: "0" },
-  { id: "av", family: "epargne", label: "Assurance vie", labelKey: "expense.av", icon: "file-text", color: "#FCD34D", amount: "0" },
+  { id: "vacances", family: "loisirs", label: "Vacances", labelKey: "expense.vacances", icon: "sun", color: "#C084FC", amount: "0", emoji: "✈️" },
+  { id: "streaming", family: "loisirs", label: "Streaming / Hobbies", labelKey: "expense.streaming", icon: "play", color: "#D946EF", amount: "0", emoji: "🎬" },
+  { id: "livret", family: "epargne", label: "Livret A / LDDS", labelKey: "expense.livret", icon: "save", color: "#F59E0B", amount: "0", emoji: "🐖" },
+  { id: "pea", family: "epargne", label: "PEA", labelKey: "expense.pea", icon: "bar-chart-2", color: "#FBBF24", amount: "0", emoji: "📈" },
+  { id: "cto", family: "epargne", label: "CTO", labelKey: "expense.cto", icon: "trending-up", color: "#FDE047", amount: "0", emoji: "📈" },
+  { id: "av", family: "epargne", label: "Assurance vie", labelKey: "expense.av", icon: "file-text", color: "#FCD34D", amount: "0", emoji: "🏦" },
 ];
 
 export const FAMILY_PALETTE: Record<ExpenseFamily, string[]> = {

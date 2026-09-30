@@ -22,7 +22,7 @@ import MonthlyBreakdown, { MonthRow } from "../../src/components/MonthlyBreakdow
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
 import { StreakCard } from "../../src/components/StreakCard";
 import { LoanRatingChip } from "../../src/components/InflationNote";
-import { City } from "../../src/constants/cities";
+import { City, getCountry } from "../../src/constants/cities";
 import { CurrencyCode, getCurrency } from "../../src/utils/currency";
 import { parseNumber } from "../../src/utils/finance";
 import { loanProgress, remainingParts } from "../../src/utils/loanSchedule";
@@ -31,7 +31,6 @@ import { averageMonthlyNet, IncomeSource, TYPE_ICON, editedMonths } from "../../
 import { getBudgetMixProfile } from "../../src/lib/adviceEngine";
 import type { UserProfile } from "../../src/types/advice";
 import {
-  COLOR_LOYER,
   COLOR_PRETS,
   DANGER,
   FAMILY_META,
@@ -47,6 +46,9 @@ import { Field, Section } from "./ui";
 import { useTourScroller, useTourTarget } from "../../src/components/tour/TourContext";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 import { periodLabel } from "./expensePeriod";
+import type { Comparison } from "../../src/lib/spendingCompare";
+import { SpendingBenchmark } from "../../src/components/SpendingBenchmark";
+import { useLang } from "../../src/contexts/LangContext";
 import { SyncBanner } from "../../src/components/SyncBanner";
 
 export default function BudgetScreen({
@@ -102,10 +104,12 @@ export default function BudgetScreen({
   onCloseBudgetSwitcher,
   onAddIncome,
   onItemPeriod,
+  onItemEmoji,
+  benchmark,
+  benchmarkPremium,
   onEditIncome,
   onDeleteIncome,
   onPressMonth,
-  onRentChange,
   onAddLoan,
   onEditLoan,
   onDeleteLoan,
@@ -163,11 +167,15 @@ export default function BudgetScreen({
   onAddIncome: () => void;
   /** Ouvre le choix des mois où ce poste s'applique. */
   onItemPeriod: (item: ExpenseItem) => void;
+  /** Ouvre le choix de l'emoji du poste. */
+  onItemEmoji: (item: ExpenseItem) => void;
+  /** Repères nationaux, ou null si le pays n'a pas de données. */
+  benchmark: Comparison | null;
+  benchmarkPremium: boolean;
   onEditIncome: (src: IncomeSource) => void;
   onDeleteIncome: (id: string) => void;
   /** Tap sur un mois du budget mois par mois. */
   onPressMonth: (monthIndex: number) => void;
-  onRentChange: (next: string) => void;
   onAddLoan: () => void;
   onEditLoan: (loan: Loan) => void;
   onDeleteLoan: (id: string) => void;
@@ -179,6 +187,7 @@ export default function BudgetScreen({
   onExportPdf: () => void;
 }) {
   const { styles, GOLD, scrollBottom } = useBudgetTheme();
+  const { tp, lang } = useLang();
   // Cibles de la visite guidée. Voir tourSteps.ts pour ce qu'elles racontent.
   const tourSummary = useTourTarget("budget:summary");
   const tourAddIncome = useTourTarget("budget:addIncome");
@@ -435,21 +444,6 @@ export default function BudgetScreen({
         </View>
       </Section>
 
-      {/* Logement */}
-      <Section title={t("section.housing.title")} info={{ title: t("help.housingSection.title"), body: t("help.housingSection.body") }}>
-        <Field
-          label={t("label.rent")}
-          info={{ title: t("help.rent.title"), body: t("help.rent.body") }}
-          icon={<Feather name="home" size={18} color={COLOR_LOYER} />}
-          right={getCurrency(currency).symbol}
-          value={rent}
-          onChangeText={onRentChange}
-          keyboardType="decimal-pad"
-          placeholder="0"
-          testID="rent-input"
-        />
-      </Section>
-
       {/* Prêts */}
       <Section
         title={t("section.loans.title")}
@@ -612,7 +606,21 @@ export default function BudgetScreen({
                 <Pressable key={it.id} onLongPress={() => onItemPeriod(it)} delayLongPress={350}>
                   <Field
                     label={displayItemLabel(it, t)}
-                    icon={<Feather name={it.icon} size={18} color={it.color} />}
+                    icon={
+                      <TouchableOpacity
+                        onPress={() => onItemEmoji(it)}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={t("emoji.title")}
+                        testID={`expense-emoji-${it.id}`}
+                      >
+                        {it.emoji ? (
+                          <Text style={{ fontSize: 20 }}>{it.emoji}</Text>
+                        ) : (
+                          <Feather name={it.icon} size={18} color={it.color} />
+                        )}
+                      </TouchableOpacity>
+                    }
                     right={getCurrency(currency).symbol}
                     value={it.amount}
                     onChangeText={(v) => onItemAmountChange(it.id, v)}
@@ -657,9 +665,22 @@ export default function BudgetScreen({
       <View style={styles.expensesTotalRow}>
         <Text style={styles.expensesTotalLabel}>{t("items.totalMonthly")}</Text>
         <Text style={styles.expensesTotalValue} testID="expenses-total">
-          {fmt(rentNum + loansMonthly + totalExpenses)}
+          {fmt(monthlyExpenses)}
         </Text>
       </View>
+
+      {/* Repères : ta structure face aux moyennes nationales officielles. */}
+      {benchmark ? (
+        <SpendingBenchmark
+          comparison={benchmark}
+          cityName={city.name}
+          cityIndex={city.index}
+          countryName={countryDisplayName(city.countryCode, lang) ?? getCountry(city.countryCode)?.name ?? city.countryCode}
+          premium={benchmarkPremium}
+          t={t}
+          tp={tp}
+        />
+      ) : null}
 
       {/* Tableau, conseils, camembert et export : seulement quand il y a
           des chiffres. Sans données, ces blocs ne montrent que des zéros. */}
@@ -753,7 +774,7 @@ export default function BudgetScreen({
                     {
                       key: "besoins",
                       label: t("family.besoins.label"),
-                      value: rentNum + loansMonthly + familyTotals.besoins,
+                      value: loansMonthly + familyTotals.besoins,
                       target: budgetRatio.besoins,
                       color: FAMILY_META.besoins.color,
                     },
@@ -845,4 +866,14 @@ export default function BudgetScreen({
       <View style={{ height: 40 }} />
     </ScrollView>
   );
+}
+
+/** Nom du pays dans la langue de l'app, quand le moteur le sait ; sinon rien. */
+function countryDisplayName(code: string, lang: string): string | null {
+  try {
+    const dn = new Intl.DisplayNames([lang], { type: "region" });
+    return dn.of(code) ?? null;
+  } catch {
+    return null;
+  }
 }

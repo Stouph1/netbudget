@@ -25,7 +25,7 @@ import {
   MONTH_KEYS_LONG,
   MONTH_KEYS_SHORT,
 } from "./constants";
-import { displayItemLabel, loanMonthlyPayment } from "./helpers";
+import { displayItemLabel, loanMonthlyPayment, rentOf } from "./helpers";
 import { amountForMonth, expenseSeries } from "./expensePeriod";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
@@ -68,7 +68,9 @@ export function useBudgetTotals({
   const netAnnuel = netMensuel * 12;
   const brutMensuel = totalBrutAnnuel / 12;
 
-  const rentNum = parseNumber(rent);
+  // Le loyer est un poste de la famille Besoins (id « loyer »). L'ancien
+  // champ `rent` vaut "0" après migration ; on l'additionne par sécurité.
+  const rentNum = parseNumber(rent) + rentOf(expenseItems);
 
   const loansMonthly = useMemo(
     () => loans.reduce((s, l) => s + loanMonthlyPayment(l), 0),
@@ -98,10 +100,11 @@ export function useBudgetTotals({
 
   const totalExpenses = familyTotals.besoins + familyTotals.loisirs + familyTotals.epargne;
 
-  const monthlyExpenses = rentNum + loansMonthly + totalExpenses;
+  // Le loyer est déjà dans totalExpenses (poste Besoins) : ne pas le compter deux fois.
+  const monthlyExpenses = parseNumber(rent) + loansMonthly + totalExpenses;
   const expensesByMonth = useMemo(
-    () => expenseSeries(expenseItems, rentNum + loansMonthly, parseNumber),
-    [expenseItems, rentNum, loansMonthly],
+    () => expenseSeries(expenseItems, parseNumber(rent) + loansMonthly, parseNumber),
+    [expenseItems, rent, loansMonthly],
   );
   const remaining = netMensuel - monthlyExpenses;
   const remainingColor = remaining >= 0 ? GOLD : DANGER;
@@ -112,7 +115,7 @@ export function useBudgetTotals({
         netMensuel,
         rent: rentNum,
         loansMonthly,
-        besoinsExtra: familyTotals.besoins,
+        besoinsExtra: familyTotals.besoins - rentOf(expenseItems),
         loisirs: familyTotals.loisirs,
         epargne: familyTotals.epargne,
         remaining,
@@ -131,7 +134,7 @@ export function useBudgetTotals({
   // Donut
   const segments: DonutSegment[] = useMemo(() => {
     const segs: DonutSegment[] = [];
-    if (rentNum > 0) segs.push({ label: t("donut.rent"), value: rentNum, color: COLOR_LOYER });
+    if (parseNumber(rent) > 0) segs.push({ label: t("donut.rent"), value: parseNumber(rent), color: COLOR_LOYER });
     if (loansMonthly > 0) segs.push({ label: t("donut.loans"), value: loansMonthly, color: COLOR_PRETS });
     for (const it of expenseItems) {
       const v = amountForMonth(it, currentMonthIndex, parseNumber);
@@ -139,7 +142,7 @@ export function useBudgetTotals({
     }
     segs.push({ label: t("donut.remaining"), value: remaining > 0 ? remaining : 0, color: GOLD });
     return segs;
-  }, [rentNum, loansMonthly, expenseItems, remaining, lang, currentMonthIndex]);
+  }, [rent, loansMonthly, expenseItems, remaining, lang, currentMonthIndex]);
 
   // Projection mensuelle : utilise directement la série de nets calculée par income.ts
   const months: MonthRow[] = useMemo(

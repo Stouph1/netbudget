@@ -727,6 +727,12 @@ export const makeBudgetStyles = (GOLD: string) =>
   },
   confirmTitle: { color: TEXT, fontSize: 18, fontWeight: "800", marginBottom: 8 },
   confirmMessage: { color: TEXT_2, fontSize: 14, lineHeight: 20 },
+  emojiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingVertical: 6, paddingBottom: 12 },
+  emojiCell: {
+    width: 52, height: 52, borderRadius: 14, alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: BORDER, backgroundColor: "rgba(255,255,255,0.03)",
+  },
+  emojiCellText: { fontSize: 26 },
   settingsGear: {
     width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center",
     borderWidth: 1, borderColor: BORDER, backgroundColor: "rgba(255,255,255,0.04)",

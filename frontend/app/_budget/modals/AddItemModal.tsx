@@ -25,6 +25,7 @@ export default function AddItemModal({
   newItemLabel,
   newItemAmount,
   newItemMonths,
+  newItemEmoji,
   currency,
   sheetHeight,
   keyboardVerticalOffset,
@@ -32,6 +33,7 @@ export default function AddItemModal({
   onLabelChange,
   onAmountChange,
   onMonthsChange,
+  onPickEmoji,
   onSave,
   onClose,
 }: {
@@ -41,6 +43,8 @@ export default function AddItemModal({
   newItemAmount: string;
   /** Mois où la dépense s'applique ; `undefined` = toute l'année. */
   newItemMonths: number[] | undefined;
+  /** Emoji deviné depuis le nom, ou choisi. */
+  newItemEmoji: string | null;
   currency: CurrencyCode;
   sheetHeight: number;
   keyboardVerticalOffset: number;
@@ -48,6 +52,7 @@ export default function AddItemModal({
   onLabelChange: (next: string) => void;
   onAmountChange: (next: string) => void;
   onMonthsChange: (next: number[] | undefined) => void;
+  onPickEmoji: () => void;
   onSave: () => void;
   onClose: () => void;
 }) {
@@ -96,12 +101,17 @@ export default function AddItemModal({
             >
               <Field
                 label={t("income.name")}
-                icon={<Feather name="tag" size={18} color={GOLD} />}
+                icon={
+                  <TouchableOpacity onPress={onPickEmoji} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("emoji.title")} testID="new-item-emoji">
+                    {newItemEmoji ? <Text style={{ fontSize: 20 }}>{newItemEmoji}</Text> : <Feather name="tag" size={18} color={GOLD} />}
+                  </TouchableOpacity>
+                }
                 value={newItemLabel}
                 onChangeText={onLabelChange}
                 placeholder={t("newCategoryName")}
                 testID="new-item-label"
               />
+              <Text style={[styles.familySub, { marginTop: -4, marginBottom: 10 }]}>{t("emoji.hint")}</Text>
               <Field
                 label={`${t("converter.amount")} · ${t("freq.monthly")}`}
                 icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}

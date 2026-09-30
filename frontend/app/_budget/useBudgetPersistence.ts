@@ -21,7 +21,7 @@ import {
   saveBudget,
 } from "../../src/lib/premiumStore";
 import { DEFAULT_ITEMS } from "./constants";
-import { backfillItemLabels, displayItemLabel, pruneUntouchedDefaults } from "./helpers";
+import { backfillEmojis, backfillItemLabels, displayItemLabel, mergeRentIntoItems, pruneUntouchedDefaults } from "./helpers";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
 export function useBudgetPersistence({
@@ -96,12 +96,15 @@ export function useBudgetPersistence({
           ? (d.incomes as IncomeSource[])
           : [defaultIncomeSource()],
       );
-      setRent(typeof d?.rent === "string" ? d.rent : "0");
-      setExpenseItems(
+      // Ancien champ « loyer » : versé dans le poste Loyer de la famille Besoins.
+      const migrated = mergeRentIntoItems(
         Array.isArray(d?.expenseItems) && d.expenseItems.length > 0
-          ? pruneUntouchedDefaults(backfillItemLabels(d.expenseItems as ExpenseItem[]))
-          : DEFAULT_ITEMS,
+          ? pruneUntouchedDefaults(backfillEmojis(backfillItemLabels(d.expenseItems as ExpenseItem[])))
+          : DEFAULT_ITEMS.map((it) => ({ ...it })),
+        typeof d?.rent === "string" ? d.rent : "0",
       );
+      setRent(migrated.rent);
+      setExpenseItems(migrated.items);
       setLoans(Array.isArray(d?.loans) ? (d.loans as Loan[]) : []);
     },
     [],

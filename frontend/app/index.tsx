@@ -140,7 +140,10 @@ import type {
 } from "./_budget/types";
 import {
   backfillItemLabels,
+  backfillEmojis,
+  mergeRentIntoItems,
   pruneUntouchedDefaults,
+  rentOf,
   convertOne,
   isoToMonthInput,
   loanMonthlyPayment,
@@ -170,6 +173,9 @@ import IncomeModal from "./_budget/modals/IncomeModal";
 import MonthEditorModal from "./_budget/modals/MonthEditorModal";
 import AddItemModal from "./_budget/modals/AddItemModal";
 import PeriodModal from "./_budget/modals/PeriodModal";
+import EmojiPicker from "./_budget/modals/EmojiPicker";
+import { suggestEmoji } from "../src/lib/expenseEmoji";
+import { compareSpending } from "../src/lib/spendingCompare";
 import { normalizeMonths, amountForMonth, periodLabel } from "./_budget/expensePeriod";
 import LoanModal from "./_budget/modals/LoanModal";
 import ConfirmModal from "./_budget/modals/ConfirmModal";
@@ -705,6 +711,11 @@ export default function Index() {
   const [addItemFamily, setAddItemFamily] = useState<ExpenseFamily | null>(null);
   const [newItemMonths, setNewItemMonths] = useState<number[] | undefined>(undefined);
   const [periodItem, setPeriodItem] = useState<ExpenseItem | null>(null);
+  // Emoji du nouveau poste : deviné depuis le nom tant que la personne n'en a
+  // pas choisi un elle-même.
+  const [newItemEmoji, setNewItemEmoji] = useState<string | null>(null);
+  const [newItemEmojiPicked, setNewItemEmojiPicked] = useState(false);
+  const [emojiFor, setEmojiFor] = useState<ExpenseItem | "new" | null>(null);
   const [newItemLabel, setNewItemLabel] = useState<string>("");
   const [newItemAmount, setNewItemAmount] = useState<string>("0");
 
@@ -797,9 +808,16 @@ export default function Index() {
           }
           setIncomes(migrated);
         }
-        if (stored.rent !== undefined) setRent(stored.rent as string);
-        if (Array.isArray(stored.expenseItems) && stored.expenseItems.length > 0) {
-          setExpenseItems(pruneUntouchedDefaults(backfillItemLabels(stored.expenseItems as ExpenseItem[])));
+        // Ancien champ « loyer » : versé dans le poste Loyer (voir helpers).
+        {
+          const migrated = mergeRentIntoItems(
+            Array.isArray(stored.expenseItems) && stored.expenseItems.length > 0
+              ? pruneUntouchedDefaults(backfillEmojis(backfillItemLabels(stored.expenseItems as ExpenseItem[])))
+              : DEFAULT_ITEMS.map((it) => ({ ...it })),
+            typeof stored.rent === "string" ? stored.rent : "0",
+          );
+          setRent(migrated.rent);
+          setExpenseItems(migrated.items);
         }
         if (Array.isArray(stored.loans)) setLoans(stored.loans as Loan[]);
         if (stored.cityId) {
@@ -844,6 +862,17 @@ export default function Index() {
     t,
     lang,
   });
+
+  // Repères : ta structure de dépenses face aux moyennes nationales. Calculé
+  // sur la consommation du mois (tout sauf l'épargne), comme les statistiques.
+  const benchmark = useMemo(() => {
+    const consumption = loansMonthly + familyTotals.besoins + familyTotals.loisirs;
+    const month = new Date().getMonth();
+    const items = expenseItems
+      .filter((it) => it.family !== "epargne")
+      .map((it) => ({ emoji: it.emoji, amount: amountForMonth(it, month, parseNumber) }));
+    return compareSpending(city.countryCode, items, loansMonthly, consumption);
+  }, [expenseItems, loansMonthly, familyTotals.besoins, familyTotals.loisirs, city.countryCode]);
 
   // Panneau testeur : une notification dans dix secondes, avec le vrai texte
   // du pouls hebdomadaire. C'est le seul moyen de vérifier sur un appareil que
@@ -1148,8 +1177,18 @@ export default function Index() {
 
   function updateItemLabel(id: string, label: string) {
     setExpenseItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, label, labelKey: undefined } : it))
+      prev.map((it) => {
+        if (it.id !== id) return it;
+        // Renommer un poste devine son emoji tant qu'il n'a pas été choisi
+        // à la main (« essence » → ⛽). Un emoji posé par la personne reste.
+        const guessed = it.emojiPicked ? it.emoji : (suggestEmoji(label) ?? it.emoji);
+        return { ...it, label, labelKey: undefined, emoji: guessed };
+      }),
     );
+  }
+
+  function updateItemEmoji(id: string, emoji: string) {
+    setExpenseItems((prev) => prev.map((it) => (it.id === id ? { ...it, emoji, emojiPicked: true } : it)));
   }
 
   function deleteItem(id: string) {
@@ -1190,12 +1229,16 @@ export default function Index() {
         color,
         amount: newItemAmount || "0",
         activeMonths: normalizeMonths(newItemMonths),
+        emoji: newItemEmoji ?? suggestEmoji(label) ?? undefined,
+        emojiPicked: newItemEmojiPicked || undefined,
       },
     ]);
     setAddItemFamily(null);
     setNewItemLabel("");
     setNewItemAmount("0");
     setNewItemMonths(undefined);
+    setNewItemEmoji(null);
+    setNewItemEmojiPicked(false);
   }
 
   function buildPdfData(): PdfData {
@@ -1231,7 +1274,7 @@ export default function Index() {
       cityIndex: city.index,
       netMensuel,
       brutAnnuel: totalBrutAnnuel,
-      rent: rentNum,
+      rent: parseNumber(rent),
       loansMonthly,
       besoins: familyTotals.besoins,
       loisirs: familyTotals.loisirs,
@@ -1374,7 +1417,6 @@ export default function Index() {
           onAddIncome={openAddIncome}
           onEditIncome={openEditIncome}
           onDeleteIncome={askDeleteIncome}
-          onRentChange={setRent}
           onAddLoan={openAddLoan}
           onEditLoan={openEditLoan}
           onDeleteLoan={askDeleteLoan}
@@ -1382,6 +1424,9 @@ export default function Index() {
           onAddItem={openAddItem}
           onItemAmountChange={updateItemAmount}
           onItemPeriod={(it) => setPeriodItem(it)}
+          onItemEmoji={(it) => setEmojiFor(it)}
+          benchmark={benchmark}
+          benchmarkPremium={(forcedTier ?? testerTier) !== "free"}
           onItemLabelChange={updateItemLabel}
           onDeleteItem={deleteItem}
           onExportPdf={exportPdf}
@@ -1711,11 +1756,32 @@ export default function Index() {
         sheetHeight={sheetHeight}
         keyboardVerticalOffset={0}
         t={t}
-        onLabelChange={setNewItemLabel}
+        onLabelChange={(v) => {
+          setNewItemLabel(v);
+          if (!newItemEmojiPicked) setNewItemEmoji(suggestEmoji(v));
+        }}
+        newItemEmoji={newItemEmoji}
+        onPickEmoji={() => setEmojiFor("new")}
         onAmountChange={setNewItemAmount}
         onMonthsChange={setNewItemMonths}
         onSave={saveNewItem}
         onClose={() => setAddItemFamily(null)}
+      />
+
+      {/* Emoji d'un poste, nouveau ou existant */}
+      <EmojiPicker
+        visible={emojiFor !== null}
+        current={emojiFor === "new" ? (newItemEmoji ?? undefined) : emojiFor?.emoji}
+        t={t}
+        onPick={(e) => {
+          if (emojiFor === "new") {
+            setNewItemEmoji(e);
+            setNewItemEmojiPicked(true);
+          } else if (emojiFor) {
+            updateItemEmoji(emojiFor.id, e);
+          }
+        }}
+        onClose={() => setEmojiFor(null)}
       />
 
       {/* Période d'un poste existant */}

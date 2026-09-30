@@ -38,6 +38,10 @@ export type ExpenseItem = {
   icon: keyof typeof Feather.glyphMap;
   color: string;
   amount: string;
+  /** Emoji choisi ou deviné depuis le nom ; absent = icône Feather par défaut. */
+  emoji?: string;
+  /** Vrai quand la personne l'a choisi elle-même : on ne le redevine plus. */
+  emojiPicked?: boolean;
   /**
    * Mois (0-11) où cette dépense s'applique. Absent = les douze. Même
    * option que sur un revenu : un loyer qui commence en septembre ne doit pas

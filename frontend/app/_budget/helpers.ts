@@ -6,7 +6,8 @@ import { parseNumber } from "../../src/utils/finance";
 import { firstPayment } from "../../src/utils/loanSchedule";
 import { convert } from "../../src/utils/exchangeRates";
 import type { CurrencyCode } from "../../src/utils/currency";
-import { DEFAULT_ITEMS, LEGACY_DEFAULT_ITEMS } from "./constants";
+import { DEFAULT_ITEMS, LEGACY_DEFAULT_ITEMS, RENT_ITEM_ID } from "./constants";
+import { suggestEmoji } from "../../src/lib/expenseEmoji";
 import type { ExpenseItem, Loan, Translate } from "./types";
 
 // La date de 1re échéance se saisit en MM/AAAA (le jour n'a pas d'importance
@@ -140,4 +141,42 @@ export function pruneUntouchedDefaults(items: ExpenseItem[]): ExpenseItem[] {
     if (!kept.some((it) => it.family === d.family)) kept.push({ ...d });
   }
   return kept;
+}
+
+/**
+ * Le loyer saisi dans l'ancienne section « Logement » devient un poste de la
+ * famille Besoins. Idempotent : un loyer déjà présent est complété, pas
+ * doublé. Rend la liste et le loyer restant à conserver (toujours "0" après
+ * migration).
+ */
+export function mergeRentIntoItems(items: ExpenseItem[], rent: string): { items: ExpenseItem[]; rent: string } {
+  const amount = parseNumber(rent);
+  const def = DEFAULT_ITEMS.find((d) => d.id === RENT_ITEM_ID)!;
+  const has = items.some((it) => it.id === RENT_ITEM_ID);
+  if (amount <= 0) {
+    return { items: has ? items : [{ ...def }, ...items], rent: "0" };
+  }
+  const next = has
+    ? items.map((it) => (it.id === RENT_ITEM_ID && parseNumber(it.amount) <= 0 ? { ...it, amount: rent } : it))
+    : [{ ...def, amount: rent }, ...items];
+  return { items: next, rent: "0" };
+}
+
+/** Emoji manquant sur un poste déjà saisi : deviné depuis le nom, une fois. */
+export function backfillEmojis(items: ExpenseItem[]): ExpenseItem[] {
+  return items.map((it) => {
+    if (it.emoji) return it;
+    const def = [...DEFAULT_ITEMS, ...LEGACY_DEFAULT_ITEMS].find((d) => d.id === it.id);
+    const emoji = def?.emoji ?? suggestEmoji(it.label) ?? undefined;
+    return emoji ? { ...it, emoji } : it;
+  });
+}
+
+/** Montant du poste loyer, pour les conseils (part du loyer dans le net). */
+export function rentOf(items: ExpenseItem[]): number {
+  // Le poste Loyer d'origine, ou tout poste Besoins marqué 🏠 : quelqu'un qui
+  // a créé « Loyer » à la main avant la migration doit être compté aussi.
+  return items
+    .filter((x) => x.family === "besoins" && (x.id === RENT_ITEM_ID || x.emoji === "🏠"))
+    .reduce((s, x) => s + parseNumber(x.amount), 0);
 }
