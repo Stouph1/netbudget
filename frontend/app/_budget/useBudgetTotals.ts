@@ -56,16 +56,26 @@ export function useBudgetTotals({
     () => monthlyNetSeries(incomes, tithePercent),
     [incomes, tithePercent],
   );
-  const netMensuel = useMemo(
+  // Deux « nets mensuels », et ils ne disent pas la même chose :
+  //  - netMoyen : la moyenne des douze mois. C'est un chiffre annuel ramené
+  //    au mois, utile à côté du brut annuel ;
+  //  - netMensuel : le net DU MOIS EN COURS. C'est celui qu'on compare aux
+  //    dépenses du mois : un salaire qui commence en septembre ne doit pas
+  //    afficher 200 € « par mois » en septembre parce qu'il est étalé sur
+  //    l'année. Le reste à vivre, les conseils, l'historique et le PDF
+  //    parlent du mois, donc de celui-ci.
+  const netMoyen = useMemo(
     () => averageMonthlyNet(incomes, tithePercent),
     [incomes, tithePercent],
   );
+  const currentMonthIndex = new Date().getMonth();
+  const netMensuel = netSeries[currentMonthIndex] ?? 0;
   const totalBrutAnnuel = useMemo(() => annualGross(incomes), [incomes]);
   const monthlyTithe = useMemo(
     () => averageMonthlyTithe(incomes, tithePercent),
     [incomes, tithePercent],
   );
-  const netAnnuel = netMensuel * 12;
+  const netAnnuel = netMoyen * 12;
   const brutMensuel = totalBrutAnnuel / 12;
 
   // Le loyer est un poste de la famille Besoins (id « loyer »). L'ancien
@@ -89,7 +99,6 @@ export function useBudgetTotals({
   // Les totaux « du mois » sont ceux du MOIS EN COURS : un poste qui ne
   // s'applique qu'à partir de septembre ne compte pas en mars. Le tableau
   // mois par mois, lui, applique la période de chaque poste à chaque ligne.
-  const currentMonthIndex = new Date().getMonth();
   const sumThisMonth = (items: ExpenseItem[]) =>
     items.reduce((s, it) => s + amountForMonth(it, currentMonthIndex, parseNumber), 0);
   const familyTotals: Record<ExpenseFamily, number> = {
@@ -163,6 +172,7 @@ export function useBudgetTotals({
 
   return {
     netMensuel,
+    netMoyen,
     totalBrutAnnuel,
     monthlyTithe,
     brutMensuel,

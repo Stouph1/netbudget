@@ -13,7 +13,7 @@ export const es: Catalog = {
   "onboarding.step2": "Indica tu alquiler, préstamos y gastos, clasificados en 3 familias: Necesidades, Ocio, Ahorro (regla 50/30/20).",
   "onboarding.step3": "Al final: tu ingreso disponible, consejos personalizados y exportación a PDF.",
   "onboarding.tip": "💡 Tus datos se quedan en tu teléfono — nada se envía por internet.",
-  "top.netMonthly": "Neto mensual",
+  "top.netMonthly": "Neto este mes",
   "top.expenses": "Gastos",
   "top.remaining": "Disponible",
   "section.income.title": "Ingresos",

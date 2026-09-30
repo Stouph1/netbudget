@@ -13,7 +13,7 @@ export const de: Catalog = {
   "onboarding.step2": "Trage Miete, Kredite und Ausgaben ein, sortiert in 3 Familien: Bedürfnisse, Wünsche, Sparen (50/30/20-Regel).",
   "onboarding.step3": "Unten: dein verfügbares Einkommen, personalisierte Tipps und PDF-Export.",
   "onboarding.tip": "💡 Deine Daten bleiben auf deinem Telefon — nichts wird ins Internet gesendet.",
-  "top.netMonthly": "Netto monatlich",
+  "top.netMonthly": "Netto diesen Monat",
   "top.expenses": "Ausgaben",
   "top.remaining": "Verfügbar",
   "section.income.title": "Einkommen",

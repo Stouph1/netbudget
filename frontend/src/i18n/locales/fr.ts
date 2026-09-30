@@ -18,7 +18,7 @@ export const fr: Catalog = {
   "onboarding.tip": "💡 Tes données restent sur ton téléphone — rien n'est envoyé sur internet.",
 
   // Top summary
-  "top.netMonthly": "Net mensuel",
+  "top.netMonthly": "Net ce mois-ci",
   "top.expenses": "Dépenses",
   "top.remaining": "Reste à vivre",
 

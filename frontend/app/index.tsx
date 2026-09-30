@@ -834,6 +834,7 @@ export default function Index() {
   // ---- Dérivations chiffrées du budget (cf. _budget/useBudgetTotals) ----
   const {
     netMensuel,
+    netMoyen,
     totalBrutAnnuel,
     monthlyTithe,
     brutMensuel,
@@ -1392,6 +1393,7 @@ export default function Index() {
           brutMensuel={brutMensuel}
           monthlyTithe={monthlyTithe}
           netMensuel={netMensuel}
+          netMoyen={netMoyen}
           rent={rent}
           loans={loans}
           humanRemaining={humanRemaining}

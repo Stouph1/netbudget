@@ -13,7 +13,7 @@ export const pt: Catalog = {
   "onboarding.step2": "Indica a renda, os empréstimos e as despesas, organizadas em 3 famílias: Necessidades, Lazer, Poupança (regra 50/30/20).",
   "onboarding.step3": "No final: o teu rendimento disponível, conselhos personalizados e exportação em PDF.",
   "onboarding.tip": "💡 Os teus dados ficam no telemóvel — nada é enviado pela internet.",
-  "top.netMonthly": "Líquido mensal",
+  "top.netMonthly": "Líquido este mês",
   "top.expenses": "Despesas",
   "top.remaining": "Disponível",
   "section.income.title": "Rendimentos",

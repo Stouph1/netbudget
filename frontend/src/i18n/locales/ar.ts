@@ -13,7 +13,7 @@ export const ar: Catalog = {
   "onboarding.step2": "أدخل الإيجار والقروض والمصاريف، مرتبة في 3 عائلات: احتياجات، ترفيه، ادخار (قاعدة 50/30/20).",
   "onboarding.step3": "في الأسفل: دخلك المتاح، نصائح مخصصة، وتصدير PDF.",
   "onboarding.tip": "💡 بياناتك تبقى في هاتفك — لا شيء يُرسل عبر الإنترنت.",
-  "top.netMonthly": "صافي شهري",
+  "top.netMonthly": "صافي هذا الشهر",
   "top.expenses": "مصاريف",
   "top.remaining": "المتبقي",
   "section.income.title": "الدخل",

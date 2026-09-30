@@ -13,7 +13,7 @@ export const ja: Catalog = {
   "onboarding.step2": "家賃・ローン・支出を3つのカテゴリーに分類して入力します：ニーズ、ウォンツ、貯蓄（50/30/20ルール）。",
   "onboarding.step3": "画面下部で可処分所得、パーソナライズされたアドバイス、PDF出力を確認できます。",
   "onboarding.tip": "💡 データはお使いの端末内にのみ保存され、インターネットには送信されません。",
-  "top.netMonthly": "月間手取り",
+  "top.netMonthly": "今月の手取り",
   "top.expenses": "支出",
   "top.remaining": "可処分所得",
   "section.income.title": "収入",

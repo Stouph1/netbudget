@@ -13,7 +13,7 @@ export const en: Catalog = {
   "onboarding.step2": "Fill in your rent, loans and expenses, sorted into 3 families: Needs, Wants, Savings (50/30/20 rule).",
   "onboarding.step3": "At the bottom: your disposable income, personalised tips and PDF export.",
   "onboarding.tip": "💡 Your data stays on your phone — nothing is sent to the internet.",
-  "top.netMonthly": "Monthly net",
+  "top.netMonthly": "Net this month",
   "top.expenses": "Expenses",
   "top.remaining": "Disposable",
   "section.income.title": "Income",

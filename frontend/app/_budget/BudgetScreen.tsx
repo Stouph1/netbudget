@@ -74,6 +74,7 @@ export default function BudgetScreen({
   brutMensuel,
   monthlyTithe,
   netMensuel,
+  netMoyen,
   // Logement / prêts
   rent,
   loans,
@@ -142,6 +143,8 @@ export default function BudgetScreen({
   brutMensuel: number;
   monthlyTithe: number;
   netMensuel: number;
+  /** Moyenne des douze mois : pour le bloc revenus, à côté du brut annuel. */
+  netMoyen: number;
   rent: string;
   loans: Loan[];
   humanRemaining: (p: Parameters<typeof remainingParts>[0]) => string;
@@ -196,7 +199,7 @@ export default function BudgetScreen({
   // Permet à la visite d'aller chercher une cible sous le pli.
   const tourScroll = useTourScroller("budget");
 
-  const hasData = netMensuel > 0 || monthlyExpenses > 0;
+  const hasData = netMoyen > 0 || monthlyExpenses > 0;
 
   return (
     <ScrollView
@@ -282,7 +285,7 @@ export default function BudgetScreen({
       />
 
       {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
-      {netMensuel <= 0 ? (
+      {netMoyen <= 0 ? (
         // Vide : une seule chose à faire, et rien d'autre à lire. Le mode
         // d'emploi en trois paragraphes remplissait l'écran d'une personne qui
         // n'avait encore rien saisi.
@@ -438,7 +441,7 @@ export default function BudgetScreen({
               {monthlyTithe > 0 ? " (dons déduits)" : ""}
             </Text>
             <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
-              {fmt(netMensuel)}
+              {fmt(netMoyen)}
             </Text>
           </View>
         </View>

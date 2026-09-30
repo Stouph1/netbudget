@@ -13,7 +13,7 @@ export const it: Catalog = {
   "onboarding.step2": "Inserisci affitto, prestiti e spese, suddivisi in 3 famiglie: Bisogni, Svago, Risparmio (regola 50/30/20).",
   "onboarding.step3": "In fondo: il tuo reddito disponibile, consigli personalizzati ed export PDF.",
   "onboarding.tip": "💡 I tuoi dati restano sul telefono — nulla viene inviato su internet.",
-  "top.netMonthly": "Netto mensile",
+  "top.netMonthly": "Netto questo mese",
   "top.expenses": "Spese",
   "top.remaining": "Disponibile",
   "section.income.title": "Entrate",

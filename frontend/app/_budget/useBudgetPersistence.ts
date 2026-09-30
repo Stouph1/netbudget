@@ -21,7 +21,8 @@ import {
   saveBudget,
 } from "../../src/lib/premiumStore";
 import { DEFAULT_ITEMS } from "./constants";
-import { backfillEmojis, backfillItemLabels, displayItemLabel, mergeRentIntoItems, pruneUntouchedDefaults } from "./helpers";
+import { backfillEmojis, backfillItemLabels, displayItemLabel, mergeRentIntoItems, pruneUntouchedDefaults, rentOf } from "./helpers";
+import { amountForMonth } from "./expensePeriod";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
 export function useBudgetPersistence({
@@ -222,10 +223,12 @@ export function useBudgetPersistence({
         expenses: Math.round(monthlyExpenses),
         remaining: Math.round(remaining),
         // Détail du mois — alimente la fiche mois + la comparaison dans le Profil
+        // Le loyer est un poste de Besoins : on le sort du total des besoins
+        // pour ne pas le compter deux fois (il a sa propre ligne).
         breakdown: {
           rent: Math.round(rentNum),
           loans: Math.round(loansMonthly),
-          besoins: Math.round(familyTotals.besoins),
+          besoins: Math.round(familyTotals.besoins - rentOf(expenseItems)),
           loisirs: Math.round(familyTotals.loisirs),
           epargne: Math.round(familyTotals.epargne),
           items: expenseItems
@@ -233,7 +236,8 @@ export function useBudgetPersistence({
               id: it.id,
               label: displayItemLabel(it, t),
               family: it.family,
-              amount: Math.round(parseNumber(it.amount)),
+              // Le montant DU MOIS : un poste hors période vaut 0 ce mois-ci.
+              amount: Math.round(amountForMonth(it, now.getMonth(), parseNumber)),
             }))
             .filter((it) => it.amount > 0),
         },
