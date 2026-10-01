@@ -13,7 +13,7 @@ import {
   Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -470,6 +470,17 @@ export default function Index() {
   const paywall = usePaywall();
   const tourSettings = useTourTarget("home:settings");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Un écran ouvert depuis les Réglages ferme d'abord la modale ; au retour,
+  // on la rouvre pour que la flèche ramène bien aux Réglages, pas au Profil.
+  const reopenSettingsOnFocus = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (reopenSettingsOnFocus.current) {
+        reopenSettingsOnFocus.current = false;
+        setSettingsOpen(true);
+      }
+    }, []),
+  );
   useEffect(() => {
     setActiveTab(tab);
   }, [tab, setActiveTab]);
@@ -1357,6 +1368,29 @@ export default function Index() {
     }, 400);
   }
 
+  // L'anniversaire se fête aussi depuis le panneau testeur des Réglages :
+  // même carte, rendue là où une modale iOS peut réellement s'afficher.
+  const renderBirthday = (visible: boolean) => (
+  <BirthdayCelebration
+    visible={visible}
+    cards={bdayCards ?? []}
+    onKeep={(c) => {
+      if (!premiumUser?.id) return;
+      addSavedAdvice(premiumUser.id, {
+        id: `bday-${new Date().getFullYear()}-${bdaySource}-${c.title}`,
+        emoji: c.emoji,
+        title: c.title,
+        body: c.body,
+        tone: c.tone,
+        sources: c.sources,
+        savedAt: new Date().toISOString(),
+        source: bdaySource,
+      });
+    }}
+    onClose={() => setBdayOpen(false)}
+  />
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
@@ -1513,33 +1547,7 @@ export default function Index() {
         onClose={() => setConvPickerFor(null)}
       />
 
-      {/* Language Picker Modal */}
-      <LanguageSheetModal
-        visible={langPickerOpen}
-        lang={lang}
-        sheetHeight={sheetHeight}
-        t={t}
-        onSelect={(next) => {
-          setLang(next);
-          setLangPickerOpen(false);
-        }}
-        onClose={() => setLangPickerOpen(false)}
-      />
 
-      {/* Currency Picker Modal */}
-      <CurrencySheetModal
-        visible={currencyPickerOpen}
-        title={t("modal.chooseCurrency")}
-        selected={currency}
-        sheetHeight={sheetHeight}
-        closeTestID="close-currency-picker"
-        optionTestIDPrefix="currency-option-"
-        onSelect={(code) => {
-          setCurrencyPickerOpen(false);
-          void changeCurrency(code);
-        }}
-        onClose={() => setCurrencyPickerOpen(false)}
-      />
 
       {/* Déverrouillage d'abonnement : une seule fois par palier atteint.
           Monté ici, sur l'écran d'accueil, parce que c'est là qu'on revient
@@ -1547,7 +1555,7 @@ export default function Index() {
       {tierUnlock.tier ? (
         <TierUnlock
           tier={tierUnlock.tier}
-          visible={tierUnlock.visible}
+          visible={tierUnlock.visible && !settingsOpen}
           onClose={() => void tierUnlock.dismiss()}
         />
       ) : null}
@@ -1572,24 +1580,7 @@ export default function Index() {
       <TourOverlay />
 
       {/* Fête d'anniversaire (jour J, une fois par an) */}
-      <BirthdayCelebration
-        visible={bdayOpen}
-        cards={bdayCards ?? []}
-        onKeep={(c) => {
-          if (!premiumUser?.id) return;
-          addSavedAdvice(premiumUser.id, {
-            id: `bday-${new Date().getFullYear()}-${bdaySource}-${c.title}`,
-            emoji: c.emoji,
-            title: c.title,
-            body: c.body,
-            tone: c.tone,
-            sources: c.sources,
-            savedAt: new Date().toISOString(),
-            source: bdaySource,
-          });
-        }}
-        onClose={() => setBdayOpen(false)}
-      />
+      {renderBirthday(bdayOpen && !settingsOpen)}
 
       {/* Échéancier détaillé d'un prêt */}
       {scheduleLoan ? (
@@ -1618,40 +1609,7 @@ export default function Index() {
         onSlideToIndex={setTabFromIndex}
       />
 
-      {/* City Picker Modal (2-step : pays → ville) */}
-      <CityPickerModal
-        visible={cityPickerOpen}
-        city={city}
-        pickerStep={pickerStep}
-        pickerCountry={pickerCountry}
-        citySearch={citySearch}
-        filteredCountries={filteredCountries}
-        globalCitySuggestions={globalCitySuggestions}
-        filteredCities={filteredCities}
-        sheetHeight={sheetHeight}
-        keyboardVerticalOffset={0}
-        t={t}
-        onCitySearchChange={setCitySearch}
-        onPickCountry={(code) => {
-          setPickerCountry(code);
-          setPickerStep("city");
-          setCitySearch("");
-        }}
-        onBackToCountry={() => { setPickerStep("country"); setCitySearch(""); }}
-        onPickCity={(next) => {
-          setCity(next);
-          setCityPickerOpen(false);
-          setCitySearch("");
-        }}
-        onClose={() => setCityPickerOpen(false)}
-      />
 
-      {/* City Info Modal */}
-      <CityInfoModal
-        visible={cityInfoOpen}
-        t={t}
-        onClose={() => setCityInfoOpen(false)}
-      />
 
       {/* Ratio budgétaire — Info Modal (personnalisée si Premium loggé) */}
       <RatioInfoModal
@@ -1705,6 +1663,11 @@ export default function Index() {
         <View style={[styles.safe, { paddingTop: insets.top }]}>
           <SettingsScreen
             onClose={() => setSettingsOpen(false)}
+            onNavigate={(route) => {
+              reopenSettingsOnFocus.current = true;
+              setSettingsOpen(false);
+              router.push(route as never);
+            }}
             currency={currency}
             lang={lang}
             city={city}
@@ -1746,6 +1709,95 @@ export default function Index() {
             }}
           />
         </View>
+
+        {/* Sur iOS, une modale ne s'affiche par-dessus une autre que si elle
+            est rendue DEDANS. Rendue en frère, elle n'apparaît qu'à la
+            fermeture de la première — parfois en plusieurs exemplaires si
+            on a retapé entre-temps. Tout ce qui s'ouvre depuis les Réglages
+            vit donc ici, dans la modale des Réglages. */}
+        {/* Language Picker Modal */}
+        <LanguageSheetModal
+          visible={langPickerOpen}
+          lang={lang}
+          sheetHeight={sheetHeight}
+          t={t}
+          onSelect={(next) => {
+            setLang(next);
+            setLangPickerOpen(false);
+          }}
+          onClose={() => setLangPickerOpen(false)}
+        />
+
+        {/* Currency Picker Modal */}
+        <CurrencySheetModal
+          visible={currencyPickerOpen}
+          title={t("modal.chooseCurrency")}
+          selected={currency}
+          sheetHeight={sheetHeight}
+          closeTestID="close-currency-picker"
+          optionTestIDPrefix="currency-option-"
+          onSelect={(code) => {
+            setCurrencyPickerOpen(false);
+            void changeCurrency(code);
+          }}
+          onClose={() => setCurrencyPickerOpen(false)}
+        />
+
+        {/* City Picker Modal (2-step : pays → ville) */}
+        <CityPickerModal
+          visible={cityPickerOpen}
+          city={city}
+          pickerStep={pickerStep}
+          pickerCountry={pickerCountry}
+          citySearch={citySearch}
+          filteredCountries={filteredCountries}
+          globalCitySuggestions={globalCitySuggestions}
+          filteredCities={filteredCities}
+          sheetHeight={sheetHeight}
+          keyboardVerticalOffset={0}
+          t={t}
+          onCitySearchChange={setCitySearch}
+          onPickCountry={(code) => {
+            setPickerCountry(code);
+            setPickerStep("city");
+            setCitySearch("");
+          }}
+          onBackToCountry={() => { setPickerStep("country"); setCitySearch(""); }}
+          onPickCity={(next) => {
+            setCity(next);
+            setCityPickerOpen(false);
+            setCitySearch("");
+          }}
+          onClose={() => setCityPickerOpen(false)}
+        />
+
+        {/* City Info Modal */}
+        <CityInfoModal
+          visible={cityInfoOpen}
+          t={t}
+          onClose={() => setCityInfoOpen(false)}
+        />
+
+        <DeleteAccountSheet
+          visible={deleteOpen}
+          onClose={() => setDeleteOpen(false)}
+          onConfirm={confirmDeleteAccount}
+        />
+
+        <ConfirmModal
+          confirm={confirm}
+          t={t}
+          onCloseKeepingState={() => setConfirm({ ...confirm, open: false })}
+        />
+        {renderBirthday(bdayOpen)}
+        {tierUnlock.tier ? (
+          <TierUnlock
+            tier={tierUnlock.tier}
+            visible={tierUnlock.visible}
+            onClose={() => void tierUnlock.dismiss()}
+          />
+        ) : null}
+
       </Modal>
 
       {/* Add Custom Expense Item Modal */}
@@ -1812,13 +1864,8 @@ export default function Index() {
 
       {/* Confirm Modal */}
       <NotificationPrimer />
-      <DeleteAccountSheet
-        visible={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
-        onConfirm={confirmDeleteAccount}
-      />
       <ConfirmModal
-        confirm={confirm}
+        confirm={settingsOpen ? { ...confirm, open: false } : confirm}
         t={t}
         onCloseKeepingState={() => setConfirm({ ...confirm, open: false })}
       />

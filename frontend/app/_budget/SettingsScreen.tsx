@@ -47,6 +47,7 @@ export default function SettingsScreen({
   onDeleteAccount,
   onReplayTour,
   onClose,
+  onNavigate,
   onTestNotification,
   onReplayBirthday,
   forcedTier,
@@ -77,6 +78,13 @@ export default function SettingsScreen({
   onReplayTour: () => void;
   /** Présent quand l'écran est ouvert en page depuis le Profil : ferme. */
   onClose?: () => void;
+  /**
+   * Ouvre un autre écran. Fourni par le parent quand cet écran vit dans une
+   * modale : un `router.push` lancé sous une modale iOS reste caché derrière
+   * elle, l'écran n'apparaît qu'à sa fermeture et chaque tape en empile un.
+   * Le parent ferme donc la modale avant de naviguer.
+   */
+  onNavigate?: (route: string) => void;
   onTestNotification: () => void;
   /** Compte marqué testeur côté serveur. Voir la migration 019. */
   isTester: boolean;
@@ -90,6 +98,7 @@ export default function SettingsScreen({
   /** Situation professionnelle du profil ; la ligne ACRE n'a de sens qu'en indépendant. */
   occupation: string | null;
 }) {
+  const go = (route: string) => (onNavigate ?? ((r: string) => router.push(r as never)))(route);
   const { styles, GOLD, scrollBottom } = useBudgetTheme();
   // Couleur d'accent : un réglage par espace, gardé sur l'appareil.
   const { accentId, setAccent } = useThemeSettings();
@@ -235,7 +244,7 @@ export default function SettingsScreen({
           <TouchableOpacity
             style={styles.profileLocNote}
             activeOpacity={0.85}
-            onPress={() => router.push("/(premium)/complete-profile?edit=1" as never)}
+            onPress={() => go("/(premium)/complete-profile?edit=1")}
             accessibilityRole="button"
             accessibilityLabel="Modifier ma localisation dans mon profil"
           >
@@ -354,7 +363,7 @@ export default function SettingsScreen({
                 key={r.key}
                 style={styles.profileLocNote}
                 activeOpacity={0.85}
-                onPress={() => router.push((open ? r.route : "/plans") as never)}
+                onPress={() => go(open ? r.route : "/plans")}
                 accessibilityRole="button"
                 testID={`settings-tax-${r.key}`}
               >
@@ -397,7 +406,7 @@ export default function SettingsScreen({
             de ce qui est réellement programmé. */}
         <View ref={tourNotifs} collapsable={false}>
         <TouchableOpacity
-          onPress={() => router.push("/notifications")}
+          onPress={() => go("/notifications")}
           style={styles.toggleRow}
           accessibilityRole="button"
           accessibilityLabel={t("settings.notifications.personalize")}
@@ -427,7 +436,7 @@ export default function SettingsScreen({
       {canDeleteAccount ? (
         <Section title={t("settings.vault.title")} info={{ title: t("help.vault.title"), body: t("help.vault.body") }}>
           <TouchableOpacity
-            onPress={() => router.push("/vault-backup" as never)}
+            onPress={() => go("/vault-backup")}
             style={styles.toggleRow}
             accessibilityRole="button"
             accessibilityLabel={t("settings.vault.backup")}
