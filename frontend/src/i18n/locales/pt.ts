@@ -3470,4 +3470,9 @@ export const pt: Catalog = {
   "bench.verdict.below": "Tu {mine} %, média {national} %: abaixo.",
   "bench.locked": "Mais {n} referências com um plano",
   "bench.source": "Fonte: {source}, {year}. Médias nacionais, peso no consumo das famílias.",
+  "income.withholding": "Imposto retido na fonte",
+  "income.withholdingHint": "Parte do salário retida como imposto ({name}), tal como consta do recibo de vencimento. Deixa 0 se não se aplica a ti.",
+  "help.withholding.title": "Imposto retido no salário",
+  "help.withholding.body": "Neste país, o imposto sobre o rendimento é retido no teu salário pela entidade empregadora: {name}. A parte retida consta do recibo de vencimento. Indica-a aqui para que o líquido calculado seja o que chega mesmo à tua conta. Fonte: {authority}.",
+  "help.withholding.ch": "Na Suíça só os trabalhadores tributados na fonte são abrangidos (autorizações B e L, fronteiriços). Com autorização C ou nacionalidade suíça, o imposto paga-se em prestações: deixa 0 e prevê-o nas despesas.",
 };

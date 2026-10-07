@@ -19,15 +19,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-import { resolveAdviceText } from "../types/advice";
-import {
-  DEFAULT_NOTIF_PREFS,
-  planNotifications,
-  type NotifCandidate,
-  type NotifContext,
-  type NotifPrefs,
-  decorateTitle,
-} from "./notificationEngine";
+import { DEFAULT_NOTIF_PREFS, planNotifications, type NotifCandidate, type NotifContext, type NotifPrefs, decorateTitle, renderCandidate } from "./notificationEngine";
 import { requestPermissionOnce } from "./notifications";
 
 const PREFS_KEY = "netbudget:notifications:prefs";
@@ -169,27 +161,8 @@ async function rotatePlanned(now: Date): Promise<Record<string, string>> {
 }
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
+export { renderCandidate };
 
-
-/**
- * Texte affiché d'une candidate.
- *
- * Le corps d'une notification « droits » est le TITRE d'une carte de conseil :
- * soit une clé i18n, soit du français en dur pour les cartes non migrées.
- * `resolveAdviceText` gère les deux cas.
- */
-function renderCandidate(
-  c: NotifCandidate,
-  t: Translate,
-): { title: string; body: string } {
-  return {
-    title: decorateTitle(c.category, t(c.titleKey, c.params)),
-    body:
-      c.category === "rights"
-        ? resolveAdviceText(c.bodyKey, t, c.bodyKey)
-        : t(c.bodyKey, c.params),
-  };
-}
 
 async function scheduleCandidate(
   c: NotifCandidate,

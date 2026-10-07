@@ -3470,4 +3470,9 @@ export const es: Catalog = {
   "bench.verdict.below": "Tú {mine} %, media {national} %: por debajo.",
   "bench.locked": "{n} referencias más con un plan",
   "bench.source": "Fuente: {source}, {year}. Medias nacionales, peso en el consumo de los hogares.",
+  "income.withholding": "Impuesto retenido en nómina",
+  "income.withholdingHint": "Parte del salario retenida como impuesto ({name}), tal como aparece en tu nómina. Deja 0 si no te afecta.",
+  "help.withholding.title": "Impuesto retenido del salario",
+  "help.withholding.body": "En este país, el empleador retiene el impuesto sobre la renta de tu salario: {name}. La parte retenida figura en tu nómina. Indícala aquí para que el neto calculado sea el que llega de verdad a tu cuenta. Fuente: {authority}.",
+  "help.withholding.ch": "En Suiza solo afecta a los asalariados gravados en la fuente (permisos B y L, transfronterizos). Con permiso C o nacionalidad suiza, el impuesto se paga a plazos: deja 0 y prevélo en tus gastos.",
 };

@@ -19,6 +19,29 @@ export function milestoneDate(eventDateIso: string, monthsBefore: number): Date 
   return d;
 }
 
+/**
+ * Jalons à rappeler, regroupés par jour.
+ *
+ * Deux jalons « 3 mois avant » tombent le même matin : deux notifications
+ * identiques à la même minute, ce que tout le monde lit comme un bug. Un
+ * seul rappel liste alors les deux tâches.
+ */
+export function groupMilestonesByDay(
+  ev: Pick<EventProject, "dateIso" | "milestones">,
+): { at: Date; ids: string[]; labels: string[] }[] {
+  const byDay = new Map<number, { at: Date; ids: string[]; labels: string[] }>();
+  for (const ms of ev.milestones) {
+    if (ms.done || ms.monthsBefore === 0) continue;
+    const at = milestoneDate(ev.dateIso, ms.monthsBefore);
+    const key = at.getTime();
+    const g = byDay.get(key) ?? { at, ids: [], labels: [] };
+    g.ids.push(ms.id);
+    g.labels.push(ms.label);
+    byDay.set(key, g);
+  }
+  return [...byDay.values()].sort((a, b) => a.at.getTime() - b.at.getTime());
+}
+
 // (Re)planifie toutes les notifications d'un événement : un rappel par jalon
 // non fait et à venir, un rappel J-7 et le jour J. Identifiants stables
 // "event-<id>-…" pour pouvoir annuler à la mise à jour/suppression.
@@ -51,15 +74,14 @@ export async function scheduleEventNotifications(
       });
       scheduled++;
     };
-    for (const ms of ev.milestones) {
-      if (ms.done || ms.monthsBefore === 0) continue;
+    for (const group of groupMilestonesByDay(ev)) {
       await push(
-        `event-${ev.id}-${ms.id}`,
+        `event-${ev.id}-${group.ids.join("+")}`,
         `${ev.emoji} ${ev.name}`,
         interp(translate("evtNotif.milestone"), {
-          label: resolveEventLabel(ms.label, translate),
+          label: group.labels.map((l) => resolveEventLabel(l, translate)).join(" · "),
         }),
-        milestoneDate(ev.dateIso, ms.monthsBefore),
+        group.at,
       );
     }
     const j7 = new Date(ev.dateIso + "T09:00:00");

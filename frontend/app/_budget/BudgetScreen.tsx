@@ -338,7 +338,7 @@ export default function BudgetScreen({
       {/* Revenus — multi-sources */}
       <Section
         title={t("section.income.title")}
-        subtitle={t("section.income.subtitle")}
+        subtitle={incomes.length === 0 ? t("section.income.subtitle") : undefined}
         action={
           // La vue enveloppe porte la cible de la visite guidée :
           // TouchableOpacity n'accepte pas `collapsable`, et sans lui Android

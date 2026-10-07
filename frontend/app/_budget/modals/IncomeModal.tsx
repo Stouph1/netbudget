@@ -33,6 +33,7 @@ import { InfoTip } from "../../../src/components/InfoTip";
 import { interpolate } from "../../../src/utils/advice";
 import type { Translate } from "../types";
 import { switchStyle } from "../../../src/theme/controls";
+import { withholdingFor } from "../../../src/constants/withholding";
 
 export default function IncomeModal({
   visible,
@@ -41,6 +42,7 @@ export default function IncomeModal({
   setIncomeForm,
   currency,
   tithePercent,
+  countryCode,
   sheetHeight,
   keyboardVerticalOffset,
   t,
@@ -55,6 +57,8 @@ export default function IncomeModal({
   setIncomeForm: React.Dispatch<React.SetStateAction<IncomeSource>>;
   currency: CurrencyCode;
   tithePercent: number;
+  /** Pays du budget : décide si le champ « impôt prélevé à la source » existe. */
+  countryCode?: string;
   sheetHeight: number;
   keyboardVerticalOffset: number;
   t: Translate;
@@ -63,6 +67,7 @@ export default function IncomeModal({
   onSave: () => void;
   onClose: () => void;
 }) {
+  const withholding = withholdingFor(countryCode);
   const { styles, GOLD, sheetBottom, sheetTop } = useBudgetTheme();
   return (
     <Modal
@@ -290,6 +295,31 @@ export default function IncomeModal({
                 hintText={TYPE_HINT[incomeForm.type]}
                 testID="income-charges"
               />
+
+              {/* Impôt retenu sur le salaire par l'employeur. Seulement pour un
+                  salaire, et seulement dans un pays où ça existe (vérifié) :
+                  ailleurs, le champ serait une question sans réponse. */}
+              {incomeForm.type === "salaire" && withholding ? (
+                <Field
+                  label={t("income.withholding")}
+                  info={{
+                    title: t("help.withholding.title"),
+                    body:
+                      interpolate(t("help.withholding.body"), {
+                        name: withholding.name,
+                        authority: withholding.authority,
+                      }) + (withholding.partial ? "\n\n" + t("help.withholding.ch") : ""),
+                  }}
+                  icon={<Feather name="file-text" size={18} color={GOLD} />}
+                  right="%"
+                  value={incomeForm.withholdingPercent ?? ""}
+                  onChangeText={(v) => setIncomeForm((f) => ({ ...f, withholdingPercent: v }))}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  hintText={interpolate(t("income.withholdingHint"), { name: withholding.name })}
+                  testID="income-withholding"
+                />
+              ) : null}
 
               {/* Dons — visible seulement si activé dans le profil. Une seule
                   carte : le choix du montant (interrupteur) et, dessous, la base

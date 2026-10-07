@@ -3470,4 +3470,9 @@ export const ja: Catalog = {
   "bench.verdict.below": "あなた {mine}%、平均 {national}%：平均より下。",
   "bench.locked": "プランに加入するとあと{n}項目の目安が見られます",
   "bench.source": "出典：{source}、{year}年。全国平均、家計消費に占める割合。",
+  "income.withholding": "源泉徴収される所得税",
+  "income.withholdingHint": "給与のうち税として差し引かれる割合（{name}）。給与明細で確認できます。該当しなければ 0 のままで。",
+  "help.withholding.title": "給与から天引きされる税金",
+  "help.withholding.body": "この国では所得税は雇用主が給与から直接差し引きます：{name}。差し引かれる割合は給与明細に記載されています。ここに入力すると、算出される手取りが実際に口座に入る金額になります。出典：{authority}",
+  "help.withholding.ch": "スイスで対象になるのは源泉課税の従業員（B・L 許可、越境労働者）だけです。C 許可またはスイス国籍の場合は分割納付のため、0 のままにして支出側に見込んでください。",
 };

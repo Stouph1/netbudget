@@ -11,6 +11,7 @@
 // Ce module ne fait AUCUN effet de bord : il reçoit un contexte, il renvoie
 // une liste ordonnée de candidates. La planification est ailleurs, ce qui rend
 // tout ce raisonnement testable.
+import { ADVICE_KEY_PREFIX, resolveAdviceText } from "../types/advice";
 
 export type NotifCategory =
   | "budget" // rappels mensuels de saisie
@@ -527,4 +528,24 @@ export function decorateTitle(category: string, title: string): string {
   // Commence déjà par autre chose qu'une lettre ou un chiffre : un emoji est là.
   if (!/^[\p{L}\p{N}«"']/u.test(title.trim())) return title;
   return `${emoji} ${title}`;
+}
+
+/**
+ * Texte affiché d'une candidate.
+ *
+ * Le corps d'une notification « droits » est le TITRE d'une carte de conseil :
+ * soit une clé i18n, soit du français en dur pour les cartes non migrées.
+ * `resolveAdviceText` gère les deux cas — mais il ne traduit QUE les clés
+ * « adv. » et renvoie tout le reste tel quel : une clé ordinaire passée par
+ * là s'affichait brute (« notif.weekly.body ») sur l'écran verrouillé de
+ * tout le monde. On choisit donc sur la forme de la clé, pas sur la catégorie.
+ */
+export function renderCandidate(
+  c: NotifCandidate,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): { title: string; body: string } {
+  const body = c.bodyKey.startsWith(ADVICE_KEY_PREFIX)
+    ? resolveAdviceText(c.bodyKey, t, c.bodyKey)
+    : t(c.bodyKey, c.params);
+  return { title: decorateTitle(c.category, t(c.titleKey, c.params)), body };
 }

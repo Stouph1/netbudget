@@ -24,6 +24,13 @@ export type IncomeSource = {
   amount: string; // saisi par l'utilisateur
   frequency: IncomeFrequency;
   chargesPercent: string; // 0 = brut = net (ex: revenus déjà nets)
+  /**
+   * Impôt sur le revenu retenu sur le salaire par l'employeur, en % du net
+   * (prélèvement à la source, PAYE, Lohnsteuer…). Absent ou 0 = pas concerné.
+   * Les charges donnent le « net avant impôt » ; ceci donne ce qui arrive
+   * vraiment sur le compte, la seule base honnête pour un reste à vivre.
+   */
+  withholdingPercent?: string;
   variableMonth?: number; // utilisé quand frequency === "monthOnce"
   daysPerMonth?: number; // utilisé quand frequency === "daily" (jours facturés / mois)
   // Spécifique aux salaires
@@ -174,6 +181,8 @@ export function monthlyNetForSource(
   if (gross <= 0) return 0;
   const charges = Math.max(0, Math.min(60, parseNumber(s.chargesPercent)));
   let net = gross * (1 - charges / 100);
+  const withholding = Math.max(0, Math.min(60, parseNumber(s.withholdingPercent ?? "0")));
+  net = net * (1 - withholding / 100);
   if (s.titheApplied && tithePercent > 0) {
     const base = s.titheBase === "gross" ? gross : net;
     net = Math.max(0, net - base * (Math.min(100, tithePercent) / 100));

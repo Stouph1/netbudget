@@ -3524,4 +3524,9 @@ export const fr: Catalog = {
   "bench.verdict.below": "Toi {mine} %, moyenne {national} % : en dessous.",
   "bench.locked": "{n} repères de plus avec une formule",
   "bench.source": "Source : {source}, {year}. Moyennes nationales, part de la consommation des ménages.",
+  "income.withholding": "Impôt prélevé à la source",
+  "income.withholdingHint": "Part du salaire retenue en impôt ({name}), à lire sur ta fiche de paie. Laisse 0 si tu n'es pas concerné.",
+  "help.withholding.title": "Impôt retenu sur le salaire",
+  "help.withholding.body": "Dans ce pays, l'impôt sur le revenu est retenu sur ton salaire par l'employeur : {name}. La part retenue figure sur ta fiche de paie. Saisis-la ici pour que le net calculé soit celui qui arrive vraiment sur ton compte. Source : {authority}.",
+  "help.withholding.ch": "En Suisse, seuls les salariés imposés à la source sont concernés (permis B et L, frontaliers). Avec un permis C ou la nationalité suisse, l'impôt se paie par acomptes : laisse 0 et prévois-le dans tes dépenses.",
 };

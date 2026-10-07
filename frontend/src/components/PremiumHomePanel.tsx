@@ -90,7 +90,7 @@ type Props = {
   onGoBudget?: () => void;
 };
 
-export default function PremiumHomePanel({ onGoBudget }: Props) {
+export default function PremiumHomePanel(_props: Props) {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
@@ -604,7 +604,9 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
         </View>
       ) : null}
 
-      {/* Overview S1 */}
+      {/* Épargne : seulement quand il y a un objectif. Une carte « 0 / 0 €,
+          0 objectif » n'apprend rien ; la tuile Objectifs suffit pour commencer. */}
+      {activeGoals.length > 0 ? (
       <TouchableOpacity
         style={styles.overviewCard}
         onPress={() => router.push("/(premium)/s1-epargne" as never)}
@@ -627,6 +629,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           })}
         </Text>
       </TouchableOpacity>
+      ) : null}
 
       {/* Le conseil de la semaine : une carte fermée, un conseil, chaque lundi. */}
       {user?.id && paywall.tier !== "free" ? (
@@ -650,24 +653,14 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           tourRef={tourAdvice}
         />
       </View>
+      {/* Pas de tuile Budget ni Événements : ce sont déjà des onglets. Une
+          porte en double ne rassure pas, elle encombre. */}
       <View style={styles.tilesRow}>
         <Tile
           icon="users"
           label={t("home.tile.spaces")}
           onPress={() => router.push("/(premium)/workspaces" as never)}
           tourRef={tourSpaces}
-        />
-        <Tile
-          icon="pie-chart"
-          label={t("tab.budget")}
-          onPress={() => (onGoBudget ? onGoBudget() : router.back())}
-        />
-      </View>
-      <View style={styles.tilesRow}>
-        <Tile
-          icon="bookmark"
-          label={t("home.tile.saved")}
-          onPress={() => router.push("/(premium)/saved-advice" as never)}
         />
         {/* La tuile reste VISIBLE hors formule Famille : la masquer
             empêcherait de découvrir ce qui existe. Elle ouvre la fenêtre des
@@ -684,21 +677,28 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
       </View>
       <View style={styles.tilesRow}>
         <Tile
-          icon="calendar"
-          label={t("home.tile.events")}
-          onPress={() => router.push("/(premium)/events" as never)}
+          icon="bookmark"
+          label={t("home.tile.saved")}
+          onPress={() => router.push("/(premium)/saved-advice" as never)}
         />
-        {/* Mot de passe : affiché SEULEMENT pour les comptes qui en ont un.
-            Quelqu'un connecté via Apple ou Google n'a pas de mot de passe
-            NetBudget — lui proposer d'en changer serait incompréhensible. */}
-        {hasPassword ? (
+        <Tile
+          icon="star"
+          label={t("plan.title")}
+          onPress={() => router.push("/plans" as never)}
+        />
+      </View>
+      {/* Mot de passe : affiché SEULEMENT pour les comptes qui en ont un.
+          Quelqu'un connecté via Apple ou Google n'a pas de mot de passe
+          NetBudget — lui proposer d'en changer serait incompréhensible. */}
+      {hasPassword ? (
+        <View style={styles.tilesRow}>
           <Tile
             icon="lock"
             label={t("home.tile.password")}
             onPress={() => router.push("/change-password" as never)}
           />
-        ) : null}
-      </View>
+        </View>
+      ) : null}
 
       {/* Chiffrement : aucune tuile quand tout va bien. Le chiffrement est le
           comportement par défaut, pas une fonctionnalité à exhiber — l'annoncer
@@ -713,17 +713,11 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
           />
         </View>
       ) : null}
-      <View style={styles.tilesRow}>
-        <Tile
-          icon="star"
-          label={t("plan.title")}
-          onPress={() => router.push("/plans" as never)}
-        />
-      </View>
-
-
-      {/* Évolution du budget — historique mensuel du scope actif */}
+      {/* Évolution du budget — historique mensuel du scope actif. Vide, la
+          carte ne dit que « reviens le mois prochain » : on ne la montre
+          qu'avec des points (ou en développement, pour la semer). */}
       <View ref={tourHistory} collapsable={false}>
+      {history.length > 0 || __DEV__ ? (
       <BudgetHistoryCard
         points={history}
         scopeLabel={resolvedScopeLabel}
@@ -736,6 +730,7 @@ export default function PremiumHomePanel({ onGoBudget }: Props) {
             : undefined
         }
       />
+      ) : null}
       </View>
 
       <ScopeSwitcher

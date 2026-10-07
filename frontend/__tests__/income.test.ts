@@ -116,3 +116,35 @@ describe("mois perçus et montant du mois", () => {
     expect(monthlyNetForSource(once, 11)).toBe(500);
   });
 });
+
+describe("impôt prélevé à la source", () => {
+  const salary = (withholdingPercent?: string): IncomeSource => ({
+    id: "s1",
+    label: "Salaire",
+    type: "salaire",
+    amount: "3000",
+    frequency: "monthly",
+    chargesPercent: "22",
+    withholdingPercent,
+  });
+
+  // 3 000 brut − 22 % = 2 340 net avant impôt ; − 10 % = 2 106 sur le compte.
+  it("réduit le net de la part retenue par l'employeur", () => {
+    expect(monthlyNetForSource(salary("10"), 0)).toBeCloseTo(2106, 2);
+  });
+
+  it("ne change rien sans taux (anciennes sources)", () => {
+    expect(monthlyNetForSource(salary(), 0)).toBeCloseTo(2340, 2);
+    expect(monthlyNetForSource(salary("0"), 0)).toBeCloseTo(2340, 2);
+  });
+
+  it("borne un taux aberrant", () => {
+    expect(monthlyNetForSource(salary("150"), 0)).toBeCloseTo(2340 * 0.4, 2);
+    expect(monthlyNetForSource(salary("-5"), 0)).toBeCloseTo(2340, 2);
+  });
+
+  // La dîme sur le net se calcule sur ce qui arrive vraiment sur le compte.
+  it("applique la dîme après l'impôt", () => {
+    expect(monthlyNetForSource({ ...salary("10"), titheApplied: true }, 0, 10)).toBeCloseTo(2106 * 0.9, 2);
+  });
+});

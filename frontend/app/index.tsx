@@ -1628,6 +1628,7 @@ export default function Index() {
         setIncomeForm={setIncomeForm}
         currency={currency}
         tithePercent={tithePercent}
+        countryCode={city.countryCode}
         sheetHeight={sheetHeight}
         keyboardVerticalOffset={0}
         t={t}

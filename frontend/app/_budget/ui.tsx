@@ -33,7 +33,9 @@ export function Section({
         </View>
         {action}
       </View>
-      {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
+      {/* Pas de sous-titre quand il y a un bouton d'information : deux
+          explications pour la même chose, c'est une de trop. */}
+      {subtitle && !info ? <Text style={styles.sectionSubtitle}>{subtitle}</Text> : null}
       {children}
     </View>
   );
