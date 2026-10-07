@@ -309,6 +309,10 @@ export default function IncomeModal({
                         name: withholding.name,
                         authority: withholding.authority,
                       }) + (withholding.partial ? "\n\n" + t("help.withholding.ch") : ""),
+                    link: {
+                      label: interpolate(t("help.withholding.link"), { authority: withholding.authority }),
+                      url: withholding.url,
+                    },
                   }}
                   icon={<Feather name="file-text" size={18} color={GOLD} />}
                   right="%"

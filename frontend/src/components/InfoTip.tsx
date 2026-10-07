@@ -8,7 +8,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Linking, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useLang } from "../contexts/LangContext";
 import { useAccent } from "../contexts/ThemeContext";
 import { alpha } from "../theme/accents";
@@ -18,9 +18,14 @@ const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#A8B3C7";
 const BORDER = "rgba(255,255,255,0.10)";
 
-export type InfoContent = { title: string; body: string };
+export type InfoContent = {
+  title: string;
+  body: string;
+  /** Page officielle à ouvrir (barème, fiche) : la source, pas une paraphrase. */
+  link?: { label: string; url: string };
+};
 
-export function InfoTip({ title, body, testID }: InfoContent & { testID?: string }) {
+export function InfoTip({ title, body, link, testID }: InfoContent & { testID?: string }) {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
@@ -49,6 +54,18 @@ export function InfoTip({ title, body, testID }: InfoContent & { testID?: string
               <Text style={styles.title}>{title}</Text>
             </View>
             <Text style={styles.body}>{body}</Text>
+            {link ? (
+              <TouchableOpacity
+                onPress={() => void Linking.openURL(link.url).catch(() => {})}
+                style={styles.link}
+                accessibilityRole="link"
+                activeOpacity={0.7}
+                testID={testID ? `${testID}-link` : undefined}
+              >
+                <Feather name="external-link" size={14} color={GOLD} />
+                <Text style={styles.linkText}>{link.label}</Text>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity onPress={() => setOpen(false)} style={styles.close} accessibilityRole="button" activeOpacity={0.85}>
               <Text style={styles.closeText}>{t("help.gotIt")}</Text>
             </TouchableOpacity>
@@ -69,6 +86,8 @@ const makeStyles = (GOLD: string) =>
       justifyContent: "center",
       backgroundColor: alpha(GOLD, 0.12),
     },
+    link: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 14, alignSelf: "flex-start" },
+    linkText: { color: GOLD, fontSize: 14, fontWeight: "700", textDecorationLine: "underline" },
     backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: 24 },
     sheet: { backgroundColor: SURFACE, borderRadius: 18, borderWidth: 1, borderColor: BORDER, padding: 20 },
     head: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },

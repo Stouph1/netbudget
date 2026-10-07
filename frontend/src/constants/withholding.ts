@@ -59,7 +59,7 @@ export const WITHHOLDING: Record<string, Withholding> = {
   LU: {
     name: "retenue d'impôt sur les salaires",
     authority: "Administration des contributions directes",
-    url: "https://impotsdirects.public.lu/fr/salpens.html",
+    url: "https://impotsdirects.public.lu/fr/baremes.html",
   },
   CH: {
     name: "impôt à la source",
@@ -115,7 +115,7 @@ export const WITHHOLDING: Record<string, Withholding> = {
   US: {
     name: "federal income tax withholding (Form W-4)",
     authority: "IRS",
-    url: "https://www.irs.gov/individuals/employees/tax-withholding",
+    url: "https://www.irs.gov/publications/p15t",
   },
   CA: {
     name: "retenues à la source / source deductions",
@@ -145,7 +145,7 @@ export const WITHHOLDING: Record<string, Withholding> = {
   ZA: {
     name: "PAYE",
     authority: "SARS",
-    url: "https://www.sars.gov.za",
+    url: "https://www.sars.gov.za/types-of-tax/pay-as-you-earn/",
   },
   IN: {
     name: "TDS on salary (section 192)",

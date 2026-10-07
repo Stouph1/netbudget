@@ -3475,4 +3475,5 @@ export const ja: Catalog = {
   "help.withholding.title": "給与から天引きされる税金",
   "help.withholding.body": "この国では所得税は雇用主が給与から直接差し引きます：{name}。差し引かれる割合は給与明細に記載されています。ここに入力すると、算出される手取りが実際に口座に入る金額になります。出典：{authority}",
   "help.withholding.ch": "スイスで対象になるのは源泉課税の従業員（B・L 許可、越境労働者）だけです。C 許可またはスイス国籍の場合は分割納付のため、0 のままにして支出側に見込んでください。",
+  "help.withholding.link": "公式の税額表を見る（{authority}）",
 };

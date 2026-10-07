@@ -3475,4 +3475,5 @@ export const en: Catalog = {
   "help.withholding.title": "Tax withheld from your pay",
   "help.withholding.body": "In this country, income tax is withheld from your salary by your employer: {name}. The share withheld is on your payslip. Enter it here so the net we compute is what actually lands in your account. Source: {authority}.",
   "help.withholding.ch": "In Switzerland, only employees taxed at source are concerned (B and L permits, cross-border workers). With a C permit or Swiss citizenship, tax is paid in instalments: leave 0 and plan for it in your expenses.",
+  "help.withholding.link": "See the official tables ({authority})",
 };

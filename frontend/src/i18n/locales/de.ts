@@ -3475,4 +3475,5 @@ export const de: Catalog = {
   "help.withholding.title": "Vom Lohn einbehaltene Steuer",
   "help.withholding.body": "In diesem Land behält der Arbeitgeber die Einkommensteuer direkt vom Gehalt ein: {name}. Der einbehaltene Anteil steht auf deiner Gehaltsabrechnung. Trag ihn hier ein, damit das berechnete Netto dem entspricht, was wirklich auf deinem Konto ankommt. Quelle: {authority}.",
   "help.withholding.ch": "In der Schweiz betrifft das nur quellenbesteuerte Angestellte (Ausweis B und L, Grenzgänger). Mit Ausweis C oder Schweizer Pass zahlst du die Steuer in Raten: 0 lassen und sie bei den Ausgaben einplanen.",
+  "help.withholding.link": "Offizielle Tabellen ansehen ({authority})",
 };

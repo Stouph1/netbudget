@@ -3475,4 +3475,5 @@ export const es: Catalog = {
   "help.withholding.title": "Impuesto retenido del salario",
   "help.withholding.body": "En este país, el empleador retiene el impuesto sobre la renta de tu salario: {name}. La parte retenida figura en tu nómina. Indícala aquí para que el neto calculado sea el que llega de verdad a tu cuenta. Fuente: {authority}.",
   "help.withholding.ch": "En Suiza solo afecta a los asalariados gravados en la fuente (permisos B y L, transfronterizos). Con permiso C o nacionalidad suiza, el impuesto se paga a plazos: deja 0 y prevélo en tus gastos.",
+  "help.withholding.link": "Ver las tablas oficiales ({authority})",
 };

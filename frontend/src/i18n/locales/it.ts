@@ -3475,4 +3475,5 @@ export const it: Catalog = {
   "help.withholding.title": "Imposta trattenuta sullo stipendio",
   "help.withholding.body": "In questo paese l'imposta sul reddito è trattenuta dal datore di lavoro direttamente sullo stipendio: {name}. La parte trattenuta è in busta paga. Inseriscila qui perché il netto calcolato sia quello che arriva davvero sul tuo conto. Fonte: {authority}.",
   "help.withholding.ch": "In Svizzera riguarda solo i dipendenti tassati alla fonte (permessi B e L, frontalieri). Con permesso C o cittadinanza svizzera l'imposta si paga a rate: lascia 0 e prevedila tra le spese.",
+  "help.withholding.link": "Vedi le tabelle ufficiali ({authority})",
 };
