@@ -1,12 +1,17 @@
 ---
-// Le monde couvert par l'app : un globe qu'on fait tourner du doigt, avec un
-// point lumineux par pays, d'autant plus gros que le pays compte de villes
-// dans l'app. Les chiffres viennent du code (`src/constants/cities.ts`) : un
-// pays sans ville dans l'app n'a pas de point, et n'en aura pas ici.
+// Le monde couvert par l'app : un globe qu'on fait tourner du doigt, les
+// continents en pointillés (Natural Earth, voir scripts/make-land-dots.mjs),
+// et un point lumineux par pays, d'autant plus gros que le pays compte de
+// villes dans l'app. Les chiffres viennent du code (`src/constants/cities.ts`).
 //
 // Pas de bibliothèque : le site n'autorise aucun script externe (CSP). Un
 // canvas, une projection orthographique, et c'est tout. Sous « réduire les
 // animations », le globe ne tourne pas tout seul mais se laisse tourner.
+//
+// Et un secret : trois taps dans l'Atlantique lancent une invasion. Des
+// soucoupes viennent prendre les points NETbudget, le doigt est le viseur. Quand
+// tout est perdu, la Terre explose, GAME OVER, et il ne reste qu'à laisser un
+// avis sur l'app. C'est une blague, mais une blague finie.
 import { useTranslations, type Locale } from "../i18n/utils";
 
 interface Props {
@@ -35,6 +40,8 @@ const COUNTRIES: Record<string, [number, number, number]> = {
 };
 const countryCount = Object.keys(COUNTRIES).length;
 const cityCount = Object.values(COUNTRIES).reduce((s, c) => s + c[2], 0);
+const APPSTORE_REVIEW = "https://apps.apple.com/app/id6763551701?action=write-review";
+const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
 ---
 
 <section id="world" class="relative overflow-hidden scroll-mt-20">
@@ -77,7 +84,37 @@ const cityCount = Object.values(COUNTRIES).reduce((s, c) => s + c[2], 0);
           data-countries={JSON.stringify(COUNTRIES)}
           data-locale={locale}
           data-cities-label={t("world.citiesIn")}
+          data-game-score={t("world.game.score")}
+          data-game-left={t("world.game.left")}
+          data-game-over={t("world.game.over")}
+          data-game-start={t("world.game.start")}
         ></canvas>
+
+        {/* Pendant la partie : un seul bouton, pour en sortir. */}
+        <button
+          id="globe-quit"
+          type="button"
+          class="absolute bottom-2 right-2 hidden min-h-11 items-center rounded-full border border-white/15 bg-ink-900/80 px-4 text-sm font-semibold text-text-1 backdrop-blur"
+        >
+          {t("world.game.quit")}
+        </button>
+
+        {/* Fin de partie : la Terre a explosé, il reste l'avis à laisser. */}
+        <div
+          id="globe-gameover"
+          class="absolute inset-x-4 bottom-4 hidden rounded-3xl border border-pink-400/40 bg-ink-900/90 p-6 text-center backdrop-blur-xl"
+          role="dialog"
+          aria-labelledby="globe-gameover-title"
+        >
+          <p id="globe-gameover-title" class="text-2xl font-black uppercase tracking-[0.2em] text-pink-400">{t("world.game.over")}</p>
+          <p class="mt-2 text-sm text-text-2">{t("world.game.overBody")}</p>
+          <p class="mt-3 text-sm font-semibold tabular-nums text-text-1"><span id="globe-final-score">0</span></p>
+          <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <a href={APPSTORE_REVIEW} target="_blank" rel="noopener noreferrer" class="btn-primary !px-4 !py-2 text-sm">{t("world.game.reviewApple")}</a>
+            <a href={PLAYSTORE_URL} target="_blank" rel="noopener noreferrer" class="btn-primary !px-4 !py-2 text-sm">{t("world.game.reviewGoogle")}</a>
+            <button id="globe-again" type="button" class="btn-secondary !px-4 !py-2 text-sm">{t("world.game.again")}</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -87,27 +124,41 @@ const cityCount = Object.values(COUNTRIES).reduce((s, c) => s + c[2], 0);
   (function () {
     const canvas = document.getElementById("globe");
     const caption = document.getElementById("globe-caption");
+    const quitBtn = document.getElementById("globe-quit");
+    const overPanel = document.getElementById("globe-gameover");
+    const againBtn = document.getElementById("globe-again");
+    const finalScore = document.getElementById("globe-final-score");
     if (!canvas || !canvas.getContext) return;
     const ctx = canvas.getContext("2d");
     const data = JSON.parse(canvas.dataset.countries || "{}");
     const locale = canvas.dataset.locale || "fr";
-    const citiesLabel = canvas.dataset.citiesLabel || "{n} villes";
+    const citiesLabel = canvas.dataset.citiesLabel || "{n}";
+    const L = { score: canvas.dataset.gameScore || "Score", left: canvas.dataset.gameLeft || "{n}", over: canvas.dataset.gameOver || "GAME OVER" };
     const names = (() => {
       try { return new Intl.DisplayNames([locale], { type: "region" }); } catch { return null; }
     })();
     const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const restHint = caption ? caption.textContent : "";
+    const D2R = Math.PI / 180;
 
     const points = Object.entries(data).map(([code, [lat, lon, n]]) => ({
-      code, n,
-      lat: (lat * Math.PI) / 180, lon: (lon * Math.PI) / 180,
-      r: 2.2 + Math.min(6, Math.sqrt(n) * 0.9),
+      code, n, lat: lat * D2R, lon: lon * D2R, r: 2.2 + Math.min(6, Math.sqrt(n) * 0.9), alive: true, sx: 0, sy: 0, sz: -1,
     }));
 
+    // Les continents : un tableau plat [lat×10, lon×10, …], chargé à part pour
+    // ne pas alourdir la page. Sans lui, le globe reste lisible, juste nu.
+    let land = [];
+    fetch("/land.json").then((r) => r.json()).then((arr) => {
+      const out = [];
+      for (let i = 0; i < arr.length; i += 2) out.push([(arr[i] / 10) * D2R, (arr[i + 1] / 10) * D2R]);
+      land = out;
+    }).catch(() => {});
+
     let W = 0, H = 0, R = 0, dpr = 1;
-    let rotY = -0.35, rotX = 0.35; // longitude et inclinaison, en radians
-    let dragging = false, lastX = 0, lastY = 0, velocity = 0.0022;
-    let hovered = null, lastFrame = 0, visible = true;
+    let rotY = -0.35, rotX = 0.35;
+    let dragging = false, lastX = 0, lastY = 0, moved = 0;
+    const velocity = 0.0022;
+    let hovered = null, lastFrame = 0, visible = true, pointer = null;
 
     function resize() {
       dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -116,89 +167,231 @@ const cityCount = Object.values(COUNTRIES).reduce((s, c) => s + c[2], 0);
       canvas.width = size * dpr; canvas.height = size * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-
-    // Projection orthographique : un point au dos de la sphère a z < 0.
     function project(lat, lon) {
       const l = lon + rotY;
-      const x0 = Math.cos(lat) * Math.sin(l);
-      const y0 = Math.sin(lat);
-      const z0 = Math.cos(lat) * Math.cos(l);
+      const x0 = Math.cos(lat) * Math.sin(l), y0 = Math.sin(lat), z0 = Math.cos(lat) * Math.cos(l);
       const y = y0 * Math.cos(rotX) - z0 * Math.sin(rotX);
       const z = y0 * Math.sin(rotX) + z0 * Math.cos(rotX);
       return { x: W / 2 + x0 * R, y: H / 2 - y * R, z };
     }
+    // L'inverse : d'un point de l'écran vers une latitude et une longitude.
+    function unproject(x, y) {
+      const nx = (x - W / 2) / R, ny = -(y - H / 2) / R;
+      const d = nx * nx + ny * ny;
+      if (d > 1) return null;
+      const nz = Math.sqrt(1 - d);
+      const y0 = ny * Math.cos(rotX) + nz * Math.sin(rotX);
+      const z0 = -ny * Math.sin(rotX) + nz * Math.cos(rotX);
+      let lon = Math.atan2(nx, z0) - rotY;
+      lon = ((lon + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+      return { lat: Math.asin(y0) / D2R, lon: lon / D2R };
+    }
 
-    function draw(now) {
-      if (!dragging && !reduced && visible) rotY += velocity * Math.min(2, (now - lastFrame) / 16 || 1);
-      lastFrame = now;
-      ctx.clearRect(0, 0, W, H);
+    // ----- Le jeu ---------------------------------------------------------
+    const game = { on: false, over: false, ships: [], parts: [], score: 0, t0: 0, lastSpawn: 0, shots: [], boom: 0, shake: 0 };
+    const taps = []; // horodatages des taps dans l'Atlantique
 
-      // Sphère
-      const g = ctx.createRadialGradient(W / 2 - R * 0.35, H / 2 - R * 0.4, R * 0.1, W / 2, H / 2, R);
-      g.addColorStop(0, "#1a2f5e"); g.addColorStop(0.7, "#0f1e3d"); g.addColorStop(1, "#0a1224");
-      ctx.beginPath(); ctx.arc(W / 2, H / 2, R, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
-      ctx.strokeStyle = "rgba(110,231,183,0.25)"; ctx.lineWidth = 1; ctx.stroke();
-
-      // Trame de points : la face visible de la sphère, en pointillé discret.
-      ctx.fillStyle = "rgba(255,255,255,0.10)";
-      for (let la = -80; la <= 80; la += 8) {
-        const step = 8 / Math.max(0.25, Math.cos((la * Math.PI) / 180));
-        for (let lo = -180; lo < 180; lo += step) {
-          const p = project((la * Math.PI) / 180, (lo * Math.PI) / 180);
-          if (p.z <= 0.02) continue;
-          ctx.globalAlpha = 0.35 + 0.65 * p.z;
-          ctx.beginPath(); ctx.arc(p.x, p.y, 1.1, 0, Math.PI * 2); ctx.fill();
+    function inAtlantic(ll) {
+      if (!ll) return false;
+      if (ll.lat < -45 || ll.lat > 62 || ll.lon < -62 || ll.lon > -12) return false;
+      // Pas sur la terre : à plus de 2° de tout point de continent.
+      const la = ll.lat * D2R, lo = ll.lon * D2R;
+      for (const [plat, plon] of land) if (Math.abs(plat - la) < 0.035 && Math.abs(plon - lo) < 0.035) return false;
+      return true;
+    }
+    function startGame() {
+      game.on = true; game.over = false; game.ships = []; game.parts = []; game.shots = []; game.score = 0; game.boom = 0; game.shake = 0;
+      game.t0 = performance.now(); game.lastSpawn = 0;
+      for (const p of points) p.alive = true;
+      canvas.classList.add("cursor-none"); canvas.classList.remove("cursor-grab");
+      if (quitBtn) quitBtn.classList.remove("hidden"); if (quitBtn) quitBtn.classList.add("inline-flex");
+      if (overPanel) overPanel.classList.add("hidden");
+      if (caption) caption.textContent = canvas.dataset.gameStart || "";
+    }
+    function stopGame() {
+      game.on = false; game.over = false; game.ships = []; game.parts = []; game.shots = [];
+      for (const p of points) p.alive = true;
+      canvas.classList.remove("cursor-none"); canvas.classList.add("cursor-grab");
+      if (quitBtn) { quitBtn.classList.add("hidden"); quitBtn.classList.remove("inline-flex"); }
+      if (overPanel) overPanel.classList.add("hidden");
+      if (caption) caption.textContent = restHint;
+    }
+    function spawnShip(now) {
+      const a = Math.random() * Math.PI * 2;
+      const elapsed = (now - game.t0) / 1000;
+      game.ships.push({ x: W / 2 + Math.cos(a) * R * 1.25, y: H / 2 + Math.sin(a) * R * 1.25, speed: 0.7 + Math.min(1.4, elapsed / 40), target: null, wob: Math.random() * 10 });
+    }
+    function burst(x, y, color, n) {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 3;
+        game.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, color });
+      }
+    }
+    function shoot(x, y) {
+      game.shots.push({ x, y, t: performance.now() });
+      let best = null, bd = 24;
+      for (const s of game.ships) { const d = Math.hypot(s.x - x, s.y - y); if (d < bd) { bd = d; best = s; } }
+      if (best) { game.ships.splice(game.ships.indexOf(best), 1); burst(best.x, best.y, "#F472B6", 18); game.score += 10; }
+    }
+    function endGame(now) {
+      game.over = true; game.boom = now; game.shake = 1;
+      burst(W / 2, H / 2, "#FBBF24", 90); burst(W / 2, H / 2, "#F87171", 60);
+      if (finalScore) finalScore.textContent = `${L.score} : ${game.score}`;
+      setTimeout(() => { if (overPanel && game.over) overPanel.classList.remove("hidden"); }, 1700);
+    }
+    function stepGame(now) {
+      if (game.over) return;
+      const alive = points.filter((p) => p.alive && p.sz > 0);
+      if (!alive.length) { endGame(now); return; }
+      const interval = Math.max(380, 1400 - (now - game.t0) / 30);
+      if (now - game.lastSpawn > interval && game.ships.length < 9) { spawnShip(now); game.lastSpawn = now; }
+      for (const s of game.ships) {
+        if (!s.target || !s.target.alive || s.target.sz <= 0) s.target = alive[Math.floor(Math.random() * alive.length)];
+        const dx = s.target.sx - s.x, dy = s.target.sy - s.y, d = Math.hypot(dx, dy) || 1;
+        s.x += (dx / d) * s.speed; s.y += (dy / d) * s.speed; s.wob += 0.15;
+        if (d < 7) { s.target.alive = false; burst(s.target.sx, s.target.sy, "#F87171", 10); s.target = null; }
+      }
+    }
+    function drawShip(s, now) {
+      const bob = Math.sin(s.wob) * 1.5;
+      ctx.save(); ctx.translate(s.x, s.y + bob);
+      ctx.fillStyle = "#F472B6"; ctx.beginPath(); ctx.ellipse(0, 0, 11, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#FBCFE8"; ctx.beginPath(); ctx.arc(0, -3, 4.5, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = Math.floor(now / 150) % 2 ? "#FDE68A" : "#F472B6";
+      for (const x of [-6, 0, 6]) { ctx.beginPath(); ctx.arc(x, 2, 1.2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    }
+    function drawGame(now) {
+      // Rayons des tirs, un dixième de seconde.
+      for (const sh of game.shots) {
+        const age = (now - sh.t) / 120; if (age > 1) continue;
+        ctx.strokeStyle = `rgba(110,231,183,${1 - age})`; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(W / 2, H); ctx.lineTo(sh.x, sh.y); ctx.stroke();
+        ctx.beginPath(); ctx.arc(sh.x, sh.y, 10 * (1 - age) + 4, 0, Math.PI * 2); ctx.stroke();
+      }
+      game.shots = game.shots.filter((sh) => now - sh.t < 120);
+      for (const s of game.ships) drawShip(s, now);
+      for (const p of game.parts) {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.life -= 0.02;
+        ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 2.5, 2.5);
+      }
+      ctx.globalAlpha = 1; game.parts = game.parts.filter((p) => p.life > 0);
+      // Viseur
+      if (pointer && !game.over) {
+        ctx.strokeStyle = "#6EE7B7"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 12, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pointer.x - 18, pointer.y); ctx.lineTo(pointer.x - 6, pointer.y); ctx.moveTo(pointer.x + 6, pointer.y); ctx.lineTo(pointer.x + 18, pointer.y);
+        ctx.moveTo(pointer.x, pointer.y - 18); ctx.lineTo(pointer.x, pointer.y - 6); ctx.moveTo(pointer.x, pointer.y + 6); ctx.lineTo(pointer.x, pointer.y + 18);
+        ctx.stroke();
+      }
+      // Tableau de bord
+      ctx.font = "bold 13px ui-monospace, Menlo, monospace"; ctx.textBaseline = "top";
+      ctx.fillStyle = "#6EE7B7"; ctx.textAlign = "left"; ctx.fillText(`${L.score} ${game.score}`, 8, 8);
+      ctx.fillStyle = "#F472B6"; ctx.textAlign = "right";
+      ctx.fillText(L.left.replace("{n}", String(points.filter((p) => p.alive && p.sz > 0).length)), W - 8, 8);
+      if (game.over) {
+        const age = Math.min(1, (now - game.boom) / 1500);
+        ctx.strokeStyle = `rgba(251,191,36,${1 - age})`; ctx.lineWidth = 6 * (1 - age) + 1;
+        for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(W / 2, H / 2, R * (0.2 + age * (1.1 + k * 0.25)), 0, Math.PI * 2); ctx.stroke(); }
+        if (age > 0.5) {
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.font = `900 ${Math.round(W / 9)}px ui-sans-serif, system-ui, sans-serif`;
+          ctx.fillStyle = "#F472B6"; ctx.shadowColor = "#F472B6"; ctx.shadowBlur = 24;
+          ctx.fillText(L.over, W / 2, H / 2); ctx.shadowBlur = 0;
         }
       }
-      ctx.globalAlpha = 1;
+    }
 
-      // Pays : un point lumineux par pays, plus gros s'il a plus de villes.
+    // ----- Rendu ----------------------------------------------------------
+    function draw(now) {
+      if (!dragging && !reduced && visible && !game.on) rotY += velocity * Math.min(2, (now - lastFrame) / 16 || 1);
+      lastFrame = now;
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      if (game.over && game.shake > 0) { ctx.translate((Math.random() - 0.5) * 10 * game.shake, (Math.random() - 0.5) * 10 * game.shake); game.shake = Math.max(0, game.shake - 0.012); }
+
+      const dead = game.over ? Math.min(1, (now - game.boom) / 1500) : 0;
+      const g = ctx.createRadialGradient(W / 2 - R * 0.35, H / 2 - R * 0.4, R * 0.1, W / 2, H / 2, R);
+      g.addColorStop(0, dead ? "#3b1d2e" : "#1a2f5e"); g.addColorStop(0.7, dead ? "#1f0f1a" : "#0f1e3d"); g.addColorStop(1, "#0a1224");
+      ctx.beginPath(); ctx.arc(W / 2, H / 2, R * (1 - dead * 0.35), 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+      ctx.strokeStyle = "rgba(110,231,183,0.25)"; ctx.lineWidth = 1; ctx.stroke();
+
+      // Continents
+      if (!game.over) {
+        ctx.fillStyle = "#6EE7B7";
+        for (const [la, lo] of land) {
+          const p = project(la, lo);
+          if (p.z <= 0.02) continue;
+          ctx.globalAlpha = 0.18 + 0.42 * p.z;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // Pays
       const pulse = reduced ? 1 : 1 + 0.15 * Math.sin(now / 600);
       let nearest = null, nearestD = 18;
       for (const pt of points) {
         const p = project(pt.lat, pt.lon);
         pt.sx = p.x; pt.sy = p.y; pt.sz = p.z;
-        if (p.z <= 0) continue;
+        if (p.z <= 0 || game.over) continue;
         const a = 0.45 + 0.55 * p.z;
+        const col = pt.alive ? "52,211,153" : "248,113,113";
         const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, pt.r * 3.2 * pulse);
-        halo.addColorStop(0, `rgba(52,211,153,${0.55 * a})`); halo.addColorStop(1, "rgba(52,211,153,0)");
+        halo.addColorStop(0, `rgba(${col},${0.55 * a})`); halo.addColorStop(1, `rgba(${col},0)`);
         ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(p.x, p.y, pt.r * 3.2 * pulse, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = `rgba(110,231,183,${a})`; ctx.beginPath(); ctx.arc(p.x, p.y, pt.r, 0, Math.PI * 2); ctx.fill();
-        if (pointer) {
-          const d = Math.hypot(pointer.x - p.x, pointer.y - p.y);
-          if (d < nearestD) { nearestD = d; nearest = pt; }
-        }
+        ctx.fillStyle = pt.alive ? `rgba(110,231,183,${a})` : `rgba(248,113,113,${a})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, pt.r, 0, Math.PI * 2); ctx.fill();
+        if (pointer && !game.on) { const d = Math.hypot(pointer.x - p.x, pointer.y - p.y); if (d < nearestD) { nearestD = d; nearest = pt; } }
       }
-      if (nearest !== hovered) {
+      if (!game.on && nearest !== hovered) {
         hovered = nearest;
-        if (caption) {
-          caption.textContent = hovered
-            ? `${names ? names.of(hovered.code) : hovered.code} · ${citiesLabel.replace("{n}", String(hovered.n))}`
-            : restHint;
-        }
+        if (caption) caption.textContent = hovered ? `${names ? names.of(hovered.code) : hovered.code} · ${citiesLabel.replace("{n}", String(hovered.n))}` : restHint;
       }
-      if (hovered && hovered.sz > 0) {
+      if (!game.on && hovered && hovered.sz > 0) {
         ctx.strokeStyle = "rgba(250,250,250,0.9)"; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(hovered.sx, hovered.sy, hovered.r + 5, 0, Math.PI * 2); ctx.stroke();
       }
+      if (game.on) { stepGame(now); drawGame(now); }
+      ctx.restore();
       requestAnimationFrame(draw);
     }
 
-    let pointer = null;
-    canvas.addEventListener("pointerdown", (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+    // ----- Entrées --------------------------------------------------------
+    const local = (e) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    canvas.addEventListener("pointerdown", (e) => {
+      const p = local(e); pointer = p;
+      if (game.on) { if (!game.over) shoot(p.x, p.y); return; }
+      dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId);
+    });
     canvas.addEventListener("pointermove", (e) => {
-      const rect = canvas.getBoundingClientRect();
-      pointer = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-      if (!dragging) return;
+      pointer = local(e);
+      if (!dragging || game.on) return;
+      moved += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
       rotY += (e.clientX - lastX) * 0.006;
       rotX = Math.max(-1.2, Math.min(1.2, rotX + (e.clientY - lastY) * 0.006));
       lastX = e.clientX; lastY = e.clientY;
     });
-    const stop = () => { dragging = false; };
-    canvas.addEventListener("pointerup", stop); canvas.addEventListener("pointercancel", stop);
-    canvas.addEventListener("pointerleave", () => { dragging = false; pointer = null; });
+    canvas.addEventListener("pointerup", (e) => {
+      if (game.on) return;
+      dragging = false;
+      // Un tap (pas un glissé) dans l'Atlantique. Trois en deux secondes.
+      if (moved < 6) {
+        const now = performance.now();
+        if (inAtlantic(unproject(local(e).x, local(e).y))) {
+          taps.push(now);
+          while (taps.length && now - taps[0] > 2000) taps.shift();
+          if (taps.length >= 3) { taps.length = 0; startGame(); }
+        } else taps.length = 0;
+      }
+    });
+    canvas.addEventListener("pointercancel", () => { dragging = false; });
+    canvas.addEventListener("pointerleave", () => { dragging = false; if (!game.on) pointer = null; });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && game.on) stopGame(); });
+    if (quitBtn) quitBtn.addEventListener("click", stopGame);
+    if (againBtn) againBtn.addEventListener("click", () => { startGame(); });
 
-    // Onglet masqué ou globe hors écran : on ne tourne pas dans le vide.
     document.addEventListener("visibilitychange", () => { visible = !document.hidden; });
     if ("IntersectionObserver" in window) {
       new IntersectionObserver((es) => { visible = es.some((x) => x.isIntersecting) && !document.hidden; }).observe(canvas);
