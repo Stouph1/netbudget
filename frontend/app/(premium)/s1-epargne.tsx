@@ -90,6 +90,8 @@ function goalPlan(
   lang: Lang,
   t: (key: string) => string,
   tp: (key: string, params: Record<string, string | number>) => string,
+  /** Formate un montant dans la devise affichée : le « € » était codé en dur. */
+  fmtAmount: (n: number) => string,
 ): { text: string; tone: "ok" | "late" } | null {
   const remaining = goal.targetAmount - goal.currentAmount;
   if (remaining <= 0) return { text: t("goals.plan.done"), tone: "ok" };
@@ -99,12 +101,7 @@ function goalPlan(
       month: "long",
       year: "numeric",
     });
-  const euro = (n: number) =>
-    new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(n);
+  const euro = (n: number) => fmtAmount(Math.round(n));
 
   if (goal.targetDate) {
     const monthsLeft =
@@ -488,7 +485,7 @@ export default function S1Epargne() {
             .map(({ g: item, i }) => {
               const color =
                 item.color ?? SEGMENT_COLORS[i % SEGMENT_COLORS.length];
-              const plan = goalPlan(item, lang, t, tp);
+              const plan = goalPlan(item, lang, t, tp, formatEuro);
               return (
                 <TouchableOpacity
                   key={item.id}

@@ -32,6 +32,7 @@ import {
   templateFor,
 } from "../../src/constants/eventTemplates";
 import { useLang } from "../../src/contexts/LangContext";
+import { getCurrency } from "../../src/utils/currency";
 import { useCurrency } from "../../src/contexts/CurrencyContext";
 import { useActiveScope } from "../../src/contexts/ScopeContext";
 import { useSession } from "../../src/contexts/SessionContext";
@@ -428,7 +429,7 @@ export default function EventDetail() {
               setSavedDraft(null);
             }}
           />
-          <Text style={styles.savedEuro}>€</Text>
+          <Text style={styles.savedEuro}>{getCurrency(currency).symbol}</Text>
         </View>
 
         {/* Postes */}
