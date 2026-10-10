@@ -6,7 +6,7 @@ interface Props {
 }
 const { locale } = Astro.props;
 const t = useTranslations(locale);
-const items = ["item1", "item2", "item3", "item4", "item5", "item6"];
+const items = ["item1", "item2", "item3", "item4", "item5", "item6", "item7", "item8"];
 ---
 
 <section id="whatsnew" class="relative">
@@ -19,7 +19,7 @@ const items = ["item1", "item2", "item3", "item4", "item5", "item6"];
           <p class="body-lg mt-4">{t("whatsnew.subtitle")}</p>
         </div>
 
-        <ol class="space-y-4">
+        <ol class="grid gap-4 sm:grid-cols-2">
           {items.map((id, i) => (
             <li class="group flex gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-white/20 hover:bg-white/[0.06] reveal" style={`animation-delay: ${i * 70}ms`}>
               <span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mint-500/15 text-xs font-bold text-mint-400 ring-1 ring-mint-500/30">

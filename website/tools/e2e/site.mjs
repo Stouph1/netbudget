@@ -61,7 +61,8 @@ try {
   ok("hreflang /en/faq -> /faq et /en/faq", hl2.some(x=>x.endsWith("fr=https://netbudget.app/faq")||x.endsWith("/faq")) && hl2.some(x=>x.startsWith("en=")&&x.endsWith("/en/faq")), hl2.join(" "));
   ok("alt des captures traduit", (await page.goto(BASE+"/en",{waitUntil:"networkidle0"}), await page.$$eval("#screens img", is => is.every(i => !/Onglet/.test(i.alt) && i.alt.length>0))));
   // images servies : webp present, dimensions
-  await page.evaluate(() => document.querySelector("#screens").scrollIntoView()); await new Promise(r=>setTimeout(r,1200));
+  // Six captures chargées à la demande : on fait défiler jusqu'à chacune avant de lire ce qui est servi.
+  await page.evaluate(async () => { for (const i of document.querySelectorAll("#screens img")) { i.scrollIntoView(); await new Promise(r => setTimeout(r, 350)); } }); await new Promise(r=>setTimeout(r,1200));
   ok("captures en WebP avec dimensions", await page.$$eval("#screens img", is => is.every(i => i.currentSrc.endsWith(".webp") && i.getAttribute("width")==="720")), await page.$$eval("#screens img", is => is.map(i=>i.currentSrc.split("/").pop()).join(",")));
   // 404
   await page.goto(BASE + "/confirmation?type=signup&lang=fr&code=k1", { waitUntil: "networkidle0" });

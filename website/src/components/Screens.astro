@@ -9,12 +9,16 @@ const { locale } = Astro.props;
 const t = useTranslations(locale);
 
 const screens = [
-  // L'alternative textuelle reprend le libellé traduit : « Onglet Budget » en
-  // dur restait en français sur la page anglaise.
-  { src: "/screens/budget-720", alt: t("screens.budget"), tilt: "left" as const, label: t("screens.budget") },
-  { src: "/screens/converter-720", alt: t("screens.converter"), tilt: "none" as const, label: t("screens.converter") },
-  { src: "/screens/settings-720", alt: t("screens.settings"), tilt: "right" as const, label: t("screens.settings") },
-];
+  // Six captures prises dans l'app (simulateur iPhone, version 2.0), servies
+  // en WebP 720 px avec le PNG en repli. L'alternative textuelle reprend le
+  // libellé traduit.
+  { src: "/screens/budget-720", key: "budget", tilt: "left" as const },
+  { src: "/screens/depenses-720", key: "expenses", tilt: "none" as const },
+  { src: "/screens/reperes-720", key: "benchmark", tilt: "right" as const },
+  { src: "/screens/annee-720", key: "year", tilt: "left" as const },
+  { src: "/screens/notifications-720", key: "notifications", tilt: "none" as const },
+  { src: "/screens/convertir-720", key: "converter", tilt: "right" as const },
+].map((x) => ({ ...x, alt: t(`screens.${x.key}`), label: t(`screens.${x.key}`) }));
 ---
 
 <section id="screens" class="relative overflow-hidden">
@@ -25,10 +29,10 @@ const screens = [
       <p class="body-lg mt-4 text-balance">{t("screens.subtitle")}</p>
     </div>
 
-    <div class="mt-14 grid items-end gap-8 md:grid-cols-3 md:gap-4">
+    <div class="mt-14 grid items-end gap-10 sm:grid-cols-2 md:grid-cols-3 md:gap-x-4 md:gap-y-14">
       {screens.map((s, i) => (
         <div class="flex flex-col items-center gap-4 reveal" style={`animation-delay: ${i * 100}ms`}>
-          <Phone src={s.src} alt={s.alt} tilt={s.tilt} size={i === 1 ? "lg" : "md"} />
+          <Phone src={s.src} alt={s.alt} tilt={s.tilt} size="md" />
           <span class="text-sm font-semibold text-text-2">{s.label}</span>
         </div>
       ))}

@@ -34,16 +34,15 @@ const fr: Catalog = {
   "nav.download": "Télécharger",
 
   // Hero
-  "hero.eyebrow": "Version 1.6 disponible",
+  "hero.eyebrow": "NETbudget 2.0 arrive",
   "hero.title": "Sache ce qu'il te reste",
   "hero.title.accent": "vraiment",
   "hero.title.suffix": " chaque mois.",
-  "hero.subtitle":
-    "NETbudget calcule ton reste à vivre, applique la règle 50/30/20 et te donne des conseils sur-mesure. 100 % sur ton téléphone, sans compte, sans cloud, sans publicité.",
+  "hero.subtitle": "Un budget qui se lit d'un coup d'œil, des repères tirés des statistiques officielles, 282 conseils sourcés, des projets, et des espaces partagés en couple ou en famille. Sans connexion bancaire, sans publicité : ton budget reste sur ton téléphone, et ce qui se synchronise est chiffré avant de partir.",
   "hero.cta.appstore": "Télécharger sur l'App Store",
   "hero.cta.googleplay": "Disponible sur Google Play",
   "hero.cta.learn": "Voir les fonctionnalités",
-  "hero.note": "Gratuit. Sans publicité. Aucune donnée n'est envoyée.",
+  "hero.note": "Budget, prêts et convertisseur gratuits, sans compte. Sans publicité. Aucune connexion bancaire.",
 
   // Links hub (destination unique : App Store + Google Play + compte à rebours)
   "links.eyebrow": "Tous les liens ici",
@@ -74,76 +73,88 @@ const fr: Catalog = {
   // Stats strip
   "stats.languages": "langues",
   "stats.currencies": "devises",
-  "stats.cities": "villes",
   "stats.countries": "pays",
 
   // Screens gallery
-  "screens.eyebrow": "Aperçu de l'app",
-  "screens.title": "Conçu pour aller à l'essentiel",
-  "screens.subtitle": "Trois onglets, zéro friction. Tu calcules ton budget, tu convertis tes devises, tu règles tes préférences.",
-  "screens.budget": "Budget",
+  "screens.eyebrow": "La 2.0 en images",
+  "screens.title": "Un budget qui se comprend sans mode d'emploi",
+  "screens.subtitle": "Captures prises dans l'application, version 2.0. Aucune maquette.",
+  "screens.budget": "Reste à vivre",
   "screens.converter": "Convertisseur",
-  "screens.settings": "Réglages",
 
   // Features
+  "stats.advice": "conseils sourcés",
+  "screens.expenses": "Dépenses",
+  "screens.benchmark": "Repères",
+  "screens.year": "L'année entière",
+  "screens.notifications": "Notifications",
+  "highlights.eyebrow": "Nouveautés 2.0",
+  "highlights.title": "Ce qui change, concrètement",
+  "highlights.subtitle": "Cinq choses que tu verras dès la première ouverture.",
+  "highlights.1.title": "Un budget qui se lit d'un coup d'œil",
+  "highlights.1.text": "Chaque poste a son pictogramme, trouvé depuis son nom dans les huit langues : basketball, Navigo, mutuelle. Une dépense qui ne dure que l'hiver ou l'été se saisit pour ses mois, et le tableau de l'année en tient compte.",
+  "highlights.2.title": "Des repères officiels, pas des opinions",
+  "highlights.2.text": "Ta part logement, courses ou sorties, face à la moyenne des ménages de ton pays : Eurostat en Europe, BLS aux États-Unis, ONS au Royaume-Uni, Statistique Canada, ABS en Australie. L'année de la donnée et la source sont toujours affichées.",
+  "highlights.3.title": "Des notifications qui valent le dérangement",
+  "highlights.3.text": "Le point du mois, le conseil de la semaine, un jalon de projet qui approche, un droit que tu n'as pas réclamé. Tu fixes le plafond hebdomadaire ; la plupart des semaines, il en part moins.",
+  "highlights.4.title": "Un budget à deux, sans tout montrer",
+  "highlights.4.text": "Un code d'invitation, et le budget commun se voit des deux côtés. Chacun garde son espace privé. Ce qui part sur nos serveurs est chiffré sur le téléphone avant d'y arriver.",
+  "highlights.5.title": "Une famille, trois espaces, un foyer",
+  "highlights.5.text": "Jusqu'à six personnes, des espaces par usage, les anniversaires et les projets du foyer : le mariage, le voyage, la naissance, chacun avec son budget guidé, son rétro-planning et ses rappels.",
+  "highlights.alt.notifications": "Écran verrouillé d'un iPhone avec deux notifications NETbudget : un jalon de projet et le point du mois",
+  "highlights.alt.duo": "Deux téléphones côte à côte montrant le même espace partagé, avec le reste à vivre commun et les espaces privés masqués",
+  "highlights.alt.family": "Six membres d'une famille reliés au budget du foyer, avec trois espaces : maison, vacances, enfants",
+  "feature.projects.title": "Un espace par projet",
+  "feature.projects.text": "Mariage, voyage, naissance, fête : un budget guidé, un rétro-planning et un rappel à chaque jalon.",
+  "feature.spaces.title": "En couple ou en famille",
+  "feature.spaces.text": "Des espaces partagés par invitation, un budget commun, et un espace privé pour chacun.",
+  "whatsnew.item7.title": "Impôt prélevé à la source",
+  "whatsnew.item7.text": "Le net calculé est celui qui arrive sur ton compte, dans 32 pays, avec le barème officiel en un tap.",
+  "whatsnew.item8.title": "Chiffrement de bout en bout",
+  "whatsnew.item8.text": "Avec un compte, tes données partent chiffrées. Une phrase de douze mots les rend sur un nouveau téléphone.",
   "features.eyebrow": "Pensé pour ta vie",
-  "features.title": "Tout ce qui compte sur un seul écran",
-  "features.subtitle":
-    "Saisis tes revenus, ton loyer, tes prêts et tes dépenses. NETbudget fait le reste.",
+  "features.title": "Tout ce qui compte, et rien de plus",
+  "features.subtitle": "Saisis tes revenus et tes dépenses. NETbudget calcule, compare et conseille.",
 
   "feature.income.title": "Plusieurs sources de revenus",
-  "feature.income.text":
-    "Salaire, freelance, locatif, dividendes… Chaque source a son propre statut et son propre taux de charges.",
+  "feature.income.text": "Salaire, freelance, locatif, dividendes, chacun avec son taux de charges. Et l'impôt prélevé à la source dans les 32 pays où l'employeur le retient, avec le barème officiel en un tap.",
 
   "feature.rule.title": "Règle 50 / 30 / 20",
-  "feature.rule.text":
-    "Tes dépenses sont réparties en Besoins, Loisirs et Épargne pour identifier immédiatement où agir.",
+  "feature.rule.text": "Besoins, loisirs, épargne : la répartition se voit sur un anneau, avec une cible adaptée à ton profil et à ta ville.",
 
-  "feature.advice.title": "23 conseils personnalisés",
-  "feature.advice.text":
-    "Plafond d'endettement 35 %, loyer ≤ 1/3 du net, fond d'urgence 3-6 mois, profil investisseur — basés sur ta situation réelle.",
+  "feature.advice.title": "282 conseils sourcés",
+  "feature.advice.text": "Chaque conseil cite sa source officielle et dépend de ton pays, de ton âge, de ta famille et de ton logement. Taux d'épargne réglementée et inflation sont relus depuis les séries officielles.",
 
   "feature.world.title": "Partout dans le monde",
-  "feature.world.text":
-    "558 villes dans 59 pays avec un indice du coût de la vie calé sur la moyenne nationale de chaque pays.",
+  "feature.world.text": "499 villes dans 59 pays, avec l'écart de coût de la vie de ta ville face à la moyenne de ton pays.",
 
   "feature.currency.title": "Convertisseur de devises",
-  "feature.currency.text":
-    "15 devises (€, $, £, ¥, franc CFA, BRL, INR…) avec taux en temps réel et historique de conversions.",
+  "feature.currency.text": "15 devises avec des taux à jour et l'historique de tes conversions.",
 
-  "feature.languages.title": "8 langues complètes",
-  "feature.languages.text":
-    "Français, anglais, espagnol, portugais, allemand, italien, arabe et japonais — l'interface, les conseils et le PDF.",
 
   "feature.pdf.title": "Export PDF propre",
-  "feature.pdf.text":
-    "Un document clair avec totaux, répartition et conseils, dans la langue de ton choix.",
+  "feature.pdf.text": "Revenus, dépenses par poste et par période, tableau de l'année et conseils, dans la langue de ton choix.",
 
-  "feature.privacy.title": "100 % local",
-  "feature.privacy.text":
-    "Aucune donnée ne quitte ton téléphone. Pas de compte. Pas de tracking. Pas de publicité.",
+  "feature.privacy.title": "Chiffré, sans connexion bancaire",
+  "feature.privacy.text": "Aucune connexion à ta banque, jamais. Le budget vit sur ton téléphone ; ce qui se synchronise est chiffré avant de partir, avec une clé que toi seul possèdes.",
 
-  "feature.donut.title": "Visualisation immédiate",
-  "feature.donut.text":
-    "Graphique donut de tes dépenses et projection sur 12 mois avec totaux annuels.",
 
   // What's new
-  "whatsnew.eyebrow": "Version 1.6",
-  "whatsnew.title": "La grande mise à jour internationale",
-  "whatsnew.subtitle":
-    "NETbudget passe d'un compagnon budgétaire français à un outil mondial — sans rien lâcher sur la vie privée.",
-  "whatsnew.item1.title": "8 langues complètes",
-  "whatsnew.item1.text": "Français, anglais, espagnol, portugais, allemand, italien, arabe et japonais.",
-  "whatsnew.item2.title": "558 villes / 59 pays",
-  "whatsnew.item2.text": "Sélecteur en deux étapes : pays puis ville triée par région.",
-  "whatsnew.item3.title": "Convertisseur de devises",
-  "whatsnew.item3.text": "15 devises avec taux en temps réel et historique.",
-  "whatsnew.item4.title": "Sources publiques cliquables",
-  "whatsnew.item4.text": "Numbeo, Eurostat, OECD, INSEE, Mercer, EIU, World Bank, BLS.",
-  "whatsnew.item5.title": "Navigation par onglets",
-  "whatsnew.item5.text": "Budget, Convertisseur et Réglages — un tap pour passer de l'un à l'autre.",
-  "whatsnew.item6.title": "Conseils traduits",
-  "whatsnew.item6.text": "23 cartes de conseil personnalisées, traduites dans les 8 langues.",
+  "whatsnew.eyebrow": "Version 2.0",
+  "whatsnew.title": "La plus grande mise à jour depuis le lancement",
+  "whatsnew.subtitle": "Tout ce qui arrive avec la 2.0, en huit points.",
+  "whatsnew.item1.title": "Un budget épuré",
+  "whatsnew.item1.text": "Une ligne par famille au départ, des pictogrammes, des dépenses par période. L'essentiel d'abord.",
+  "whatsnew.item2.title": "Repères face aux moyennes nationales",
+  "whatsnew.item2.text": "Sources officielles : Eurostat, BLS, ONS, Statistique Canada, ABS. Trois repères en gratuit, tous avec une formule.",
+  "whatsnew.item3.title": "Conseil de la semaine",
+  "whatsnew.item3.text": "Un seul conseil chaque lundi, choisi pour ta situation, avec sa source.",
+  "whatsnew.item4.title": "Espaces partagés",
+  "whatsnew.item4.text": "Couple, famille, colocation, association : un budget commun par invitation, un espace privé pour chacun.",
+  "whatsnew.item5.title": "Projets et événements",
+  "whatsnew.item5.text": "Mariage, voyage, naissance : budget guidé, rétro-planning, rappels aux jalons.",
+  "whatsnew.item6.title": "Notifications utiles",
+  "whatsnew.item6.text": "Point du mois, droits non réclamés, jalons, prêts remboursés. Avec un plafond hebdomadaire que tu choisis.",
 
   // Reviews
   "reviews.eyebrow": "Ils utilisent NETbudget",
@@ -515,16 +526,15 @@ const en: Catalog = {
   "nav.download": "Download",
 
   // Hero
-  "hero.eyebrow": "Version 1.6 out now",
+  "hero.eyebrow": "NETbudget 2.0 is coming",
   "hero.title": "Know what you",
   "hero.title.accent": "really",
   "hero.title.suffix": " have left each month.",
-  "hero.subtitle":
-    "NETbudget computes your disposable income, applies the 50/30/20 rule and gives tailored advice. 100% on your phone — no account, no cloud, no ads.",
+  "hero.subtitle": "A budget you read at a glance, benchmarks drawn from official statistics, 282 sourced tips, projects, and shared spaces for couples and families. No bank connection, no ads: your budget stays on your phone, and whatever syncs is encrypted before it leaves.",
   "hero.cta.appstore": "Download on the App Store",
   "hero.cta.googleplay": "Get it on Google Play",
   "hero.cta.learn": "See features",
-  "hero.note": "Free. No ads. No data leaves your device.",
+  "hero.note": "Budget, loans and converter are free, no account needed. No ads. No bank connection.",
 
   // Links hub (single destination: App Store + Google Play + countdown)
   "links.eyebrow": "All links here",
@@ -555,76 +565,88 @@ const en: Catalog = {
   // Stats strip
   "stats.languages": "languages",
   "stats.currencies": "currencies",
-  "stats.cities": "cities",
   "stats.countries": "countries",
 
   // Screens gallery
-  "screens.eyebrow": "App preview",
-  "screens.title": "Designed to get to the point",
-  "screens.subtitle": "Three tabs, zero friction. Compute your budget, convert currencies, tune your preferences.",
-  "screens.budget": "Budget",
+  "screens.eyebrow": "2.0 in pictures",
+  "screens.title": "A budget you understand without a manual",
+  "screens.subtitle": "Screenshots taken in the app, version 2.0. No mockups.",
+  "screens.budget": "Money left",
   "screens.converter": "Converter",
-  "screens.settings": "Settings",
 
   // Features
+  "stats.advice": "sourced tips",
+  "screens.expenses": "Expenses",
+  "screens.benchmark": "Benchmarks",
+  "screens.year": "The whole year",
+  "screens.notifications": "Notifications",
+  "highlights.eyebrow": "New in 2.0",
+  "highlights.title": "What changes, concretely",
+  "highlights.subtitle": "Five things you will see the first time you open it.",
+  "highlights.1.title": "A budget you read at a glance",
+  "highlights.1.text": "Every line gets its own pictogram, found from its name in eight languages: basketball, transit pass, health plan. An expense that only lasts the winter or the summer is entered for its months, and the yearly table follows.",
+  "highlights.2.title": "Official benchmarks, not opinions",
+  "highlights.2.text": "Your housing, grocery or dining share, against the average household in your country: Eurostat in Europe, BLS in the United States, ONS in the United Kingdom, Statistics Canada, ABS in Australia. The year and the source are always shown.",
+  "highlights.3.title": "Notifications worth the interruption",
+  "highlights.3.text": "The monthly check-in, the tip of the week, a project milestone coming up, a benefit you have not claimed. You set the weekly cap; most weeks, fewer go out.",
+  "highlights.4.title": "A budget for two, without showing everything",
+  "highlights.4.text": "One invitation code, and the shared budget shows on both sides. Each of you keeps a private space. Whatever reaches our servers is encrypted on the phone before it gets there.",
+  "highlights.5.title": "One family, three spaces, one household",
+  "highlights.5.text": "Up to six people, spaces by purpose, the household's birthdays and projects: the wedding, the trip, the baby, each with a guided budget, a timeline and reminders.",
+  "highlights.alt.notifications": "iPhone lock screen with two NETbudget notifications: a project milestone and the monthly check-in",
+  "highlights.alt.duo": "Two phones side by side showing the same shared space, with the common money left and private spaces hidden",
+  "highlights.alt.family": "Six family members linked to the household budget, with three spaces: home, holidays, kids",
+  "feature.projects.title": "One space per project",
+  "feature.projects.text": "Wedding, trip, baby, party: a guided budget, a timeline and a reminder at every milestone.",
+  "feature.spaces.title": "As a couple or a family",
+  "feature.spaces.text": "Shared spaces by invitation, one common budget, and a private space for each person.",
+  "whatsnew.item7.title": "Tax withheld at source",
+  "whatsnew.item7.text": "The net we compute is what lands in your account, in 32 countries, with the official tables one tap away.",
+  "whatsnew.item8.title": "End-to-end encryption",
+  "whatsnew.item8.text": "With an account, your data leaves encrypted. A twelve-word phrase brings it back on a new phone.",
   "features.eyebrow": "Built for real life",
-  "features.title": "Everything that matters on a single screen",
-  "features.subtitle":
-    "Enter your income, rent, loans and expenses. NETbudget handles the rest.",
+  "features.title": "Everything that matters, nothing more",
+  "features.subtitle": "Enter your income and expenses. NETbudget computes, compares and advises.",
 
-  "feature.income.title": "Multiple income sources",
-  "feature.income.text":
-    "Salary, freelance, rental, dividends… Each source has its own status and contribution rate.",
+  "feature.income.title": "Several income sources",
+  "feature.income.text": "Salary, freelance, rental, dividends, each with its own deduction rate. Plus income tax withheld at source in the 32 countries where employers withhold it, with the official tables one tap away.",
 
-  "feature.rule.title": "50 / 30 / 20 rule",
-  "feature.rule.text":
-    "Your spending is split across Needs, Wants and Savings so you can immediately see where to act.",
+  "feature.rule.title": "The 50 / 30 / 20 rule",
+  "feature.rule.text": "Needs, wants, savings: the split shows on a ring, with a target adapted to your profile and your city.",
 
-  "feature.advice.title": "23 personalised tips",
-  "feature.advice.text":
-    "Debt ceiling 35%, rent ≤ 1/3 of net, 3-6 months emergency fund, investor profile — all based on your real numbers.",
+  "feature.advice.title": "282 sourced tips",
+  "feature.advice.text": "Every tip cites its official source and depends on your country, age, family and housing. Regulated savings rates and inflation are re-read from official series.",
 
-  "feature.world.title": "Worldwide coverage",
-  "feature.world.text":
-    "558 cities across 59 countries, each with a cost-of-living index normalised to the country's national average.",
+  "feature.world.title": "Anywhere in the world",
+  "feature.world.text": "499 cities in 59 countries, with your city's cost-of-living gap against your country's average.",
 
   "feature.currency.title": "Currency converter",
-  "feature.currency.text":
-    "15 currencies (USD, EUR, GBP, JPY, CFA franc, BRL, INR…) with live FX rates and conversion history.",
+  "feature.currency.text": "15 currencies with up-to-date rates and your conversion history.",
 
-  "feature.languages.title": "8 fully translated languages",
-  "feature.languages.text":
-    "French, English, Spanish, Portuguese, German, Italian, Arabic and Japanese — UI, advice and PDF report.",
 
   "feature.pdf.title": "Clean PDF export",
-  "feature.pdf.text":
-    "A clear document with totals, breakdown and advice, exported in your chosen language.",
+  "feature.pdf.text": "Income, expenses by line and by period, the yearly table and tips, in the language of your choice.",
 
-  "feature.privacy.title": "100% on-device",
-  "feature.privacy.text":
-    "No data leaves your phone. No account. No tracking. No ads.",
+  "feature.privacy.title": "Encrypted, no bank connection",
+  "feature.privacy.text": "No connection to your bank, ever. The budget lives on your phone; whatever syncs is encrypted before it leaves, with a key only you hold.",
 
-  "feature.donut.title": "Instant visualisation",
-  "feature.donut.text":
-    "A donut chart of your expenses and a 12-month projection with annual totals.",
 
   // What's new
-  "whatsnew.eyebrow": "Version 1.6",
-  "whatsnew.title": "The big international update",
-  "whatsnew.subtitle":
-    "NETbudget moves from a French budgeting companion to a worldwide tool — without compromising on privacy.",
-  "whatsnew.item1.title": "8 fully translated languages",
-  "whatsnew.item1.text": "French, English, Spanish, Portuguese, German, Italian, Arabic and Japanese.",
-  "whatsnew.item2.title": "558 cities / 59 countries",
-  "whatsnew.item2.text": "Two-step picker: pick your country, then your city grouped by region.",
-  "whatsnew.item3.title": "Currency converter",
-  "whatsnew.item3.text": "15 currencies with live exchange rates and history.",
-  "whatsnew.item4.title": "Clickable public sources",
-  "whatsnew.item4.text": "Numbeo, Eurostat, OECD, INSEE, Mercer, EIU, World Bank, BLS.",
-  "whatsnew.item5.title": "Tab-based navigation",
-  "whatsnew.item5.text": "Budget, Converter and Settings — one tap to switch.",
-  "whatsnew.item6.title": "Translated advice",
-  "whatsnew.item6.text": "23 personalised tip cards translated across all 8 languages.",
+  "whatsnew.eyebrow": "Version 2.0",
+  "whatsnew.title": "The biggest update since launch",
+  "whatsnew.subtitle": "Everything that ships with 2.0, in eight points.",
+  "whatsnew.item1.title": "A lighter budget",
+  "whatsnew.item1.text": "One line per family to start, pictograms, expenses by period. The essentials first.",
+  "whatsnew.item2.title": "Benchmarks against national averages",
+  "whatsnew.item2.text": "Official sources: Eurostat, BLS, ONS, Statistics Canada, ABS. Three benchmarks for free, all of them with a plan.",
+  "whatsnew.item3.title": "Tip of the week",
+  "whatsnew.item3.text": "One tip every Monday, chosen for your situation, with its source.",
+  "whatsnew.item4.title": "Shared spaces",
+  "whatsnew.item4.text": "Couple, family, flatmates, association: a common budget by invitation, a private space for each.",
+  "whatsnew.item5.title": "Projects and events",
+  "whatsnew.item5.text": "Wedding, trip, baby: guided budget, timeline, milestone reminders.",
+  "whatsnew.item6.title": "Useful notifications",
+  "whatsnew.item6.text": "Monthly check-in, unclaimed benefits, milestones, loans paid off. With a weekly cap you choose.",
 
   // Reviews
   "reviews.eyebrow": "They use NETbudget",

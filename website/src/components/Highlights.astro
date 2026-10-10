@@ -1,0 +1,94 @@
+---
+// Les nouveautés de la 2.0, en images : une rangée par nouveauté, l'image
+// d'un côté, deux phrases de l'autre, en alternance. Les captures viennent
+// de l'application ; les deux visuels Duo et Famille sont les affiches des
+// vidéos d'annonce, et la capture des notifications est un vrai écran
+// verrouillé.
+import Phone from "./Phone.astro";
+import { useTranslations, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+type Row =
+  | { n: number; kind: "phone"; src: string; alt: string }
+  | { n: number; kind: "image"; src: string; alt: string; ratio: string; width: number; height: number };
+
+const rows: Row[] = [
+  { n: 1, kind: "phone", src: "/screens/depenses-720", alt: t("screens.expenses") },
+  { n: 2, kind: "phone", src: "/screens/reperes-720", alt: t("screens.benchmark") },
+  {
+    n: 3,
+    kind: "image",
+    src: "/promo/notifications",
+    alt: t("highlights.alt.notifications"),
+    ratio: "aspect-[1170/650]",
+    width: 1170,
+    height: 650,
+  },
+  { n: 4, kind: "image", src: "/promo/03-duo", alt: t("highlights.alt.duo"), ratio: "aspect-[18/25]", width: 720, height: 1000 },
+  { n: 5, kind: "image", src: "/promo/04-famille", alt: t("highlights.alt.family"), ratio: "aspect-[18/25]", width: 720, height: 1000 },
+];
+---
+
+<section id="highlights" class="relative overflow-hidden">
+  <div class="container-app py-20 md:py-28">
+    <div class="mx-auto max-w-3xl text-center reveal">
+      <span class="eyebrow">{t("highlights.eyebrow")}</span>
+      <h2 class="heading-2 mt-4 text-balance">{t("highlights.title")}</h2>
+      <p class="body-lg mt-4 text-balance">{t("highlights.subtitle")}</p>
+    </div>
+
+    <div class="mt-16 space-y-20 md:space-y-28">
+      {rows.map((r, i) => (
+        <div
+          class:list={[
+            "grid items-center gap-10 md:grid-cols-2 md:gap-16 reveal",
+            i % 2 === 1 ? "md:[&>*:first-child]:order-2" : "",
+          ]}
+        >
+          <div class="flex justify-center">
+            {r.kind === "phone" ? (
+              <Phone src={r.src} alt={r.alt} size="md" />
+            ) : (
+              <div
+                class:list={[
+                  "relative w-full overflow-hidden rounded-[28px] border border-white/10 bg-ink-800 shadow-[0_30px_80px_-20px_rgba(16,185,129,0.25),0_10px_40px_-10px_rgba(0,0,0,0.6)]",
+                  r.ratio,
+                  r.ratio === "aspect-[18/25]" ? "max-w-[320px] sm:max-w-[360px]" : "max-w-[560px]",
+                ]}
+              >
+                <picture>
+                  <source srcset={`${r.src}.webp`} type="image/webp" />
+                  <img
+                    src={`${r.src}.jpg`}
+                    alt={r.alt}
+                    width={r.width}
+                    height={r.height}
+                    loading="lazy"
+                    decoding="async"
+                    class="absolute inset-0 h-full w-full object-cover"
+                  />
+                </picture>
+                <div aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-[28px] ring-1 ring-inset ring-white/5"></div>
+              </div>
+            )}
+          </div>
+
+          <div class="mx-auto max-w-lg text-center md:mx-0 md:text-left">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-mint-500/15 text-sm font-bold text-mint-400 ring-1 ring-mint-500/30">
+              {r.n}
+            </span>
+            <h3 class="mt-4 text-2xl font-bold tracking-tight text-text-1 text-balance md:text-3xl">
+              {t(`highlights.${r.n}.title`)}
+            </h3>
+            <p class="body-lg mt-4">{t(`highlights.${r.n}.text`)}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
