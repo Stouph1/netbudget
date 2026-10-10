@@ -3,6 +3,11 @@
 
 import type { Country } from "../types/advice";
 
+/**
+ * Les libellés ci-dessous sont le français de repli. L'écran les traduit via
+ * `countryOptions(t)` : affichés tels quels, ils restaient en français dans
+ * les sept autres langues.
+ */
 export const COUNTRY_OPTIONS: { value: Country; label: string }[] = [
   { value: "FR", label: "France" },
   { value: "BE", label: "Belgique" },
@@ -58,3 +63,11 @@ export const FR_DROM: string[] = [
   "La Réunion",
   "Mayotte",
 ];
+
+/** Les mêmes options, libellées dans la langue de l'app (`country.<code>`). */
+export function countryOptions(t: (key: string) => string): { value: Country; label: string }[] {
+  return COUNTRY_OPTIONS.map((o) => {
+    const translated = t(`country.${o.value}`);
+    return { value: o.value, label: translated === `country.${o.value}` ? o.label : translated };
+  });
+}

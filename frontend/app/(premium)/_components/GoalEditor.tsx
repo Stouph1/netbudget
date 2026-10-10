@@ -19,6 +19,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLang } from "../../../src/contexts/LangContext";
+import { useCurrency } from "../../../src/contexts/CurrencyContext";
+import { getCurrency } from "../../../src/utils/currency";
+import { interpolate } from "../../../src/utils/advice";
 import { InfoTip } from "../../../src/components/InfoTip";
 import { confirmDialog, notify } from "../../../src/utils/notify";
 import type { SavingsGoal } from "../../../src/types/premium";
@@ -67,6 +70,9 @@ export default function GoalEditor({
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t } = useLang();
+  // Le symbole de la devise affichée : les libellés disaient « € » quelle que
+  // soit la devise choisie.
+  const cur = getCurrency(useCurrency().currency).symbol;
   const sheetBottom = useSheetBottom(36);
   const insets = useSafeAreaInsets();
 
@@ -221,7 +227,7 @@ export default function GoalEditor({
             />
 
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text style={styles.label}>{t("goals.field.target")}</Text>
+              <Text style={styles.label}>{interpolate(t("goals.field.target"), { cur })}</Text>
               <InfoTip title={t("help.goalTarget.title")} body={t("help.goalTarget.body")} />
             </View>
             <TextInput
@@ -234,7 +240,7 @@ export default function GoalEditor({
             />
 
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text style={styles.label}>{t("goals.field.current")}</Text>
+              <Text style={styles.label}>{interpolate(t("goals.field.current"), { cur })}</Text>
               <InfoTip title={t("help.goalCurrent.title")} body={t("help.goalCurrent.body")} />
             </View>
             <TextInput

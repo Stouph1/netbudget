@@ -21,7 +21,6 @@ import {
   ProStatus,
   STATUS_DEFAULT_CHARGES,
   STATUS_LABEL,
-  TYPE_HINT,
   TYPE_ICON,
   TYPE_LABEL,
 } from "../../../src/utils/income";
@@ -292,7 +291,7 @@ export default function IncomeModal({
                 onChangeText={(v) => setIncomeForm((f) => ({ ...f, chargesPercent: v }))}
                 keyboardType="decimal-pad"
                 placeholder="0"
-                hintText={TYPE_HINT[incomeForm.type]}
+                hintText={t(`income.hint.${incomeForm.type}`)}
                 testID="income-charges"
               />
 

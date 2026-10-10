@@ -24,7 +24,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScopeSwitcher from "../../src/components/ScopeSwitcher";
-import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
+import { countryOptions, FR_REGIONS } from "../../src/constants/geo";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { usePaywall } from "../../src/hooks/usePaywall";
@@ -427,7 +427,7 @@ function profileSummary(
   if (mode !== "coloc" && p.tmi)
     parts.push(tp("coach.summary.tmi", { rate: p.tmi }));
   if (p.country && p.country !== "FR") {
-    parts.push(COUNTRY_OPTIONS.find((o) => o.value === p.country)?.label);
+    parts.push(countryOptions(t).find((o) => o.value === p.country)?.label);
   }
   if ((p.country ?? "FR") === "FR" && p.region) parts.push(p.region);
   return parts.filter(Boolean).join(" · ");
@@ -514,7 +514,7 @@ export default function AdviceScreen() {
     if (age) parts.push(age);
     if (profile.region) parts.push(profile.region);
     else {
-      const country = COUNTRY_OPTIONS.find((o) => o.value === profile.country)?.label;
+      const country = countryOptions(t).find((o) => o.value === profile.country)?.label;
       if (country) parts.push(country);
     }
     return parts.join(" · ");
@@ -865,7 +865,7 @@ export default function AdviceScreen() {
               label={cfg.countryLabel}
               info={{ title: t("coach.help.country.title"), body: t("coach.help.country.body") }}
               hint={t("coach.country.hint")}
-              options={COUNTRY_OPTIONS}
+              options={countryOptions(t)}
               value={profile.country}
               onSelect={(v) => updateField("country", v)}
             />

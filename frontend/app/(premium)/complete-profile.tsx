@@ -26,7 +26,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COUNTRY_OPTIONS, FR_REGIONS } from "../../src/constants/geo";
+import { countryOptions, FR_REGIONS } from "../../src/constants/geo";
 import { CITIES, getCountry } from "../../src/constants/cities";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
@@ -430,7 +430,7 @@ export default function CompleteProfile() {
           {/* Lieu : personnalise les conseils (fiscalité pays, aides région) */}
           <Text style={styles.label}>{t("signup.label.country")}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {COUNTRY_OPTIONS.map((opt) => {
+            {countryOptions(t).map((opt) => {
               const active = country === opt.value;
               return (
                 <TouchableOpacity
