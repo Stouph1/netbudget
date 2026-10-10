@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<base href="/ejp-tech-actu/">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Veille Actu Tech</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1c2430; --muted: #64707f;
+    --accent: #2563eb; --accent-soft: #e8efff; --border: #e3e7ec;
+    --haute: #dc2626; --moyenne: #d97706; --basse: #6b7280;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #10151c; --card: #1a212b; --text: #e8edf3; --muted: #93a0af; --border: #2a3441; --accent-soft: #1e2a44; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+  header { padding: 28px 16px 8px; max-width: 960px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  .sub { color: var(--muted); font-size: .9rem; }
+  .nav { font-size: .88rem; padding-top: 6px; }
+  .nav a { color: var(--accent); text-decoration: none; }
+  .nav a:hover { text-decoration: underline; }
+  .barre { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--border); padding: 10px 0; }
+  .barre-int { max-width: 960px; margin: 0 auto; padding: 0 16px; display: grid; gap: 8px; }
+  .ligne { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input[type=search], input[type=date], select { border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: .9rem; font-family: inherit; }
+  input[type=search] { flex: 1; min-width: 180px; }
+  .dates { display: none; gap: 6px; align-items: center; font-size: .82rem; color: var(--muted); }
+  .dates.visible { display: flex; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chips button { border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: .82rem; }
+  .chips button.actif { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chips button .n { color: var(--muted); font-size: .72rem; margin-left: 4px; }
+  .chips button.actif .n { color: #dbe4ff; }
+  main { max-width: 960px; margin: 16px auto 60px; padding: 0 16px; display: grid; gap: 10px; }
+  .jour { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 -2px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .card a { color: var(--text); text-decoration: none; font-weight: 600; font-size: 1rem; line-height: 1.35; }
+  .card a:hover { color: var(--accent); }
+  .meta { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 6px; font-size: .75rem; }
+  .badge { padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+  .badge.pert { color: #fff; border: none; }
+  .badge.src { cursor: pointer; }
+  .badge.src:hover { color: var(--accent); border-color: var(--accent); }
+  .pert-haute { background: var(--haute); } .pert-moyenne { background: var(--moyenne); } .pert-basse { background: var(--basse); }
+  .resume { color: var(--muted); font-size: .88rem; margin: 0; line-height: 1.5; }
+  .vide { text-align: center; color: var(--muted); padding: 40px 0; }
+  .plus { justify-self: center; border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 10px 22px; border-radius: 999px; cursor: pointer; font-size: .9rem; }
+  .reset { background: none; border: none; color: var(--accent); cursor: pointer; font-size: .82rem; padding: 0; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📡 Veille Actu Tech</h1>
+    <div class="sub">Mise à jour automatique quotidienne · <span id="compteur"></span> · <span id="maj"></span></div>
+  </div>
+  <div class="nav"><a href="a-propos.html">Comment ça marche ?</a></div>
+</header>
+<div class="barre">
+  <div class="barre-int">
+    <div class="ligne">
+      <input type="search" id="q" placeholder="Rechercher un titre, un mot-clé…" autocomplete="off">
+      <select id="periode">
+        <option value="0">Aujourd'hui</option>
+        <option value="3">3 derniers jours</option>
+        <option value="7" selected>7 derniers jours</option>
+        <option value="30">30 derniers jours</option>
+        <option value="tout">Tout</option>
+        <option value="dates">Dates précises…</option>
+      </select>
+      <select id="tri">
+        <option value="recent">Plus récent d'abord</option>
+        <option value="ancien">Plus ancien d'abord</option>
+        <option value="pertinence">Pertinence</option>
+      </select>
+    </div>
+    <div class="dates" id="dates">
+      <span>Du</span><input type="date" id="du"><span>au</span><input type="date" id="au">
+    </div>
+    <div class="ligne">
+      <select id="pert">
+        <option value="">Toute pertinence</option>
+        <option value="Haute">Haute</option>
+        <option value="Moyenne">Moyenne et plus</option>
+      </select>
+      <select id="langue">
+        <option value="">FR + EN</option>
+        <option value="fr">Français</option>
+        <option value="en">Anglais</option>
+      </select>
+      <select id="source"><option value="">Toutes les sources</option></select>
+      <button class="reset" id="reset">Réinitialiser</button>
+    </div>
+    <div class="chips" id="themes"></div>
+  </div>
+</div>
+<main id="liste"><div class="vide">Chargement…</div></main>
+
+<script>
+const PAGE = 60;
+const DEFAUT = { theme: "Tous", pert: "", langue: "", source: "", q: "", periode: "7", du: "", au: "", tri: "recent", page: 1 };
+const etat = { ...DEFAUT };
+let articles = [];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = s => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const rang = { Haute: 3, Moyenne: 2, Basse: 1 };
+const iso = d => d.toISOString().slice(0, 10);
+
+function dateFr(isoDate) {
+  const d = new Date(isoDate + "T00:00:00");
+  if (isNaN(d)) return isoDate;
+  const auj = new Date(); auj.setHours(0, 0, 0, 0);
+  const diff = Math.round((auj - d) / 86400000);
+  if (diff === 0) return "Aujourd'hui";
+  if (diff === 1) return "Hier";
+  return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: d.getFullYear() === auj.getFullYear() ? undefined : "numeric" });
+}
+
+function bornes() {
+  if (etat.periode === "tout") return ["", ""];
+  if (etat.periode === "dates") return [etat.du, etat.au];
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - Number(etat.periode));
+  return [iso(d), ""];
+}
+
+function dansPeriode(a, [min, max]) {
+  return (!min || a.date >= min) && (!max || a.date <= max);
+}
+
+function communs(a, b) {
+  return (!etat.pert || rang[a.pertinence] >= rang[etat.pert]) &&
+    (!etat.langue || a.langue === etat.langue) &&
+    (!etat.source || a.source === etat.source) &&
+    dansPeriode(a, b);
+}
+
+function filtrer() {
+  const q = norm(etat.q).trim();
+  const b = bornes();
+  const res = articles.filter(a => communs(a, b) &&
+    (etat.theme === "Tous" || a.theme === etat.theme) &&
+    (!q || norm(a.titre + " " + a.resume + " " + a.source).includes(q)));
+  if (etat.tri === "ancien") res.sort((x, y) => x.date.localeCompare(y.date) || (y.score || 0) - (x.score || 0));
+  else if (etat.tri === "pertinence") res.sort((x, y) => (y.score || 0) - (x.score || 0) || y.date.localeCompare(x.date));
+  else res.sort((x, y) => y.date.localeCompare(x.date) || (y.score || 0) - (x.score || 0));
+  return res;
+}
+
+function renduThemes() {
+  const b = bornes();
+  const base = articles.filter(a => communs(a, b));
+  const compte = {};
+  base.forEach(a => compte[a.theme] = (compte[a.theme] || 0) + 1);
+  const themes = ["Tous", ...Object.keys(compte).sort((x, y) => compte[y] - compte[x])];
+  if (etat.theme !== "Tous" && !compte[etat.theme]) themes.push(etat.theme);
+  $("themes").innerHTML = themes.map(t =>
+    `<button data-theme="${esc(t)}" class="${t === etat.theme ? "actif" : ""}">${esc(t)}<span class="n">${t === "Tous" ? base.length : compte[t] || 0}</span></button>`).join("");
+}
+
+function renduSources() {
+  const sources = [...new Set(articles.map(a => a.source))].sort((a, b) => a.localeCompare(b, "fr"));
+  $("source").innerHTML = '<option value="">Toutes les sources</option>' + sources.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  $("source").value = etat.source;
+}
+
+function afficher() {
+  renduThemes();
+  $("dates").classList.toggle("visible", etat.periode === "dates");
+  const visibles = filtrer();
+  $("compteur").textContent = visibles.length + " article" + (visibles.length > 1 ? "s" : "");
+  const tranche = visibles.slice(0, etat.page * PAGE);
+  const parJour = etat.tri !== "pertinence";
+  let jour = "", html = "";
+  for (const a of tranche) {
+    if (parJour && a.date !== jour) { jour = a.date; html += `<div class="jour">${esc(dateFr(jour))}</div>`; }
+    html += `
+    <article class="card">
+      <a href="${esc(a.lien)}" target="_blank" rel="noopener">${esc(a.titre)}</a>
+      <div class="meta">
+        <span class="badge pert pert-${esc((a.pertinence || "basse").toLowerCase())}">${esc(a.pertinence)}</span>
+        <span class="badge">${esc(a.theme)}</span>
+        <span class="badge src" data-source="${esc(a.source)}">${esc(a.source)}</span>
+        <span class="badge">${esc((a.langue || "").toUpperCase())}</span>
+        ${parJour ? "" : `<span class="badge">${esc(dateFr(a.date))}</span>`}
+      </div>
+      ${a.resume ? `<p class="resume">${esc(a.resume)}</p>` : ""}
+    </article>`;
+  }
+  if (visibles.length > tranche.length) html += `<button class="plus" id="plus">Afficher ${Math.min(PAGE, visibles.length - tranche.length)} de plus</button>`;
+  $("liste").innerHTML = html || '<div class="vide">Aucun article pour ces filtres</div>';
+}
+
+function maj(patch) { Object.assign(etat, patch, { page: 1 }); afficher(); }
+
+$("themes").addEventListener("click", e => { const b = e.target.closest("button"); if (b) maj({ theme: b.dataset.theme }); });
+$("liste").addEventListener("click", e => {
+  if (e.target.id === "plus") { etat.page++; afficher(); }
+  const s = e.target.closest(".src"); if (s) { $("source").value = s.dataset.source; maj({ source: s.dataset.source }); }
+});
+$("q").addEventListener("input", e => maj({ q: e.target.value }));
+$("periode").addEventListener("change", e => {
+  if (e.target.value === "dates" && !etat.du) {
+    const d = new Date(); d.setDate(d.getDate() - 7);
+    $("du").value = iso(d); $("au").value = iso(new Date());
+    maj({ periode: "dates", du: $("du").value, au: $("au").value });
+  } else maj({ periode: e.target.value });
+});
+$("du").addEventListener("change", e => maj({ du: e.target.value }));
+$("au").addEventListener("change", e => maj({ au: e.target.value }));
+$("tri").addEventListener("change", e => maj({ tri: e.target.value }));
+$("pert").addEventListener("change", e => maj({ pert: e.target.value }));
+$("langue").addEventListener("change", e => maj({ langue: e.target.value }));
+$("source").addEventListener("change", e => maj({ source: e.target.value }));
+$("reset").addEventListener("click", () => {
+  $("q").value = ""; $("pert").value = ""; $("langue").value = ""; $("source").value = "";
+  $("periode").value = DEFAUT.periode; $("tri").value = DEFAUT.tri; $("du").value = ""; $("au").value = "";
+  maj({ ...DEFAUT });
+});
+
+async function charger() {
+  try {
+    const r = await fetch("veille.json?" + Date.now());
+    const data = await r.json();
+    articles = Array.isArray(data) ? data : data.articles || [];
+    if (data.maj) $("maj").textContent = "Dernière collecte : " + new Date(data.maj).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+    renduSources();
+    afficher();
+  } catch (e) {
+    $("liste").innerHTML = '<div class="vide">Impossible de charger veille.json</div>';
+  }
+}
+
+charger();
+</script>
+</body>
+</html>

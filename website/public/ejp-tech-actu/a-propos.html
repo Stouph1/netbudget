@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<base href="/ejp-tech-actu/">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comment ça marche · Veille Actu Tech</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1c2430; --muted: #64707f;
+    --accent: #2563eb; --accent-soft: #e8efff; --border: #e3e7ec;
+    --haute: #dc2626; --moyenne: #d97706; --basse: #6b7280;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #10151c; --card: #1a212b; --text: #e8edf3; --muted: #93a0af; --border: #2a3441; --accent-soft: #1e2a44; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; }
+  header { padding: 28px 16px 8px; max-width: 820px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  .sub { color: var(--muted); font-size: .9rem; }
+  .nav { font-size: .88rem; padding-top: 6px; }
+  .nav a, main a { color: var(--accent); text-decoration: none; }
+  .nav a:hover, main a:hover { text-decoration: underline; }
+  main { max-width: 820px; margin: 12px auto 60px; padding: 0 16px; display: grid; gap: 14px; }
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  h2 { margin: 0 0 10px; font-size: 1.12rem; }
+  h3 { margin: 14px 0 6px; font-size: .95rem; }
+  p, li { font-size: .93rem; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .etapes { display: grid; gap: 10px; counter-reset: etape; padding: 0; margin: 10px 0 0; list-style: none; }
+  .etapes li { display: flex; gap: 12px; align-items: flex-start; }
+  .etapes li::before { counter-increment: etape; content: counter(etape); flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; font-size: .8rem; font-weight: 700; display: grid; place-items: center; margin-top: 2px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-size: .75rem; vertical-align: middle; }
+  .badge.pert { color: #fff; border: none; }
+  .pert-haute { background: var(--haute); } .pert-moyenne { background: var(--moyenne); } .pert-basse { background: var(--basse); }
+  .pertinences { display: grid; gap: 8px; margin-top: 8px; }
+  .pertinences div { display: flex; gap: 10px; align-items: baseline; font-size: .9rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin-top: 8px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+  td.n { text-align: right; color: var(--muted); white-space: nowrap; }
+  .famille td { background: var(--accent-soft); font-weight: 600; }
+  .themes { display: grid; gap: 8px; margin-top: 8px; }
+  .themes div { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .themes b { min-width: 190px; }
+  .themes span { color: var(--muted); font-size: .88rem; }
+  .muted { color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+  .stat { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 1.3rem; }
+  .stat span { color: var(--muted); font-size: .8rem; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Comment ça marche ?</h1>
+    <div class="sub">Le fonctionnement de la veille, en clair</div>
+  </div>
+  <div class="nav"><a href="./">← Retour à la veille</a></div>
+</header>
+<main>
+
+<section>
+  <h2>L'objectif</h2>
+  <p>Suivre l'actualité tech qui compte pour le groupe : intelligence artificielle, cybersécurité, régulation du numérique, usages et société. Sans passer des heures à parcourir des dizaines de sites, et sans dépendre de quelqu'un qui pense à le faire.</p>
+  <p>La veille est <b>passive</b> : un robot lit chaque matin les flux d'une trentaine de sources fiables, écarte le bruit, classe ce qui reste et publie le résultat sur cette page. Personne n'intervient à la main.</p>
+  <div class="stats" id="stats"></div>
+</section>
+
+<section>
+  <h2>Chaque matin, en cinq étapes</h2>
+  <ol class="etapes">
+    <li><div><b>Collecte.</b> Vers 8 h (heure de Paris), le robot interroge en parallèle les flux RSS des sources listées plus bas. Seuls les articles publiés dans les <b>7 derniers jours</b> sont retenus.</div></li>
+    <li><div><b>Nettoyage.</b> Les liens sont débarrassés de leurs paramètres de suivi publicitaire, les doublons (même lien ou même titre repris par plusieurs médias) sont fusionnés, et les articles sponsorisés, bons plans, promotions, webinaires, livres blancs et replays sont écartés.</div></li>
+    <li><div><b>Classement par thème.</b> Le titre et le résumé sont comparés à des listes de mots-clés en français et en anglais. Le thème qui réunit le plus de mots-clés gagne ; en cas d'égalité, le thème le plus spécifique l'emporte sur « Modèles & produits IA ». Sans aucun mot-clé, l'article part dans « Autre / à qualifier ».</div></li>
+    <li><div><b>Note de pertinence.</b> Un score est calculé à partir des mots-clés trouvés (voir ci-dessous). Pour les médias généralistes, seuls les articles rattachés à un thème et notés au moins « Moyenne » sont conservés. Les sources spécialisées (cyber, institutions, éditeurs d'IA) sont gardées intégralement.</div></li>
+    <li><div><b>Publication.</b> Les nouveaux articles sont ajoutés à la base, la page est régénérée et mise en ligne automatiquement. La page affiche les 60 derniers jours ; l'historique complet reste conservé dans le dépôt.</div></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Les thèmes</h2>
+  <div class="themes" id="themes">
+    <div><b>Cybersécurité</b><span>failles, rançongiciels, cyberattaques, fuites de données, alertes CERT-FR…</span></div>
+    <div><b>Régulation / éthique</b><span>AI Act, RGPD, CNIL, décisions de justice, gouvernance, souveraineté, vie privée…</span></div>
+    <div><b>Modèles & produits IA</b><span>ChatGPT, Claude, Gemini, Mistral, agents, modèles ouverts, nouveautés produits…</span></div>
+    <div><b>Business / marché</b><span>levées de fonds, rachats, valorisations, partenariats, résultats…</span></div>
+    <div><b>Infrastructure</b><span>puces, GPU, datacenters, cloud, énergie, réseaux, quantique…</span></div>
+    <div><b>Société / usages</b><span>éducation, jeunes, emploi, recrutement et CV, arnaques, données personnelles, santé, deepfakes, réseaux sociaux…</span></div>
+    <div><b>Autre / à qualifier</b><span>aucun mot-clé reconnu : à trier à la main, ou à ignorer.</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>La pertinence</h2>
+  <p>Chaque mot-clé <b>fort</b> trouvé dans le titre ou le résumé vaut 2 points (IA, faille, RGPD, OpenAI, Anthropic, Mistral, deepfake, souveraineté…), chaque mot-clé <b>moyen</b> vaut 1 point (cloud, startup, GPU, agents, réseaux sociaux…). Le titre compte double. Les sources spécialisées reçoivent un point de bonus. Un titre trop technique ou purement financier (valorisation, S-1, « milliards de paramètres », embeddings…) est ramené en « Basse », quel que soit son score.</p>
+  <div class="pertinences">
+    <div><span class="badge pert pert-haute">Haute</span><span>score de 10 ou plus : à lire en priorité, sujet central pour la veille.</span></div>
+    <div><span class="badge pert pert-moyenne">Moyenne</span><span>score de 5 à 9 : intéressant, à parcourir selon le temps disponible.</span></div>
+    <div><span class="badge pert pert-basse">Basse</span><span>score inférieur à 5 : gardé pour information, surtout depuis les sources spécialisées.</span></div>
+  </div>
+  <p class="muted">C'est un tri automatique par mots-clés, pas un jugement éditorial. Un article mal classé peut arriver ; le filtre par thème et la recherche permettent de retrouver ce qui manque.</p>
+</section>
+
+<section>
+  <h2>Utiliser la page</h2>
+  <ul>
+    <li><b>Période</b> : aujourd'hui, 3, 7 ou 30 derniers jours, tout l'historique affiché, ou une plage de dates précise.</li>
+    <li><b>Tri</b> : du plus récent au plus ancien (par défaut), inversement, ou par pertinence décroissante.</li>
+    <li><b>Recherche</b> : sur le titre, le résumé et le nom de la source, sans tenir compte des accents ni de la casse.</li>
+    <li><b>Pertinence, langue, source</b> : listes déroulantes combinables entre elles. Cliquer sur le nom d'une source dans une carte filtre directement dessus.</li>
+    <li><b>Thèmes</b> : les pastilles indiquent le nombre d'articles disponibles avec les filtres en cours.</li>
+    <li><b>Réinitialiser</b> remet tous les filtres à leur valeur par défaut.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Les sources</h2>
+  <p>Des médias reconnus, des institutions publiques et des éditeurs de référence. Les flux marqués « sélectif » sont des médias généralistes dont seuls les articles rattachés à un thème sont retenus ; les autres sont pris intégralement.</p>
+  <div id="sources"><p class="muted">Chargement…</p></div>
+</section>
+
+<section>
+  <h2>Limites et suite</h2>
+  <ul>
+    <li>Le classement repose sur des mots-clés : il est rapide et transparent, mais peut se tromper sur les titres ambigus.</li>
+    <li>Les résumés viennent des flux des éditeurs, parfois tronqués ou absents.</li>
+    <li>Une source qui change d'adresse de flux disparaît silencieusement de la collecte jusqu'à correction.</li>
+    <li>Le statut de lecture (« À lire », « Pertinent », « À décrypter », « Rejeté ») existe dans la base pour un futur branchement vers un outil de suivi type ClickUp.</li>
+  </ul>
+  <p>Pour proposer une source ou signaler un problème, contacte l'équipe EJP Tech (dépôt <a href="https://github.com/eglisejp-tech/veille-actu-tech" target="_blank" rel="noopener">eglisejp-tech/veille-actu-tech</a>, accès membres).</p>
+</section>
+
+</main>
+
+<script>
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const FAMILLES = [
+  ["IA (français)", s => s.categorie === "IA" && s.langue === "fr"],
+  ["Tech généraliste (français)", s => s.categorie === "Tech" && s.langue === "fr"],
+  ["Cybersécurité et institutions (français)", s => ["Cyber", "Institution"].includes(s.categorie) && s.langue === "fr"],
+  ["Tech généraliste (anglais)", s => s.categorie === "Tech" && s.langue === "en"],
+  ["Cybersécurité (anglais)", s => s.categorie === "Cyber" && s.langue === "en"],
+  ["Éditeurs et experts IA (anglais)", s => s.categorie === "IA" && s.langue === "en"],
+];
+
+async function charger() {
+  try {
+    const r = await fetch("veille.json?" + Date.now());
+    const data = await r.json();
+    const articles = data.articles || [];
+    const sources = data.sources || [];
+    const compte = {};
+    articles.forEach(a => compte[a.source] = (compte[a.source] || 0) + 1);
+    const jours = new Set(articles.map(a => a.date)).size;
+    const haute = articles.filter(a => a.pertinence === "Haute").length;
+    document.getElementById("stats").innerHTML = [
+      [sources.length, "sources suivies"],
+      [articles.length, `articles sur ${data.retention_jours || 60} jours`],
+      [haute, "en pertinence haute"],
+      [jours ? Math.round(articles.length / jours) : 0, "articles par jour en moyenne"],
+    ].map(([n, l]) => `<div class="stat"><b>${n}</b><span>${esc(l)}</span></div>`).join("");
+    let html = "<table><thead><tr><th>Source</th><th>Mode</th><th class=\"n\">Articles</th></tr></thead><tbody>";
+    const vus = new Set();
+    for (const [nom, test] of FAMILLES) {
+      const lot = sources.filter(s => !vus.has(s.name) && test(s));
+      if (!lot.length) continue;
+      html += `<tr class="famille"><td colspan="3">${esc(nom)}</td></tr>`;
+      for (const s of lot) {
+        vus.add(s.name);
+        const site = s.url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0];
+        html += `<tr><td><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a> <span class="muted">· ${esc(site)}</span></td><td><span class="badge">${s.strict ? "sélectif" : "intégral"}</span></td><td class="n">${compte[s.name] || 0}</td></tr>`;
+      }
+    }
+    html += "</tbody></table>";
+    document.getElementById("sources").innerHTML = html;
+  } catch (e) {
+    document.getElementById("sources").innerHTML = '<p class="muted">Impossible de charger la liste des sources.</p>';
+  }
+}
+charger();
+</script>
+</body>
+</html>
