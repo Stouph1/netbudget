@@ -17,6 +17,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { setTierOverride } from "../lib/tierOverride";
 import { supabase } from "../lib/supabase";
 import { syncBilling } from "../lib/billing/start";
 
@@ -38,8 +39,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
+      // Le palier forcé par le panneau testeur est un réglage du téléphone,
+      // pas du compte : il suivait le compte suivant, qui s'est retrouvé en
+      // « Solo » alors que le serveur disait « Famille ».
+      if (event === "SIGNED_OUT") void setTierOverride(null);
     });
 
     return () => {
