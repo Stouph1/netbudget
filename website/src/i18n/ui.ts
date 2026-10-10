@@ -47,7 +47,7 @@ const fr: Catalog = {
   // Links hub (destination unique : App Store + Google Play + compte à rebours)
   "links.eyebrow": "Tous les liens ici",
   "links.title": "Télécharge NETbudget",
-  "links.subtitle": "Disponible sur iPhone et Android. Gratuit, sans publicité, sans compte.",
+  "links.subtitle": "Disponible sur iPhone et Android. Gratuit pour commencer, sans publicité. Un compte seulement pour synchroniser, partager et profiter du Coach.",
 
   // Le 15 octobre : compte à rebours et indice, sans dire quoi.
   "teaser.eyebrow": "15 octobre",
@@ -119,8 +119,8 @@ const fr: Catalog = {
   "feature.income.title": "Plusieurs sources de revenus",
   "feature.income.text": "Salaire, freelance, locatif, dividendes, chacun avec son taux de charges. Et l'impôt prélevé à la source dans les 32 pays où l'employeur le retient, avec le barème officiel en un tap.",
 
-  "feature.rule.title": "Règle 50 / 30 / 20",
-  "feature.rule.text": "Besoins, loisirs, épargne : la répartition se voit sur un anneau, avec une cible adaptée à ton profil et à ta ville.",
+  "feature.rule.title": "Un repère 50 / 30 / 20 qui s'adapte",
+  "feature.rule.text": "La répartition besoins, loisirs, épargne part de 50/30/20, puis s'ajuste de bout en bout à ton profil : âge, foyer, logement, ville. Le Coach te donne ta propre répartition cible, avec ses pourcentages.",
 
   "feature.advice.title": "282 conseils sourcés",
   "feature.advice.text": "Chaque conseil cite sa source officielle et dépend de ton pays, de ton âge, de ta famille et de ton logement. Taux d'épargne réglementée et inflation sont relus depuis les séries officielles.",
@@ -163,12 +163,11 @@ const fr: Catalog = {
 
   // Privacy
   "privacy.eyebrow": "Vie privée par défaut",
-  "privacy.title": "Sans compte, tes données restent sur ton téléphone",
-  "privacy.text":
-    "NETbudget fonctionne entièrement hors ligne : aucun compte à créer, aucune de tes finances sur un serveur, aucun traceur. La seule connexion sert à récupérer les taux de change. Si tu prends un abonnement, la synchronisation devient possible — et tu choisis alors ce que tu enregistres.",
-  "privacy.point1": "Aucun compte requis",
-  "privacy.point2": "Rien n'est envoyé sans compte",
-  "privacy.point3": "Aucune publicité, aucun tracker",
+  "privacy.title": "Tes données t'appartiennent, avec ou sans compte",
+  "privacy.text": "Sans compte, tout reste sur ton téléphone : la seule connexion sert aux taux de change. Avec un compte, ce qui se synchronise est chiffré sur ton téléphone avant de partir, avec une clé que nous n'avons pas. Jamais de connexion bancaire, jamais de publicité, jamais de traceur.",
+  "privacy.point1": "Sans compte : rien ne part de ton téléphone",
+  "privacy.point2": "Avec un compte : chiffré de bout en bout",
+  "privacy.point3": "Aucune connexion bancaire, aucune publicité",
   "privacy.point4": "Code source consultable sur demande",
 
   // Final CTA
@@ -195,7 +194,7 @@ const fr: Catalog = {
   "maker.email": "M'écrire",
 
   // Footer
-  "footer.tagline": "Calcul de reste à vivre, règle 50/30/20, conseils sur-mesure.",
+  "footer.tagline": "Reste à vivre, repère 50/30/20 adapté à ton profil, conseils sourcés.",
   "footer.madeby": "Conçu et développé par",
   "footer.links": "Liens",
   "footer.follow": "Suivre",
@@ -219,7 +218,7 @@ const fr: Catalog = {
 
   // --- Barre d'action mobile -------------------------------------------
   "sticky.title": "Sache ce qu'il te reste vraiment",
-  "sticky.sub": "Gratuit, sans compte",
+  "sticky.sub": "Gratuit, sans publicité",
   "sticky.cta": "Télécharger",
 
   // --- Titres et descriptions de pages ---------------------------------
@@ -361,9 +360,9 @@ const fr: Catalog = {
   "faq.seeAll": "Voir toutes les questions",
 
   "faq.free.q": "C'est vraiment gratuit ?",
-  "faq.free.a": "Oui. Le budget complet — revenus, dépenses, prêts, reste à vivre, règle 50/30/20, convertisseur — est gratuit et sans limite de temps. Un abonnement facultatif ajoute la synchronisation entre appareils, les budgets partagés et les conseils personnalisés. Aucune publicité, à aucun moment.",
+  "faq.free.a": "Oui. Le budget complet, revenus, dépenses, prêts, reste à vivre, repère 50/30/20 et convertisseur, est gratuit et sans limite de temps. Un abonnement facultatif ajoute la synchronisation entre appareils, le Coach et ses conseils adaptés à ton profil, les projets et les budgets partagés. Aucune publicité, à aucun moment.",
   "faq.account.q": "Faut-il créer un compte ?",
-  "faq.account.a": "Non, et c'est un choix de conception. Tu peux installer l'app et t'en servir sans jamais donner d'adresse e-mail. Le compte ne devient utile que si tu veux retrouver tes données sur un autre appareil ou partager un budget avec quelqu'un.",
+  "faq.account.a": "Non pour le budget, les prêts et le convertisseur : tu peux t'en servir sans jamais donner d'adresse e-mail. Le compte sert à retrouver tes données sur un autre appareil, à partager un budget en couple ou en famille, et à ouvrir les projets et le Coach de la 2.0. Avec un compte, tes données partent chiffrées de bout en bout.",
   "faq.data.q": "Où sont stockées mes données financières ?",
   "faq.data.a": "Sans compte, uniquement dans la mémoire de ton téléphone : rien n'est envoyé. Avec un compte, ce que tu choisis d'enregistrer est synchronisé, et chiffré de bout en bout par défaut : la clé reste sur ton téléphone, nous ne pouvons pas lire tes données. Douze mots, consultables depuis ton profil, permettent de retrouver cet accès sur un autre appareil.",
   "faq.offline.q": "Est-ce que ça marche sans internet ?",
@@ -377,7 +376,7 @@ const fr: Catalog = {
   "faq.advice.q": "D'où viennent les conseils ?",
   "faq.advice.a": "De sources officielles uniquement — administrations, textes de loi, organismes publics — et chaque conseil affiche ses références et sa date de vérification. Aucun chiffre n'est estimé au jugé. Quand une information n'est pas confirmable, elle est signalée comme telle plutôt que présentée comme sûre.",
   "faq.android.q": "Et sur Android ?",
-  "faq.android.a": "L'application est développée pour les deux plateformes depuis le début. La version iOS est publiée en premier ; la version Android suit.",
+  "faq.android.a": "L'application est disponible sur l'App Store et sur Google Play, avec les mêmes fonctions et les mêmes versions des deux côtés.",
   "faq.cancel.q": "Comment résilier l'abonnement ?",
   "faq.cancel.a": "Depuis les réglages de ton téléphone, dans la gestion des abonnements — nous n'avons pas la main dessus, et c'est mieux ainsi : personne ne peut te retenir. La résiliation prend effet à la fin de la période déjà payée, et tes données restent accessibles en version gratuite.",
 
@@ -442,8 +441,7 @@ const fr: Catalog = {
     "Ce texte décrit ce que NETbudget fait, ce qu'il ne promet pas, et ce à quoi tu t'engages en l'utilisant. Il est écrit pour être lu, pas pour se protéger derrière du jargon.",
 
   "page.terms.section1.title": "Ce qu'est NETbudget",
-  "page.terms.section1.body":
-    "Un outil d'estimation budgétaire personnel. Il calcule ton reste à vivre, applique la règle 50/30/20 et rassemble des informations issues de sources publiques. Ce n'est ni une banque, ni un établissement de paiement, ni un conseiller en investissement : NETbudget ne détient pas d'argent, n'exécute aucune opération et ne gère aucun placement.",
+  "page.terms.section1.body": "Un outil d'estimation budgétaire personnel. Il calcule ton reste à vivre, applique un repère 50/30/20 adapté à ton profil et rassemble des informations issues de sources publiques. Ce n'est ni une banque, ni un établissement de paiement, ni un conseiller en investissement : NETbudget ne détient pas d'argent, n'exécute aucune opération et ne gère aucun placement.",
 
   "page.terms.section2.title": "Ce que valent les chiffres affichés",
   "page.terms.section2.body":
@@ -463,7 +461,7 @@ const fr: Catalog = {
 
   "page.terms.section6.title": "Abonnement et paliers",
   "page.terms.section6.body":
-    "L'application est utilisable gratuitement et sans limite de temps : budget, prêts, reste à vivre, règle 50/30/20 et convertisseur. Un abonnement facultatif ouvre la synchronisation entre appareils, les conseils personnalisés et les budgets d'événement. La formule Solo suit jusqu'à six événements en parallèle et n'inclut pas le budget mariage, qui se prépare à plusieurs et appartient aux formules Duo et Famille. Les limites exactes de chaque formule sont indiquées dans l'application avant tout paiement.",
+    "L'application est utilisable gratuitement et sans limite de temps : budget, prêts, reste à vivre, repère 50/30/20 et convertisseur. Un abonnement facultatif ouvre la synchronisation entre appareils, les conseils personnalisés et les budgets d'événement. La formule Solo suit jusqu'à six événements en parallèle et n'inclut pas le budget mariage, qui se prépare à plusieurs et appartient aux formules Duo et Famille. Les limites exactes de chaque formule sont indiquées dans l'application avant tout paiement.",
 
   "page.terms.section7.title": "Paiement, renouvellement, résiliation",
   "page.terms.section7.body":
@@ -487,7 +485,7 @@ const fr: Catalog = {
 
   "page.terms.section12.title": "Propriété intellectuelle",
   "page.terms.section12.body":
-    "Le nom NETbudget, le logo, l'interface et le code source appartiennent à l'éditeur. Tes données, elles, t'appartiennent : nous ne revendiquons aucun droit dessus et ne les exploitons pas à d'autres fins que de faire fonctionner l'application. La règle 50/30/20 est issue des travaux d'Elizabeth Warren et Amelia Warren Tyagi, publiés dans leurs ouvrages.",
+    "Le nom NETbudget, le logo, l'interface et le code source appartiennent à l'éditeur. Tes données, elles, t'appartiennent : nous ne revendiquons aucun droit dessus et ne les exploitons pas à d'autres fins que de faire fonctionner l'application. Le repère 50/30/20 est issu des travaux d'Elizabeth Warren et Amelia Warren Tyagi, publiés dans leurs ouvrages.",
 
   "page.terms.section13.title": "Droit applicable et litiges",
   "page.terms.section13.body":
@@ -539,7 +537,7 @@ const en: Catalog = {
   // Links hub (single destination: App Store + Google Play + countdown)
   "links.eyebrow": "All links here",
   "links.title": "Download NETbudget",
-  "links.subtitle": "Available on iPhone and Android. Free, no ads, no account.",
+  "links.subtitle": "Available on iPhone and Android. Free to start, no ads. An account only to sync, share and use the Coach.",
 
   // October 15: countdown and a hint, without saying what.
   "teaser.eyebrow": "October 15",
@@ -611,8 +609,8 @@ const en: Catalog = {
   "feature.income.title": "Several income sources",
   "feature.income.text": "Salary, freelance, rental, dividends, each with its own deduction rate. Plus income tax withheld at source in the 32 countries where employers withhold it, with the official tables one tap away.",
 
-  "feature.rule.title": "The 50 / 30 / 20 rule",
-  "feature.rule.text": "Needs, wants, savings: the split shows on a ring, with a target adapted to your profile and your city.",
+  "feature.rule.title": "A 50 / 30 / 20 benchmark that adapts",
+  "feature.rule.text": "The needs, wants, savings split starts at 50/30/20, then adjusts end to end to your profile: age, household, housing, city. The Coach gives you your own target split, with its percentages.",
 
   "feature.advice.title": "282 sourced tips",
   "feature.advice.text": "Every tip cites its official source and depends on your country, age, family and housing. Regulated savings rates and inflation are re-read from official series.",
@@ -655,12 +653,11 @@ const en: Catalog = {
 
   // Privacy
   "privacy.eyebrow": "Privacy by default",
-  "privacy.title": "Without an account, your data stays on your phone",
-  "privacy.text":
-    "NETbudget works entirely offline: no account to create, none of your finances on a server, no trackers. The only connection fetches exchange rates. If you subscribe, syncing becomes possible — and you decide what gets stored.",
-  "privacy.point1": "No account required",
-  "privacy.point2": "Nothing sent without an account",
-  "privacy.point3": "No ads, no trackers",
+  "privacy.title": "Your data is yours, with or without an account",
+  "privacy.text": "Without an account, everything stays on your phone: the only connection fetches exchange rates. With an account, whatever syncs is encrypted on your phone before it leaves, with a key we do not have. Never a bank connection, never ads, never trackers.",
+  "privacy.point1": "Without an account: nothing leaves your phone",
+  "privacy.point2": "With an account: end-to-end encrypted",
+  "privacy.point3": "No bank connection, no ads",
   "privacy.point4": "Source code available on request",
 
   // Final CTA
@@ -687,7 +684,7 @@ const en: Catalog = {
   "maker.email": "Email me",
 
   // Footer
-  "footer.tagline": "Disposable income, 50/30/20 rule, tailored advice.",
+  "footer.tagline": "Money left, a 50/30/20 benchmark adapted to you, sourced tips.",
   "footer.madeby": "Designed and built by",
   "footer.links": "Links",
   "footer.follow": "Follow",
@@ -711,7 +708,7 @@ const en: Catalog = {
 
   // --- Mobile action bar ------------------------------------------------
   "sticky.title": "Know what you really have left",
-  "sticky.sub": "Free, no account",
+  "sticky.sub": "Free, no ads",
   "sticky.cta": "Download",
 
   // --- Page titles and descriptions -------------------------------------
@@ -853,9 +850,9 @@ const en: Catalog = {
   "faq.seeAll": "See all questions",
 
   "faq.free.q": "Is it really free?",
-  "faq.free.a": "Yes. The full budget — income, expenses, loans, disposable income, the 50/30/20 rule, the converter — is free with no time limit. An optional subscription adds syncing across devices, shared budgets and tailored advice. No advertising, ever.",
+  "faq.free.a": "Yes. The full budget, income, expenses, loans, money left, the 50/30/20 benchmark and the converter, is free with no time limit. An optional subscription adds syncing across devices, the Coach with tips adapted to your profile, projects and shared budgets. No advertising, ever.",
   "faq.account.q": "Do I need an account?",
-  "faq.account.a": "No, and that is a design choice. You can install the app and use it without ever giving an email address. An account only becomes useful if you want your data on another device or want to share a budget with someone.",
+  "faq.account.a": "Not for the budget, loans and converter: you can use them without ever giving an email address. An account is for finding your data on another device, sharing a budget as a couple or a family, and opening the projects and the Coach of 2.0. With an account, your data leaves end-to-end encrypted.",
   "faq.data.q": "Where is my financial data stored?",
   "faq.data.a": "Without an account, only in your phone's storage: nothing is sent. With an account, whatever you choose to save is synchronised, and end-to-end encrypted by default: the key stays on your phone, so we cannot read your data. Twelve words, viewable from your profile, let you recover that access on another device.",
   "faq.offline.q": "Does it work without internet?",
@@ -869,7 +866,7 @@ const en: Catalog = {
   "faq.advice.q": "Where does the advice come from?",
   "faq.advice.a": "From official sources only — government bodies, legislation, public agencies — and every piece of advice shows its references and the date it was checked. No figure is guessed. When something cannot be confirmed, it is flagged as such rather than presented as certain.",
   "faq.android.q": "What about Android?",
-  "faq.android.a": "The app is built for both platforms from the start. The iOS version ships first; Android follows.",
+  "faq.android.a": "The app is available on the App Store and on Google Play, with the same features and the same versions on both sides.",
   "faq.cancel.q": "How do I cancel the subscription?",
   "faq.cancel.a": "From your phone's settings, under subscription management — we have no control over it, and that is better: nobody can hold you back. Cancelling takes effect at the end of the period you already paid for, and your data stays accessible on the free tier.",
 
@@ -934,8 +931,7 @@ const en: Catalog = {
     "This text sets out what NETbudget does, what it does not promise, and what you agree to by using it. It is written to be read, not to hide behind jargon.",
 
   "page.terms.section1.title": "What NETbudget is",
-  "page.terms.section1.body":
-    "A personal budgeting estimation tool. It works out your disposable income, applies the 50/30/20 rule and gathers information from public sources. It is not a bank, a payment institution or an investment adviser: NETbudget holds no money, executes no transaction and manages no investment.",
+  "page.terms.section1.body": "A personal budgeting estimation tool. It works out your money left, applies a 50/30/20 benchmark adapted to your profile and gathers information from public sources. It is not a bank, a payment institution or an investment adviser: NETbudget holds no money, executes no transaction and manages no investment.",
 
   "page.terms.section2.title": "What the figures are worth",
   "page.terms.section2.body":
@@ -955,7 +951,7 @@ const en: Catalog = {
 
   "page.terms.section6.title": "Subscription and plans",
   "page.terms.section6.body":
-    "The app is usable free of charge with no time limit: budget, loans, disposable income, the 50/30/20 rule and the converter. An optional subscription unlocks syncing across devices, tailored advice and event budgets. The Solo plan tracks up to six events at once and does not include the wedding budget, which is planned together and belongs to the Duo and Family plans. Each plan's exact limits are shown in the app before any payment.",
+    "The app is usable free of charge with no time limit: budget, loans, money left, the 50/30/20 benchmark and the converter. An optional subscription unlocks syncing across devices, tailored advice and event budgets. The Solo plan tracks up to six events at once and does not include the wedding budget, which is planned together and belongs to the Duo and Family plans. Each plan's exact limits are shown in the app before any payment.",
 
   "page.terms.section7.title": "Payment, renewal, cancellation",
   "page.terms.section7.body":
@@ -979,7 +975,7 @@ const en: Catalog = {
 
   "page.terms.section12.title": "Intellectual property",
   "page.terms.section12.body":
-    "The NETbudget name, logo, interface and source code belong to the publisher. Your data belongs to you: we claim no rights over it and use it for nothing other than running the app. The 50/30/20 rule comes from the work of Elizabeth Warren and Amelia Warren Tyagi, published in their books.",
+    "The NETbudget name, logo, interface and source code belong to the publisher. Your data belongs to you: we claim no rights over it and use it for nothing other than running the app. The 50/30/20 benchmark comes from the work of Elizabeth Warren and Amelia Warren Tyagi, published in their books.",
 
   "page.terms.section13.title": "Governing law and disputes",
   "page.terms.section13.body":
