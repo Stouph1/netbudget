@@ -17,22 +17,23 @@ type Row =
   | { n: number; kind: "phone"; src: string; alt: string }
   | { n: number; kind: "image"; src: string; alt: string; ratio: string; width: number; height: number };
 
+// En anglais, tout vient de l'app en anglais (Londres, livres sterling) : les
+// affiches des vidéos et l'écran verrouillé sont en français, on ne les y
+// montre pas.
 const rows: Row[] = [
   { n: 1, kind: "phone", src: `/screens/${locale}/depenses-720`, alt: t("screens.expenses") },
   { n: 2, kind: "phone", src: `/screens/${locale}/reperes-720`, alt: t("screens.benchmark") },
-  {
-    n: 3,
-    kind: "image",
-    src: "/promo/notifications",
-    alt: t("highlights.alt.notifications"),
-    ratio: "aspect-[1170/650]",
-    width: 1170,
-    height: 650,
-  },
+  locale === "fr"
+    ? { n: 3, kind: "image", src: "/promo/notifications", alt: t("highlights.alt.notifications"), ratio: "aspect-[1170/650]", width: 1170, height: 650 }
+    : { n: 3, kind: "phone", src: `/screens/${locale}/notifications-720`, alt: t("screens.notifications") },
   { n: 4, kind: "phone", src: `/screens/${locale}/coach-720`, alt: t("screens.coach") },
   { n: 5, kind: "phone", src: `/screens/${locale}/projet-720`, alt: t("screens.project") },
-  { n: 6, kind: "image", src: "/promo/03-duo", alt: t("highlights.alt.duo"), ratio: "aspect-[18/25]", width: 720, height: 1000 },
-  { n: 7, kind: "phone", src: `/screens/${locale}/espaces-720`, alt: t("screens.spaces") },
+  locale === "fr"
+    ? { n: 6, kind: "image", src: "/promo/03-duo", alt: t("highlights.alt.duo"), ratio: "aspect-[18/25]", width: 720, height: 1000 }
+    : { n: 6, kind: "phone", src: `/screens/${locale}/espaces-720`, alt: t("screens.spaces") },
+  locale === "fr"
+    ? { n: 7, kind: "phone", src: `/screens/${locale}/espaces-720`, alt: t("screens.spaces") }
+    : { n: 7, kind: "phone", src: `/screens/${locale}/foyer-720`, alt: t("screens.household") },
 ];
 ---
 
