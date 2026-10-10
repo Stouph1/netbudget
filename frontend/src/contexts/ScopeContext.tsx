@@ -17,6 +17,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useSession } from "./SessionContext";
 
 const STORAGE_KEY = "netbudget:premium:activeScope";
 // Ancienne clé (v1 : juste l'id) — lue en fallback puis migrée.
@@ -28,6 +29,13 @@ type StoredScope = {
   id: string | null;
   name: string | null;
   kind: ScopeKind | null;
+  /**
+   * Compte qui a choisi cet espace. L'espace actif survivait à la
+   * déconnexion : le compte suivant, créé sur le même téléphone, s'ouvrait
+   * sur l'espace du précédent et en voyait les projets en cache. Un espace
+   * choisi par un autre compte, ou sans compte, est oublié.
+   */
+  owner?: string | null;
 };
 
 type ScopeContextValue = {
@@ -50,13 +58,13 @@ type ScopeContextValue = {
 
 const ScopeContext = createContext<ScopeContextValue | null>(null);
 
+const PERSONAL: StoredScope = { id: null, name: null, kind: null, owner: null };
+
 export function ScopeProvider({ children }: { children: ReactNode }) {
-  const [scope, setScopeState] = useState<StoredScope>({
-    id: null,
-    name: null,
-    kind: null,
-  });
+  const [scope, setScopeState] = useState<StoredScope>(PERSONAL);
   const [loading, setLoading] = useState(true);
+  const { user, loading: sessionLoading } = useSession();
+  const userId = user?.id ?? null;
 
   useEffect(() => {
     (async () => {
@@ -68,6 +76,7 @@ export function ScopeProvider({ children }: { children: ReactNode }) {
             id: parsed.id ?? null,
             name: parsed.name ?? null,
             kind: parsed.kind ?? null,
+            owner: parsed.owner ?? null,
           });
         } else {
           const legacy = await AsyncStorage.getItem(LEGACY_KEY);
@@ -89,14 +98,24 @@ export function ScopeProvider({ children }: { children: ReactNode }) {
         id,
         name: id ? (name ?? null) : null,
         kind: id ? (kind ?? null) : null,
+        owner: id ? userId : null,
       };
       setScopeState(next);
       try {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch {}
     },
-    [],
+    [userId],
   );
+
+  // Déconnexion, ou autre compte : retour à l'espace perso. Un espace sans
+  // propriétaire (enregistré par une version antérieure) est traité comme
+  // étranger dès que le compte change, par prudence.
+  useEffect(() => {
+    if (loading || sessionLoading || !scope.id) return;
+    if (userId && scope.owner === userId) return;
+    void setScope(null);
+  }, [loading, sessionLoading, userId, scope.id, scope.owner, setScope]);
 
   const value = useMemo<ScopeContextValue>(
     () => ({

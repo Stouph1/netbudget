@@ -14,7 +14,7 @@ import { Lang } from "../../src/i18n/translations";
 import { City } from "../../src/constants/cities";
 import { parseNumber } from "../../src/utils/finance";
 import { defaultIncomeSource, IncomeSource } from "../../src/utils/income";
-import { loadState, saveState } from "../../src/utils/storage";
+import { loadState, loadUserBudget, saveState, saveUserBudget } from "../../src/utils/storage";
 import {
   loadBudget,
   recordBudgetHistoryPoint,
@@ -76,7 +76,10 @@ export function useBudgetPersistence({
   // Perso / free tier : AsyncStorage local, strictement comme avant.
   // Workspace : cloud partagé entre membres (encrypted_payloads "budget")
   // + cache local par scope pour l'offline.
-  const budgetScopeTarget = userId ? activeWorkspaceId : null;
+  // Trois cibles : null = le téléphone sans compte ; "user:<id>" = le budget
+  // perso d'un compte (local, mais à lui) ; sinon l'identifiant d'un espace.
+  const budgetScopeTarget = userId ? (activeWorkspaceId ?? `user:${userId}`) : null;
+  const isUserScope = (scope: string | null) => scope !== null && scope.startsWith("user:");
   const [budgetScope, setBudgetScope] = useState<string | null>(null);
   const [budgetSwitcherOpen, setBudgetSwitcherOpen] = useState(false);
   // Dernier refus d'écriture cloud (coffre fermé, clé d'espace absente,
@@ -118,7 +121,11 @@ export function useBudgetPersistence({
     if (budgetScopeTarget === budgetScope) return;
     let cancelled = false;
     (async () => {
-      if (budgetScopeTarget && userId) {
+      if (budgetScopeTarget && userId && isUserScope(budgetScopeTarget)) {
+        const b = await loadUserBudget(userId);
+        if (cancelled) return;
+        applyBudgetSnapshot(b);
+      } else if (budgetScopeTarget && userId) {
         const b = await loadBudget(userId, budgetScopeTarget);
         if (cancelled) return;
         applyBudgetSnapshot(b);
@@ -145,6 +152,7 @@ export function useBudgetPersistence({
   const lastServerJson = useRef<string | null>(null);
   useEffect(() => {
     if (!hydrated || !userId || !budgetScopeTarget || budgetScope !== budgetScopeTarget) return;
+    if (isUserScope(budgetScopeTarget)) return; // local : personne d'autre n'écrit
     let cancelled = false;
     const pull = async () => {
       const b = await loadBudget(userId, budgetScopeTarget);
@@ -179,6 +187,13 @@ export function useBudgetPersistence({
         currency,
         lang,
       });
+    } else if (userId && isUserScope(budgetScope)) {
+      void saveUserBudget(userId, { incomes, rent, expenseItems, loans });
+      setSyncError(null);
+      (async () => {
+        const stored = await loadState();
+        await saveState({ ...(stored ?? {}), cityId: city.id, currency, lang });
+      })();
     } else if (userId) {
       void saveBudget(
         userId,
@@ -213,7 +228,7 @@ export function useBudgetPersistence({
     if (!hydrated || !userId) return;
     if (budgetScope !== budgetScopeTarget) return;
     if (netMensuel <= 0 && monthlyExpenses <= 0) return; // budget vide → pas de bruit
-    const scope = budgetScope;
+    const scope = isUserScope(budgetScope) ? null : budgetScope;
     const timer = setTimeout(() => {
       const now = new Date();
       const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;

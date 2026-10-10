@@ -122,7 +122,7 @@ import {
   defaultIncomeSource,
   monthlyNetForSource,
 } from "../src/utils/income";
-import { loadState, saveState } from "../src/utils/storage";
+import { loadState, saveState, releaseUserBudgetToDevice } from "../src/utils/storage";
 
 import {
   DEFAULT_ITEMS,
@@ -1357,6 +1357,9 @@ export default function Index() {
         onConfirm: async () => {
           // Le motif part AVANT la suppression : après, il n'y a plus de session.
           await sendDepartureFeedback({ kind: "delete_account", ...feedback, lang });
+          // « Ton budget local reste sur ce téléphone » : il redevient celui
+          // du téléphone avant que le compte, et son emplacement, disparaissent.
+          if (premiumUser?.id) await releaseUserBudgetToDevice(premiumUser.id);
           const res = await deleteAccount();
           if (res.ok) {
             notify(t("account.deleted.title"), t("account.deleted.body"));

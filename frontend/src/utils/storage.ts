@@ -70,3 +70,91 @@ function migrate(state: PersistedState): PersistedState {
   }
   return state;
 }
+
+// ============================================================================
+// Budget local PAR COMPTE
+// ============================================================================
+//
+// Le budget « perso » d'un compte connecté vivait dans le même blob que celui
+// du téléphone sans compte. Résultat : on se déconnecte, le budget est encore
+// là ; on crée un second compte, il hérite du budget du premier. Chaque
+// compte a maintenant son propre emplacement. Le blob du téléphone reste
+// celui de l'usage sans compte.
+//
+// Le PREMIER compte créé sur un téléphone adopte le budget que la personne
+// avait saisi avant de s'inscrire — sinon elle verrait tout disparaître à
+// l'inscription. Les comptes suivants partent de zéro.
+
+const USER_BUDGET_PREFIX = "netbudget:budget:user:";
+const FIRST_OWNER_KEY = "netbudget:budget:firstOwner";
+
+export type LocalBudget = Pick<PersistedState, "incomes" | "rent" | "expenseItems" | "loans">;
+
+const BUDGET_FIELDS: (keyof LocalBudget)[] = ["incomes", "rent", "expenseItems", "loans"];
+
+function pickBudget(state: PersistedState | null): LocalBudget | null {
+  if (!state) return null;
+  const out: LocalBudget = {};
+  for (const f of BUDGET_FIELDS) if (state[f] !== undefined) (out as Record<string, unknown>)[f] = state[f];
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+/** Ce que doit faire le chargement du budget perso d'un compte. */
+export function decideUserBudgetSource(input: {
+  hasSlot: boolean;
+  firstOwner: string | null;
+  userId: string;
+}): "slot" | "adopt" | "fresh" {
+  if (input.hasSlot) return "slot";
+  if (!input.firstOwner || input.firstOwner === input.userId) return "adopt";
+  return "fresh";
+}
+
+export async function loadUserBudget(userId: string): Promise<LocalBudget | null> {
+  try {
+    const raw = await AsyncStorage.getItem(USER_BUDGET_PREFIX + userId);
+    const firstOwner = await AsyncStorage.getItem(FIRST_OWNER_KEY);
+    const decision = decideUserBudgetSource({ hasSlot: raw != null, firstOwner, userId });
+    if (decision === "slot") return JSON.parse(raw as string) as LocalBudget;
+    if (decision === "fresh") return null;
+    // Adoption : le budget saisi sans compte devient celui de ce compte, et
+    // le téléphone repart vide (les réglages — devise, langue, ville — restent).
+    const device = await loadState();
+    const adopted = pickBudget(device);
+    await AsyncStorage.setItem(FIRST_OWNER_KEY, userId);
+    await AsyncStorage.setItem(USER_BUDGET_PREFIX + userId, JSON.stringify(adopted ?? {}));
+    if (device && adopted) {
+      const rest = { ...device } as PersistedState;
+      for (const f of BUDGET_FIELDS) delete rest[f];
+      await saveState(rest);
+    }
+    return adopted;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveUserBudget(userId: string, budget: LocalBudget): Promise<void> {
+  try {
+    await AsyncStorage.setItem(USER_BUDGET_PREFIX + userId, JSON.stringify(budget));
+  } catch {}
+}
+
+/**
+ * À la suppression du compte : « ton budget local reste sur ce téléphone »
+ * est une promesse de la feuille de départ. Le budget du compte redevient
+ * celui du téléphone, puis l'emplacement du compte disparaît.
+ */
+export async function releaseUserBudgetToDevice(userId: string): Promise<void> {
+  try {
+    const raw = await AsyncStorage.getItem(USER_BUDGET_PREFIX + userId);
+    if (raw) {
+      const budget = JSON.parse(raw) as LocalBudget;
+      const device = await loadState();
+      await saveState({ ...(device ?? {}), ...budget });
+    }
+    await AsyncStorage.removeItem(USER_BUDGET_PREFIX + userId);
+    const firstOwner = await AsyncStorage.getItem(FIRST_OWNER_KEY);
+    if (firstOwner === userId) await AsyncStorage.removeItem(FIRST_OWNER_KEY);
+  } catch {}
+}

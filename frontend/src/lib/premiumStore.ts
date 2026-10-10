@@ -92,18 +92,24 @@ const EMPTY_NONCE = new Uint8Array(24);
 // Cache local — pour affichage instantané au boot, sync differ derrière
 // ============================================================================
 
-// Scope de cache : "perso" ou "ws:<uuid>"
-function cacheKey(payloadKey: string, workspaceId: string | null): string {
-  const scope = workspaceId ? `ws:${workspaceId}` : "perso";
+// Scope de cache : "perso:<userId>" ou "ws:<uuid>".
+//
+// Le scope perso était « perso » tout court : un second compte sur le même
+// téléphone lisait les projets, anniversaires et conseils gardés du premier,
+// puisque le cache répondait avant le serveur (qui, lui, n'avait rien pour
+// ce compte). L'identifiant du compte fait partie de la clé.
+export function cacheKey(payloadKey: string, userId: string, workspaceId: string | null): string {
+  const scope = workspaceId ? `ws:${workspaceId}` : `perso:${userId}`;
   return `${CACHE_KEY_PREFIX}${scope}:${payloadKey}`;
 }
 
 async function readCache<T>(
   payloadKey: string,
+  userId: string,
   workspaceId: string | null,
 ): Promise<T | null> {
   try {
-    const raw = await AsyncStorage.getItem(cacheKey(payloadKey, workspaceId));
+    const raw = await AsyncStorage.getItem(cacheKey(payloadKey, userId, workspaceId));
     if (!raw) return null;
     return JSON.parse(raw) as T;
   } catch {
@@ -113,12 +119,13 @@ async function readCache<T>(
 
 async function writeCache<T>(
   payloadKey: string,
+  userId: string,
   workspaceId: string | null,
   data: T,
 ): Promise<void> {
   try {
     await AsyncStorage.setItem(
-      cacheKey(payloadKey, workspaceId),
+      cacheKey(payloadKey, userId, workspaceId),
       JSON.stringify(data),
     );
   } catch {}
@@ -150,7 +157,7 @@ async function readPayload<T>(
 ): Promise<T> {
   // 1. Cache local d'abord : l'app s'affiche instantanément et fonctionne
   //    hors ligne.
-  const cached = await readCache<T>(payloadKey, workspaceId);
+  const cached = await readCache<T>(payloadKey, userId, workspaceId);
 
   try {
     let query = supabase
@@ -177,7 +184,7 @@ async function readPayload<T>(
     // --- Données en clair (écrites avant le chiffrement) ------------------
     if (version === CRYPTO_PLAINTEXT) {
       const parsed = JSON.parse(new TextDecoder().decode(bytes)) as T;
-      await writeCache(payloadKey, workspaceId, parsed);
+      await writeCache(payloadKey, userId, workspaceId, parsed);
 
       // Conversion opportuniste : on ne lance PAS de traitement massif, chaque
       // donnée se chiffre la première fois qu'on y touche. Sans await : la
@@ -207,7 +214,7 @@ async function readPayload<T>(
     if (!opened) return cached ?? fallback;
 
     const parsed = JSON.parse(new TextDecoder().decode(opened)) as T;
-    await writeCache(payloadKey, workspaceId, parsed);
+    await writeCache(payloadKey, userId, workspaceId, parsed);
     return parsed;
   } catch {
     return cached ?? fallback;
@@ -245,7 +252,7 @@ async function writePayload<T>(
   }
 
   // Cache immédiat : l'interface répond sans attendre le réseau.
-  await writeCache(payloadKey, workspaceId, data);
+  await writeCache(payloadKey, userId, workspaceId, data);
 
   try {
     const plaintext = new TextEncoder().encode(JSON.stringify(data));
@@ -473,7 +480,7 @@ export async function loadBudgetHistory(
   workspaceId: string | null,
 ): Promise<BudgetHistoryPoint[]> {
   if (!workspaceId) {
-    return (await readCache<BudgetHistoryPoint[]>(HISTORY_KEY, null)) ?? [];
+    return (await readCache<BudgetHistoryPoint[]>(HISTORY_KEY, userId, null)) ?? [];
   }
   return readPayload<BudgetHistoryPoint[]>(HISTORY_KEY, userId, [], workspaceId);
 }
@@ -502,7 +509,7 @@ export async function recordBudgetHistoryPoint(
   next.sort((a, b) => a.month.localeCompare(b.month));
   const trimmed = next.slice(-HISTORY_MAX_MONTHS);
   if (!workspaceId) {
-    await writeCache(HISTORY_KEY, null, trimmed);
+    await writeCache(HISTORY_KEY, userId, null, trimmed);
   } else {
     await writePayload(HISTORY_KEY, userId, trimmed, workspaceId);
   }
@@ -559,7 +566,7 @@ export async function seedDemoBudgetHistory(
     };
   });
   if (!workspaceId) {
-    await writeCache(HISTORY_KEY, null, points);
+    await writeCache(HISTORY_KEY, userId, null, points);
   } else {
     await writePayload(HISTORY_KEY, userId, points, workspaceId);
   }
