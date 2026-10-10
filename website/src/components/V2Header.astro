@@ -1,0 +1,71 @@
+---
+// En-tête de la page 2.0 et sa barre de sections. La barre reste collée sous
+// la navigation : on sait toujours où l'on est, et un tap ramène où l'on veut.
+import { useTranslations, localizedPath, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const sections = [
+  { href: "#highlights", label: t("v2.nav.images") },
+  { href: "#whatsnew", label: t("v2.nav.list") },
+  { href: localizedPath(locale, "/") + "#plans", label: t("v2.nav.plans") },
+  { href: localizedPath(locale, "/") + "#download", label: t("v2.nav.download") },
+];
+---
+
+<header class="container-app pt-8 pb-4 md:pt-12">
+  <div class="mx-auto max-w-3xl text-center">
+    <span class="eyebrow">{t("v2.eyebrow")}</span>
+    <h1 class="mt-4 text-4xl font-bold tracking-tight text-balance sm:text-5xl md:text-6xl leading-[1.05]">
+      {t("v2.title")}
+    </h1>
+    <p class="body-lg mt-5 text-balance">{t("v2.subtitle")}</p>
+  </div>
+</header>
+
+<nav
+  aria-label={t("v2.eyebrow")}
+  class="sticky top-16 z-30 border-y border-white/[0.06] bg-ink-900/80 backdrop-blur-xl"
+  data-section-nav
+>
+  <div class="container-app flex gap-1 overflow-x-auto py-2 [scrollbar-width:none]">
+    {sections.map((s) => (
+      <a
+        href={s.href}
+        class="inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold text-text-2 transition hover:text-text-1 aria-[current=true]:bg-mint-500/15 aria-[current=true]:text-mint-400"
+        data-section-link={s.href.startsWith("#") ? s.href.slice(1) : undefined}
+      >
+        {s.label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<script is:inline>
+  // La section visible est marquée dans la barre : c'est ce qui évite de se
+  // sentir perdu dans une longue page.
+  (function () {
+    const links = [...document.querySelectorAll("[data-section-link]")];
+    if (!links.length || !("IntersectionObserver" in window)) return;
+    const byId = Object.fromEntries(links.map((l) => [l.dataset.sectionLink, l]));
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          links.forEach((l) => l.removeAttribute("aria-current"));
+          const l = byId[e.target.id];
+          if (l) l.setAttribute("aria-current", "true");
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" },
+    );
+    for (const id of Object.keys(byId)) {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    }
+  })();
+</script>

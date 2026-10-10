@@ -1,0 +1,111 @@
+---
+// Les quatre formules côte à côte. Chaque ligne vient des limites codées dans
+// l'app (`frontend/src/lib/entitlements.ts`) : rien ici n'est promis que
+// l'app ne tienne. Aucun prix : ils sont fixés et affichés par l'App Store et
+// Google Play, et changent selon le pays.
+import { useTranslations, localizedPath, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+type Cell = true | false | string;
+type Row = { key: string; cells: [Cell, Cell, Cell, Cell] };
+
+const U = t("plans.unlimited");
+const rows: Row[] = [
+  { key: "budget", cells: [true, true, true, true] },
+  { key: "incomes", cells: ["2", U, U, U] },
+  { key: "goals", cells: ["1", "3", U, U] },
+  { key: "loan", cells: [t("plans.loan.year"), t("plans.loan.full"), t("plans.loan.full"), t("plans.loan.full")] },
+  { key: "coach", cells: [false, true, true, true] },
+  { key: "weekly", cells: [false, true, true, true] },
+  { key: "events", cells: [false, "6", U, U] },
+  { key: "wedding", cells: [false, false, true, true] },
+  { key: "spaces", cells: [false, false, t("plans.spaces.duo"), t("plans.spaces.family")] },
+  { key: "birthdays", cells: [false, false, false, true] },
+  { key: "sync", cells: [false, true, true, true] },
+];
+const tiers = ["free", "solo", "duo", "family"] as const;
+---
+
+<section id="plans" class="relative scroll-mt-20">
+  <div class="container-app py-20 md:py-28">
+    <div class="mx-auto max-w-3xl text-center reveal">
+      <span class="eyebrow">{t("plans.eyebrow")}</span>
+      <h2 class="heading-2 mt-4 text-balance">{t("plans.title")}</h2>
+      <p class="body-lg mt-4 text-balance">{t("plans.subtitle")}</p>
+    </div>
+
+    {/* Sur mobile, une carte par formule : un tableau de cinq colonnes ne
+        tient pas dans 390 px, et un tableau qui défile de côté élargit la
+        page entière sur Chrome mobile. */}
+    <div class="reveal mt-12 grid gap-4 md:hidden">
+      {tiers.map((tier) => (
+        <details class:list={["group rounded-3xl border bg-white/[0.02] p-5", tier === "duo" ? "border-mint-500/40" : "border-white/10"]} open={tier === "duo"}>
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-3">
+            <div>
+              <div class="text-lg font-bold text-text-1">{t(`plans.tier.${tier}`)}</div>
+              <div class="text-sm text-text-3">{t(`plans.tier.${tier}.for`)}</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-3 transition group-open:rotate-180" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+          </summary>
+          <ul class="mt-4 space-y-2 text-sm">
+            {rows.map((r) => {
+              const c = r.cells[tiers.indexOf(tier)];
+              return (
+                <li class:list={["flex items-center justify-between gap-3", c === false ? "text-text-3" : "text-text-1"]}>
+                  <span>{t(`plans.row.${r.key}`)}</span>
+                  <span class="shrink-0 tabular-nums">{c === true ? t("plans.yes") : c === false ? "—" : c}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      ))}
+    </div>
+
+    <div class="reveal mt-12 hidden rounded-3xl border border-white/10 bg-white/[0.02] md:block">
+      <table class="w-full border-collapse text-sm">
+        <caption class="sr-only">{t("plans.title")}</caption>
+        <thead>
+          <tr class="border-b border-white/10">
+            <th scope="col" class="p-4 text-left text-xs font-semibold uppercase tracking-wider text-text-3">{t("plans.feature")}</th>
+            {tiers.map((tier) => (
+              <th scope="col" class:list={["p-4 text-center", tier === "duo" ? "bg-mint-500/[0.06]" : ""]}>
+                <div class="text-base font-bold text-text-1">{t(`plans.tier.${tier}`)}</div>
+                <div class="mt-1 text-xs font-normal text-text-3">{t(`plans.tier.${tier}.for`)}</div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr class:list={["border-b border-white/[0.06]", i % 2 === 1 ? "bg-white/[0.015]" : ""]}>
+              <th scope="row" class="p-4 text-left font-medium text-text-2">{t(`plans.row.${r.key}`)}</th>
+              {r.cells.map((c, j) => (
+                <td class:list={["p-4 text-center tabular-nums text-text-1", tiers[j] === "duo" ? "bg-mint-500/[0.06]" : ""]}>
+                  {c === true ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-mint-400" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+                  ) : c === false ? (
+                    <span class="text-text-3" aria-hidden="true">—</span>
+                  ) : (
+                    <span>{c}</span>
+                  )}
+                  {c === true ? <span class="sr-only">{t("plans.yes")}</span> : c === false ? <span class="sr-only">{t("plans.no")}</span> : null}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-8 flex flex-col items-center gap-4 text-center">
+      <p class="max-w-2xl text-sm text-text-3">{t("plans.note")}</p>
+      <a href={localizedPath(locale, "/") + "#download"} class="btn-primary">{t("plans.cta")}</a>
+    </div>
+  </div>
+</section>

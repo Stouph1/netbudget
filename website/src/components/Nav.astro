@@ -24,6 +24,7 @@ interface Props {
 const { locale, pageKind = "home" } = Astro.props;
 const t = useTranslations(locale);
 const home = localizedPath(locale, "/");
+const whatsNewPath = locale === "en" ? "/whats-new" : "/nouveautes";
 
 // Les documents que l'on doit pouvoir trouver sans chercher. Un utilisateur qui
 // veut vérifier ce qu'on fait de ses données ne doit pas avoir à descendre
@@ -44,8 +45,9 @@ const legalLinks = [
         height="32"
         class="h-8 w-8 rounded-lg shadow-lg shadow-mint-500/20"
       />
+      {/* Sur mobile, l'icône suffit : le nom tenait la place du lien 2.0. */}
       <span
-        class="font-bold tracking-tight text-text-1 transition group-hover:text-mint-400"
+        class="hidden font-bold tracking-tight text-text-1 transition group-hover:text-mint-400 sm:inline"
       >NETbudget</span>
     </a>
 
@@ -56,8 +58,8 @@ const legalLinks = [
             <a href="#features" class="inline-flex min-h-11 items-center text-text-2 transition hover:text-text-1">
               {t("nav.features")}
             </a>
-            <a href="#whatsnew" class="inline-flex min-h-11 items-center text-text-2 transition hover:text-text-1">
-              {t("nav.whatsnew")}
+            <a href="#plans" class="inline-flex min-h-11 items-center text-text-2 transition hover:text-text-1">
+              {t("nav.plans")}
             </a>
             <a href="#reviews" class="inline-flex min-h-11 items-center text-text-2 transition hover:text-text-1">
               {t("nav.reviews")}
@@ -68,6 +70,11 @@ const legalLinks = [
           </>
         )
       }
+      {pageKind !== "home" && (
+        <a href={localizedPath(locale, "/") + "#plans"} class="inline-flex min-h-11 items-center text-text-2 transition hover:text-text-1">
+          {t("nav.plans")}
+        </a>
+      )}
       <a
         href={localizedPath(locale, "/faq")}
         class="inline-flex min-h-11 items-center text-text-2 transition hover:text-text-1"
@@ -77,6 +84,20 @@ const legalLinks = [
     </nav>
 
     <div class="flex items-center gap-2 sm:gap-3">
+      {/* La 2.0 : une seule entrée, visible aussi sur mobile, où le reste de
+          la navigation est masqué. C'est la page que tout le monde cherche
+          en ce moment. */}
+      <a
+        href={localizedPath(locale, whatsNewPath)}
+        aria-current={Astro.url.pathname.replace(/\/+$/, "").endsWith(whatsNewPath) ? "page" : undefined}
+        class="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-mint-500/30 bg-mint-500/10 px-2.5 text-sm font-semibold text-mint-400 transition hover:bg-mint-500/20 sm:px-3.5"
+      >
+        <span aria-hidden="true" class="relative flex h-1.5 w-1.5">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint-400 opacity-75 motion-reduce:hidden"></span>
+          <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint-400"></span>
+        </span>
+        {t("nav.v2")}
+      </a>
       {/* Menu légal : visible à toutes les tailles d'écran, contrairement au
           reste de la navigation. C'est le seul point d'entrée vers les
           documents sur mobile. */}

@@ -18,8 +18,8 @@ type Row =
   | { n: number; kind: "image"; src: string; alt: string; ratio: string; width: number; height: number };
 
 const rows: Row[] = [
-  { n: 1, kind: "phone", src: "/screens/depenses-720", alt: t("screens.expenses") },
-  { n: 2, kind: "phone", src: "/screens/reperes-720", alt: t("screens.benchmark") },
+  { n: 1, kind: "phone", src: `/screens/${locale}/depenses-720`, alt: t("screens.expenses") },
+  { n: 2, kind: "phone", src: `/screens/${locale}/reperes-720`, alt: t("screens.benchmark") },
   {
     n: 3,
     kind: "image",
@@ -29,10 +29,10 @@ const rows: Row[] = [
     width: 1170,
     height: 650,
   },
-  { n: 4, kind: "phone", src: "/screens/coach-720", alt: t("screens.coach") },
-  { n: 5, kind: "phone", src: "/screens/projet-720", alt: t("screens.project") },
+  { n: 4, kind: "phone", src: `/screens/${locale}/coach-720`, alt: t("screens.coach") },
+  { n: 5, kind: "phone", src: `/screens/${locale}/projet-720`, alt: t("screens.project") },
   { n: 6, kind: "image", src: "/promo/03-duo", alt: t("highlights.alt.duo"), ratio: "aspect-[18/25]", width: 720, height: 1000 },
-  { n: 7, kind: "image", src: "/promo/04-famille", alt: t("highlights.alt.family"), ratio: "aspect-[18/25]", width: 720, height: 1000 },
+  { n: 7, kind: "phone", src: `/screens/${locale}/espaces-720`, alt: t("screens.spaces") },
 ];
 ---
 

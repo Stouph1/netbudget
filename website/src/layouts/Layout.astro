@@ -102,9 +102,7 @@ const appSchema = {
     "https://apps.apple.com/app/netbudget/id6763551701",
     "https://play.google.com/store/apps/details?id=com.stouph.netbudget",
   ],
-  screenshot: ["/screens/budget-720.webp", "/screens/depenses-720.webp", "/screens/reperes-720.webp", "/screens/coach-720.webp", "/screens/projet-720.webp", "/screens/objectifs-720.webp", "/screens/annee-720.webp", "/screens/notifications-720.webp", "/screens/convertir-720.webp"].map(
-    (p) => new URL(p, SITE).href,
-  ),
+  screenshot: ["/screens/" + locale + "/budget-720.webp", "/screens/" + locale + "/depenses-720.webp", "/screens/" + locale + "/reperes-720.webp", "/screens/" + locale + "/coach-720.webp", "/screens/" + locale + "/projet-720.webp", "/screens/" + locale + "/objectifs-720.webp", "/screens/" + locale + "/annee-720.webp", "/screens/" + locale + "/notifications-720.webp", "/screens/" + locale + "/convertir-720.webp"].map((p) => new URL(p, SITE).href),
   isAccessibleForFree: true,
   ...(store?.version ? { softwareVersion: store.version } : {}),
   ...(store?.datePublished ? { datePublished: store.datePublished } : {}),

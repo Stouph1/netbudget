@@ -1,0 +1,29 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import Highlights from "../../components/Highlights.astro";
+import WhatsNew from "../../components/WhatsNew.astro";
+import FinalCTA from "../../components/FinalCTA.astro";
+import V2Header from "../../components/V2Header.astro";
+import { useTranslations } from "../../i18n/utils";
+
+const locale = "en" as const;
+const t = useTranslations(locale);
+const crumbSchema = {
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: t("breadcrumb.home"), item: "https://www.netbudget.app/en" },
+    { "@type": "ListItem", position: 2, name: t("v2.eyebrow"), item: "https://www.netbudget.app/en/whats-new" },
+  ],
+};
+---
+
+<Layout locale={locale} title={t("page.v2.title")} description={t("page.v2.desc")} pageKind="page" schema={crumbSchema}>
+  <div class="container-app pt-6">
+    <Breadcrumb locale={locale} items={[{ label: t("v2.eyebrow") }]} />
+  </div>
+  <V2Header locale={locale} />
+  <Highlights locale={locale} />
+  <WhatsNew locale={locale} />
+  <FinalCTA locale={locale} />
+</Layout>

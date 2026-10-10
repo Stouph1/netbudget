@@ -12,12 +12,12 @@ const screens = [
   // Six captures prises dans l'app (simulateur iPhone, version 2.0), servies
   // en WebP 720 px avec le PNG en repli. L'alternative textuelle reprend le
   // libellé traduit.
-  { src: "/screens/budget-720", key: "budget", tilt: "left" as const },
-  { src: "/screens/depenses-720", key: "expenses", tilt: "none" as const },
-  { src: "/screens/reperes-720", key: "benchmark", tilt: "right" as const },
-  { src: "/screens/coach-720", key: "coach", tilt: "left" as const },
-  { src: "/screens/projet-720", key: "project", tilt: "none" as const },
-  { src: "/screens/objectifs-720", key: "goals", tilt: "right" as const },
+  { src: `/screens/${locale}/budget-720`, key: "budget", tilt: "left" as const },
+  { src: `/screens/${locale}/depenses-720`, key: "expenses", tilt: "none" as const },
+  { src: `/screens/${locale}/reperes-720`, key: "benchmark", tilt: "right" as const },
+  { src: `/screens/${locale}/coach-720`, key: "coach", tilt: "left" as const },
+  { src: `/screens/${locale}/projet-720`, key: "project", tilt: "none" as const },
+  { src: `/screens/${locale}/objectifs-720`, key: "goals", tilt: "right" as const },
 ].map((x) => ({ ...x, alt: t(`screens.${x.key}`), label: t(`screens.${x.key}`) }));
 ---
 

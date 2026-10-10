@@ -76,6 +76,6 @@ try {
   await page.keyboard.press("Tab");
   ok("premier Tab = lien d'evitement", await page.evaluate(() => document.activeElement?.getAttribute("href")==="#main"));
   ok("aucune erreur console / requete en echec", errors.length===0, errors.slice(0,3).join(" | "));
-} finally { await browser.close(); }
+} catch (e) { for (const [s,n,x] of results) console.log(s, n, x ? '   ['+x.slice(0,100)+']' : ''); console.log('ECHEC APRES CES ETAPES :', e.message); process.exit(1); } finally { await browser.close(); }
 for (const [s,n,e] of results) console.log(s, n, e ? "   ["+e.slice(0,140)+"]" : "");
 const ko = results.filter(r=>r[0]==="KO ").length; console.log(`\n${results.length-ko}/${results.length} verifications passees`); process.exit(ko?1:0);
