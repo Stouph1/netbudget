@@ -161,14 +161,30 @@ const videoSrc = "/videos/netbudget-logo-reveal.mp4";
     function playIfWanted() {
       if (!wanted) return;
       const p = video.play();
-      // Lecture refusée par le navigateur (Safari en économie d'énergie,
-      // Firefox avec lecture auto bloquée, économiseur de données) : le
-      // bouton passe en « lancer », sinon il afficherait « pause » sur une
-      // vidéo arrêtée et il faudrait cliquer deux fois.
       if (p && typeof p.catch === "function")
-        p.catch(function () {
+        p.catch(function (err) {
+          // Sur téléphone, la carte est sous le pli au chargement : l'observateur
+          // la met en pause pendant que la lecture démarre, et la promesse
+          // échoue (AbortError). Ce n'est pas un refus, on ne touche à rien :
+          // la lecture repartira quand la carte entrera à l'écran.
+          if (err && err.name === "AbortError") return;
+          // Vrai refus du navigateur (économie d'énergie, lecture auto bloquée,
+          // économiseur de données) : le bouton passe en « lancer », et on
+          // retente une fois au premier geste de l'utilisateur, ce qui suffit
+          // souvent à Safari pour accepter.
           wanted = false;
           render();
+          const retry = function () {
+            document.removeEventListener("touchend", retry);
+            document.removeEventListener("pointerup", retry);
+            if (reduced) return;
+            wanted = true;
+            render();
+            const q = video.play();
+            if (q && typeof q.catch === "function") q.catch(function () { wanted = false; render(); });
+          };
+          document.addEventListener("touchend", retry, { once: true, passive: true });
+          document.addEventListener("pointerup", retry, { once: true, passive: true });
         });
     }
 
