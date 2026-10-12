@@ -25,23 +25,29 @@ const t = useTranslations(locale);
   aria-label={t("consent.label")}
   hidden
 >
-  <div class="rounded-2xl border border-white/10 bg-ink-800/95 p-4 shadow-2xl backdrop-blur-xl">
-    <p class="text-[13px] leading-relaxed text-text-2">
+  {/* Sur téléphone : une ligne, deux boutons, et c'est tout. La version
+      longue prenait un tiers de l'écran sur chaque section de la page. */}
+  <div class="rounded-2xl border border-white/10 bg-ink-800/95 p-3 shadow-2xl backdrop-blur-xl sm:p-4">
+    <p class="text-xs leading-snug text-text-2 sm:hidden">
+      {t("consent.short")}
+      <a href={localizedPath(locale, "/privacy")} class="text-mint-400 underline-offset-2 hover:underline">{t("consent.more")}</a>
+    </p>
+    <p class="hidden text-[13px] leading-relaxed text-text-2 sm:block">
       {t("consent.text")}
       <a href={localizedPath(locale, "/privacy")} class="text-mint-400 underline-offset-2 hover:underline">{t("consent.more")}</a>
     </p>
-    <div class="mt-3 flex flex-wrap items-center gap-2">
+    <div class="mt-2 flex flex-wrap items-center gap-2 sm:mt-3">
       <button
         type="button"
         data-consent="ok"
-        class="inline-flex min-h-11 items-center rounded-full bg-mint-500 px-4 text-sm font-semibold text-ink-900 transition hover:bg-mint-400"
+        class="inline-flex min-h-10 items-center rounded-full bg-mint-500 px-4 text-sm font-semibold text-ink-900 transition hover:bg-mint-400 sm:min-h-11"
       >
         {t("consent.ok")}
       </button>
       <button
         type="button"
         data-consent="refused"
-        class="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-semibold text-text-2 transition hover:text-text-1"
+        class="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold text-text-2 transition hover:text-text-1 sm:min-h-11"
       >
         {t("consent.refuse")}
       </button>
@@ -65,9 +71,13 @@ const t = useTranslations(locale);
 
     const show = () => {
       notice.hidden = false;
+      // La barre « Télécharger » du bas s'efface tant que l'avis est ouvert :
+      // les deux ensemble couvraient la moitié d'un écran de téléphone.
+      document.documentElement.classList.add("consent-open");
       requestAnimationFrame(() => notice.classList.remove("translate-y-3", "opacity-0"));
     };
     const hide = () => {
+      document.documentElement.classList.remove("consent-open");
       notice.classList.add("translate-y-3", "opacity-0");
       setTimeout(() => (notice.hidden = true), 300);
     };

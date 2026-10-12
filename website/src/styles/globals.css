@@ -89,3 +89,8 @@
     @apply animate-fade-up;
   }
 }
+
+/* Tant que l'avis de mesure d'audience est ouvert, la barre du bas attend. */
+.consent-open #sticky-cta {
+  display: none;
+}
