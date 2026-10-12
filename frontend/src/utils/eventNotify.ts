@@ -84,18 +84,26 @@ export async function scheduleEventNotifications(
         group.at,
       );
     }
+    // Le ton suit le type d'événement. « C'est le grand jour, profite ! » le
+    // matin d'un enterrement, c'est exactement ce qu'il ne faut pas envoyer.
+    // Une clé par type ; sans texte propre, on garde le message général.
+    const typed = (key: string) => {
+      const k = `evtNotif.${ev.type}.${key}`;
+      const v = translate(k);
+      return v === k ? translate(`evtNotif.${key}`) : v;
+    };
     const j7 = new Date(ev.dateIso + "T09:00:00");
     j7.setDate(j7.getDate() - 7);
     await push(
       `event-${ev.id}-j7`,
-      interp(translate("evtNotif.j7.title"), { emoji: ev.emoji, name: ev.name }),
-      translate("evtNotif.j7.body"),
+      interp(typed("j7.title"), { emoji: ev.emoji, name: ev.name }),
+      interp(typed("j7.body"), { name: ev.name }),
       j7,
     );
     await push(
       `event-${ev.id}-jday`,
-      interp(translate("evtNotif.jday.title"), { emoji: ev.emoji }),
-      interp(translate("evtNotif.jday.body"), { name: ev.name }),
+      interp(typed("jday.title"), { emoji: ev.emoji, name: ev.name }),
+      interp(typed("jday.body"), { name: ev.name }),
       new Date(ev.dateIso + "T08:30:00"),
     );
     return scheduled;
