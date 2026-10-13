@@ -1,0 +1,54 @@
+# Google Play · Português (pt)
+
+## Nom de l'application (9/30)
+
+```
+NETbudget
+```
+
+## Description courte (66/80)
+
+```
+O que te sobra, Coach com fontes, orçamento partilhado. Sem banco.
+```
+
+## Description complète (2274/4000)
+
+```
+Quanto te sobra mesmo no fim do mês?
+
+O NETbudget calcula-o em minutos: introduzes os teus rendimentos e as tuas despesas, a app faz o resto. Sem ligação ao teu banco, nunca. O teu orçamento vive no teu telemóvel e, com uma conta, o que se sincroniza é cifrado antes de sair, com uma chave que só tu tens.
+
+UM ORÇAMENTO QUE SE LÊ NUM RELANCE
+• O que te sobra este mês, despesas por família (necessidades, lazer, poupança) e o ano inteiro numa tabela
+• Um pictograma por rubrica, encontrado a partir do nome: basquetebol, passe de transportes, seguro de saúde
+• Despesas por período: o esqui no inverno, as férias no verão
+• Várias fontes de rendimento, cada uma com os seus descontos, e o imposto retido na fonte em 32 países
+• Empréstimos com plano de amortização, conversor de 15 moedas, exportação em PDF
+
+REFERÊNCIAS OFICIAIS, NÃO OPINIÕES
+A tua parte de habitação, compras ou saídas face ao agregado médio do teu país: Eurostat na Europa, BLS nos Estados Unidos, ONS no Reino Unido, Statistics Canada, ABS na Austrália. A fonte e o ano estão sempre visíveis. Uma referência 50/30/20 que se adapta ao teu perfil, à tua cidade e à tua habitação.
+
+UM COACH QUE CITA AS FONTES
+282 dicas, filtradas pela tua idade, o teu agregado, a tua habitação e o teu país. Cada uma cita a página oficial e a data de verificação: apoios por reclamar, poupança regulada, impostos, proteção. Uma dica da semana todas as segundas.
+
+UM ORÇAMENTO A VÁRIOS
+Um código de convite, e o orçamento comum vê-se dos dois lados. Cada um mantém o seu espaço privado. Em família: até seis pessoas, três espaços, os aniversários e os projetos do agregado.
+
+UM ESPAÇO POR PROJETO
+Casamento, viagem, nascimento, festa: três perguntas e o orçamento fica montado, com as rubricas, o calendário e os lembretes.
+
+NOTIFICAÇÕES QUE VALEM A PENA
+O ponto do mês, a dica da semana, um marco de projeto que se aproxima. Tu defines o limite semanal.
+
+GRÁTIS PARA COMEÇAR
+O orçamento, os empréstimos e o conversor são gratuitos, sem conta e sem limite de tempo. Os planos Solo, Duo e Família acrescentam o Coach, os projetos, os espaços partilhados e a sincronização cifrada. Sem publicidade, nunca.
+
+Oito idiomas, 59 países, 499 cidades com o seu custo de vida. Desenvolvida em França por um programador independente.
+```
+
+## Nouveautés (notes de version) (436/500)
+
+```
+NETbudget 2.0: espaços partilhados a dois ou em família com código de convite, Coach com 282 dicas com fonte e dica da semana, referências face às médias nacionais (Eurostat, BLS, ONS, Statistics Canada, ABS), projetos guiados (casamento, viagem, nascimento, festa), orçamento mais leve com pictogramas e despesas por período, imposto retido na fonte em 32 países, notificações úteis, cifra de ponta a ponta, PDF renovado, oito idiomas.
+```
