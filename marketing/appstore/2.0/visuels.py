@@ -4,7 +4,7 @@
 
 Deux tailles imposées par App Store Connect :
   - en-tête de page produit : 5244 × 2950 px
-  - résultats de recherche : 3840 × 1646 px
+  - résultats de recherche : 3840 × 2560 px (ou 5244 × 2950, 1920 × 1280)
 
 Un visuel par langue (fr, en, es, pt, de, it, ar, ja), épuré : fond nuit,
 halo menthe, une accroche de quelques mots, et deux écrans de l'app pris
@@ -131,5 +131,5 @@ def compose(lang, w, h, name):
 if __name__ == "__main__":
     for lang in COPY:
         compose(lang, 5244, 2950, "en-tete-5244x2950")
-        compose(lang, 3840, 1646, "recherche-3840x1646")
+        compose(lang, 3840, 2560, "recherche-3840x2560")
         print(lang, "ok")
