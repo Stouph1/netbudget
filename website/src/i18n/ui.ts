@@ -54,7 +54,8 @@ const fr: Catalog = {
   "teaser.title": "NETbudget 2.0 arrive.",
   "teaser.subtitle": "Budget partagé en couple ou en famille, Coach avec 282 conseils sourcés, repères officiels, projets guidés. Le 15 novembre sur l'App Store et Google Play.",
   "teaser.video.title": "Le teaser de NETbudget 2.0",
-  "teaser.video.hint": "Le son est coupé par défaut : touche le haut-parleur pour l'activer.",
+  "teaser.sound.on": "Activer le son",
+  "teaser.sound.off": "Couper le son",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "Le spot · 22 sec",
@@ -608,7 +609,8 @@ const en: Catalog = {
   "teaser.title": "NETbudget 2.0 is coming.",
   "teaser.subtitle": "Shared budgets for couples and families, a Coach with 282 sourced tips, official benchmarks, guided projects. November 15 on the App Store and Google Play.",
   "teaser.video.title": "The NETbudget 2.0 teaser",
-  "teaser.video.hint": "Sound is off by default: tap the speaker to turn it on.",
+  "teaser.sound.on": "Turn sound on",
+  "teaser.sound.off": "Turn sound off",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "The spot · 22 sec",

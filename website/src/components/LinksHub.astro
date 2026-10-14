@@ -48,18 +48,37 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
         poster={TEASER_POSTER}
         data-src-portrait={TEASER_VIDEO_PORTRAIT}
         data-poster-portrait={TEASER_POSTER_PORTRAIT}
-        controls
         muted
         autoplay
         loop
         playsinline
         preload="metadata"
+        disablepictureinpicture
         title={t("teaser.video.title")}
       >
       </video>
       <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-ink-900 to-transparent md:h-24"></div>
+
+      {/* Pas de barre de contrôles : la vidéo tourne en boucle, comme sur une
+          page de lancement. Le seul réglage offert est le son, un bouton de
+          44 px en bas à droite, qui dit ce qu'il fait. */}
+      <button
+        id="teaser-sound"
+        type="button"
+        class="absolute bottom-4 right-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-ink-900/70 text-text-1 backdrop-blur transition hover:bg-ink-900/90 md:bottom-6 md:right-6"
+        aria-pressed="false"
+        aria-label={t("teaser.sound.on")}
+        data-label-on={t("teaser.sound.on")}
+        data-label-off={t("teaser.sound.off")}
+      >
+        <svg data-icon="muted" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+        <svg data-icon="sound" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+          <path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/>
+        </svg>
+      </button>
     </div>
-    <p class="container-app mt-4 text-center text-sm text-text-3">{t("teaser.video.hint")}</p>
   </div>
 
   <div class="container-app pb-16">
@@ -114,5 +133,27 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
     }
     var p = v.play();
     if (p && typeof p.catch === "function") p.catch(function () {});
+  })();
+  (function () {
+    var v = document.getElementById("teaser-video");
+    var b = document.getElementById("teaser-sound");
+    if (!v || !b) return;
+    var iconMuted = b.querySelector('[data-icon="muted"]');
+    var iconSound = b.querySelector('[data-icon="sound"]');
+    function paint() {
+      var on = !v.muted;
+      iconMuted.hidden = on;
+      iconSound.hidden = !on;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.setAttribute("aria-label", on ? b.dataset.labelOff : b.dataset.labelOn);
+    }
+    b.addEventListener("click", function () {
+      v.muted = !v.muted;
+      // Le geste sur le bouton autorise aussi la lecture si elle avait été refusée.
+      if (v.paused) { var p = v.play(); if (p && typeof p.catch === "function") p.catch(function () {}); }
+      paint();
+    });
+    v.addEventListener("volumechange", paint);
+    paint();
   })();
 </script>
