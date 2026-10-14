@@ -15,11 +15,53 @@ const t = useTranslations(locale);
 // permettent de l'activer.
 const TEASER_VIDEO = "/videos/netbudget-teaser-2-0.mp4";
 const TEASER_POSTER = "/videos/netbudget-teaser-2-0.jpg";
+// Sur téléphone, la version verticale (9:16) remplit l'écran au lieu d'une
+// bande de 16:9 ; le script choisit la source avant la lecture.
+const TEASER_VIDEO_PORTRAIT = "/videos/netbudget-teaser-2-0-portrait.mp4";
+const TEASER_POSTER_PORTRAIT = "/videos/netbudget-teaser-2-0-portrait.jpg";
 const APPSTORE_URL = "https://apps.apple.com/app/netbudget/id6763551701";
 const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
 ---
 
 <section id="download" class="relative scroll-mt-20">
+  {/* Le teaser de la 2.0, pleine largeur : le texte au-dessus, la vidéo bord
+      à bord, comme une page de lancement. Sans le son au départ (exigé pour
+      une lecture automatique), les contrôles natifs servent à l'activer. */}
+  <div id="teaser" class="scroll-mt-24 pb-14 md:pb-20">
+    <div class="container-app text-center">
+      <div class="inline-flex items-center gap-2 rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-mint-400">
+        <span aria-hidden="true" class="relative flex h-2 w-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint-400 opacity-75 motion-reduce:hidden"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-mint-400"></span>
+        </span>
+        {t("teaser.eyebrow")}
+      </div>
+      <h2 class="heading-2 mx-auto mt-5 max-w-2xl text-balance">{t("teaser.title")}</h2>
+      <p class="body-lg mx-auto mt-4 max-w-2xl text-balance">{t("teaser.subtitle")}</p>
+    </div>
+
+    <div class="relative mt-8 w-full bg-[#0B0E14] md:mt-10">
+      <video
+        id="teaser-video"
+        class="block h-auto max-h-[88vh] w-full object-cover"
+        src={TEASER_VIDEO}
+        poster={TEASER_POSTER}
+        data-src-portrait={TEASER_VIDEO_PORTRAIT}
+        data-poster-portrait={TEASER_POSTER_PORTRAIT}
+        controls
+        muted
+        autoplay
+        loop
+        playsinline
+        preload="metadata"
+        title={t("teaser.video.title")}
+      >
+      </video>
+      <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-ink-900 to-transparent md:h-24"></div>
+    </div>
+    <p class="container-app mt-4 text-center text-sm text-text-3">{t("teaser.video.hint")}</p>
+  </div>
+
   <div class="container-app pb-16">
     <div class="reveal relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-mint-500/10 via-transparent to-cyan-400/5 p-8 text-center md:p-12">
       <div
@@ -47,56 +89,24 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
         </a>
       </div>
 
-      <div class="mx-auto my-10 h-px w-full max-w-md bg-white/10"></div>
-
-      {/* Le teaser vidéo de la 2.0, à la place du compte à rebours : la
-          date est dans l'étiquette, le reste est dans la vidéo. Sans le son
-          au départ (les navigateurs l'exigent pour une lecture automatique),
-          les contrôles natifs servent à l'activer. */}
-      <div id="teaser" class="scroll-mt-24">
-        <div class="inline-flex items-center gap-2 rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-mint-400">
-          <span aria-hidden="true" class="relative flex h-2 w-2">
-            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint-400 opacity-75 motion-reduce:hidden"></span>
-            <span class="relative inline-flex h-2 w-2 rounded-full bg-mint-400"></span>
-          </span>
-          {t("teaser.eyebrow")}
-        </div>
-
-        <h3 class="mx-auto mt-5 max-w-2xl text-balance text-2xl font-bold tracking-tight md:text-3xl">
-          {t("teaser.title")}
-        </h3>
-        <p class="body-lg mx-auto mt-4 max-w-2xl text-balance">{t("teaser.subtitle")}</p>
-
-        <div class="mx-auto mt-7 w-full max-w-3xl overflow-hidden rounded-[24px] border border-white/10 bg-[#0B0E14] shadow-[0_40px_90px_-24px_rgba(0,0,0,0.7),0_0_60px_-12px_rgba(110,231,183,0.25)]">
-          <video
-            id="teaser-video"
-            class="aspect-video h-auto w-full"
-            src={TEASER_VIDEO}
-            poster={TEASER_POSTER}
-            controls
-            muted
-            autoplay
-            loop
-            playsinline
-            preload="metadata"
-            title={t("teaser.video.title")}
-          >
-          </video>
-        </div>
-        <p class="mt-3 text-sm text-text-3">{t("teaser.video.hint")}</p>
-
-      </div>
     </div>
   </div>
 </section>
 
 <script is:inline>
-  // Lecture automatique sans le son : si le navigateur la refuse (réglage
-  // « Réduire les animations » ou économie de données), on laisse l'affiche
-  // et les contrôles, sans insister.
+  // Téléphone : la version verticale remplit l'écran. Puis lecture automatique
+  // sans le son ; si le navigateur la refuse (« Réduire les animations »,
+  // économie de données), l'affiche et les contrôles restent, sans insister.
   (function () {
     var v = document.getElementById("teaser-video");
     if (!v) return;
+    var mq = window.matchMedia ? window.matchMedia("(max-width: 767px)") : null;
+    if (mq && mq.matches && v.dataset.srcPortrait) {
+      v.pause();
+      v.poster = v.dataset.posterPortrait || v.poster;
+      v.src = v.dataset.srcPortrait;
+      v.load();
+    }
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       v.removeAttribute("autoplay");
       v.pause();
