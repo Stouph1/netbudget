@@ -22,4 +22,4 @@
 
 ## Vidéos
 
-Dans videos/ : teaser (paysage 16:9, 22 s), formules (paysage, 25 s), solo, duo, famille (portrait 9:16, 20 s). À publier sur YouTube (non répertoriées) puis coller les liens dans « Vidéos ».
+Dans videos/ : teaser (paysage 16:9, 22 s), formules (paysage 16:9 et portrait 9:16, 25 s, v4 refaite en format pub : hook, vrais écrans, trois formules), solo, duo, famille (portrait 9:16, 20 s). À publier sur YouTube (non répertoriées) puis coller les liens dans « Vidéos ».
