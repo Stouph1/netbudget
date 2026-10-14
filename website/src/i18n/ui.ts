@@ -50,16 +50,11 @@ const fr: Catalog = {
   "links.subtitle": "Disponible sur iPhone et Android. Gratuit pour commencer, sans publicité. Un compte seulement pour synchroniser, partager et profiter du Coach.",
 
   // Le 15 octobre : compte à rebours et indice, sans dire quoi.
-  "teaser.eyebrow": "15 octobre",
-  "teaser.title": "Quelque chose arrive.",
-  "teaser.live": "C'est là.",
-  "teaser.dateLong": "Rendez-vous le 15 octobre 2026.",
-  "teaser.days": "jours",
-  "teaser.hours": "heures",
-  "teaser.minutes": "min",
-  "teaser.seconds": "sec",
-  "teaser.hintLabel": "Indice :",
-  "teaser.hint": "tu ne compteras plus tout seul·e.",
+  "teaser.eyebrow": "2.0 · 15 novembre",
+  "teaser.title": "NETbudget 2.0 arrive.",
+  "teaser.subtitle": "Budget partagé en couple ou en famille, Coach avec 282 conseils sourcés, repères officiels, projets guidés. Le 15 novembre sur l'App Store et Google Play.",
+  "teaser.video.title": "Le teaser de NETbudget 2.0",
+  "teaser.video.hint": "Le son est coupé par défaut : touche le haut-parleur pour l'activer.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "Le spot · 22 sec",
@@ -608,17 +603,12 @@ const en: Catalog = {
   "links.title": "Download NETbudget",
   "links.subtitle": "Available on iPhone and Android. Free to start, no ads. An account only to sync, share and use the Coach.",
 
-  // October 15: countdown and a hint, without saying what.
-  "teaser.eyebrow": "October 15",
-  "teaser.title": "Something is coming.",
-  "teaser.live": "It's here.",
-  "teaser.dateLong": "See you on October 15, 2026.",
-  "teaser.days": "days",
-  "teaser.hours": "hours",
-  "teaser.minutes": "min",
-  "teaser.seconds": "sec",
-  "teaser.hintLabel": "Hint:",
-  "teaser.hint": "you won't be counting alone anymore.",
+  // The 2.0 teaser video, in place of the October 15 countdown.
+  "teaser.eyebrow": "2.0 · November 15",
+  "teaser.title": "NETbudget 2.0 is coming.",
+  "teaser.subtitle": "Shared budgets for couples and families, a Coach with 282 sourced tips, official benchmarks, guided projects. November 15 on the App Store and Google Play.",
+  "teaser.video.title": "The NETbudget 2.0 teaser",
+  "teaser.video.hint": "Sound is off by default: tap the speaker to turn it on.",
 
   // Spot video (autoplay hero)
   "spot.eyebrow": "The spot · 22 sec",

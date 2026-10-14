@@ -1,7 +1,7 @@
 ---
 // Section "tous les liens" — pensée pour être LA destination unique du lien
 // Instagram (bio) et du bouton "Télécharger" de la nav : App Store, Google
-// Play et compte à rebours du 15 octobre, réunis au même endroit.
+// Play et le teaser de la 2.0, réunis au même endroit.
 import { useTranslations, type Locale } from "../i18n/utils";
 
 interface Props {
@@ -10,9 +10,11 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// Le jour J : 15 octobre 2026, heure de Paris. Une seule source, lue par le
-// script du compte à rebours et par la phrase de repli sans JavaScript.
-const TEASER_AT = "2026-10-15T00:00:00+02:00";
+// Le teaser de la 2.0 (22 s, 16:9), hébergé ici : aucun script externe, la
+// CSP du site reste intacte. Lancé sans le son, les contrôles natifs
+// permettent de l'activer.
+const TEASER_VIDEO = "/videos/netbudget-teaser-2-0.mp4";
+const TEASER_POSTER = "/videos/netbudget-teaser-2-0.jpg";
 const APPSTORE_URL = "https://apps.apple.com/app/netbudget/id6763551701";
 const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
 ---
@@ -47,11 +49,11 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
 
       <div class="mx-auto my-10 h-px w-full max-w-md bg-white/10"></div>
 
-      {/* Le compte à rebours. La date est la seule donnée : tout le reste
-          (jours, heures, minutes, secondes) est calculé dans le navigateur,
-          et le bloc bascule seul en « c'est là » une fois l'heure passée.
-          Sans JavaScript, la date en toutes lettres reste lisible. */}
-      <div id="teaser" class="scroll-mt-24" data-teaser-at={TEASER_AT}>
+      {/* Le teaser vidéo de la 2.0, à la place du compte à rebours : la
+          date est dans l'étiquette, le reste est dans la vidéo. Sans le son
+          au départ (les navigateurs l'exigent pour une lecture automatique),
+          les contrôles natifs servent à l'activer. */}
+      <div id="teaser" class="scroll-mt-24">
         <div class="inline-flex items-center gap-2 rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-mint-400">
           <span aria-hidden="true" class="relative flex h-2 w-2">
             <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint-400 opacity-75 motion-reduce:hidden"></span>
@@ -61,34 +63,27 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
         </div>
 
         <h3 class="mx-auto mt-5 max-w-2xl text-balance text-2xl font-bold tracking-tight md:text-3xl">
-          <span data-teaser="before">{t("teaser.title")}</span>
-          <span data-teaser="after" hidden>{t("teaser.live")}</span>
+          {t("teaser.title")}
         </h3>
+        <p class="body-lg mx-auto mt-4 max-w-2xl text-balance">{t("teaser.subtitle")}</p>
 
-        <p class="sr-only" data-teaser="before">{t("teaser.dateLong")}</p>
-        <div
-          data-teaser="before"
-          class="mx-auto mt-7 grid max-w-md grid-cols-4 gap-2 sm:gap-3"
-          role="timer"
-          aria-live="off"
-        >
-          {
-            (["days", "hours", "minutes", "seconds"] as const).map((unit) => (
-              <div class="rounded-2xl border border-white/10 bg-ink-900/60 px-2 py-4 sm:py-5">
-                <span data-unit={unit} class="block text-3xl font-bold tabular-nums tracking-tight text-text-1 sm:text-4xl">
-                  --
-                </span>
-                <span class="mt-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-text-3">
-                  {t(`teaser.${unit}`)}
-                </span>
-              </div>
-            ))
-          }
+        <div class="mx-auto mt-7 w-full max-w-3xl overflow-hidden rounded-[24px] border border-white/10 bg-[#0B0E14] shadow-[0_40px_90px_-24px_rgba(0,0,0,0.7),0_0_60px_-12px_rgba(110,231,183,0.25)]">
+          <video
+            id="teaser-video"
+            class="aspect-video h-auto w-full"
+            src={TEASER_VIDEO}
+            poster={TEASER_POSTER}
+            controls
+            muted
+            autoplay
+            loop
+            playsinline
+            preload="metadata"
+            title={t("teaser.video.title")}
+          >
+          </video>
         </div>
-
-        <p class="body-lg mx-auto mt-6 max-w-xl text-balance">
-          <span class="font-semibold text-text-1">{t("teaser.hintLabel")}</span> {t("teaser.hint")}
-        </p>
+        <p class="mt-3 text-sm text-text-3">{t("teaser.video.hint")}</p>
 
       </div>
     </div>
@@ -96,40 +91,18 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
 </section>
 
 <script is:inline>
+  // Lecture automatique sans le son : si le navigateur la refuse (réglage
+  // « Réduire les animations » ou économie de données), on laisse l'affiche
+  // et les contrôles, sans insister.
   (function () {
-    var root = document.getElementById("teaser");
-    if (!root) return;
-    var at = new Date(root.getAttribute("data-teaser-at")).getTime();
-    var units = {
-      days: root.querySelector('[data-unit="days"]'),
-      hours: root.querySelector('[data-unit="hours"]'),
-      minutes: root.querySelector('[data-unit="minutes"]'),
-      seconds: root.querySelector('[data-unit="seconds"]'),
-    };
-    var before = root.querySelectorAll('[data-teaser="before"]');
-    var after = root.querySelectorAll('[data-teaser="after"]');
-    var pad = function (n) { return n < 10 ? "0" + n : String(n); };
-    var timer;
-    function tick() {
-      var left = at - Date.now();
-      if (left <= 0) {
-        before.forEach(function (el) { el.hidden = true; });
-        after.forEach(function (el) { el.hidden = false; });
-        if (timer) clearInterval(timer);
-        return;
-      }
-      var s = Math.floor(left / 1000);
-      units.days.textContent = String(Math.floor(s / 86400));
-      units.hours.textContent = pad(Math.floor((s % 86400) / 3600));
-      units.minutes.textContent = pad(Math.floor((s % 3600) / 60));
-      units.seconds.textContent = pad(s % 60);
+    var v = document.getElementById("teaser-video");
+    if (!v) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      v.removeAttribute("autoplay");
+      v.pause();
+      return;
     }
-    tick();
-    timer = setInterval(tick, 1000);
-    // Onglet en arrière-plan : on ne compte pas dans le vide.
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) clearInterval(timer);
-      else { tick(); timer = setInterval(tick, 1000); }
-    });
+    var p = v.play();
+    if (p && typeof p.catch === "function") p.catch(function () {});
   })();
 </script>
