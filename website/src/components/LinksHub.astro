@@ -19,6 +19,8 @@ const TEASER_POSTER = "/videos/netbudget-teaser-2-0.jpg";
 // bande de 16:9 ; le script choisit la source avant la lecture.
 const TEASER_VIDEO_PORTRAIT = "/videos/netbudget-teaser-2-0-portrait.mp4";
 const TEASER_POSTER_PORTRAIT = "/videos/netbudget-teaser-2-0-portrait.jpg";
+// La page des nouveautés a un nom par langue (même règle que la navigation).
+const whatsNewPath = locale === "en" ? "/en/whats-new" : "/nouveautes";
 const APPSTORE_URL = "https://apps.apple.com/app/netbudget/id6763551701";
 const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
 ---
@@ -29,13 +31,20 @@ const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.
       une lecture automatique), les contrôles natifs servent à l'activer. */}
   <div id="teaser" class="scroll-mt-24 pb-14 md:pb-20">
     <div class="container-app text-center">
-      <div class="inline-flex items-center gap-2 rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-mint-400">
+      {/* L'étiquette mène à la page des nouveautés : c'est la réponse à la
+          question que pose la vidéo. Bouton de 44 px, flèche pour dire qu'on
+          va quelque part. */}
+      <a
+        href={whatsNewPath}
+        class="inline-flex min-h-11 items-center gap-2 rounded-full border border-mint-500/30 bg-mint-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-mint-400 transition hover:border-mint-400/60 hover:bg-mint-500/20"
+      >
         <span aria-hidden="true" class="relative flex h-2 w-2">
           <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint-400 opacity-75 motion-reduce:hidden"></span>
           <span class="relative inline-flex h-2 w-2 rounded-full bg-mint-400"></span>
         </span>
         {t("teaser.eyebrow")}
-      </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
       <h2 class="heading-2 mx-auto mt-5 max-w-2xl text-balance">{t("teaser.title")}</h2>
       <p class="body-lg mx-auto mt-4 max-w-2xl text-balance">{t("teaser.subtitle")}</p>
     </div>
