@@ -104,13 +104,16 @@ export default function EventDetail() {
       });
       loadAdviceProfile(user.id, null).then((prof) => {
         if (cancelled) return;
-        const parts = [prof.region, prof.country].filter(Boolean) as string[];
+        // Le pays s'affiche par son nom traduit, pas par son code (« France »,
+        // pas « FR ») : le code brut ne parle à personne dans une note de prix.
+        const countryName = prof.country ? t(`country.${prof.country}`) : undefined;
+        const parts = [prof.region, countryName].filter(Boolean) as string[];
         setPlaceLabel(parts.length ? parts.join(", ") : null);
       });
       return () => {
         cancelled = true;
       };
-    }, [user?.id, workspaceId]),
+    }, [user?.id, workspaceId, t]),
   );
 
   const ev = all?.find((e) => e.id === id) ?? null;

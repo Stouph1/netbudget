@@ -215,7 +215,9 @@ export default function CompleteProfile() {
           ...adviceProfile,
           ...(derivedAge ? { age: derivedAge } : {}),
           ...(country ? { country } : {}),
-          ...(country === "FR" && region ? { region } : {}),
+          // La région n'a de sens qu'en France : on la purge quand le pays
+          // change, sinon l'ancienne région resterait collée au nouveau pays.
+          region: country === "FR" ? (region ?? adviceProfile.region) : undefined,
           ...(occupation ? { occupation } : {}),
         },
         null,
