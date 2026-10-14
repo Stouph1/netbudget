@@ -12,7 +12,7 @@ const t = useTranslations(locale);
   <div class="container-app py-12">
     <div class="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
       <div>
-        <a href={localizedPath(locale, "/")} class="flex items-center gap-2.5">
+        <a href={localizedPath(locale, "/")} class="inline-flex min-h-11 items-center gap-2.5" aria-label="NETbudget">
           <img
             src="/logo-64.png"
             alt=""
@@ -23,10 +23,9 @@ const t = useTranslations(locale);
           <span class="font-bold tracking-tight text-text-1">NETbudget</span>
         </a>
         <p class="mt-4 max-w-sm text-sm text-text-2">{t("footer.tagline")}</p>
-        {/* L'indice : une ligne à peine visible, pour qui lit jusqu'en bas.
-            Elle renvoie au compte à rebours de l'accueil. */}
-        <p class="mt-2 text-xs text-text-3/70">
-          <a href={localizedPath(locale, "/") + "#teaser"} class="transition hover:text-mint-400">{t("footer.hint")}</a>
+        {/* La 2.0 arrive : un lien discret vers la page des nouveautés. */}
+        <p class="mt-2 text-xs text-text-3">
+          <a href={locale === "en" ? "/en/whats-new" : "/nouveautes"} class="inline-flex min-h-11 items-center text-mint-400/90 transition hover:text-mint-300">{t("footer.hint")}</a>
         </p>
         <!-- Social icons sous la tagline -->
         <div class="mt-5 flex items-center gap-2">

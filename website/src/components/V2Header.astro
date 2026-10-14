@@ -32,7 +32,7 @@ const sections = [
   class="sticky top-14 z-30 sm:top-16 border-y border-white/[0.06] bg-ink-900/80 backdrop-blur-xl"
   data-section-nav
 >
-  <div class="container-app flex gap-1 overflow-x-auto py-2 [scrollbar-width:none]">
+  <div class="container-app flex gap-1 overflow-x-auto py-2 [scrollbar-width:none] [mask-image:linear-gradient(90deg,#000_88%,transparent)] md:[mask-image:none]">
     {sections.map((s) => (
       <a
         href={s.href}

@@ -142,9 +142,16 @@ function truncate(s: string, n: number) {
   const root = document.querySelector("[data-marquee-root]");
   const track = document.querySelector<HTMLElement>("[data-marquee-track]");
   if (root && track) {
-    root.addEventListener("mouseenter", () => { track.style.animationPlayState = "paused"; });
-    root.addEventListener("mouseleave", () => { track.style.animationPlayState = "running"; });
-    root.addEventListener("focusin", () => { track.style.animationPlayState = "paused"; });
-    root.addEventListener("focusout", () => { track.style.animationPlayState = "running"; });
+    const pause = () => { track.style.animationPlayState = "paused"; };
+    const resume = () => { track.style.animationPlayState = "running"; };
+    root.addEventListener("mouseenter", pause);
+    root.addEventListener("mouseleave", resume);
+    root.addEventListener("focusin", pause);
+    root.addEventListener("focusout", resume);
+    // Sur écran tactile, pas de survol : un toucher met en pause pour lire,
+    // un second relance.
+    root.addEventListener("touchstart", () => {
+      if (track.style.animationPlayState === "paused") resume(); else pause();
+    }, { passive: true });
   }
 </script>

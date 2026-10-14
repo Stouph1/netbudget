@@ -43,7 +43,7 @@ const crumbs: Crumb[] = [{ label: t("breadcrumb.home"), href: "/" }, ...items];
           {c.href && i < crumbs.length - 1 ? (
             <a
               href={localizedPath(locale, c.href)}
-              class="text-text-2 transition hover:text-mint-400"
+              class="inline-flex min-h-11 items-center text-text-2 transition hover:text-mint-400"
             >
               {c.label}
             </a>

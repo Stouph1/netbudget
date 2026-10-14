@@ -46,6 +46,16 @@
       opacity: 1 !important;
       transform: none !important;
     }
+    /* Les avis ne défilent plus seuls : on les fait glisser au doigt. */
+    [data-marquee-track] {
+      animation: none !important;
+    }
+    [data-marquee-root] {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+    }
   }
   ::selection {
     @apply bg-mint-500 text-ink-900;
@@ -82,8 +92,15 @@
   .gradient-text {
     @apply bg-gradient-to-r from-mint-400 via-mint-500 to-cyan-300 bg-clip-text text-transparent;
   }
-  .reveal {
+  /* Masqué uniquement quand le script d'apparition peut le révéler. */
+  html.js .reveal {
     @apply opacity-0;
+  }
+  @media print {
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
   }
   .reveal-visible {
     @apply animate-fade-up;
