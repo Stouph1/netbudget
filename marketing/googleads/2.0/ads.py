@@ -80,6 +80,6 @@ if __name__ == "__main__":
     md = ["# Google Ads · campagne pour applications · NETbudget 2.0", "", "## Titres (30 max)", ""]
     md += [f"- `{x}` ({len(x)})" for x in HEADLINES]
     md += ["", "## Descriptions (90 max)", ""] + [f"- `{x}` ({len(x)})" for x in DESCRIPTIONS]
-    md += ["", "## Images", "", "15 fichiers dans images/ : 5 paysage 1200×628, 5 carré 1200×1200, 5 portrait 1200×1500.", "", "## Vidéos", "", "Dans videos/ : teaser (paysage 16:9, 22 s), formules (paysage 16:9 et portrait 9:16, 25 s, v4 refaite en format pub : hook, vrais écrans, trois formules), solo, duo, famille (portrait 9:16, 20 s). À publier sur YouTube (non répertoriées) puis coller les liens dans « Vidéos »."]
+    md += ["", "## Images", "", "15 fichiers dans images/ : 5 paysage 1200×628, 5 carré 1200×1200, 5 portrait 1200×1500.", "", "## Vidéos", "", "Dans videos/ : teaser (paysage 16:9, 22 s), formules (paysage 16:9 et portrait 9:16, 25 s, v4 refaite en format pub : hook, vrais écrans, trois formules), solo, duo, famille (portrait 9:16, 20 s). À publier sur YouTube (non répertoriées) puis coller les liens dans « Vidéos ». Annonce interactive HTML5 dans playable/ (deux ZIP, voir playable/README.md)."]
     open(os.path.join(HERE, "textes.md"), "w", encoding="utf-8").write("\n".join(md) + "\n")
     print("images:", len(os.listdir(OUT_I)), "| dépassements:", bad or "aucun")
