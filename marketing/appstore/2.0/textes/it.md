@@ -18,7 +18,7 @@ Budget, quanto ti resta
 budget,spese,risparmio,finanze,coppia,famiglia,consigli,soldi,prestito,convertitore,pianificatore
 ```
 
-## Description (2306/4000)
+## Description (2480/4000)
 
 ```
 Quanto ti resta davvero a fine mese?
@@ -51,6 +51,9 @@ GRATIS PER INIZIARE
 Budget, prestiti e convertitore sono gratuiti, senza account e senza limiti di tempo. I piani Solo, Duo e Famiglia aggiungono il Coach, i progetti, gli spazi condivisi e la sincronizzazione cifrata. Senza pubblicità, mai.
 
 Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Francia da uno sviluppatore indipendente.
+
+Termini di utilizzo (EULA standard di Apple): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Informativa sulla privacy: https://www.netbudget.app/privacy
 ```
 
 ## Nouveautés de cette version (1056/4000)

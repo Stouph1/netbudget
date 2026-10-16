@@ -396,6 +396,24 @@ NETbudget は数分で答えを出します。収入と支出を入力すれば�
 },
 }
 
+# Exigé par Apple pour les abonnements (règle 3.1.2) : un lien vers les
+# conditions d'utilisation dans la description, pour chaque langue. On utilise
+# le CLUF standard d'Apple (le site garde ses propres conditions) et on rappelle
+# la politique de confidentialité. Ajouté à l'écriture des fichiers : la
+# description de Google Play (fiche.py) reste sans ces lignes.
+EULA = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+PRIVACY = "https://www.netbudget.app/privacy"
+LEGAL = {
+ "fr": f"Conditions d'utilisation (CLUF standard d'Apple) : {EULA}\nPolitique de confidentialité : {PRIVACY}",
+ "en": f"Terms of Use (Apple standard EULA): {EULA}\nPrivacy Policy: {PRIVACY}",
+ "es": f"Condiciones de uso (CLUF estándar de Apple): {EULA}\nPolítica de privacidad: {PRIVACY}",
+ "pt": f"Termos de utilização (CLUF padrão da Apple): {EULA}\nPolítica de privacidade: {PRIVACY}",
+ "de": f"Nutzungsbedingungen (Standard-EULA von Apple): {EULA}\nDatenschutzerklärung: {PRIVACY}",
+ "it": f"Termini di utilizzo (EULA standard di Apple): {EULA}\nInformativa sulla privacy: {PRIVACY}",
+ "ar": f"شروط الاستخدام (اتفاقية Apple القياسية): {EULA}\nسياسة الخصوصية: {PRIVACY}",
+ "ja": f"利用規約（Apple標準EULA）: {EULA}\nプライバシーポリシー: {PRIVACY}",
+}
+
 NAMES = {"fr": "Français", "en": "English", "es": "Español", "pt": "Português", "de": "Deutsch", "it": "Italiano", "ar": "العربية", "ja": "日本語"}
 FIELDS = [("subtitle", "Sous-titre"), ("promo", "Texte promotionnel"), ("keywords", "Mots-clés"), ("description", "Description"), ("whatsnew", "Nouveautés de cette version")]
 
@@ -405,7 +423,9 @@ def main():
     for lang, t in T.items():
         lines = [f"# App Store · {NAMES[lang]} ({lang})", ""]
         for key, label in FIELDS:
-            v = t[key].strip(); n = len(v); lim = LIMITS[key]
+            v = t[key].strip()
+            if key == "description": v += "\n\n" + LEGAL[lang]
+            n = len(v); lim = LIMITS[key]
             if n > lim: bad.append((lang, key, n, lim))
             lines += [f"## {label} ({n}/{lim})", "", "```", v, "```", ""]
         open(os.path.join(out, f"{lang}.md"), "w", encoding="utf-8").write("\n".join(lines))

@@ -18,7 +18,7 @@
 家計簿,予算,支出,貯金,家計,カップル,家族,アドバイス,お金,ローン,為替,計画
 ```
 
-## Description (886/4000)
+## Description (1018/4000)
 
 ```
 月末に本当に残るお金はいくら？
@@ -51,6 +51,9 @@ NETbudget は数分で答えを出します。収入と支出を入力すれば�
 家計・ローン・為替計算は、アカウントなしで、期間制限なく無料。Solo・Duo・Family プランで、コーチ、プロジェクト、共有スペース、暗号化同期が加わります。広告は一切ありません。
 
 8言語、59か国、生活費の目安つき499都市。フランスの個人開発者が開発。
+
+利用規約（Apple標準EULA）: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+プライバシーポリシー: https://www.netbudget.app/privacy
 ```
 
 ## Nouveautés de cette version (452/4000)

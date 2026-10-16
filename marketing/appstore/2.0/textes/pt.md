@@ -18,7 +18,7 @@ Orçamento, o que te sobra
 orçamento,despesas,poupança,finanças,casal,família,dicas,dinheiro,empréstimo,conversor,planeador
 ```
 
-## Description (2274/4000)
+## Description (2445/4000)
 
 ```
 Quanto te sobra mesmo no fim do mês?
@@ -51,6 +51,9 @@ GRÁTIS PARA COMEÇAR
 O orçamento, os empréstimos e o conversor são gratuitos, sem conta e sem limite de tempo. Os planos Solo, Duo e Família acrescentam o Coach, os projetos, os espaços partilhados e a sincronização cifrada. Sem publicidade, nunca.
 
 Oito idiomas, 59 países, 499 cidades com o seu custo de vida. Desenvolvida em França por um programador independente.
+
+Termos de utilização (CLUF padrão da Apple): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Política de privacidade: https://www.netbudget.app/privacy
 ```
 
 ## Nouveautés de cette version (1073/4000)

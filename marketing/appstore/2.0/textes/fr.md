@@ -18,7 +18,7 @@ Budget, reste à vivre, Coach
 budget,reste à vivre,dépenses,épargne,finances,couple,famille,conseils,argent,prêt,convertisseur
 ```
 
-## Description (2296/4000)
+## Description (2479/4000)
 
 ```
 Combien te reste-t-il vraiment à la fin du mois ?
@@ -51,6 +51,9 @@ GRATUIT POUR COMMENCER
 Le budget, les prêts et le convertisseur sont gratuits, sans compte et sans limite de temps. Les formules Solo, Duo et Famille ajoutent le Coach, les projets, les espaces partagés et la synchronisation chiffrée. Sans publicité, à aucun moment.
 
 Huit langues, 59 pays, 499 villes avec leur coût de la vie. Développé en France par un développeur indépendant.
+
+Conditions d'utilisation (CLUF standard d'Apple) : https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Politique de confidentialité : https://www.netbudget.app/privacy
 ```
 
 ## Nouveautés de cette version (1055/4000)

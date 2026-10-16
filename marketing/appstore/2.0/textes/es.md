@@ -18,7 +18,7 @@ Presupuesto, lo que te queda
 presupuesto,gastos,ahorro,finanzas,pareja,familia,consejos,dinero,préstamo,conversor,planificador
 ```
 
-## Description (2299/4000)
+## Description (2469/4000)
 
 ```
 ¿Cuánto te queda de verdad a final de mes?
@@ -51,6 +51,9 @@ GRATIS PARA EMPEZAR
 El presupuesto, los préstamos y el conversor son gratuitos, sin cuenta y sin límite de tiempo. Los planes Solo, Dúo y Familia añaden el Coach, los proyectos, los espacios compartidos y la sincronización cifrada. Sin publicidad, nunca.
 
 Ocho idiomas, 59 países, 499 ciudades con su coste de vida. Desarrollada en Francia por un desarrollador independiente.
+
+Condiciones de uso (CLUF estándar de Apple): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Política de privacidad: https://www.netbudget.app/privacy
 ```
 
 ## Nouveautés de cette version (1099/4000)

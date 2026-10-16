@@ -18,7 +18,7 @@ Budget, money left, Coach
 budget,money left,expenses,savings,finance,couple,family,tips,money,loan,converter,planner
 ```
 
-## Description (2159/4000)
+## Description (2312/4000)
 
 ```
 How much do you really have left at the end of the month?
@@ -51,6 +51,9 @@ FREE TO START
 Budget, loans and converter are free, with no account and no time limit. The Solo, Duo and Family plans add the Coach, projects, shared spaces and encrypted sync. No advertising, ever.
 
 Eight languages, 59 countries, 499 cities with their cost of living. Built in France by an independent developer.
+
+Terms of Use (Apple standard EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://www.netbudget.app/privacy
 ```
 
 ## Nouveautés de cette version (1003/4000)

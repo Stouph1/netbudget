@@ -18,7 +18,7 @@ Budget, was wirklich bleibt
 budget,haushalt,ausgaben,sparen,finanzen,paar,familie,tipps,geld,kredit,währungsrechner,planer
 ```
 
-## Description (2400/4000)
+## Description (2570/4000)
 
 ```
 Wie viel bleibt dir am Monatsende wirklich übrig?
@@ -51,6 +51,9 @@ KOSTENLOS STARTEN
 Budget, Kredite und Währungsrechner sind kostenlos, ohne Konto und ohne Zeitlimit. Die Tarife Solo, Duo und Familie ergänzen den Coach, Projekte, gemeinsame Bereiche und verschlüsselte Synchronisierung. Ohne Werbung, zu keinem Zeitpunkt.
 
 Acht Sprachen, 59 Länder, 499 Städte mit ihren Lebenshaltungskosten. Entwickelt in Frankreich von einem unabhängigen Entwickler.
+
+Nutzungsbedingungen (Standard-EULA von Apple): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Datenschutzerklärung: https://www.netbudget.app/privacy
 ```
 
 ## Nouveautés de cette version (1080/4000)
