@@ -1,39 +1,42 @@
-# Zeely · brief NETbudget 2.0
+# Zeely · NETbudget 2.0 brief
 
-À coller dans Zeely (Brand space, puis Image ads / Video ads / Meta campaigns /
-Social posting). Tout ce qui est écrit ici est vérifié dans l'app : ne laisse pas
-Zeely inventer un chiffre, un prix, un avis ou un concurrent.
+Paste into Zeely (Brand space, then Image ads / Video ads / Meta campaigns /
+Social posting). Everything here is verified in the app: never let Zeely invent
+a figure, a price, a review or a competitor.
 
 ## Brand space
 
-- Nom : NETbudget
-- Une phrase : Sache ce qu'il te reste vraiment chaque mois. Budget personnel sans connexion bancaire, sans publicité.
-- Site : https://www.netbudget.app · App Store : https://apps.apple.com/app/netbudget/id6763551701 · Google Play : https://play.google.com/store/apps/details?id=com.stouph.netbudget
-- Ton : direct, tutoiement, phrases courtes, concret, jamais culpabilisant, jamais « gourou finance ».
-- Palette : fond #0A0A0C et #0A1224, vert #10B981 (clair #6EE7B7), texte #FAFAFA, gris #9AA3B2.
-- Typo : sans-serif système (Inter ou équivalent). Titres gras, serrés.
-- Logo : marketing/… voir `website/public/logo.png`.
-- Interdits : emojis, mention d'un concurrent, prix (ils varient par pays), faux avis, faux chiffres d'utilisateurs, visuels de « banque connectée », avatars IA présentés comme des clients.
-- Faits utilisables : 8 langues, 59 pays, 499 villes avec coût de la vie, 282 conseils sourcés, repères Eurostat / BLS / ONS / Statistique Canada / ABS, impôt prélevé à la source dans 32 pays, 15 devises, chiffrement de bout en bout, gratuit pour commencer sans compte, 2.0 le 15 novembre.
+- Name: NETbudget
+- One line: Know what you really have left each month. Personal budget with no bank connection and no ads.
+- Website: https://www.netbudget.app · App Store: https://apps.apple.com/app/netbudget/id6763551701 · Google Play: https://play.google.com/store/apps/details?id=com.stouph.netbudget
+- Tone: direct, informal ("you"), short sentences, concrete, never guilt-tripping, never "finance guru".
+- Palette: background #0A0A0C and #0A1224, green #10B981 (light #6EE7B7), text #FAFAFA, grey #9AA3B2.
+- Type: system sans-serif (Inter or equivalent). Bold, tight headlines.
+- Logo: `website/public/logo.png`.
+- Never: emojis, competitor names, prices (they vary by country), fake reviews, invented user counts, "connected bank" visuals, AI avatars presented as customers.
+- Usable facts: 8 languages, 59 countries, 499 cities with cost of living, 282 sourced tips, benchmarks from Eurostat / BLS / ONS / Statistics Canada / ABS, income tax withheld at source in 32 countries, 15 currencies, end-to-end encryption, free to start with no account, 2.0 on November 15.
 
-## Fichiers à importer
+## Files to upload
 
-- Images sans texte (Meta, Instagram) : `marketing/googleads/2.0/images/` (paysage 1200×628, carré 1200×1200, portrait 1200×1500).
-- Captures par langue : `marketing/appstore/2.0/captures/<lang>-<ecran>.png`.
-- Vidéos 9:16 : `marketing/googleads/2.0/videos/formules-9x16.mp4`, `solo-9x16.mp4`, `duo-9x16.mp4`, `famille-9x16.mp4`.
-- Vidéos 16:9 : `teaser-16x9.mp4`, `formules-16x9.mp4`.
+- Text-free images (Meta, Instagram): `marketing/googleads/2.0/images/` (landscape 1200×628, square 1200×1200, portrait 1200×1500).
+- Screenshots per language: `marketing/appstore/2.0/captures/<lang>-<screen>.png`.
+- 9:16 videos: `marketing/googleads/2.0/videos/formules-9x16.mp4`, `solo-9x16.mp4`, `duo-9x16.mp4`, `famille-9x16.mp4`.
+- 16:9 videos: `teaser-16x9.mp4`, `formules-16x9.mp4`.
+- The videos are in French. For English-speaking countries, use the screenshots in `captures/en-*.png` and the text-free images, or ask for an English cut.
 
 ## Audiences (Meta)
 
-1. Reste à vivre : 25 à 40 ans, France, salariés, intérêts finances personnelles, épargne, budget. Message : « Fin du mois, il te reste combien ? »
-2. Couples : 25 à 45 ans, en couple, intérêts mariage, logement, vie à deux. Message : « Un budget à deux, chacun garde son espace privé. »
-3. Familles : 30 à 50 ans, parents. Message : « Jusqu'à six personnes, un budget commun, les anniversaires et les projets du foyer. »
+1. Money left: 25 to 40, France, employees, interests personal finance, savings, budgeting. Message: "End of the month. How much do you have left?"
+2. Couples: 25 to 45, in a relationship, interests wedding, housing, life as a couple. Message: "A budget for two, each with a private space."
+3. Families: 30 to 50, parents. Message: "Up to six people, one shared budget, the household's birthdays and projects."
 
-Lancer en France d'abord, puis Belgique, Suisse, Canada francophone.
+Start with France, then Belgium, Switzerland, French-speaking Canada. For the UK, Ireland, US, Canada and Australia, use the English copy below with the English screenshots.
 
-## Textes prêts (Meta, texte principal 125 caractères max, titre 40 max)
+## Ready-made copy (Meta, primary text 125 characters max, headline 40 max)
 
-| Texte principal | Titre | Bouton |
+French
+
+| Primary text | Headline | Button |
 |---|---|---|
 | Fin du mois, il te reste combien ? NETbudget te le dit en cinq minutes, sans toucher à ta banque. | Sache ce qu'il te reste | Télécharger |
 | Ton loyer, tes courses, tes sorties face à la moyenne de ton pays. Sources officielles, pas d'opinions. | Des repères, pas des leçons | En savoir plus |
@@ -42,23 +45,36 @@ Lancer en France d'abord, puis Belgique, Suisse, Canada francophone.
 | Mariage, voyage, naissance : trois questions et le budget est posé, avec ses rappels. | Un budget par projet | En savoir plus |
 | Aucune connexion bancaire, aucune publicité. Ton budget reste sur ton téléphone. | Sans banque. Sans pub. | Télécharger |
 
-## Accroches vidéo (3 premières secondes)
+English
 
-- « Fin du mois. Il te reste combien ? »
-- « Et si ton budget se partageait ? »
-- « Tu dépenses plus que la moyenne pour ton logement ? Vérifie. »
-- « Un conseil par semaine, avec sa source. Pas un de plus. »
+| Primary text | Headline | Button |
+|---|---|---|
+| End of the month. How much do you have left? NETbudget tells you in five minutes, without touching your bank. | Know what you have left | Download |
+| Your rent, groceries and nights out against your country's average. Official sources, not opinions. | Benchmarks, not lectures | Learn more |
+| 282 tips that cite their source, sorted for your age, your household and your city. | A Coach that cites its sources | Download |
+| A budget for two with a simple invitation code. Each of you keeps a private space. | Budget as a couple | Download |
+| Wedding, trip, baby: three questions and the budget is set, with its reminders. | One budget per project | Learn more |
+| No bank connection, no ads. Your budget stays on your phone. | No bank. No ads. | Download |
 
-## Calendrier organique jusqu'au 15 novembre (Instagram + TikTok, 3 posts par semaine)
+## Video hooks (first three seconds)
 
-- Lundi : un conseil du Coach, avec sa source citée à l'écran.
-- Mercredi : un écran de l'app, une phrase (reste à vivre, repères, projet, espaces).
-- Vendredi : un extrait vidéo 9:16 (teaser, puis solo, duo, famille, formules).
-- Semaine du 10 novembre : compte à rebours de la 2.0, un point par jour tiré de la page https://www.netbudget.app/nouveautes.
-- 15 novembre : annonce de la sortie, lien vers les stores.
+- "End of the month. How much do you have left?"
+- "What if your budget was shared?"
+- "Spending more than average on housing? Check."
+- "One tip a week, with its source. Not one more."
 
-## Campagnes Meta : ce qu'il faut savoir
+French: « Fin du mois. Il te reste combien ? » · « Et si ton budget se partageait ? » · « Tu dépenses plus que la moyenne pour ton logement ? Vérifie. » · « Un conseil par semaine, avec sa source. Pas un de plus. »
 
-- Objectif « Trafic » vers la fiche du store, pas « Installations d'app » : ce dernier exige d'intégrer le SDK Meta dans l'app, un traceur que NETbudget s'interdit. Le suivi des installations se fera côté stores (App Store Connect, Play Console) avec la source « Meta » dans les liens.
-- Budget de départ : 5 € par jour par audience, sept jours sans rien toucher, puis on garde l'audience qui a le coût par clic le plus bas.
-- Chaque visuel généré par Zeely doit passer la relecture : aucun chiffre non listé plus haut, aucun emoji, aucune promesse de gain.
+## Organic calendar until November 15 (Instagram + TikTok, 3 posts a week)
+
+- Monday: one Coach tip, with its source shown on screen.
+- Wednesday: one app screen, one sentence (money left, benchmarks, project, shared spaces).
+- Friday: one 9:16 video excerpt (teaser, then solo, duo, family, plans).
+- Week of November 10: countdown to 2.0, one point a day taken from https://www.netbudget.app/en/whats-new.
+- November 15: release announcement with the store links.
+
+## Meta campaigns: what to know
+
+- Objective "Traffic" to the store page, not "App installs": the latter requires the Meta SDK inside the app, a tracker NETbudget refuses to ship. Installs are read on the store side (App Store Connect, Play Console) with "Meta" as the source in the links.
+- Starting budget: 5 € a day per audience, seven days without touching anything, then keep the audience with the lowest cost per click.
+- Every visual Zeely generates goes through review: no figure outside the list above, no emoji, no promise of gains.
