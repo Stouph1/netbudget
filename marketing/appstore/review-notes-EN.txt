@@ -10,13 +10,15 @@ WHAT THE SUBSCRIPTION UNLOCKS
 2. Personalised guidance based on the user's declared situation (age, family
    status, housing, country). Every item cites its official public source and
    the date it was last checked.
-3. Event budgets (travel, wedding, birth, moving...).
+3. Event budgets (travel, wedding, birth, party...).
+4. Shared spaces (version 2.0): a common budget for a couple or a family,
+   joined with an invitation code; each member keeps a private space.
 
-The three tiers differ by the number of people and the number of events
-tracked at the same time:
-- Solo: 1 person, 1 event at a time, wedding budget not included
-- Duo: 2 people, unlimited events
-- Family: up to 6 people, unlimited events
+The three tiers differ by the number of people, spaces and events:
+- Solo: 1 person, up to 6 events at the same time, 3 savings goals,
+  wedding budget not included
+- Duo: 1 shared space for 2 people, unlimited events and goals
+- Family: 3 shared spaces, up to 6 people, unlimited events and goals
 
 HOW TO REACH THE PURCHASE SCREEN
 1. Open the app.
@@ -27,8 +29,9 @@ HOW TO REACH THE PURCHASE SCREEN
 
 That screen shows the three tiers, a monthly/yearly toggle, the free trial
 length, the amount charged after the trial, the fact that it renews
-automatically, and how to cancel. "Restore purchases" is at the bottom of the
-same screen.
+automatically, and how to cancel. "Restore purchases", "Manage or cancel my
+subscription", the Terms of Use (Apple standard EULA) and the Privacy Policy
+links are at the bottom of the same screen.
 
 TEST ACCOUNT
 Email: [TO BE COMPLETED]
