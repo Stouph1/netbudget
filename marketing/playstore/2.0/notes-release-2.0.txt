@@ -1,0 +1,36 @@
+<fr-FR>
+NETbudget 2.0 : espaces partagés en couple ou en famille par code d'invitation, Coach avec 282 conseils sourcés et conseil de la semaine, repères face aux moyennes nationales (Eurostat, BLS, ONS, Statistique Canada, ABS), projets guidés (mariage, voyage, naissance, fête), budget épuré avec pictogrammes et dépenses par période, impôt prélevé à la source dans 32 pays, notifications utiles, chiffrement de bout en bout, export PDF refait, huit langues.
+</fr-FR>
+<ar>
+NETbudget 2.0: مساحات مشتركة للزوجين والعائلة برمز دعوة، مرشد بـ 282 نصيحة موثّقة ونصيحة الأسبوع، معايير مقارنة بالمتوسطات الوطنية (يوروستات، BLS، ONS، إحصاءات كندا، ABS)، مشاريع موجّهة (زفاف، سفر، مولود، حفلة)، ميزانية أخف برموز ومصاريف حسب الفترة، ضريبة مقتطعة من المصدر في 32 بلدًا، إشعارات مفيدة، تشفير من طرف إلى طرف، تصدير PDF جديد، ثماني لغات.
+</ar>
+<de-DE>
+NETbudget 2.0: gemeinsame Bereiche für Paare und Familien per Einladungscode, Coach mit 282 belegten Tipps und Tipp der Woche, Vergleichswerte gegenüber nationalen Durchschnitten (Eurostat, BLS, ONS, Statistics Canada, ABS), geführte Projekte (Hochzeit, Reise, Baby, Feier), schlankeres Budget mit Piktogrammen und Ausgaben nach Zeitraum, einbehaltene Lohnsteuer in 32 Ländern, nützliche Benachrichtigungen, Ende-zu-Ende-Verschlüsselung, neuer PDF-Export, acht Sprachen.
+</de-DE>
+<en-AU>
+NETbudget 2.0: shared spaces for couples and families with an invitation code, a Coach with 282 sourced tips and a tip of the week, benchmarks against national averages (Eurostat, BLS, ONS, Statistics Canada, ABS), guided projects (wedding, trip, baby, party), a lighter budget with pictograms and expenses by period, income tax withheld at source in 32 countries, useful notifications, end-to-end encryption, rebuilt PDF export, eight languages.
+</en-AU>
+<en-CA>
+NETbudget 2.0: shared spaces for couples and families with an invitation code, a Coach with 282 sourced tips and a tip of the week, benchmarks against national averages (Eurostat, BLS, ONS, Statistics Canada, ABS), guided projects (wedding, trip, baby, party), a lighter budget with pictograms and expenses by period, income tax withheld at source in 32 countries, useful notifications, end-to-end encryption, rebuilt PDF export, eight languages.
+</en-CA>
+<en-GB>
+NETbudget 2.0: shared spaces for couples and families with an invitation code, a Coach with 282 sourced tips and a tip of the week, benchmarks against national averages (Eurostat, BLS, ONS, Statistics Canada, ABS), guided projects (wedding, trip, baby, party), a lighter budget with pictograms and expenses by period, income tax withheld at source in 32 countries, useful notifications, end-to-end encryption, rebuilt PDF export, eight languages.
+</en-GB>
+<en-US>
+NETbudget 2.0: shared spaces for couples and families with an invitation code, a Coach with 282 sourced tips and a tip of the week, benchmarks against national averages (Eurostat, BLS, ONS, Statistics Canada, ABS), guided projects (wedding, trip, baby, party), a lighter budget with pictograms and expenses by period, income tax withheld at source in 32 countries, useful notifications, end-to-end encryption, rebuilt PDF export, eight languages.
+</en-US>
+<es-ES>
+NETbudget 2.0: espacios compartidos en pareja o en familia con código de invitación, Coach con 282 consejos con fuente y consejo de la semana, referencias frente a las medias nacionales (Eurostat, BLS, ONS, Statistics Canada, ABS), proyectos guiados (boda, viaje, nacimiento, fiesta), presupuesto más ligero con pictogramas y gastos por periodo, impuesto retenido en nómina en 32 países, notificaciones útiles, cifrado de extremo a extremo, PDF renovado, ocho idiomas.
+</es-ES>
+<it-IT>
+NETbudget 2.0: spazi condivisi in coppia o in famiglia con codice di invito, Coach con 282 consigli con fonte e consiglio della settimana, riferimenti rispetto alle medie nazionali (Eurostat, BLS, ONS, Statistics Canada, ABS), progetti guidati (matrimonio, viaggio, nascita, festa), budget più leggero con pittogrammi e spese per periodo, imposta trattenuta alla fonte in 32 paesi, notifiche utili, cifratura end-to-end, PDF rinnovato, otto lingue.
+</it-IT>
+<ja-JP>
+NETbudget 2.0：招待コードで共有できるカップル・家族のスペース、出典つき282のアドバイスと今週のアドバイスを持つコーチ、全国平均との比較（ユーロスタット、BLS、ONS、カナダ統計局、ABS）、ガイドつきプロジェクト（結婚式、旅行、出産、パーティー）、ピクトグラムと期間つき支出で軽くなった家計画面、32か国の源泉徴収税、役立つ通知、エンドツーエンド暗号化、刷新されたPDF書き出し、8言語対応。
+</ja-JP>
+<pt-BR>
+NETbudget 2.0: espaços compartilhados a dois ou em família com código de convite, Coach com 282 dicas com fonte e dica da semana, referências em relação às médias nacionais (Eurostat, BLS, ONS, Statistics Canada, ABS), projetos guiados (casamento, viagem, nascimento, festa), orçamento mais leve com pictogramas e despesas por período, imposto retido na fonte em 32 países, notificações úteis, criptografia de ponta a ponta, PDF renovado, oito idiomas.
+</pt-BR>
+<pt-PT>
+NETbudget 2.0: espaços partilhados a dois ou em família com código de convite, Coach com 282 dicas com fonte e dica da semana, referências face às médias nacionais (Eurostat, BLS, ONS, Statistics Canada, ABS), projetos guiados (casamento, viagem, nascimento, festa), orçamento mais leve com pictogramas e despesas por período, imposto retido na fonte em 32 países, notificações úteis, cifra de ponta a ponta, PDF renovado, oito idiomas.
+</pt-PT>
