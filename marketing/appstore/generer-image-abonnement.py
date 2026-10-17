@@ -109,13 +109,39 @@ def centered(d, text, f, y, fill):
     return w
 
 
-def build(filename, tier_label):
+def dots_ring(img, cx, cy, radius, n, color, dot_r):
+    """n points repartis sur un cercle : douze pour l'annuel (les mois), un
+    seul en haut pour le mensuel. Supersampling comme l'anneau."""
+    S = 4
+    layer = Image.new("RGBA", (SIZE * S, SIZE * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    for k in range(n):
+        a = math.radians(-90 + 360 * k / n)
+        x, y = cx + radius * math.cos(a), cy + radius * math.sin(a)
+        d.ellipse([(x - dot_r) * S, (y - dot_r) * S, (x + dot_r) * S, (y + dot_r) * S], fill=color)
+    layer = layer.resize((SIZE, SIZE), Image.LANCZOS)
+    img.paste(layer, (0, 0), layer)
+
+
+def build(filename, tier_label, rings=1, period=None):
+    """rings : 1 Solo, 2 Duo, 3 Famille (anneaux concentriques, un par
+    personne-type). period : "mensuel" (un point en haut) ou "annuel" (douze
+    points autour, les mois). Apple exige une image distincte par produit :
+    c'est ce que ces deux variables garantissent, sans prix et sans date."""
     img = gradient()
     d = ImageDraw.Draw(img)
 
-    # --- Anneau, centre haut ------------------------------------------------
+    # --- Anneaux, centre haut ----------------------------------------------
     cx, cy, r = SIZE / 2, 415, 205
-    ring(img, cx, cy, r, 56)
+    widths = {1: [56], 2: [40, 26], 3: [34, 22, 16]}[rings]
+    radius = r
+    for w in widths:
+        ring(img, cx, cy, radius, w)
+        radius -= w + 10
+    if period == "annuel":
+        dots_ring(img, cx, cy, r + 48, 12, MINT_LIGHT, 7)
+    elif period == "mensuel":
+        dots_ring(img, cx, cy, r + 48, 1, MINT_LIGHT, 10)
     d = ImageDraw.Draw(img)
 
     # --- Logo au centre de l'anneau ----------------------------------------
@@ -124,7 +150,7 @@ def build(filename, tier_label):
     # dessine un carre blanc au milieu de l'anneau. On lui applique donc un
     # masque aux coins arrondis, au meme rayon que l'icone elle-meme.
     if os.path.exists(LOGO):
-        s = 150
+        s = 150 if rings == 1 else (120 if rings == 2 else 100)
         logo = Image.open(LOGO).convert("RGB").resize((s, s), Image.LANCZOS)
 
         S = 4  # masque dessine en plus grand puis reduit : bords lisses
@@ -145,6 +171,8 @@ def build(filename, tier_label):
     d.text((x + net_w, 700), "budget", font=f_brand, fill=MINT_LIGHT)
 
     # --- Palier -------------------------------------------------------------
+    if tier_label and period:
+        tier_label = f"{tier_label} · {period}"
     if tier_label:
         f_tier = bold(40)
         # Lettrage espace a la main : Pillow n'a pas de letter-spacing, et sans
@@ -166,9 +194,10 @@ def build(filename, tier_label):
 
 def main():
     print("Images d'abonnement :")
-    build("abonnement-solo-1024.png", "Solo")
-    build("abonnement-duo-1024.png", "Duo")
-    build("abonnement-famille-1024.png", "Famille")
+    for tier, rings in (("Solo", 1), ("Duo", 2), ("Famille", 3)):
+        build(f"abonnement-{tier.lower()}-1024.png", tier, rings)
+        for period in ("mensuel", "annuel"):
+            build(f"abonnement-{tier.lower()}-{period}-1024.png", tier, rings, period)
     build("abonnement-1024.png", "")
     return 0
 
