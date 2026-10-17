@@ -852,6 +852,8 @@ export const it: Catalog = {
   "plan.failed.unavailable": "Gli acquisti non sono disponibili su questo dispositivo.",
   "plan.failed.error": "Riprova tra un istante. Non è stato addebitato nulla.",
   "plan.restore.cta": "Ripristina gli acquisti",
+  "plan.legal.terms": "Termini di utilizzo",
+  "plan.legal.privacy": "Informativa sulla privacy",
   "plan.restore.done.title": "Abbonamento ripristinato",
   "plan.restore.done.body": "È di nuovo attivo su questo dispositivo.",
   "plan.restore.none.title": "Nessun abbonamento",

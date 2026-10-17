@@ -852,6 +852,8 @@ export const en: Catalog = {
   "plan.failed.unavailable": "Purchases are not available on this device.",
   "plan.failed.error": "Try again in a moment. Nothing was charged.",
   "plan.restore.cta": "Restore purchases",
+  "plan.legal.terms": "Terms of Use",
+  "plan.legal.privacy": "Privacy Policy",
   "plan.restore.done.title": "Subscription restored",
   "plan.restore.done.body": "It is active again on this device.",
   "plan.restore.none.title": "No subscription",

@@ -448,6 +448,26 @@ export default function Plans() {
         {/* La sortie est annoncée sur l'écran d'entrée : cacher la résiliation
             fait hésiter à s'abonner. */}
         <Text style={s.cancelNote}>{t("plan.cancelNote")}</Text>
+
+        {/* Conditions et confidentialité, au pied de l'écran d'achat : Apple
+            (3.1.2) exige ces deux liens dans l'app, pas seulement sur la fiche. */}
+        <View style={s.legalRow}>
+          <TouchableOpacity
+            onPress={() => Linking.openURL("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/").catch(() => {})}
+            accessibilityRole="link"
+            hitSlop={8}
+          >
+            <Text style={s.legalLink}>{t("plan.legal.terms")}</Text>
+          </TouchableOpacity>
+          <Text style={s.legalDot}>·</Text>
+          <TouchableOpacity
+            onPress={() => Linking.openURL("https://www.netbudget.app/privacy").catch(() => {})}
+            accessibilityRole="link"
+            hitSlop={8}
+          >
+            <Text style={s.legalLink}>{t("plan.legal.privacy")}</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <CancelSheet
@@ -569,6 +589,9 @@ const makeS = (GOLD: string) =>
   },
   soonText: { flex: 1, color: TEXT_2, fontSize: 12.5, lineHeight: 19 },
   linkText: { color: GOLD, fontSize: 13.5, fontWeight: "600", textAlign: "center" },
+  legalRow: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10, paddingVertical: 14, flexWrap: "wrap" },
+  legalLink: { color: TEXT_3, fontSize: 12.5, textDecorationLine: "underline" },
+  legalDot: { color: TEXT_3, fontSize: 12.5 },
   currentBox: {
     flexDirection: "row",
     alignItems: "center",

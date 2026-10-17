@@ -852,6 +852,8 @@ export const de: Catalog = {
   "plan.failed.unavailable": "Käufe sind auf diesem Gerät nicht verfügbar.",
   "plan.failed.error": "Versuche es gleich noch einmal. Es wurde nichts abgebucht.",
   "plan.restore.cta": "Käufe wiederherstellen",
+  "plan.legal.terms": "Nutzungsbedingungen",
+  "plan.legal.privacy": "Datenschutzerklärung",
   "plan.restore.done.title": "Abo wiederhergestellt",
   "plan.restore.done.body": "Es ist auf diesem Gerät wieder aktiv.",
   "plan.restore.none.title": "Kein Abo",

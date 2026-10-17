@@ -852,6 +852,8 @@ export const ar: Catalog = {
   "plan.failed.unavailable": "الشراء غير متاح على هذا الجهاز.",
   "plan.failed.error": "حاول مرة أخرى بعد لحظة. لم يُخصم أي مبلغ.",
   "plan.restore.cta": "استعادة مشترياتي",
+  "plan.legal.terms": "شروط الاستخدام",
+  "plan.legal.privacy": "سياسة الخصوصية",
   "plan.restore.done.title": "تم استعادة الاشتراك",
   "plan.restore.done.body": "أصبح ساريًا مرة أخرى على هذا الجهاز.",
   "plan.restore.none.title": "لا يوجد اشتراك",

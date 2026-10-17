@@ -852,6 +852,8 @@ export const ja: Catalog = {
   "plan.failed.unavailable": "この端末では購入できません。",
   "plan.failed.error": "少し待ってからお試しください。請求は発生していません。",
   "plan.restore.cta": "購入を復元",
+  "plan.legal.terms": "利用規約",
+  "plan.legal.privacy": "プライバシーポリシー",
   "plan.restore.done.title": "復元しました",
   "plan.restore.done.body": "この端末で再び有効になりました。",
   "plan.restore.none.title": "サブスクリプションなし",

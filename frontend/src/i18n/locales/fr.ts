@@ -907,6 +907,8 @@ export const fr: Catalog = {
   "plan.failed.unavailable": "Les achats ne sont pas disponibles sur cet appareil.",
   "plan.failed.error": "Réessaie dans un instant. Rien n'a été débité.",
   "plan.restore.cta": "Restaurer mes achats",
+  "plan.legal.terms": "Conditions d'utilisation",
+  "plan.legal.privacy": "Politique de confidentialité",
   "plan.restore.done.title": "Abonnement retrouvé",
   "plan.restore.done.body": "Il est de nouveau actif sur cet appareil.",
   "plan.restore.none.title": "Aucun abonnement",

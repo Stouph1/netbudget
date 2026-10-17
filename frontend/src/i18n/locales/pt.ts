@@ -852,6 +852,8 @@ export const pt: Catalog = {
   "plan.failed.unavailable": "As compras não estão disponíveis neste dispositivo.",
   "plan.failed.error": "Tenta outra vez num instante. Nada foi cobrado.",
   "plan.restore.cta": "Restaurar as minhas compras",
+  "plan.legal.terms": "Termos de utilização",
+  "plan.legal.privacy": "Política de privacidade",
   "plan.restore.done.title": "Subscrição recuperada",
   "plan.restore.done.body": "Está novamente ativa neste dispositivo.",
   "plan.restore.none.title": "Sem subscrição",
