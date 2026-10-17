@@ -123,7 +123,7 @@ def dots_ring(img, cx, cy, radius, n, color, dot_r):
     img.paste(layer, (0, 0), layer)
 
 
-def build(filename, tier_label, rings=1, period=None):
+def build(filename, tier_label, rings=1, period=None, text=True):
     """rings : 1 Solo, 2 Duo, 3 Famille (anneaux concentriques, un par
     personne-type). period : "mensuel" (un point en haut) ou "annuel" (douze
     points autour, les mois). Apple exige une image distincte par produit :
@@ -131,17 +131,24 @@ def build(filename, tier_label, rings=1, period=None):
     img = gradient()
     d = ImageDraw.Draw(img)
 
-    # --- Anneaux, centre haut ----------------------------------------------
-    cx, cy, r = SIZE / 2, 415, 205
-    widths = {1: [56], 2: [40, 26], 3: [34, 22, 16]}[rings]
+    # --- Anneaux : centre haut avec texte, plein centre et plus grands sans.
+    # Apple refuse « du texte petit ou difficile a lire » sur ces images
+    # (2.3.2) : les six images d'abonnement sont donc sans aucun texte, et
+    # c'est le dessin seul qui distingue formule et periode.
+    if text:
+        cx, cy, r = SIZE / 2, 415, 205
+        widths = {1: [56], 2: [40, 26], 3: [34, 22, 16]}[rings]
+    else:
+        cx, cy, r = SIZE / 2, SIZE / 2, 300
+        widths = {1: [84], 2: [60, 40], 3: [50, 34, 24]}[rings]
     radius = r
     for w in widths:
         ring(img, cx, cy, radius, w)
         radius -= w + 10
     if period == "annuel":
-        dots_ring(img, cx, cy, r + 48, 12, MINT_LIGHT, 7)
+        dots_ring(img, cx, cy, r + (48 if text else 70), 12, MINT_LIGHT, 7 if text else 12)
     elif period == "mensuel":
-        dots_ring(img, cx, cy, r + 48, 1, MINT_LIGHT, 10)
+        dots_ring(img, cx, cy, r + (48 if text else 70), 1, MINT_LIGHT, 10 if text else 18)
     d = ImageDraw.Draw(img)
 
     # --- Logo au centre de l'anneau ----------------------------------------
@@ -150,7 +157,7 @@ def build(filename, tier_label, rings=1, period=None):
     # dessine un carre blanc au milieu de l'anneau. On lui applique donc un
     # masque aux coins arrondis, au meme rayon que l'icone elle-meme.
     if os.path.exists(LOGO):
-        s = 150 if rings == 1 else (120 if rings == 2 else 100)
+        s = (150 if rings == 1 else (120 if rings == 2 else 100)) if text else (220 if rings == 1 else (180 if rings == 2 else 150))
         logo = Image.open(LOGO).convert("RGB").resize((s, s), Image.LANCZOS)
 
         S = 4  # masque dessine en plus grand puis reduit : bords lisses
@@ -161,6 +168,13 @@ def build(filename, tier_label, rings=1, period=None):
         mask = mask.resize((s, s), Image.LANCZOS)
 
         img.paste(logo, (int(cx - s / 2), int(cy - s / 2)), mask)
+
+    if not text:
+        out = os.path.join(HERE, filename)
+        img.save(out, "PNG", optimize=True, dpi=(72, 72))
+        img.save(out.replace(".png", ".jpg"), "JPEG", quality=92, dpi=(72, 72))
+        print(f"  {filename}  {img.size[0]}x{img.size[1]}  sans texte  ({os.path.getsize(out) // 1024} Ko)")
+        return
 
     # --- Nom de marque ------------------------------------------------------
     f_brand = bold(78)
@@ -197,7 +211,7 @@ def main():
     for tier, rings in (("Solo", 1), ("Duo", 2), ("Famille", 3)):
         build(f"abonnement-{tier.lower()}-1024.png", tier, rings)
         for period in ("mensuel", "annuel"):
-            build(f"abonnement-{tier.lower()}-{period}-1024.png", tier, rings, period)
+            build(f"abonnement-{tier.lower()}-{period}-1024.png", tier, rings, period, text=False)
     build("abonnement-1024.png", "")
     return 0
 
