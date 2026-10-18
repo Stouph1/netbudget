@@ -13,7 +13,7 @@ import { useAccent } from "../contexts/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { Fragment, useCallback, useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -24,7 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from "react-native-svg";
 import ScopeSwitcher from "./ScopeSwitcher";
 import { useLang } from "../contexts/LangContext";
 import { useCurrency } from "../contexts/CurrencyContext";
@@ -823,6 +823,153 @@ function DeltaText({ row }: { row: CompareRow }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Courbe d'évolution : deux lignes lissées (net, dépenses) et l'aire du reste
+// à vivre entre les deux. Une courbe se lit d'un coup d'œil là où des barres
+// par paires demandent de comparer colonne par colonne. Dessinée en SVG pour
+// rester nette à toute largeur ; la largeur vient d'onLayout.
+// ---------------------------------------------------------------------------
+function smoothPath(pts: { x: number; y: number }[]): string {
+  if (pts.length === 0) return "";
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+  // Catmull-Rom → Bézier cubique : passe par tous les points, sans rebond.
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+function HistoryLineChart({
+  points,
+  selected,
+  compare,
+  onTapMonth,
+  accent,
+  t,
+  fmt,
+}: {
+  points: BudgetHistoryPoint[];
+  selected: string | null;
+  compare: string | null;
+  onTapMonth: (month: string) => void;
+  accent: string;
+  t: (key: string) => string;
+  fmt: (n: number) => string;
+}) {
+  const [width, setWidth] = useState(0);
+  const H = 150;
+  const PAD_TOP = 18;
+  const PAD_BOTTOM = 26;
+  const PAD_X = 14;
+  const max = Math.max(...points.map((p) => Math.max(p.net, p.expenses)), 1);
+  const n = points.length;
+  const innerW = Math.max(0, width - PAD_X * 2);
+  const stepX = n > 1 ? innerW / (n - 1) : 0;
+  const xAt = (i: number) => (n > 1 ? PAD_X + i * stepX : width / 2);
+  const yAt = (v: number) => PAD_TOP + (1 - v / max) * (H - PAD_TOP - PAD_BOTTOM);
+  const netPts = points.map((p, i) => ({ x: xAt(i), y: yAt(p.net) }));
+  const expPts = points.map((p, i) => ({ x: xAt(i), y: yAt(p.expenses) }));
+  const netPath = smoothPath(netPts);
+  const expPath = smoothPath(expPts);
+  // Aire entre net et dépenses : le reste à vivre, visible comme une bande.
+  const areaPath =
+    n > 1
+      ? `${netPath} L ${expPts[n - 1].x} ${expPts[n - 1].y} ${smoothPath([...expPts].reverse()).replace(/^M [^C]*/, "")} Z`
+      : "";
+  const last = points[n - 1];
+  const RED = "#F87171";
+
+  return (
+    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ marginTop: 12 }}>
+      {width > 0 ? (
+        <Svg width={width} height={H}>
+          <Defs>
+            <LinearGradient id="hist-area" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor={accent} stopOpacity="0.28" />
+              <Stop offset="1" stopColor={accent} stopOpacity="0.02" />
+            </LinearGradient>
+          </Defs>
+          {/* Trois repères horizontaux, discrets : haut, milieu, bas. */}
+          {[0, 0.5, 1].map((k) => (
+            <Line
+              key={k}
+              x1={PAD_X}
+              x2={width - PAD_X}
+              y1={yAt(max * (1 - k))}
+              y2={yAt(max * (1 - k))}
+              stroke="rgba(255,255,255,0.07)"
+              strokeWidth={1}
+            />
+          ))}
+          {areaPath ? <Path d={areaPath} fill="url(#hist-area)" /> : null}
+          {n > 1 ? (
+            <>
+              <Path d={expPath} stroke={RED} strokeWidth={2} fill="none" strokeLinecap="round" />
+              <Path d={netPath} stroke={accent} strokeWidth={2.5} fill="none" strokeLinecap="round" />
+            </>
+          ) : null}
+          {points.map((p, i) => {
+            const hot = p.month === selected || p.month === compare;
+            return (
+              <Fragment key={p.month}>
+                {hot ? (
+                  <Line x1={xAt(i)} x2={xAt(i)} y1={PAD_TOP - 6} y2={H - PAD_BOTTOM + 4} stroke={accent} strokeWidth={1} strokeDasharray="3 3" />
+                ) : null}
+                <Circle cx={xAt(i)} cy={yAt(p.expenses)} r={hot ? 5 : 3.5} fill={RED} />
+                <Circle cx={xAt(i)} cy={yAt(p.net)} r={hot ? 5.5 : 4} fill={accent} stroke="#0B1220" strokeWidth={1.5} />
+                <SvgText
+                  x={xAt(i)}
+                  y={H - 8}
+                  fontSize={11}
+                  fill={hot ? accent : TEXT_3}
+                  fontWeight={hot ? "700" : "400"}
+                  textAnchor="middle"
+                >
+                  {monthLabel(p.month, t)}
+                </SvgText>
+              </Fragment>
+            );
+          })}
+          {/* Les deux dernières valeurs, écrites au bout des courbes. */}
+          {n > 1 ? (
+            <>
+              <SvgText x={xAt(n - 1)} y={yAt(last.net) - 9} fontSize={10.5} fill={accent} fontWeight="700" textAnchor="end">{fmt(last.net)}</SvgText>
+              <SvgText x={xAt(n - 1)} y={yAt(last.expenses) + 14} fontSize={10.5} fill={RED} fontWeight="700" textAnchor="end">{fmt(last.expenses)}</SvgText>
+            </>
+          ) : null}
+        </Svg>
+      ) : null}
+      {/* Zones de toucher : une colonne par mois, par-dessus le dessin. */}
+      {width > 0 ? (
+        <View style={{ position: "absolute", left: 0, right: 0, top: 0, height: H, flexDirection: "row" }}>
+          {points.map((p) => (
+            <TouchableOpacity
+              key={p.month}
+              style={{ flex: 1 }}
+              onPress={() => onTapMonth(p.month)}
+              activeOpacity={0.6}
+              accessibilityRole="button"
+              accessibilityLabel={monthLabel(p.month, t)}
+            />
+          ))}
+        </View>
+      ) : null}
+      {n === 1 ? (
+        <Text style={{ color: TEXT_3, fontSize: 12, marginTop: 6, textAlign: "center" }}>{t("home.history.oneMonth")}</Text>
+      ) : null}
+    </View>
+  );
+}
+
 function BudgetHistoryCard({
   points,
   scopeLabel,
@@ -892,53 +1039,15 @@ function BudgetHistoryCard({
     <View style={styles.historyCard}>
       {header}
 
-      <View style={styles.historyChart}>
-        {last.map((p) => {
-          const isSel = p.month === selected;
-          const isCmp = p.month === compare;
-          return (
-            <TouchableOpacity
-              key={p.month}
-              style={[
-                styles.historyCol,
-                (isSel || isCmp) && styles.historyColSelected,
-              ]}
-              onPress={() => tapMonth(p.month)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.historyBars}>
-                <View
-                  style={[
-                    styles.historyBar,
-                    {
-                      height: `${Math.max(3, (p.net / max) * 100)}%`,
-                      backgroundColor: GOLD,
-                    },
-                  ]}
-                />
-                <View
-                  style={[
-                    styles.historyBar,
-                    {
-                      height: `${Math.max(3, (p.expenses / max) * 100)}%`,
-                      backgroundColor: "#F87171",
-                    },
-                  ]}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.historyMonth,
-                  (isSel || isCmp) && { color: GOLD, fontWeight: "700" },
-                ]}
-                numberOfLines={1}
-              >
-                {monthLabel(p.month, t)}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <HistoryLineChart
+        points={last}
+        selected={selected}
+        compare={compare}
+        onTapMonth={tapMonth}
+        accent={GOLD}
+        t={t}
+        fmt={(v) => formatEuro(v)}
+      />
 
       <View style={styles.historyLegend}>
         <View style={[styles.legendDot, { backgroundColor: GOLD }]} />
@@ -1013,12 +1122,19 @@ function BudgetHistoryCard({
               >
                 {row.label}
               </Text>
-              <Text style={styles.detailRowValue}>
+              {/* Un montant tient sur une ligne : colonne plus large sans
+                  comparaison, police réduite plutôt que retour à la ligne. */}
+              <Text
+                style={[styles.detailRowValue, !comparePoint && { width: 104 }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
                 {row.a !== undefined ? formatEuro(row.a) : "—"}
               </Text>
               {comparePoint ? (
                 <>
-                  <Text style={styles.detailRowValue}>
+                  <Text style={styles.detailRowValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
                     {row.b !== undefined ? formatEuro(row.b) : "—"}
                   </Text>
                   <View style={styles.detailRowDeltaCell}>

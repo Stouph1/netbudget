@@ -1330,6 +1330,7 @@ export const ar: Catalog = {
   "home.tile.events": "المناسبات",
   "home.history.title": "تطوّر الميزانية · {scope}",
   "home.history.empty": "يُبنى السجل تلقائيًا شهرًا بعد شهر بمجرد تعبئة تبويب الميزانية في هذه المساحة. عد الشهر المقبل لترى الاتجاه.",
+  "home.history.oneMonth": "يظهر المنحنى بدءًا من الشهر الثاني.",
   "home.legend.net": "الصافي",
   "home.legend.tapHint": "اضغط على شهر لعرض التفاصيل",
   "home.remaining": "المتبقي للمعيشة: {amount}",

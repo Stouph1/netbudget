@@ -1330,6 +1330,7 @@ export const ja: Catalog = {
   "home.tile.events": "イベント",
   "home.history.title": "予算の推移 · {scope}",
   "home.history.empty": "このスペースで予算タブを入力すると、履歴は毎月自動的に積み上がります。来月また来て推移を確認してください。",
+  "home.history.oneMonth": "グラフは2か月目から表示されます。",
   "home.legend.net": "手取り",
   "home.legend.tapHint": "月をタップすると詳細が表示されます",
   "home.remaining": "手元に残る額: {amount}",

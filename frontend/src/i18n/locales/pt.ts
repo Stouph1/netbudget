@@ -1330,6 +1330,7 @@ export const pt: Catalog = {
   "home.tile.events": "Eventos",
   "home.history.title": "Evolução do orçamento · {scope}",
   "home.history.empty": "O histórico constrói-se sozinho, mês após mês, assim que o separador Orçamento estiver preenchido neste espaço. Volta no próximo mês para veres a tendência.",
+  "home.history.oneMonth": "A curva aparece a partir do segundo mês.",
   "home.legend.net": "Líquido",
   "home.legend.tapHint": "Toca num mês para ver o detalhe",
   "home.remaining": "Rendimento disponível: {amount}",

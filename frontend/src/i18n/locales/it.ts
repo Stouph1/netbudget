@@ -1330,6 +1330,7 @@ export const it: Catalog = {
   "home.tile.events": "Eventi",
   "home.history.title": "Andamento del budget · {scope}",
   "home.history.empty": "Lo storico si costruisce da solo, mese dopo mese, non appena compili la scheda Budget in questo spazio. Torna il mese prossimo per vedere l’andamento.",
+  "home.history.oneMonth": "La curva compare dal secondo mese.",
   "home.legend.net": "Netto",
   "home.legend.tapHint": "Tocca un mese per il dettaglio",
   "home.remaining": "Reddito disponibile: {amount}",

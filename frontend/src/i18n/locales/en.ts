@@ -1330,6 +1330,7 @@ export const en: Catalog = {
   "home.tile.events": "Events",
   "home.history.title": "Budget trend · {scope}",
   "home.history.empty": "The history builds itself month after month, as soon as the Budget tab is filled in for this space. Come back next month to see the trend.",
+  "home.history.oneMonth": "The curve appears from the second month.",
   "home.legend.net": "Net",
   "home.legend.tapHint": "Tap a month for details",
   "home.remaining": "Money left to live on: {amount}",

@@ -1330,6 +1330,7 @@ export const de: Catalog = {
   "home.tile.events": "Termine",
   "home.history.title": "Budgetentwicklung · {scope}",
   "home.history.empty": "Der Verlauf entsteht Monat für Monat von selbst, sobald der Budget-Tab in diesem Bereich ausgefüllt ist. Komm nächsten Monat wieder, um den Trend zu sehen.",
+  "home.history.oneMonth": "Die Kurve erscheint ab dem zweiten Monat.",
   "home.legend.net": "Netto",
   "home.legend.tapHint": "Tippe auf einen Monat für Details",
   "home.remaining": "Verfügbares Einkommen: {amount}",

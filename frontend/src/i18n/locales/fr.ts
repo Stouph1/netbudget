@@ -1385,6 +1385,7 @@ export const fr: Catalog = {
   "home.tile.events": "Événements",
   "home.history.title": "Évolution du budget · {scope}",
   "home.history.empty": "L’historique se construit tout seul, mois après mois, dès que l’onglet Budget est rempli dans cet espace. Reviens le mois prochain pour voir la tendance.",
+  "home.history.oneMonth": "La courbe se dessine dès le deuxième mois.",
   "home.legend.net": "Net",
   "home.legend.tapHint": "Tape un mois pour le détail",
   "home.remaining": "Reste à vivre : {amount}",

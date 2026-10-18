@@ -1330,6 +1330,7 @@ export const es: Catalog = {
   "home.tile.events": "Eventos",
   "home.history.title": "Evolución del presupuesto · {scope}",
   "home.history.empty": "El historial se construye solo, mes a mes, en cuanto rellenas la pestaña Presupuesto en este espacio. Vuelve el mes que viene para ver la tendencia.",
+  "home.history.oneMonth": "La curva aparece a partir del segundo mes.",
   "home.legend.net": "Neto",
   "home.legend.tapHint": "Toca un mes para ver el detalle",
   "home.remaining": "Dinero disponible: {amount}",
