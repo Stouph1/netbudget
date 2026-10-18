@@ -1161,6 +1161,10 @@ export default function Index() {
       ...f,
       type: t,
       chargesPercent: String(TYPE_DEFAULT_CHARGES[t]),
+      // Le TJM n'a de sens que pour un freelance ; l'impôt à la source, que
+      // pour un salaire. On ne garde pas un réglage que l'écran ne montre plus.
+      frequency: f.frequency === "daily" && t !== "freelance" ? "monthly" : f.frequency,
+      withholdingPercent: t === "salaire" ? f.withholdingPercent : undefined,
       ...(t === "salaire"
         ? { proStatus: f.proStatus ?? "non-cadre", timeMode: f.timeMode ?? "plein" }
         : { proStatus: undefined, timeMode: undefined }),

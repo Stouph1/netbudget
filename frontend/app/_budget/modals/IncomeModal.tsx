@@ -134,8 +134,11 @@ export default function IncomeModal({
                 testID="income-label"
               />
 
+              {/* Le formulaire suit le type : un loyer n'a ni statut ni quotité,
+                  un revenu « autre » se saisit en net, seul un freelance
+                  raisonne en taux journalier. */}
               <Field
-                label={t("income.amount")}
+                label={t(`income.amount.${incomeForm.type}`)}
                 info={{ title: t("help.incomeAmount.title"), body: t("help.incomeAmount.body") }}
                 icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
                 right={getCurrency(currency).symbol}
@@ -155,7 +158,9 @@ export default function IncomeModal({
                   { value: "monthly", label: t("freq.monthly"), hint: t("freq.monthlyHint") },
                   { value: "annual", label: t("freq.annual"), hint: t("freq.annualHint") },
                   { value: "monthOnce", label: t("freq.monthOnce"), hint: t("freq.monthOnceHint") },
-                  { value: "daily", label: t("freq.daily"), hint: t("freq.dailyHint") },
+                  ...(incomeForm.type === "freelance"
+                    ? [{ value: "daily" as const, label: t("freq.daily"), hint: t("freq.dailyHint") }]
+                    : []),
                 ]}
                 onChange={(next) =>
                   setIncomeForm((f) => ({
@@ -282,18 +287,20 @@ export default function IncomeModal({
                 </>
               )}
 
-              <Field
-                label={t("income.charges")}
-                info={{ title: t("help.charges.title"), body: t("help.charges.body") }}
-                icon={<Feather name="percent" size={18} color={GOLD} />}
-                right="%"
-                value={incomeForm.chargesPercent}
-                onChangeText={(v) => setIncomeForm((f) => ({ ...f, chargesPercent: v }))}
-                keyboardType="decimal-pad"
-                placeholder="0"
-                hintText={t(`income.hint.${incomeForm.type}`)}
-                testID="income-charges"
-              />
+              {incomeForm.type !== "autre" && (
+                <Field
+                  label={t("income.charges")}
+                  info={{ title: t("help.charges.title"), body: t("help.charges.body") }}
+                  icon={<Feather name="percent" size={18} color={GOLD} />}
+                  right="%"
+                  value={incomeForm.chargesPercent}
+                  onChangeText={(v) => setIncomeForm((f) => ({ ...f, chargesPercent: v }))}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  hintText={t(`income.hint.${incomeForm.type}`)}
+                  testID="income-charges"
+                />
+              )}
 
               {/* Impôt retenu sur le salaire par l'employeur. Seulement pour un
                   salaire, et seulement dans un pays où ça existe (vérifié) :
@@ -357,7 +364,9 @@ export default function IncomeModal({
                       style={switchStyle}
                     />
                   </View>
-                  {incomeForm.titheApplied ? (
+                  {/* Un revenu « autre » est saisi en net : brut et net sont la
+                      même chose, le choix de la base n'aurait aucun effet. */}
+                  {incomeForm.titheApplied && incomeForm.type !== "autre" ? (
                     <View style={styles.segmentRow} accessibilityRole="radiogroup">
                       {(["net", "gross"] as const).map((b) => {
                         const on = (incomeForm.titheBase ?? "net") === b;

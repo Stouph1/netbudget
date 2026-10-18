@@ -70,6 +70,11 @@ export const fr: Catalog = {
   // Income labels
   "income.name": "Nom",
   "income.amount": "Montant brut",
+  "income.amount.salaire": "Montant brut",
+  "income.amount.freelance": "Chiffre d'affaires (HT)",
+  "income.amount.locatif": "Loyer brut",
+  "income.amount.dividendes": "Dividendes bruts",
+  "income.amount.autre": "Montant net",
   "income.type": "Type de revenu",
   "income.frequency": "Fréquence",
   "income.status": "Statut professionnel",
