@@ -166,6 +166,10 @@ const jsonLd = {
         « aucun traceur » et la dispense de bannière. Le script n'existe que si
         l'analyse est activée sur le projet Vercel ; ailleurs, il répond 404 et
         le navigateur passe. Déclaré dans la politique de confidentialité. */}
+    {/* Pages privées (retour de connexion, invitation, rapports) : aucune
+        mesure d'audience, même anonyme. L'URL y porte des codes qui ne
+        doivent être vus par personne d'autre que l'app. */}
+    {noindex ? null : (
     <script is:inline>
       // Chargé seulement si la personne n'a pas refusé la mesure (voir
       // ConsentNotice) et si son navigateur n'envoie pas le signal
@@ -183,6 +187,7 @@ const jsonLd = {
         } catch (e) {}
       })();
     </script>
+    )}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/logo.png" />
 
@@ -217,7 +222,9 @@ const jsonLd = {
       </>
     ) : null}
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {/* Données structurées : « < » est échappé pour qu'aucune valeur ne puisse
+    fermer la balise script (XSS par JSON-LD). */}
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />
   </head>
   <body class="font-sans">
     {/* Lien d'évitement : premier élément focusable, visible seulement au

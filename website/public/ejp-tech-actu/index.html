@@ -107,6 +107,8 @@ const etat = { ...DEFAUT };
 let articles = [];
 
 const $ = id => document.getElementById(id);
+// Un lien de flux n'est suivi que s'il est http(s) : un « javascript: » glissé dans un flux ne s'exécute pas.
+const safeUrl = u => /^https?:\/\//i.test(String(u ?? "")) ? String(u) : "#";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = s => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const rang = { Haute: 3, Moyenne: 2, Basse: 1 };
@@ -182,7 +184,7 @@ function afficher() {
     if (parJour && a.date !== jour) { jour = a.date; html += `<div class="jour">${esc(dateFr(jour))}</div>`; }
     html += `
     <article class="card">
-      <a href="${esc(a.lien)}" target="_blank" rel="noopener">${esc(a.titre)}</a>
+      <a href="${esc(safeUrl(a.lien))}" target="_blank" rel="noopener noreferrer">${esc(a.titre)}</a>
       <div class="meta">
         <span class="badge pert pert-${esc((a.pertinence || "basse").toLowerCase())}">${esc(a.pertinence)}</span>
         <span class="badge">${esc(a.theme)}</span>
