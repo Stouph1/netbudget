@@ -64,6 +64,10 @@ export function WhatsNewSheet({
 
           <Text style={s.eyebrow}>{tp("whatsnew.version", { v: version })}</Text>
           <Text style={s.title}>{t("whatsnew.title")}</Text>
+          {/* Le merci : cette feuille est le seul écran que tout le monde voit
+              à la première ouverture après la mise à jour. Sans push distant
+              (il n'y en a pas, par choix), c'est ici que ça se dit. */}
+          <Text style={s.thanks}>{t("whatsnew.thanks")}</Text>
 
           <ScrollView
             style={{ flexShrink: 1 }}
@@ -129,6 +133,7 @@ const makeS = (GOLD: string) =>
     textTransform: "uppercase",
   },
   title: { color: TEXT_1, fontSize: 22, fontWeight: "800", marginTop: 5 },
+  thanks: { color: "#6EE7B7", fontSize: 15, lineHeight: 21, fontWeight: "600", marginTop: 8 },
   row: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   icon: {
     width: 30,

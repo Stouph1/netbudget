@@ -747,6 +747,7 @@ export const ja: Catalog = {
   "plan.free.name": "無料",
   "whatsnew.version": "バージョン {v}",
   "whatsnew.title": "変わったこと",
+  "whatsnew.thanks": "ありがとうございます。NETbudgetを使う人は500人を超えました。これはまだ始まりです。",
   "whatsnew.cta": "続ける",
   "whatsnew.v2.crypto.title": "データを読めるのはあなただけ",
   "whatsnew.v2.crypto.body": "サーバーへ送るものは端末側で暗号化します。設定は不要です。",

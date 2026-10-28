@@ -747,6 +747,7 @@ export const ar: Catalog = {
   "plan.free.name": "مجاني",
   "whatsnew.version": "الإصدار {v}",
   "whatsnew.title": "ما الجديد",
+  "whatsnew.thanks": "شكرًا. أكثر من 500 شخص يستخدمون NETbudget الآن، وهذه مجرد البداية.",
   "whatsnew.cta": "متابعة",
   "whatsnew.v2.crypto.title": "أنت وحدك من يقرأ بياناتك",
   "whatsnew.v2.crypto.body": "ما يُرسَل إلى خوادمنا يُشفَّر على هاتفك. ولا شيء عليك تفعيله.",

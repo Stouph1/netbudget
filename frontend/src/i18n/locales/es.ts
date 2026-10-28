@@ -747,6 +747,7 @@ export const es: Catalog = {
   "plan.free.name": "Gratis",
   "whatsnew.version": "Versión {v}",
   "whatsnew.title": "Qué ha cambiado",
+  "whatsnew.thanks": "Gracias. Ya sois más de 500 usando NETbudget, y esto es solo el principio.",
   "whatsnew.cta": "Continuar",
   "whatsnew.v2.crypto.title": "Solo tú puedes leer tus datos",
   "whatsnew.v2.crypto.body": "Lo que sale hacia nuestros servidores se cifra en tu teléfono. No hay nada que activar.",

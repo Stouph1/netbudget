@@ -747,6 +747,7 @@ export const en: Catalog = {
   "plan.free.name": "Free",
   "whatsnew.version": "Version {v}",
   "whatsnew.title": "What's changed",
+  "whatsnew.thanks": "Thank you. More than 500 of you now use NETbudget, and this is only the beginning.",
   "whatsnew.cta": "Continue",
   "whatsnew.v2.crypto.title": "Only you can read your data",
   "whatsnew.v2.crypto.body": "Anything leaving for our servers is encrypted on your phone. Nothing to switch on.",
