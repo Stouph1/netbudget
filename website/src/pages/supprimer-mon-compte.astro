@@ -1,0 +1,33 @@
+---
+// Page de suppression du compte : exigée par Google Play (lien dans la fiche)
+// et utile à tout le monde. Même gabarit que les pages légales.
+import Layout from "../layouts/Layout.astro";
+import LegalPage from "../components/LegalPage.astro";
+import Breadcrumb from "../components/Breadcrumb.astro";
+import { useTranslations } from "../i18n/utils";
+
+const locale = "fr" as const;
+const t = useTranslations(locale);
+
+const crumbSchema = {
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: t("breadcrumb.home"), item: "https://www.netbudget.app/" },
+    { "@type": "ListItem", position: 2, name: t("page.deletion.title"), item: "https://www.netbudget.app/supprimer-mon-compte" },
+  ],
+};
+---
+
+<Layout
+  locale={locale}
+  title={`${t("page.deletion.title")} — NETbudget`}
+  description={t("page.deletion.desc")}
+  pageKind="page"
+  schema={crumbSchema}
+  hideStickyCta={true}
+>
+  <div class="container-app pt-8">
+    <Breadcrumb locale={locale} items={[{ label: t("page.deletion.title") }]} />
+  </div>
+  <LegalPage locale={locale} kind="deletion" updated="2026-10-31" />
+</Layout>

@@ -292,6 +292,22 @@ const fr: Catalog = {
   "page.privacy.desc": "Ce que NETbudget fait de tes données, précisément. Sans compte, rien ne quitte ton téléphone ; avec un compte, tu choisis ce que tu enregistres.",
   "page.terms.desc": "Les conditions d'utilisation de NETbudget : ce que l'application fait, ce qu'elle ne promet pas, et tes droits.",
 
+  // Suppression du compte (page exigée par Google Play, lien dans la fiche)
+  "page.deletion.title": "Supprimer mon compte",
+  "page.deletion.desc": "Comment supprimer ton compte NETbudget et les données qui vont avec, depuis l'application ou par e-mail.",
+  "page.deletion.intro": "NETbudget fonctionne sans compte. Si tu en as créé un pour synchroniser, partager ou utiliser le Coach, tu peux le supprimer à tout moment, en une minute, depuis l'application.",
+  "page.deletion.section1.title": "Depuis l'application",
+  "page.deletion.section1.body": "Ouvre l'onglet Profil, touche la roue crantée en haut à droite pour ouvrir les Réglages, descends jusqu'à « Zone de danger » et touche « Supprimer mon compte ». Une confirmation te demande de valider : la suppression est immédiate et irréversible.",
+  "page.deletion.section2.title": "Par e-mail, si tu n'as plus l'application",
+  "page.deletion.section2.body": "Écris à contact@netbudget.app depuis l'adresse de ton compte, avec pour objet « Suppression de compte ». Le compte est supprimé sous 30 jours au plus, et tu reçois une confirmation.",
+  "page.deletion.section3.title": "Ce qui est supprimé",
+  "page.deletion.section3.body": "Ton compte (adresse e-mail, pseudo, nom, profil), tes données synchronisées (budget, objectifs, évènements, conseils enregistrés, toutes chiffrées de bout en bout), ton appartenance aux espaces partagés et les invitations en cours. Les espaces dont tu es le seul membre sont supprimés avec toi.",
+  "page.deletion.section4.title": "Ce qui est conservé, et combien de temps",
+  "page.deletion.section4.body": "Les justificatifs d'abonnement sont tenus par Apple ou Google, pas par nous ; ils suivent leurs propres règles. Notre prestataire d'abonnement conserve l'identifiant d'achat le temps légal de facturation, sans lien avec ton e-mail. Rien d'autre n'est gardé.",
+  "page.deletion.section5.title": "Et les données sur ton téléphone",
+  "page.deletion.section5.body": "Elles restent à toi : l'application continue de fonctionner en local, sans compte. Pour les effacer aussi, Réglages → Zone de danger → « Réinitialiser toutes les données », ou désinstalle l'application.",
+  "page.deletion.updated": "Dernière mise à jour",
+
   // --- Page 404 --------------------------------------------------------
   // Page « Merci » : une lettre, pas un accusé de réception.
   "page.thanks.title": "Merci",
@@ -846,6 +862,22 @@ const en: Catalog = {
   "page.faq.desc": "What it costs, where your data goes, which countries are covered: answers to the questions people actually ask.",
   "page.privacy.desc": "Exactly what NETbudget does with your data. Without an account nothing leaves your phone; with one, you choose what gets stored.",
   "page.terms.desc": "NETbudget's terms of use: what the app does, what it does not promise, and your rights.",
+
+  // Account deletion (page required by Google Play, linked from the listing)
+  "page.deletion.title": "Delete my account",
+  "page.deletion.desc": "How to delete your NETbudget account and the data that goes with it, from the app or by e-mail.",
+  "page.deletion.intro": "NETbudget works without an account. If you created one to sync, share or use the Coach, you can delete it at any time, in a minute, from the app.",
+  "page.deletion.section1.title": "From the app",
+  "page.deletion.section1.body": "Open the Profile tab, tap the gear icon at the top right to open Settings, scroll down to \"Danger zone\" and tap \"Delete my account\". A confirmation asks you to validate: deletion is immediate and irreversible.",
+  "page.deletion.section2.title": "By e-mail, if you no longer have the app",
+  "page.deletion.section2.body": "Write to contact@netbudget.app from your account's address, with the subject \"Account deletion\". The account is deleted within 30 days at most, and you receive a confirmation.",
+  "page.deletion.section3.title": "What is deleted",
+  "page.deletion.section3.body": "Your account (e-mail address, username, name, profile), your synced data (budget, goals, events, saved tips, all end-to-end encrypted), your membership of shared spaces and pending invitations. Spaces where you are the only member are deleted with you.",
+  "page.deletion.section4.title": "What is kept, and for how long",
+  "page.deletion.section4.body": "Subscription receipts are held by Apple or Google, not by us; they follow their own rules. Our subscription provider keeps the purchase identifier for the legal billing period, with no link to your e-mail. Nothing else is kept.",
+  "page.deletion.section5.title": "And the data on your phone",
+  "page.deletion.section5.body": "It stays yours: the app keeps working locally, without an account. To erase it as well, Settings → Danger zone → \"Reset all data\", or uninstall the app.",
+  "page.deletion.updated": "Last updated",
 
   // --- 404 page ---------------------------------------------------------
   // "Thank you" page: a letter, not a receipt.
