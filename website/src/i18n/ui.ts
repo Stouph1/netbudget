@@ -306,6 +306,8 @@ const fr: Catalog = {
   "page.deletion.section4.body": "Les justificatifs d'abonnement sont tenus par Apple ou Google, pas par nous ; ils suivent leurs propres règles. Notre prestataire d'abonnement conserve l'identifiant d'achat le temps légal de facturation, sans lien avec ton e-mail. Rien d'autre n'est gardé.",
   "page.deletion.section5.title": "Et les données sur ton téléphone",
   "page.deletion.section5.body": "Elles restent à toi : l'application continue de fonctionner en local, sans compte. Pour les effacer aussi, Réglages → Zone de danger → « Réinitialiser toutes les données », ou désinstalle l'application.",
+  "page.deletion.section6.title": "Supprimer une partie de tes données sans fermer le compte",
+  "page.deletion.section6.body": "Tout ce que tu as créé se supprime à l'unité, depuis l'application, et disparaît aussitôt de nos serveurs : un objectif d'épargne (Objectifs, puis l'objectif, puis Supprimer), un évènement ou un projet (l'icône corbeille en haut de sa fiche), un espace partagé que tu possèdes (Espaces, roue crantée de l'espace, Supprimer l'espace) ou ta participation à un espace (Quitter l'espace), un conseil gardé, une source de revenu ou un poste de dépense. Pour une demande particulière, écris à contact@netbudget.app depuis l'adresse de ton compte : traitement sous 30 jours.",
   "page.deletion.updated": "Dernière mise à jour",
 
   // --- Page 404 --------------------------------------------------------
@@ -877,6 +879,8 @@ const en: Catalog = {
   "page.deletion.section4.body": "Subscription receipts are held by Apple or Google, not by us; they follow their own rules. Our subscription provider keeps the purchase identifier for the legal billing period, with no link to your e-mail. Nothing else is kept.",
   "page.deletion.section5.title": "And the data on your phone",
   "page.deletion.section5.body": "It stays yours: the app keeps working locally, without an account. To erase it as well, Settings → Danger zone → \"Reset all data\", or uninstall the app.",
+  "page.deletion.section6.title": "Delete some of your data without closing the account",
+  "page.deletion.section6.body": "Everything you created can be deleted one by one, from the app, and disappears from our servers right away: a savings goal (Goals, then the goal, then Delete), an event or project (the trash icon at the top of its page), a shared space you own (Spaces, the space's gear icon, Delete space) or your membership of a space (Leave space), a saved tip, an income source or an expense item. For a specific request, write to contact@netbudget.app from your account's address: handled within 30 days.",
   "page.deletion.updated": "Last updated",
 
   // --- 404 page ---------------------------------------------------------
