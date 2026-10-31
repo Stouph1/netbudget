@@ -38,6 +38,9 @@
       .story { position: absolute; left: 656px; top: 0; width: 608px; height: 1080px; overflow: hidden; background: #0B0E14; }
       #root.p .story { left: 0; width: 1080px; height: 1920px; }
       .story video { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .shtop, .shbot { position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none; }
+      .shtop { top: 0; height: 22%; background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0)); }
+      .shbot { bottom: 0; height: 45%; background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.75) 45%, rgba(0,0,0,0)); }
       .story::before, .story::after { content: ""; position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none; }
       .story::before { top: 0; height: 22%; background: linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0)); }
       .story::after { bottom: 0; height: 40%; background: linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0)); }
@@ -86,9 +89,17 @@
 
       /* emblème « 2.0 » façon logo de jaquette */
       #emb { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-      .embin { position: relative; width: 760px; height: 640px; }
-      .two { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-family: "Rubik", sans-serif; font-weight: 900; font-size: 560px; line-height: 1; letter-spacing: -0.06em; background: linear-gradient(160deg, #3D6BFF 0%, #B04CFF 30%, #FF4FA3 58%, #FF9A3C 85%, #FFC46B 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-stroke: 14px #1A0B2E; paint-order: stroke fill; filter: drop-shadow(0 14px 0 #1A0B2E); }
-      .nb { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-family: "Rubik", sans-serif; font-weight: 900; font-size: 190px; line-height: 1; letter-spacing: -0.05em; color: #FFF; -webkit-text-stroke: 16px #5B1E8C; paint-order: stroke fill; filter: drop-shadow(0 10px 0 #1A0B2E); }
+      .embin { position: relative; width: 980px; height: 640px; }
+      .embin span { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-family: "Rubik", sans-serif; font-weight: 900; line-height: 1; white-space: nowrap; display: block; }
+      .two { position: absolute; left: 0; right: 0; top: 0; height: 520px; }
+      .two span { font-size: 480px; letter-spacing: -0.05em; }
+      .nb { position: absolute; left: 0; right: 0; top: 400px; height: 220px; }
+      .nb span { font-size: 175px; letter-spacing: -0.045em; }
+      .sh { color: #1A0B2E; -webkit-text-stroke: 30px #1A0B2E; transform: translateY(18px); }
+      .st { color: #1A0B2E; -webkit-text-stroke: 30px #1A0B2E; }
+      .two .fi { background: linear-gradient(160deg, #3D6BFF 0%, #B04CFF 30%, #FF4FA3 58%, #FF9A3C 85%, #FFC46B 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .nb .st { color: #5B1E8C; -webkit-text-stroke: 26px #5B1E8C; }
+      .nb .fi { color: #FFF; }
       #root.p .embin { transform-origin: 50% 50%; }
 
       /* fin : néon qui se dessine puis se remplit */
@@ -106,7 +117,7 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="gtavibe" data-width="1920" data-height="1080" data-fps="30" data-duration="38">
+    <div id="root" data-composition-id="gtavibe" data-width="1920" data-height="1080" data-fps="30" data-duration="46.9">
 
       <!-- 0 → 3.6 : carton d'avertissement parodique -->
       <div class="clip" id="s0" data-start="0" data-duration="3.6">
@@ -114,7 +125,7 @@
       </div>
 
       <!-- 3.6 → 8.1 : plan aérien à l'heure dorée, « présente » -->
-      <div class="clip bars" id="s1" data-start="3.6" data-duration="4.55" data-layout-allow-overflow>
+      <div class="clip bars" id="s1" data-start="3.6" data-duration="4.45" data-layout-allow-overflow>
         <div class="full" id="aer1"><img src="assets/art/flamant.png" style="object-position: 70% 46%" alt="" /></div>
         <div class="grade"></div>
         <div class="presents" id="pres">NETBUDGET<br />PRÉSENTE</div>
@@ -124,7 +135,8 @@
       <div class="clip" id="s2" style="opacity:0" data-layout-allow-overflow>
         <div class="blurbg"><img src="assets/art/flamant.png" alt="" /></div>
         <div class="story" id="story">
-          <video id="vs" src="assets/rec/budget.mp4" data-start="8.11" data-duration="4.0" data-media-start="1.0" muted playsinline></video>
+          <video id="vs" src="assets/rec/budget.mp4" data-start="8.0" data-duration="5.79" data-media-start="1.0" muted playsinline></video>
+          <div class="shtop"></div><div class="shbot"></div>
           <div class="ui"><div class="av"><img src="assets/img/logo.png" alt="" /></div>netbudget.app <span class="live">LIVE</span></div>
           <div class="cap" id="cap">POV : tu sais enfin où passe ton salaire.</div>
           <div class="hearts"><i></i><i></i><i></i><i></i></div>
@@ -132,7 +144,7 @@
       </div>
 
       <!-- 12.1 → 16.1 : flash info, images d'hélicoptère -->
-      <div class="clip bars" id="s3" data-start="12.11" data-duration="4.0" data-layout-allow-overflow>
+      <div class="clip bars" id="s3" data-start="13.79" data-duration="5.79" data-layout-allow-overflow>
         <div class="full" id="aer2"><img src="assets/art/flamant.png" style="object-position: 70% 46%" alt="" /></div>
         <div class="grade"></div>
         <div class="rec"><i></i>EN DIRECT</div>
@@ -146,20 +158,20 @@
       <!-- 16.1 → 30.1 : la jaquette se construit, case par case, puis l'emblème -->
       <div class="clip" id="s4" style="opacity:0" data-layout-allow-overflow>
         <div id="mosaic">
-          <div class="pn app g1" id="p1"><div class="scrn"><video id="vm1" src="assets/rec/budget.mp4" data-start="16.11" data-duration="14.0" data-media-start="1.0" muted playsinline></video></div><div class="lbl">le reste à vivre</div></div>
+          <div class="pn app g1" id="p1"><div class="scrn"><video id="vm1" src="assets/rec/budget.mp4" data-start="19.58" data-duration="17.37" data-media-start="1.0" muted playsinline></video></div><div class="lbl">le reste à vivre</div></div>
           <div class="pn" id="p2"><img src="assets/art/flamant.png" alt="" style="object-position: 28% 50%" /><div class="lbl" data-layout-allow-occlusion>l'épargne</div></div>
-          <div class="pn app g2" id="p3"><div class="scrn"><video id="vm2" src="assets/rec/projet.mp4" data-start="16.11" data-duration="14.0" data-media-start="0.5" muted playsinline></video></div><div class="lbl">le jour J</div></div>
-          <div class="pn app g3" id="p4"><div class="scrn"><video id="vm3" src="assets/rec/coach.mp4" data-start="16.11" data-duration="14.0" data-media-start="1.0" muted playsinline></video></div><div class="lbl">les conseils</div></div>
-          <div class="pn app g4" id="p5"><div class="scrn"><video id="vm4" src="assets/rec/revenu.mp4" data-start="16.11" data-duration="14.0" data-media-start="1.5" muted playsinline></video></div><div class="lbl">la paie</div></div>
-          <div class="pn app g5" id="p6"><div class="scrn"><video id="vm5" src="assets/rec/espaces.mp4" data-start="16.11" data-duration="14.0" data-media-start="0.5" muted playsinline></video></div><div class="lbl">le crew</div></div>
-          <div class="pn app g6" id="p7"><div class="scrn"><video id="vm6" src="assets/rec/reperes.mp4" data-start="16.11" data-duration="14.0" data-media-start="4.0" muted playsinline></video></div><div class="lbl">les repères</div></div>
+          <div class="pn app g2" id="p3"><div class="scrn"><video id="vm2" src="assets/rec/projet.mp4" data-start="19.58" data-duration="17.37" data-media-start="0.5" muted playsinline></video></div><div class="lbl">le jour J</div></div>
+          <div class="pn app g3" id="p4"><div class="scrn"><video id="vm3" src="assets/rec/coach.mp4" data-start="19.58" data-duration="17.37" data-media-start="1.0" muted playsinline></video></div><div class="lbl">les conseils</div></div>
+          <div class="pn app g4" id="p5"><div class="scrn"><video id="vm4" src="assets/rec/revenu.mp4" data-start="19.58" data-duration="17.37" data-media-start="1.5" muted playsinline></video></div><div class="lbl">la paie</div></div>
+          <div class="pn app g5" id="p6"><div class="scrn"><video id="vm5" src="assets/rec/espaces.mp4" data-start="19.58" data-duration="17.37" data-media-start="0.5" muted playsinline></video></div><div class="lbl">le crew</div></div>
+          <div class="pn app g6" id="p7"><div class="scrn"><video id="vm6" src="assets/rec/reperes.mp4" data-start="19.58" data-duration="17.37" data-media-start="4.0" muted playsinline></video></div><div class="lbl">les repères</div></div>
         </div>
         <div class="grade"></div>
-        <div id="emb"><div class="embin" id="embin"><div class="two">2.0</div><div class="nb">netbudget</div></div></div>
+        <div id="emb" data-layout-allow-overlap><div class="embin" id="embin" data-layout-allow-overlap><div class="two"><span class="sh">2.0</span><span class="st">2.0</span><span class="fi">2.0</span></div><div class="nb"><span class="sh">netbudget</span><span class="st">netbudget</span><span class="fi">netbudget</span></div></div></div>
       </div>
 
       <!-- 30.1 → 34.1 : le néon -->
-      <div class="clip" id="s5" data-start="30.11" data-duration="4.0" data-layout-allow-overflow>
+      <div class="clip" id="s5" data-start="36.95" data-duration="5.79" data-layout-allow-overflow>
         <div id="endc">
           <div class="neon" id="neon"><span class="o" id="neo">2.0</span><span class="f" id="nef">2.0</span></div>
           <div class="date" id="date">LE 15 NOVEMBRE 2026</div>
@@ -167,56 +179,55 @@
         </div>
       </div>
       <!-- 34.1 → 38 : carton final -->
-      <div class="clip" id="s6" data-start="34.11" data-duration="3.89">
+      <div class="clip" id="s6" data-start="42.74" data-duration="4.16">
         <div id="endi"><img id="endimg" src="assets/img/logo.png" alt="" /><div class="t" id="endt">GRATUIT · APP STORE · GOOGLE PLAY</div></div>
       </div>
 
       <div class="grain"></div>
-      <div id="flash" class="clip" data-start="0" data-duration="38" data-layout-allow-overflow></div>
+      <div id="flash" class="clip" data-start="0" data-duration="46.9" data-layout-allow-overflow></div>
 
-      <!-- « Life is a Dream » (Michael Ramir C., Mixkit, licence commerciale sans attribution), 120 BPM : intro calme jusqu'à 8,1 s, puis le groove -->
-      <audio id="music" data-start="0" data-duration="38" data-media-start="0" data-volume="0.9" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.9},{"t":35.6,"v":0.9},{"t":38,"v":0}]}]}' src="assets/music/life-is-a-dream.mp3"></audio>
-      <audio id="sfx-0" data-start="8.11" data-duration="0.5" data-volume="0.5" src="assets/sfx/impact/impactBell_heavy_004.ogg"></audio>
-      <audio id="sfx-1" data-start="12.11" data-duration="0.4" data-volume="0.45" src="assets/sfx/interface/switch_007.ogg"></audio>
-      <audio id="sfx-2" data-start="26.11" data-duration="0.5" data-volume="0.55" src="assets/sfx/impact/impactSoft_heavy_000.ogg"></audio>
-      <audio id="sfx-3" data-start="30.11" data-duration="0.4" data-volume="0.4" src="assets/sfx/interface/bong_001.ogg"></audio>
+      <!-- « Lust » (Michael Ramir C., Mixkit, licence commerciale sans attribution), disco-funk, 125 BPM -->
+      <audio id="music" data-start="0" data-duration="46.9" data-media-start="7.36" data-volume="1" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.6},{"t":7.85,"v":0.6},{"t":8.0,"v":0.95},{"t":44.7,"v":0.95},{"t":46.9,"v":0}]}]}' src="assets/music/lust.mp3"></audio>
+      <audio id="sfx-0" data-start="8.0" data-duration="0.5" data-volume="0.5" src="assets/sfx/impact/impactBell_heavy_004.ogg"></audio>
+      <audio id="sfx-1" data-start="13.79" data-duration="0.4" data-volume="0.45" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-2" data-start="31.16" data-duration="0.5" data-volume="0.55" src="assets/sfx/impact/impactSoft_heavy_000.ogg"></audio>
+      <audio id="sfx-3" data-start="36.95" data-duration="0.4" data-volume="0.4" src="assets/sfx/interface/bong_001.ogg"></audio>
     </div>
 
     <script>
       document.fonts.ready.then(function () {
         var root = document.getElementById("root");
         var P = root.classList.contains("p");
+        var B = 1.93, L0 = 8.0, N0 = L0 + 3 * B, M0 = L0 + 6 * B, E0 = L0 + 12 * B, O0 = L0 + 15 * B, F0 = L0 + 18 * B, D = 46.9;
         var tl = gsap.timeline({ paused: true });
         var flash = function (t, a, d) { tl.fromTo("#flash", { opacity: a }, { opacity: 0, duration: d || 0.35, ease: "power2.out", immediateRender: false }, t); };
 
-        /* ouverture */
+        /* ouverture : carton, puis plan large et « présente » */
         tl.fromTo("#warn", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.out" }, 0.3);
         tl.to("#warn", { opacity: 0, duration: 0.5, ease: "power1.in" }, 2.9);
-        tl.fromTo("#aer1", { scale: 1.18, x: 40 }, { scale: 1.02, x: -40, duration: 4.6, ease: "none" }, 3.6);
-        tl.fromTo("#s1 .grade", { opacity: 1 }, { opacity: 1, duration: 0.1 }, 3.6);
-        tl.fromTo("#aer1", { opacity: 0 }, { opacity: 1, duration: 0.9, ease: "power1.out" }, 3.6);
+        tl.fromTo("#aer1", { scale: 1.18, x: 40, opacity: 0 }, { scale: 1.02, x: -40, opacity: 1, duration: L0 - 3.6, ease: "none" }, 3.6);
         tl.fromTo("#pres", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" }, 4.6);
-        tl.to("#pres", { opacity: 0, duration: 0.6, ease: "power1.in" }, 7.2);
+        tl.to("#pres", { opacity: 0, duration: 0.6, ease: "power1.in" }, L0 - 0.9);
 
         /* live */
-        tl.set("#s2", { opacity: 1 }, 8.11); tl.set("#s2", { opacity: 0 }, 12.11);
-        tl.set("#s4", { opacity: 1 }, 16.11); tl.set("#s4", { opacity: 0 }, 30.11);
-        flash(8.11, 0.85, 0.5);
-        tl.fromTo("#story", { scale: 1.08 }, { scale: 1, duration: 0.6, ease: "power3.out" }, 8.11);
-        tl.fromTo("#cap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 8.6);
+        tl.set("#s2", { opacity: 1 }, L0); tl.set("#s2", { opacity: 0 }, N0);
+        tl.set("#s4", { opacity: 1 }, M0); tl.set("#s4", { opacity: 0 }, O0);
+        flash(L0, 0.85, 0.5);
+        tl.fromTo("#story", { scale: 1.08 }, { scale: 1, duration: 0.6, ease: "power3.out" }, L0);
+        tl.fromTo("#cap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, L0 + 0.5 * B);
         gsap.utils.toArray(".hearts i").forEach(function (h, i) {
-          tl.fromTo(h, { opacity: 0, y: 40, scale: 0.6 }, { opacity: 1, y: -200 - i * 40, scale: 1.1, duration: 1.6, ease: "power1.out" }, 9.1 + i * 0.5);
-          tl.to(h, { opacity: 0, duration: 0.4 }, 10.3 + i * 0.5);
+          tl.fromTo(h, { opacity: 0, y: 40, scale: 0.6 }, { opacity: 1, y: -200 - i * 40, scale: 1.1, duration: 1.6, ease: "power1.out" }, L0 + B + i * 0.5 * B);
+          tl.to(h, { opacity: 0, duration: 0.4 }, L0 + B + i * 0.5 * B + 1.2);
         });
 
-        /* flash info : hélico qui dérive, bandeau qui tombe, défilant */
-        tl.fromTo("#aer2", { scale: 1.6, x: P ? -300 : -120, y: 60 }, { scale: 1.45, x: P ? 200 : 120, y: -30, duration: 4.0, ease: "none" }, 12.11);
-        flash(12.11, 0.5);
-        tl.fromTo("#news .tag", { x: -400 }, { x: 0, duration: 0.35, ease: "power3.out" }, 12.4);
-        tl.fromTo("#hl", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, 12.5);
-        tl.fromTo("#tk", { x: 0 }, { x: P ? -1800 : -1600, duration: 3.6, ease: "none" }, 12.5);
+        /* flash info */
+        tl.fromTo("#aer2", { scale: 1.6, x: P ? -300 : -120, y: 60 }, { scale: 1.45, x: P ? 200 : 120, y: -30, duration: 3 * B, ease: "none" }, N0);
+        flash(N0, 0.5);
+        tl.fromTo("#news .tag", { x: -400 }, { x: 0, duration: 0.35, ease: "power3.out" }, N0 + 0.25 * B);
+        tl.fromTo("#hl", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, N0 + 0.3 * B);
+        tl.fromTo("#tk", { x: 0 }, { x: P ? -1900 : -1700, duration: 2.7 * B, ease: "none" }, N0 + 0.3 * B);
 
-        /* jaquette : une case par temps fort, la caméra recule */
+        /* jaquette : une case par demi-mesure, la caméra recule */
         var L = P ? {
           p1: [0, 0, 533, 940], p2: [547, 0, 533, 940], p3: [0, 954, 533, 966], p4: [547, 954, 533, 966], p5: null, p6: null, p7: null
         } : {
@@ -229,33 +240,36 @@
           el.style.left = L[k][0] + "px"; el.style.top = L[k][1] + "px"; el.style.width = L[k][2] + "px"; el.style.height = L[k][3] + "px";
         });
         var order = P ? ["p1", "p2", "p3", "p4"] : ["p1", "p2", "p5", "p3", "p4", "p6", "p7"];
+        var step = P ? B : 0.5 * B;
         order.forEach(function (k, i) {
-          var t = 16.11 + i * 1.0;
+          var t = M0 + i * step;
           tl.fromTo("#" + k, { opacity: 0, scale: 1.18, rotation: i % 2 ? 2 : -2 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.4, ease: "back.out(1.6)" }, t);
-          tl.fromTo("#" + k + " img, #" + k + " video", { scale: 1.15 }, { scale: 1.0, duration: 6, ease: "none" }, t);
-          tl.fromTo("#" + k + " .lbl", { opacity: 0, y: 30, rotation: -4 }, { opacity: 1, y: 0, rotation: -4, duration: 0.3, ease: "back.out(2)" }, t + 0.2);
-          tl.to("#" + k + " .lbl", { opacity: 0, duration: 0.25 }, 25.6);
+          tl.fromTo("#" + k + " img, #" + k + " video", { scale: 1.15 }, { scale: 1.0, duration: E0 - t, ease: "none" }, t);
+          tl.fromTo("#" + k + " .lbl", { opacity: 0, y: 30, rotation: -4 }, { opacity: 1, y: 0, rotation: -4, duration: 0.3, ease: "back.out(2)" }, t + 0.15);
+          tl.to("#" + k + " .lbl", { opacity: 0, duration: 0.25 }, E0 - 0.3);
         });
-        tl.fromTo("#mosaic", { scale: 1.35 }, { scale: 1, duration: 9.5, ease: "power1.inOut" }, 16.11);
+        tl.fromTo("#mosaic", { scale: 1.35 }, { scale: 1, duration: E0 - M0, ease: "power1.inOut" }, M0);
 
-        /* emblème sur le temps fort */
-        flash(26.11, 0.9, 0.5);
-        tl.fromTo("#embin", { scale: P ? 2.0 : 2.0, opacity: 0, rotation: -6 }, { scale: P ? 0.84 : 0.95, opacity: 1, rotation: 0, duration: 0.5, ease: "back.out(1.4)" }, 26.11);
-        tl.to("#mosaic", { filter: "brightness(0.6) saturate(1.1)", duration: 0.5 }, 26.11);
-        tl.fromTo("#embin", { y: -10 }, { y: 0, duration: 0.25, ease: "power2.out", immediateRender: false }, 28.11);
-        tl.to("#embin", { scale: P ? 0.9 : 1.02, duration: 3.5, ease: "sine.inOut" }, 26.6);
-        tl.to("#s4 #emb, #mosaic", { opacity: 0, duration: 0.3, ease: "power2.in" }, 29.8);
+        /* emblème : pose franche sur le temps fort, sans fondu enchaîné */
+        tl.set("#emb", { opacity: 0 }, 0);
+        flash(E0, 0.7, 0.4);
+        tl.set("#emb", { opacity: 1 }, E0);
+        tl.fromTo("#embin", { scale: P ? 1.3 : 1.25, rotation: -4 }, { scale: P ? 0.84 : 0.95, rotation: 0, duration: 0.45, ease: "back.out(1.5)" }, E0);
+        tl.to("#mosaic", { filter: "brightness(0.55) saturate(1.1)", duration: 0.4 }, E0);
+        tl.fromTo("#embin", { y: -12 }, { y: 0, duration: 0.25, ease: "power2.out", immediateRender: false }, E0 + B);
+        tl.fromTo("#embin", { y: -12 }, { y: 0, duration: 0.25, ease: "power2.out", immediateRender: false }, E0 + 2 * B);
+        tl.to("#emb, #mosaic", { opacity: 0, duration: 0.3, ease: "power2.in" }, O0 - 0.3);
 
-        /* néon : le contour se dessine, puis se remplit */
-        tl.fromTo("#neo", { clipPath: "inset(-30% 110% -30% -10%)" }, { clipPath: "inset(-30% -10% -30% -10%)", duration: 0.9, ease: "power2.inOut" }, 30.2);
-        tl.fromTo("#neo", { opacity: 0.6 }, { opacity: 1, duration: 0.08, repeat: 5, yoyo: true, ease: "none" }, 31.1);
-        tl.fromTo("#nef", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.inOut" }, 31.6);
-        tl.fromTo("#date", { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, 32.1);
-        tl.fromTo("#sub4", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 32.7);
-        tl.to("#endc", { opacity: 0, duration: 0.4 }, 33.7);
-        tl.fromTo("#endimg", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" }, 34.3);
-        tl.fromTo("#endt", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 34.8);
-        tl.to("#endi", { opacity: 0, duration: 1.0, ease: "power1.in" }, 36.9);
+        /* néon : le contour se dessine, clignote, puis se remplit */
+        tl.fromTo("#neo", { clipPath: "inset(-30% 110% -30% -10%)" }, { clipPath: "inset(-30% -10% -30% -10%)", duration: 0.5 * B, ease: "power2.inOut" }, O0 + 0.1);
+        tl.fromTo("#neo", { opacity: 0.6 }, { opacity: 1, duration: 0.08, repeat: 5, yoyo: true, ease: "none" }, O0 + 0.6 * B);
+        tl.fromTo("#nef", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.inOut" }, O0 + B);
+        tl.fromTo("#date", { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, O0 + 1.25 * B);
+        tl.fromTo("#sub4", { opacity: 0 }, { opacity: 1, duration: 0.6 }, O0 + 1.6 * B);
+        tl.to("#endc", { opacity: 0, duration: 0.4 }, F0 - 0.4);
+        tl.fromTo("#endimg", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" }, F0 + 0.1);
+        tl.fromTo("#endt", { opacity: 0 }, { opacity: 1, duration: 0.6 }, F0 + 0.5);
+        tl.to("#endi", { opacity: 0, duration: 1.0, ease: "power1.in" }, D - 1.1);
 
         window.__timelines[root.dataset.compositionId] = tl;
       });
