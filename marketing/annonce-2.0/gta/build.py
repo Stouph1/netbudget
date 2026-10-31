@@ -26,7 +26,45 @@ MUSIQUES = {
     "life-is-a-dream": dict(file="life-is-a-dream.mp3", groove=8.11, bar=2.0, pre=0.9,
                             credit="« Life is a Dream » (Michael Ramir C., Mixkit, licence commerciale sans attribution), disco-pop, 120 BPM"),
 }
-HIT = 8.0  # instant de la vidéo où le groove entre (fin du plan d'ouverture)
+HIT = 8.0
+
+# version anglaise (campagnes en anglais) : textes traduits, plans enregistrés en anglais (../rec-en)
+EN = [
+    ('<html lang="fr">', '<html lang="en">'),
+    ('<title>NETbudget 2.0 - Vice (hommage)</title>', '<title>NETbudget 2.0 - Vice (EN)</title>'),
+    ('>Peut contenir des fins de mois difficiles<', '>May contain end-of-month struggles<'),
+    (">Plus d'infos sur netbudget.app<", '>More info at netbudget.app<'),
+    ('NETBUDGET<br />PRÉSENTE', 'NETBUDGET<br />PRESENTS'),
+    ('>POV : tu sais enfin où passe ton salaire.<', '>POV: you finally know where your paycheck goes.<'),
+    ('NB<small>INFO</small>', 'NB<small>NEWS</small>'),
+    ('>Un homme sait enfin où passe son salaire<', '>Local man finally knows where his paycheck goes<'),
+    ('>NETBUDGET 2.0 LE 15 NOVEMBRE · SANS CONNEXION BANCAIRE · SANS PUB · UTILISÉ DANS 59 PAYS · GRATUIT POUR COMMENCER · NETBUDGET 2.0 LE 15 NOVEMBRE · SANS CONNEXION BANCAIRE ·<',
+     '>NETBUDGET 2.0 ON NOVEMBER 15 · NO BANK CONNECTION · NO ADS · USED IN 59 COUNTRIES · FREE TO START · NETBUDGET 2.0 ON NOVEMBER 15 · NO BANK CONNECTION ·<'),
+    ('>le reste à vivre<', ">what's left<"),
+    (">l'épargne<", '>savings<'),
+    ('>le jour J<', '>the big day<'),
+    ('>les conseils<', '>the tips<'),
+    ('>la paie<', '>payday<'),
+    ('>le crew<', '>the crew<'),
+    ('>les repères<', '>benchmarks<'),
+    ('>LE 15 NOVEMBRE 2026<', '>NOVEMBER 15, 2026<'),
+    ('>Quatre jours avant le 19. Prépare ton budget.<', '>Four days before the 19th. Get your budget ready.<'),
+    ('>GRATUIT · APP STORE · GOOGLE PLAY<', '>FREE · APP STORE · GOOGLE PLAY<'),
+]
+REC_EN = ROOT.parent / "rec-en"
+
+
+def english(html):
+    for a, b in EN:
+        assert a in html, a[:70]
+        html = html.replace(a, b)
+    return html
+
+
+def english_assets(dest):
+    for c in ("budget", "revenu", "reperes", "projet", "coach", "espaces"):
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(REC_EN / f"{c}.mp4"), "-an", "-r", "30", "-vf", "scale=800:-2", "-c:v", "libx264",
+                        "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(dest / "assets" / "rec" / f"{c}.mp4")], check=True)  # instant de la vidéo où le groove entre (fin du plan d'ouverture)
 
 REELS = [
     ('<meta name="viewport" content="width=1920, height=1080" />', '<meta name="viewport" content="width=1080, height=1920" />'),
@@ -75,18 +113,24 @@ def main():
     render = "render" in args
     slugs = [a for a in args if a in MUSIQUES] or list(MUSIQUES)
     fmts = [a for a in args if a in ("16x9", "9x16")] or ["16x9", "9x16"]
+    en = "en" in args
     (SRC / "index.html").write_text(compose(DEFAULT))
     for slug in slugs:
         html = compose(slug)
+        if en:
+            html = english(html)
+        tag = f"{slug}-en" if en else slug
         for fmt in fmts:
-            d = OUT / slug / fmt
+            d = OUT / tag / fmt
             write_project(d, html, reels=(fmt == "9x16"))
+            if en:
+                english_assets(d)
             print(slug, fmt, run("npx --yes hyperframes@0.8.157 check 2>&1 | grep -E 'error\\(s\\)' | tail -1", d).strip())
             if render:
                 print("  ", run("npx --yes hyperframes@0.8.157 render --workers 1 2>&1 | tr '\\r' '\\n' | grep -E '✗|MB|renders/' | tail -2", d).strip().replace("\n", " | "))
                 mp4s = sorted((d / "renders").glob("*.mp4"), key=os.path.getmtime)
                 if mp4s:
-                    dst = ROOT / f"annonce-2.0-vice-{slug}-{fmt}.mp4"
+                    dst = ROOT / f"annonce-2.0-vice-{tag}-{fmt}.mp4"
                     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(mp4s[-1]), "-c:v", "libx264", "-preset", "slow", "-crf", "22",
                                     "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(dst)], check=True)
                     shutil.rmtree(d / "renders")
