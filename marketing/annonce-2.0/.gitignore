@@ -1,0 +1,5 @@
+video/renders/
+video/.hyperframes/
+video-reels/renders/
+video-reels/.hyperframes/
+*/node_modules/
