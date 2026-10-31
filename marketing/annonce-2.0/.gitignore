@@ -4,3 +4,6 @@ video-reels/
 */node_modules/
 tools/.rec.pid
 tools/.metro.log
+gta/video/renders/
+gta/video/.hyperframes/
+gta/video-reels/

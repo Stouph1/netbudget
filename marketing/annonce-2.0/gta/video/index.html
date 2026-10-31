@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>NETbudget 2.0 - Vice (hommage)</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Bebas"; src: url("fonts/BebasNeue-Regular.ttf") format("truetype"); font-display: block; }
+      @font-face { font-family: "Manrope"; font-style: normal; font-weight: 200 800; font-display: block; src: url("fonts/Manrope-latin.woff2") format("woff2"); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #12062b; color: #FFF4E6; font-family: "Bebas", "Manrope", sans-serif; -webkit-font-smoothing: antialiased; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #12062b; }
+      /* ciel de fin de journée : violet, rose, orange ; un soleil strié ; l'horizon de la mer */
+      .sky { position: absolute; inset: 0; background: linear-gradient(180deg, #12062b 0%, #3b1d6e 28%, #b23a8c 52%, #ff6a4d 70%, #ffb347 82%, #2a0f45 83%, #140a2e 100%); }
+      #sun { position: absolute; left: 560px; top: 250px; width: 800px; height: 800px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a 0%, #ff8f5a 55%, #ff4f8b 100%); box-shadow: 0 0 120px 30px rgba(255,120,120,0.45); -webkit-mask: repeating-linear-gradient(180deg, #000 0 78px, transparent 78px 92px); mask: repeating-linear-gradient(180deg, #000 0 78px, transparent 78px 92px); }
+      #sea { position: absolute; left: 0; right: 0; top: 896px; height: 184px; background: linear-gradient(180deg, rgba(255,120,90,0.35), rgba(18,6,43,0.9)); }
+      #grid { position: absolute; left: -400px; right: -400px; top: 896px; height: 184px; background-image: linear-gradient(90deg, rgba(0,255,230,0.35) 2px, transparent 2px), linear-gradient(180deg, rgba(0,255,230,0.35) 2px, transparent 2px); background-size: 160px 46px; transform-origin: 50% 0; transform: perspective(600px) rotateX(55deg); opacity: 0.6; }
+      .palm { position: absolute; bottom: 150px; width: 520px; height: 760px; fill: #0b0420; }
+      .palm.l { left: -80px; } .palm.r { right: -60px; transform: scaleX(-1); }
+      .scan { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 5px); pointer-events: none; }
+      .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 55%, rgba(10,0,25,0.75) 100%); }
+      .grain { position: absolute; inset: 0; opacity: 0.12; background-image: radial-gradient(rgba(255,255,255,0.7) 0.6px, transparent 0.7px); background-size: 6px 6px; }
+      .clip { position: absolute; inset: 0; }
+      /* titres : capitales condensées, dégradé chaud, contour sombre, ombre longue */
+      .title { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      .t { font-family: "Bebas", sans-serif; font-size: 240px; line-height: 0.9; letter-spacing: 0.02em; color: #FFF4E6; text-shadow: 0 0 2px #2a0f45, 0 6px 0 #2a0f45, 0 12px 0 #1a0830, 0 22px 50px rgba(0,0,0,0.6); }
+      .t.hot { background: linear-gradient(180deg, #fff2c2 0%, #ffb347 45%, #ff4f8b 100%); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 8px 0 #2a0f45) drop-shadow(0 20px 40px rgba(0,0,0,0.6)); }
+      .t.small { font-size: 120px; }
+      .date { font-family: "Bebas", sans-serif; font-size: 70px; letter-spacing: 0.3em; color: #ffe08a; text-shadow: 0 4px 0 #2a0f45; margin-top: 24px; }
+      .phone { position: absolute; left: 1180px; top: 100px; width: 420px; height: 900px; border-radius: 66px; background: #1a0830; padding: 10px; box-shadow: 0 60px 120px -30px rgba(0,0,0,0.9), 0 0 100px -20px rgba(255,79,139,0.55); }
+      .phone .scr { width: 400px; height: 880px; border-radius: 58px; overflow: hidden; background: #0B0E14; position: relative; }
+      .phone .scr video { position: absolute; left: 0; top: 0; width: 400px; height: 880px; object-fit: cover; display: block; }
+      .shade { position: absolute; left: 0; top: 0; bottom: 0; width: 1200px; background: linear-gradient(90deg, rgba(18,6,43,0.88) 0%, rgba(18,6,43,0.7) 60%, rgba(18,6,43,0) 100%); }
+      .word { position: absolute; left: 120px; top: 0; height: 1080px; width: 1000px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+      .word .t { text-align: left; font-size: 200px; }
+      .word .sub { font-family: "Manrope", sans-serif; font-size: 44px; font-weight: 700; color: #ffe08a; max-width: 900px; letter-spacing: -0.01em; text-shadow: 0 3px 0 #2a0f45; }
+      .stamp { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
+      .stamp .t { font-size: 220px; padding: 20px 70px; border: 14px solid #FFF4E6; box-shadow: 0 12px 0 #2a0f45; background: rgba(26,8,48,0.55); }
+      #stores { display: flex; gap: 22px; margin-top: 30px; }
+      .store { display: inline-flex; align-items: center; gap: 14px; padding: 20px 36px; border-radius: 999px; background: #FFF4E6; color: #2a0f45; font-family: "Manrope", sans-serif; font-size: 36px; font-weight: 800; box-shadow: 0 8px 0 #2a0f45; }
+      .store svg { width: 38px; height: 38px; }
+      #flash { position: absolute; inset: 0; background: #FFF4E6; opacity: 0; }
+      .fade { position: absolute; inset: 0; background: #0b0420; opacity: 0; }
+      #logo { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+      #logo img { width: 220px; height: 220px; border-radius: 52px; box-shadow: 0 30px 80px -20px rgba(0,0,0,0.8), 0 0 90px -20px rgba(255,79,139,0.6); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="gtavibe" data-width="1920" data-height="1080" data-fps="30" data-duration="32">
+      <div class="sky" id="sky"></div>
+      <div id="sun"></div>
+      <div id="sea"></div><div id="grid"></div>
+      <svg class="palm l" id="palml" viewBox="0 0 520 760"><path d="M300 760 L280 420 C270 380 275 340 300 300 C330 260 360 230 420 210 L380 250 C350 280 330 320 320 360 C300 300 260 260 190 240 L250 270 C290 300 305 340 310 380 C280 330 220 300 150 300 L220 330 C270 350 300 380 312 420 L292 760 Z"/><path d="M300 300 C340 220 420 180 520 190 C460 210 400 250 340 320 Z"/><path d="M300 300 C240 220 150 190 60 210 C140 230 220 260 290 330 Z"/><path d="M305 290 C330 200 400 140 480 110 C430 160 380 220 330 300 Z"/><path d="M300 290 C270 200 200 140 120 120 C170 170 230 230 290 300 Z"/><path d="M300 280 C300 190 320 120 350 60 C340 130 330 200 315 290 Z"/></svg>
+      <svg class="palm r" id="palmr" viewBox="0 0 520 760"><path d="M300 760 L280 420 C270 380 275 340 300 300 C330 260 360 230 420 210 L380 250 C350 280 330 320 320 360 C300 300 260 260 190 240 L250 270 C290 300 305 340 310 380 C280 330 220 300 150 300 L220 330 C270 350 300 380 312 420 L292 760 Z"/><path d="M300 300 C340 220 420 180 520 190 C460 210 400 250 340 320 Z"/><path d="M300 300 C240 220 150 190 60 210 C140 230 220 260 290 330 Z"/><path d="M305 290 C330 200 400 140 480 110 C430 160 380 220 330 300 Z"/><path d="M300 290 C270 200 200 140 120 120 C170 170 230 230 290 300 Z"/><path d="M300 280 C300 190 320 120 350 60 C340 130 330 200 315 290 Z"/></svg>
+      <div class="vig"></div><div class="scan"></div><div class="grain"></div>
+
+      <!-- 0 → 4.8 : la hype -->
+      <div class="clip" id="s1" data-start="0" data-duration="4.9" data-layout-allow-overflow>
+        <div class="title"><div class="t hot" id="t1a">Le 19 novembre,</div><div class="t" id="t1b">tout le monde attend un jeu.</div></div>
+      </div>
+      <!-- 4.8 → 9.6 : la vraie vie -->
+      <div class="clip" id="s2" data-start="4.8" data-duration="4.9" data-layout-allow-overflow>
+        <div class="title"><div class="t" id="t2a">Toi, tu attends</div><div class="t hot" id="t2b">la fin du mois.</div></div>
+      </div>
+      <!-- 9.6 → 13.2 : le pivot, drop -->
+      <div class="clip" id="s3" data-start="9.6" data-duration="3.7" data-layout-allow-overflow>
+        <div id="logo"><img id="logoimg" src="assets/img/logo.png" alt="" /><div class="t hot" id="t3">NETbudget 2.0</div><div class="date" id="t3d">LE 15 NOVEMBRE · QUATRE JOURS AVANT</div></div>
+      </div>
+      <!-- 13.2 → 23.4 : trois plans réels -->
+      <div class="clip" id="s4" data-start="13.2" data-duration="3.5" data-layout-allow-overflow>
+        <div class="shade"></div>
+        <div class="word"><div class="t" id="w1">Vois ce qu'il te reste.</div><div class="sub">Avant de claquer, tu sais.</div></div>
+        <div class="phone"><div class="scr"><video id="v1" src="assets/rec/budget.mp4" data-start="13.2" data-duration="3.5" data-media-start="0.6" muted playsinline></video></div></div>
+      </div>
+      <div class="clip" id="s5" data-start="16.7" data-duration="3.4" data-layout-allow-overflow>
+        <div class="shade"></div>
+        <div class="word"><div class="t" id="w2">Prépare le jour J.</div><div class="sub">Un budget par projet, avec ses rappels.</div></div>
+        <div class="phone"><div class="scr"><video id="v2" src="assets/rec/projet.mp4" data-start="16.7" data-duration="3.4" data-media-start="1.2" muted playsinline></video></div></div>
+      </div>
+      <div class="clip" id="s6" data-start="20.1" data-duration="3.3" data-layout-allow-overflow>
+        <div class="shade"></div>
+        <div class="word"><div class="t" id="w3">Avec ton crew.</div><div class="sub">Un budget à deux ou en famille, chacun son espace.</div></div>
+        <div class="phone"><div class="scr"><video id="v3" src="assets/rec/espaces.mp4" data-start="20.1" data-duration="3.3" data-media-start="0.6" muted playsinline></video></div></div>
+      </div>
+      <!-- 23.4 → 27 : deux tampons -->
+      <div class="clip" id="s7" data-start="23.4" data-duration="3.7" data-layout-allow-overflow>
+        <div class="stamp"><div class="t" id="st1">Sans banque.</div></div>
+        <div class="stamp"><div class="t" id="st2">Sans pub.</div></div>
+      </div>
+      <!-- 27 → 32 : appel -->
+      <div class="clip" id="s8" data-start="27.0" data-duration="5.0" data-layout-allow-overflow>
+        <div class="title"><div class="t hot" id="c1">Gratuit pour commencer.</div><div class="t small" id="c2">netbudget.app</div>
+          <div id="stores">
+            <span class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 14.44c.02 2.15 1.94 2.76 1.95 2.78-.02.05-.33 1.13-1.08 2.24-.64.95-1.31 1.9-2.37 1.92-1.07.02-1.38-.65-2.59-.65-1.21 0-1.56.63-2.57.67-1.03.04-1.81-1.03-2.46-1.97C6.59 16.48 5.59 12.99 6.97 10.61c.69-1.17 1.92-1.92 3.25-1.95 1.02-.02 1.97.69 2.59.69.62 0 1.78-.85 3-.72.5.02 1.94.21 2.85 1.54-.07.05-1.71.96-1.69 3.27zM14.77 7.34c.55-.67.91-1.6.81-2.51-.78.03-1.73.52-2.29 1.2-.52.6-.96 1.54-.85 2.43.88.07 1.77-.47 2.33-1.12z"/></svg>App Store</span>
+            <span class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5V3.5c0-.59.34-1.11.84-1.35L13.69 12 3.84 21.85A1.53 1.53 0 0 1 3 20.5zm13.81-5.38L6.05 21.34l8.49-8.49 2.27 2.27zm3.35-4.31c.34.27.59.69.59 1.19s-.25.92-.59 1.19l-2.27 1.31L15.39 12l2.5-2.5 2.27 1.31zM6.05 2.66l10.76 6.22-2.27 2.27L6.05 2.66z"/></svg>Google Play</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="flash" class="clip" data-start="0" data-duration="32" data-layout-allow-overflow></div>
+      <div class="fade clip" id="fadeout" data-start="30.8" data-duration="1.2" data-layout-allow-overflow></div>
+
+      <!-- Sun in Your Eyes (Alejandro Magaña, Mixkit, synthwave, 100 BPM) : le temps fort du morceau (28,24 s) tombe sur le drop à 9,6 s -->
+      <audio id="music" data-start="0" data-duration="32" data-media-start="18.64" data-volume="0.8" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.8},{"t":9.5,"v":0.8},{"t":9.6,"v":1},{"t":29.5,"v":1},{"t":32,"v":0}]}]}' src="assets/music/sun-in-your-eyes.mp3"></audio>
+      <audio id="sfx-1" data-start="0.2" data-duration="0.4" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
+      <audio id="sfx-2" data-start="4.8" data-duration="0.4" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-3" data-start="9.6" data-duration="0.5" data-volume="0.55" src="assets/sfx/impact/impactBell_heavy_004.ogg"></audio>
+      <audio id="sfx-4" data-start="13.2" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-5" data-start="16.7" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-6" data-start="20.1" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-7" data-start="23.4" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_heavy_000.ogg"></audio>
+      <audio id="sfx-8" data-start="25.2" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_heavy_000.ogg"></audio>
+      <audio id="sfx-9" data-start="27.0" data-duration="0.4" data-volume="0.5" src="assets/sfx/impact/impactSoft_medium_002.ogg"></audio>
+    </div>
+
+    <script>
+      document.fonts.ready.then(function () {
+        var tl = gsap.timeline({ paused: true });
+        var flash = function (t, a) { tl.fromTo("#flash", { opacity: a }, { opacity: 0, duration: 0.35, ease: "power2.out", immediateRender: false }, t); };
+        // le décor respire : le soleil descend lentement, la grille avance, les palmes se balancent
+        tl.fromTo("#sun", { y: 0 }, { y: 90, duration: 32, ease: "none" }, 0);
+        tl.fromTo("#grid", { backgroundPositionY: "0px" }, { backgroundPositionY: "460px", duration: 32, ease: "none" }, 0);
+        tl.fromTo("#palml", { rotation: -1.5, transformOrigin: "60% 100%" }, { rotation: 1.5, duration: 32, ease: "sine.inOut" }, 0);
+        tl.fromTo("#palmr", { rotation: 1.5, transformOrigin: "40% 100%" }, { rotation: -1.5, duration: 32, ease: "sine.inOut" }, 0);
+
+        function card(ids, t, hold) {
+          ids.forEach(function (id, i) { tl.fromTo(id, { opacity: 0, y: 60, scale: 1.08 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, t + i * 0.9); });
+          tl.to(ids, { opacity: 0, scale: 1.04, duration: 0.25, ease: "power2.in" }, t + hold);
+        }
+        card(["#t1a", "#t1b"], 0.2, 4.4);
+        card(["#t2a", "#t2b"], 5.0, 4.4);
+
+        flash(9.6, 1);
+        tl.fromTo("#logoimg", { opacity: 0, scale: 0.3, rotation: -12 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.8)" }, 9.6);
+        tl.fromTo("#t3", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 10.1);
+        tl.fromTo("#t3d", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.7);
+        tl.to("#logo", { opacity: 0, scale: 1.15, duration: 0.3, ease: "power2.in" }, 12.9);
+
+        function demo(id, t, dur) {
+          flash(t, 0.35);
+          tl.fromTo(id + " .phone", { x: 260, opacity: 0, rotation: 5 }, { x: 0, opacity: 1, rotation: 0, duration: 0.5, ease: "power3.out" }, t);
+          tl.fromTo(id + " .t", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, t + 0.1);
+          tl.fromTo(id + " .sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, t + 0.5);
+          tl.fromTo(id + " .shade", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, t);
+          tl.to(id + " .phone", { y: -18, duration: dur - 0.7, ease: "sine.inOut" }, t + 0.5);
+          tl.to([id + " .phone", id + " .word", id + " .shade"], { opacity: 0, duration: 0.2, ease: "power2.in" }, t + dur - 0.2);
+        }
+        demo("#s4", 13.2, 3.5); demo("#s5", 16.7, 3.4); demo("#s6", 20.1, 3.3);
+
+        [["#st1", 23.4], ["#st2", 25.2]].forEach(function (s) {
+          flash(s[1], 0.5);
+          tl.fromTo(s[0], { opacity: 0, scale: 1.6, rotation: -6 }, { opacity: 1, scale: 1, rotation: -3, duration: 0.3, ease: "power4.out" }, s[1]);
+          tl.to(s[0], { opacity: 0, duration: 0.2, ease: "power2.in" }, s[1] + 1.55);
+        });
+
+        flash(27.0, 0.8);
+        tl.fromTo("#c1", { opacity: 0, scale: 1.2 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 27.0);
+        tl.fromTo("#c2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 27.6);
+        tl.fromTo("#stores .store", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15, ease: "power3.out" }, 28.0);
+        tl.to("#fadeout", { opacity: 1, duration: 1.1, ease: "power2.in" }, 30.9);
+
+        window.__timelines["gtavibe"] = tl;
+      });
+    </script>
+  </body>
+</html>
