@@ -3,252 +3,179 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>NETbudget 2.0 - Annonce</title>
+    <title>NETbudget 2.0 - Annonce (30 s)</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
-    <script src="assets/land.js"></script>
     <style>
       @font-face { font-family: "Manrope"; font-style: normal; font-weight: 200 800; font-display: block; src: url("fonts/Manrope-latin.woff2") format("woff2"); }
       @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: block; src: url("fonts/JetBrainsMono-latin.woff2") format("woff2"); }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #070E1C; color: #FAFAFA; font-family: "Manrope", sans-serif; -webkit-font-smoothing: antialiased; }
       #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #070E1C; }
-      .bg { position: absolute; inset: 0; background: radial-gradient(ellipse 1100px 700px at 62% 55%, rgba(16,64,52,0.9) 0%, rgba(10,18,36,0.6) 45%, rgba(7,14,28,1) 80%); }
+      .bg { position: absolute; inset: 0; background: radial-gradient(ellipse 1100px 700px at 68% 55%, rgba(16,64,52,0.9) 0%, rgba(10,18,36,0.6) 45%, rgba(7,14,28,1) 80%); }
       .grain { position: absolute; inset: 0; opacity: 0.08; background-image: radial-gradient(rgba(255,255,255,0.6) 0.6px, transparent 0.7px); background-size: 7px 7px; }
       .clip { position: absolute; inset: 0; }
-      .phone { position: absolute; left: 1240px; top: 120px; width: 400px; height: 870px; border-radius: 64px; background: #16181F; padding: 10px; box-shadow: 0 60px 120px -30px rgba(0,0,0,0.9), 0 0 90px -20px rgba(16,185,129,0.45); }
-      .phone .scr { width: 380px; height: 850px; border-radius: 56px; overflow: hidden; background: #0B0E14; position: relative; }
-      .phone .scr img { position: absolute; left: 0; top: 0; width: 380px; height: auto; display: block; }
-      .kt { position: absolute; left: 120px; top: 0; height: 1080px; width: 1000px; display: flex; flex-direction: column; justify-content: center; }
-      .kt .l { font-size: 150px; font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; display: block; }
+      /* téléphone : vraie capture vidéo de l'app */
+      .phone { position: absolute; left: 1180px; top: 100px; width: 420px; height: 900px; border-radius: 66px; background: #16181F; padding: 10px; box-shadow: 0 60px 120px -30px rgba(0,0,0,0.9), 0 0 90px -20px rgba(16,185,129,0.45); }
+      .phone .scr { width: 400px; height: 880px; border-radius: 58px; overflow: hidden; background: #0B0E14; position: relative; }
+      .phone .scr video { position: absolute; left: 0; top: 0; width: 400px; height: 880px; object-fit: cover; display: block; }
+      /* un verbe par plan, à gauche (Mercury : mot + action) */
+      .word { position: absolute; left: 120px; top: 0; height: 1080px; width: 980px; display: flex; flex-direction: column; justify-content: center; gap: 26px; }
+      .word .num { font-family: "JetBrains Mono", monospace; font-size: 26px; letter-spacing: 0.22em; color: #6EE7B7; display: block; }
+      .word .big { font-size: 170px; font-weight: 800; letter-spacing: -0.06em; line-height: 0.92; display: block; }
+      .word .sub { font-size: 44px; font-weight: 600; color: #C7CDD8; letter-spacing: -0.02em; display: block; }
       .accent { color: #6EE7B7; }
-      .mono { font-family: "JetBrains Mono", monospace; font-size: 30px; font-weight: 600; letter-spacing: 0.18em; color: #A8B3C7; text-transform: uppercase; display: block; }
-      .kicker { position: absolute; left: 120px; top: 0; height: 1080px; width: 1000px; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
-      .kicker .num { font-family: "JetBrains Mono", monospace; font-size: 26px; letter-spacing: 0.2em; color: #6EE7B7; display: block; }
-      .kicker .big { font-size: 112px; font-weight: 800; letter-spacing: -0.05em; line-height: 0.98; display: block; }
-      .kicker .sub { font-size: 42px; font-weight: 600; color: #C7CDD8; letter-spacing: -0.02em; display: block; }
-      .bar { width: 120px; height: 10px; border-radius: 5px; background: #10B981; display: block; }
+      .kt { position: absolute; left: 120px; top: 0; height: 1080px; width: 1600px; display: flex; flex-direction: column; justify-content: center; }
+      .kt .l { font-size: 160px; font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; display: block; }
       .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-      .center .big { font-size: 170px; font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
-      #logo { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px; }
-      #logo img { width: 240px; height: 240px; border-radius: 56px; box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8), 0 0 120px -30px rgba(16,185,129,0.6); }
-      #logo .name { font-size: 110px; font-weight: 800; letter-spacing: -0.04em; }
+      .center .big { font-size: 180px; font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
+      #logo { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+      #logo img { width: 230px; height: 230px; border-radius: 54px; box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8), 0 0 120px -30px rgba(16,185,129,0.6); }
+      #logo .name { font-size: 120px; font-weight: 800; letter-spacing: -0.04em; }
       #logo .name b { color: #6EE7B7; font-weight: 800; }
-      #logo .v { font-family: "JetBrains Mono", monospace; font-size: 44px; letter-spacing: 0.2em; color: #A8B3C7; }
-      #globe { position: absolute; left: 1040px; top: 100px; width: 800px; height: 800px; opacity: 0; }
-      #plans { position: absolute; left: 120px; top: 300px; display: flex; gap: 28px; }
-      .card { width: 540px; height: 460px; border-radius: 40px; background: #0F1B33; border: 1px solid rgba(255,255,255,0.08); padding: 44px; box-shadow: 0 40px 90px -30px rgba(0,0,0,0.8); }
-      .card.hi { border-color: rgba(110,231,183,0.6); box-shadow: 0 0 0 2px rgba(110,231,183,0.35), 0 40px 90px -30px rgba(0,0,0,0.8); }
-      .card .nm { font-size: 64px; font-weight: 800; letter-spacing: -0.04em; }
-      .card .for { font-family: "JetBrains Mono", monospace; font-size: 22px; letter-spacing: 0.16em; color: #6EE7B7; text-transform: uppercase; margin-top: 10px; }
-      .card .rights { margin-top: 40px; font-size: 32px; line-height: 1.5; color: #C7CDD8; }
-      .card .rights b { color: #FAFAFA; }
-      #planhead { position: absolute; left: 120px; top: 150px; font-size: 64px; font-weight: 800; letter-spacing: -0.04em; }
-      #planhead span { color: #6EE7B7; }
-      #stores { display: flex; gap: 22px; margin-top: 40px; }
-      .store { display: inline-flex; align-items: center; gap: 14px; padding: 20px 34px; border-radius: 999px; background: #FAFAFA; color: #070E1C; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
-      .store svg { width: 36px; height: 36px; }
+      #stores { display: flex; gap: 22px; margin-top: 44px; }
+      .store { display: inline-flex; align-items: center; gap: 14px; padding: 22px 36px; border-radius: 999px; background: #FAFAFA; color: #070E1C; font-size: 36px; font-weight: 800; letter-spacing: -0.02em; }
+      .store svg { width: 38px; height: 38px; }
       #flash { position: absolute; inset: 0; background: #6EE7B7; opacity: 0; }
       .fade { position: absolute; inset: 0; background: #070E1C; opacity: 0; }
-      .foot { position: absolute; left: 0; right: 0; bottom: 100px; display: flex; align-items: center; justify-content: center; gap: 22px; }
-      .foot img { width: 64px; height: 64px; border-radius: 16px; }
-      .foot span { font-size: 40px; font-weight: 700; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="annonce20" data-width="1920" data-height="1080" data-fps="30" data-duration="60">
+    <div id="root" data-composition-id="annonce20" data-width="1920" data-height="1080" data-fps="30" data-duration="30">
       <div class="bg"></div><div class="grain"></div>
 
-      <!-- HOOK 0 → 2.5 : la question -->
-      <div class="clip" id="s-hook" data-start="0" data-duration="2.6" data-layout-allow-overflow>
+      <!-- HOOK 0 → 2.0 (le creux de la musique, avant le drop) -->
+      <div class="clip" id="s-hook" data-start="0" data-duration="2.1" data-layout-allow-overflow>
         <div class="kt"><span class="l" id="h1">Fin du mois.</span><span class="l accent" id="h2">Il te reste combien ?</span></div>
       </div>
 
-      <!-- INTRO 2.5 → 7.5 : le produit, nommé tôt -->
-      <div class="clip" id="s-intro" data-start="2.5" data-duration="5.1" data-layout-allow-overflow>
-        <div id="logo"><img id="logoimg" src="assets/img/logo.png" alt="" /><div class="name" id="logoname">NET<b>budget</b> <b>2.0</b></div><div class="v" id="logov">DISPONIBLE MAINTENANT</div></div>
+      <!-- INTRO 2.0 → 3.94 : le drop -->
+      <div class="clip" id="s-intro" data-start="2.0" data-duration="2.05" data-layout-allow-overflow>
+        <div id="logo"><img id="logoimg" src="assets/img/logo.png" alt="" /><div class="name" id="logoname">NET<b>budget</b> <b>2.0</b></div></div>
       </div>
 
-      <!-- FEATURES 7.5 → 35 : six écrans réels -->
-      <div class="clip" id="s-f1" data-start="7.5" data-duration="5.1" data-layout-allow-overflow>
-        <div class="kicker"><span class="num">01 · RESTE À VIVRE</span><span class="big">Sache ce qu'il<br/>te reste vraiment.</span><span class="bar"></span><span class="sub">Revenus, dépenses, et ce qui reste.</span></div>
-        <div class="phone"><div class="scr" data-layout-allow-overflow><img class="scroll" src="assets/screens/budget.png" alt="" /></div></div>
+      <!-- DEMO 3.94 → 17.48 : six vrais plans d'utilisation, un verbe chacun, une mesure chacun (deux pour le premier) -->
+      <div class="clip" id="s-d1" data-start="3.94" data-duration="3.95" data-layout-allow-overflow>
+        <div class="word"><span class="num">01</span><span class="big">Vois ce<br/>qu'il reste.</span><span class="sub">Revenus, dépenses, reste à vivre.</span></div>
+        <div class="phone"><div class="scr"><video id="v1" src="assets/rec/budget.mp4" data-start="3.94" data-duration="3.95" data-media-start="0.6" muted playsinline></video></div></div>
       </div>
-      <div class="clip" id="s-f2" data-start="12.5" data-duration="5.1" data-layout-allow-overflow>
-        <div class="kicker"><span class="num">02 · REPÈRES</span><span class="big">Face aux moyennes<br/>de ton pays.</span><span class="bar"></span><span class="sub">Eurostat, BLS, ONS. La source est affichée.</span></div>
-        <div class="phone"><div class="scr" data-layout-allow-overflow><img class="scroll" src="assets/screens/reperes.png" alt="" /></div></div>
+      <div class="clip" id="s-d2" data-start="7.81" data-duration="2.0" data-layout-allow-overflow>
+        <div class="word"><span class="num">02</span><span class="big">Saisis.</span><span class="sub">Brut, charges, impôt à la source.</span></div>
+        <div class="phone"><div class="scr"><video id="v2" src="assets/rec/revenu.mp4" data-start="7.81" data-duration="2.0" data-media-start="2.0" muted playsinline></video></div></div>
       </div>
-      <div class="clip" id="s-f3" data-start="17.5" data-duration="5.1" data-layout-allow-overflow>
-        <div class="kicker"><span class="num">03 · COACH</span><span class="big">282 conseils.<br/>Sources citées.</span><span class="bar"></span><span class="sub">Triés pour ton âge, ton foyer, ta ville.</span></div>
-        <div class="phone"><div class="scr" data-layout-allow-overflow><img class="scroll" src="assets/screens/coach.png" alt="" /></div></div>
+      <div class="clip" id="s-d3" data-start="9.74" data-duration="2.0" data-layout-allow-overflow>
+        <div class="word"><span class="num">03</span><span class="big">Compare.</span><span class="sub">Face aux moyennes de ton pays.</span></div>
+        <div class="phone"><div class="scr"><video id="v3" src="assets/rec/reperes.mp4" data-start="9.74" data-duration="2.0" data-media-start="4.8" muted playsinline></video></div></div>
       </div>
-      <div class="clip" id="s-f4" data-start="22.5" data-duration="5.1" data-layout-allow-overflow>
-        <div class="kicker"><span class="num">04 · PROJETS</span><span class="big">Un budget<br/>par projet.</span><span class="bar"></span><span class="sub">Mariage, voyage, naissance, fête.</span></div>
-        <div class="phone"><div class="scr" data-layout-allow-overflow><img class="scroll" src="assets/screens/projet.png" alt="" /></div></div>
+      <div class="clip" id="s-d4" data-start="11.68" data-duration="2.0" data-layout-allow-overflow>
+        <div class="word"><span class="num">04</span><span class="big">Planifie.</span><span class="sub">Un budget par projet.</span></div>
+        <div class="phone"><div class="scr"><video id="v4" src="assets/rec/projet.mp4" data-start="11.68" data-duration="2.0" data-media-start="1.2" muted playsinline></video></div></div>
       </div>
-      <div class="clip" id="s-f5" data-start="27.5" data-duration="5.1" data-layout-allow-overflow>
-        <div class="kicker"><span class="num">05 · ESPACES PARTAGÉS</span><span class="big">À deux,<br/>ou en famille.</span><span class="bar"></span><span class="sub">Un code d'invitation. Chacun son espace privé.</span></div>
-        <div class="phone"><div class="scr" data-layout-allow-overflow><img class="scroll" src="assets/screens/espaces.png" alt="" /></div></div>
+      <div class="clip" id="s-d5" data-start="13.61" data-duration="2.0" data-layout-allow-overflow>
+        <div class="word"><span class="num">05</span><span class="big">Apprends.</span><span class="sub">282 conseils, sources citées.</span></div>
+        <div class="phone"><div class="scr"><video id="v5" src="assets/rec/coach.mp4" data-start="13.61" data-duration="2.0" data-media-start="1.6" muted playsinline></video></div></div>
       </div>
-      <div class="clip" id="s-f6" data-start="32.5" data-duration="2.6" data-layout-allow-overflow>
-        <div class="kicker"><span class="num">06 · DÉPENSES</span><span class="big">Lisible<br/>d'un coup d'œil.</span><span class="bar"></span></div>
-        <div class="phone"><div class="scr" data-layout-allow-overflow><img class="scroll" src="assets/screens/depenses.png" alt="" /></div></div>
+      <div class="clip" id="s-d6" data-start="15.55" data-duration="2.0" data-layout-allow-overflow>
+        <div class="word"><span class="num">06</span><span class="big">Partage.</span><span class="sub">À deux, ou en famille.</span></div>
+        <div class="phone"><div class="scr"><video id="v6" src="assets/rec/espaces.mp4" data-start="15.55" data-duration="2.0" data-media-start="0.6" muted playsinline></video></div></div>
       </div>
 
-      <!-- PRIVACY 35 → 42.5 : trois affirmations, une par mesure -->
-      <div class="clip" id="s-priv" data-start="35" data-duration="7.6" data-layout-allow-overflow>
-        <div class="center"><div class="big" id="p1">Sans connexion bancaire.</div></div>
-        <div class="center"><div class="big" id="p2">Sans publicité.</div></div>
+      <!-- STAMPS 17.48 → 21.35 : trois frappes -->
+      <div class="clip" id="s-priv" data-start="17.48" data-duration="3.95" data-layout-allow-overflow>
+        <div class="center"><div class="big" id="p1">Sans banque.</div></div>
+        <div class="center"><div class="big" id="p2">Sans pub.</div></div>
         <div class="center"><div class="big accent" id="p3">Chiffré de bout en bout.</div></div>
       </div>
 
-      <!-- SOCIAL PROOF 42.5 → 47.5 : un globe qui tourne, les villes s'allument -->
-      <div class="clip" id="s-proof" data-start="42.5" data-duration="5.1" data-layout-allow-overflow>
-        <canvas id="globe" width="1600" height="1600"></canvas>
-        <div class="kicker"><span class="num">DÉJÀ</span><span class="big">Utilisé dans<br/><span class="accent">59 pays.</span></span><span class="bar"></span><span class="sub">Et ce n'est qu'un début.</span></div>
-      </div>
-
-      <!-- PLANS 47.5 → 52.5 -->
-      <div class="clip" id="s-plans" data-start="47.5" data-duration="5.1" data-layout-allow-overflow>
-        <div id="planhead">Gratuit pour commencer. <span>Trois formules pour aller plus loin.</span></div>
-        <div id="plans">
-          <div class="card" id="c1"><div class="nm">Solo</div><div class="for">Pour toi</div><div class="rights"><b>Coach</b> et projets<br/>Synchro chiffrée</div></div>
-          <div class="card hi" id="c2"><div class="nm">Duo</div><div class="for">À deux</div><div class="rights"><b>Un budget partagé</b><br/>Chacun son espace</div></div>
-          <div class="card" id="c3"><div class="nm">Famille</div><div class="for">Jusqu'à 6</div><div class="rights"><b>Trois espaces</b><br/>Anniversaires, projets</div></div>
-        </div>
-      </div>
-
-      <!-- CTA 52.5 → 57.5 -->
-      <div class="clip" id="s-cta" data-start="52.5" data-duration="5.1" data-layout-allow-overflow>
-        <div class="kicker"><span class="big" id="ctat">Disponible<br/><span class="accent">maintenant.</span></span>
+      <!-- CTA 21.35 → 25.23 : titre qui bascule (Revolut) + boutiques -->
+      <div class="clip" id="s-cta" data-start="21.35" data-duration="3.95" data-layout-allow-overflow>
+        <div class="word">
+          <div style="position:relative">
+            <span class="big" id="c1">Disponible<br/><span class="accent">maintenant.</span></span>
+            <span class="big" id="c2" style="position:absolute; left:0; top:0; opacity:0">Gratuit pour<br/><span class="accent">commencer.</span></span>
+          </div>
           <div id="stores">
             <span class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 14.44c.02 2.15 1.94 2.76 1.95 2.78-.02.05-.33 1.13-1.08 2.24-.64.95-1.31 1.9-2.37 1.92-1.07.02-1.38-.65-2.59-.65-1.21 0-1.56.63-2.57.67-1.03.04-1.81-1.03-2.46-1.97C6.59 16.48 5.59 12.99 6.97 10.61c.69-1.17 1.92-1.92 3.25-1.95 1.02-.02 1.97.69 2.59.69.62 0 1.78-.85 3-.72.5.02 1.94.21 2.85 1.54-.07.05-1.71.96-1.69 3.27zM14.77 7.34c.55-.67.91-1.6.81-2.51-.78.03-1.73.52-2.29 1.2-.52.6-.96 1.54-.85 2.43.88.07 1.77-.47 2.33-1.12z"/></svg>App Store</span>
             <span class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5V3.5c0-.59.34-1.11.84-1.35L13.69 12 3.84 21.85A1.53 1.53 0 0 1 3 20.5zm13.81-5.38L6.05 21.34l8.49-8.49 2.27 2.27zm3.35-4.31c.34.27.59.69.59 1.19s-.25.92-.59 1.19l-2.27 1.31L15.39 12l2.5-2.5 2.27 1.31zM6.05 2.66l10.76 6.22-2.27 2.27L6.05 2.66z"/></svg>Google Play</span>
           </div>
         </div>
-        <div class="phone" id="ctaphone"><div class="scr" data-layout-allow-overflow><img src="assets/screens/budget.png" alt="" /></div></div>
+        <div class="phone" id="ctaphone"><div class="scr"><video id="v7" src="assets/rec/budget.mp4" data-start="21.35" data-duration="3.95" data-media-start="0.3" muted playsinline></video></div></div>
       </div>
 
-      <!-- OUTRO 57.5 → 60 -->
-      <div class="clip" id="s-outro" data-start="57.5" data-duration="2.5" data-layout-allow-overflow>
-        <div class="center" id="outro"><img src="assets/img/logo.png" alt="" style="width:160px;height:160px;border-radius:40px;margin-bottom:30px" /><div class="big" style="font-size:96px">netbudget.app</div></div>
+      <!-- OUTRO 25.23 → 30 -->
+      <div class="clip" id="s-outro" data-start="25.23" data-duration="4.77" data-layout-allow-overflow>
+        <div class="center" id="outro"><img src="assets/img/logo.png" alt="" style="width:170px;height:170px;border-radius:42px;margin-bottom:34px" /><div class="big" style="font-size:110px">netbudget.app</div><div style="margin-top:22px;font-size:40px;color:#A8B3C7;font-weight:600">Et ce n'est qu'un début.</div></div>
       </div>
 
-      <div id="flash" class="clip" data-start="0" data-duration="60" data-layout-allow-overflow></div>
-      <div class="fade clip" id="fadeout" data-start="58.8" data-duration="1.2" data-layout-allow-overflow></div>
+      <div id="flash" class="clip" data-start="0" data-duration="30" data-layout-allow-overflow></div>
+      <div class="fade clip" id="fadeout" data-start="28.8" data-duration="1.2" data-layout-allow-overflow></div>
 
-      <audio id="music" data-start="0" data-duration="60" data-media-start="18.05" data-volume="0.7" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.5},{"t":2.4,"v":0.5},{"t":2.5,"v":1},{"t":34.8,"v":1},{"t":35.2,"v":0.6},{"t":42.4,"v":0.6},{"t":42.6,"v":1},{"t":57.5,"v":1},{"t":60,"v":0}]}]}' src="assets/music/the-mountain.mp3"></audio>
-      <audio id="sfx-h1" data-start="0.3" data-duration="0.2" data-volume="0.35" src="assets/sfx/interface/click_003.ogg"></audio>
-      <audio id="sfx-h2" data-start="1.2" data-duration="0.2" data-volume="0.35" src="assets/sfx/interface/click_003.ogg"></audio>
-      <audio id="sfx-drop" data-start="2.5" data-duration="0.4" data-volume="0.5" src="assets/sfx/impact/impactBell_heavy_004.ogg"></audio>
-      <audio id="sfx-f1" data-start="7.5" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
-      <audio id="sfx-f2" data-start="12.5" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
-      <audio id="sfx-f3" data-start="17.5" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
-      <audio id="sfx-f4" data-start="22.5" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
-      <audio id="sfx-f5" data-start="27.5" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
-      <audio id="sfx-f6" data-start="32.5" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
-      <audio id="sfx-p1" data-start="35" data-duration="0.3" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
-      <audio id="sfx-p2" data-start="37.5" data-duration="0.3" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
-      <audio id="sfx-p3" data-start="40" data-duration="0.3" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_002.ogg"></audio>
-      <audio id="sfx-c1" data-start="48.1" data-duration="0.6" data-volume="0.4" src="assets/sfx/casino/card-slide-1.ogg"></audio>
-      <audio id="sfx-c2" data-start="48.5" data-duration="0.6" data-volume="0.4" src="assets/sfx/casino/card-slide-1.ogg"></audio>
-      <audio id="sfx-c3" data-start="48.9" data-duration="0.6" data-volume="0.4" src="assets/sfx/casino/card-slide-1.ogg"></audio>
-      <audio id="sfx-cta" data-start="52.5" data-duration="0.4" data-volume="0.55" src="assets/sfx/impact/impactSoft_heavy_000.ogg"></audio>
-      <audio id="sfx-out" data-start="57.5" data-duration="0.3" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
+      <!-- Take this Higher (Mixkit, 124 BPM) : le drop du morceau (52,26 s) tombe à 2,0 s -->
+      <audio id="music" data-start="0" data-duration="30" data-media-start="50.26" data-volume="0.75" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.7},{"t":1.9,"v":0.7},{"t":2.0,"v":1},{"t":27.5,"v":1},{"t":30,"v":0}]}]}' src="assets/music/take-this-higher.mp3"></audio>
+      <audio id="sfx-h1" data-start="0.1" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-h2" data-start="1.0" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-drop" data-start="2.0" data-duration="0.4" data-volume="0.5" src="assets/sfx/impact/impactBell_heavy_004.ogg"></audio>
+      <audio id="sfx-d1" data-start="3.94" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d2" data-start="7.81" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d3" data-start="9.74" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d4" data-start="11.68" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d5" data-start="13.61" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d6" data-start="15.55" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-p1" data-start="17.48" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
+      <audio id="sfx-p2" data-start="18.45" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-p3" data-start="19.42" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_medium_002.ogg"></audio>
+      <audio id="sfx-cta" data-start="21.35" data-duration="0.4" data-volume="0.55" src="assets/sfx/impact/impactSoft_heavy_000.ogg"></audio>
+      <audio id="sfx-out" data-start="25.23" data-duration="0.3" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
     </div>
 
     <script>
-      // Globe : projection orthographique des points de terre du site, piloté par
-      // la timeline (rotation = valeur tweenée), donc identique à chaque image.
-      var GLOBE = { rot: 0, lit: 0 };
-      var globeCanvas = document.getElementById("globe");
-      var seedG = 20261115;
-      function rndG() { seedG = (seedG * 1664525 + 1013904223) % 4294967296; return seedG / 4294967296; }
-      var CITIES = []; for (var i = 0; i < 70; i++) { var k = Math.floor(rndG() * (LAND.length / 2)); if (LAND[k * 2] < -550) { i--; continue; } CITIES.push({ lat: LAND[k * 2] / 10, lon: LAND[k * 2 + 1] / 10, t: rndG() }); }
-      function drawGlobe() {
-        var c = globeCanvas, ctx = c.getContext("2d"), W = c.width, cx = W / 2, cy = W / 2, R = W * 0.44;
-        ctx.clearRect(0, 0, W, W);
-        var g = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
-        g.addColorStop(0, "rgba(16,64,52,0.55)"); g.addColorStop(1, "rgba(7,14,28,0.95)");
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "rgba(110,231,183,0.25)"; ctx.lineWidth = 3; ctx.stroke();
-        var rot = GLOBE.rot, tilt = -0.35, cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(tilt), st = Math.sin(tilt);
-        function proj(lat, lon) {
-          var la = lat * Math.PI / 180, lo = lon * Math.PI / 180;
-          var x = Math.cos(la) * Math.cos(lo), y = Math.sin(la), z = Math.cos(la) * Math.sin(lo);
-          var x1 = x * cr - z * sr, z1 = x * sr + z * cr;
-          var y2 = y * ct - z1 * st, z2 = y * st + z1 * ct;
-          return { x: cx + x1 * R, y: cy - y2 * R, z: z2 };
-        }
-        ctx.fillStyle = "rgba(110,231,183,0.9)";
-        for (var i = 0; i < LAND.length; i += 2) { if (LAND[i] < -600) continue; var p = proj(LAND[i] / 10, LAND[i + 1] / 10); if (p.z > 0.05) { var a = 0.35 + p.z * 0.65; ctx.globalAlpha = a; ctx.beginPath(); ctx.arc(p.x, p.y, 4.2, 0, Math.PI * 2); ctx.fill(); } }
-        ctx.globalAlpha = 1;
-        for (var j = 0; j < CITIES.length; j++) { var cpt = CITIES[j]; if (cpt.t > GLOBE.lit) continue; var q = proj(cpt.lat, cpt.lon); if (q.z <= 0.05) continue; var pulse = 10 + 6 * Math.sin((GLOBE.lit - cpt.t) * 9); ctx.fillStyle = "rgba(110,231,183,0.22)"; ctx.beginPath(); ctx.arc(q.x, q.y, pulse * 1.6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#FAFAFA"; ctx.beginPath(); ctx.arc(q.x, q.y, 5.5, 0, Math.PI * 2); ctx.fill(); }
-      }
-      drawGlobe();
       document.fonts.ready.then(function () {
         var tl = gsap.timeline({ paused: true });
-        var B = 0.627; // un temps de « The Mountain »
-        var flash = function (t, a) { tl.fromTo("#flash", { opacity: a }, { opacity: 0, duration: 0.35, ease: "power2.out", immediateRender: false }, t); };
+        var B = 0.4839;
+        var flash = function (t, a) { tl.fromTo("#flash", { opacity: a }, { opacity: 0, duration: 0.3, ease: "power2.out", immediateRender: false }, t); };
 
-        // HOOK
-        tl.fromTo("#h1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.3);
-        tl.fromTo("#h2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 1.2);
-        tl.to(["#h1", "#h2"], { opacity: 0, scale: 1.06, duration: 0.25, ease: "power2.in" }, 2.3);
+        // HOOK : deux frappes dans le creux
+        tl.fromTo("#h1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 0.1);
+        tl.fromTo("#h2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 1.0);
+        tl.to(["#h1", "#h2"], { opacity: 0, scale: 1.08, duration: 0.18, ease: "power2.in" }, 1.85);
 
-        // INTRO (drop à 2.5)
-        flash(2.5, 0.9);
-        tl.fromTo("#logoimg", { opacity: 0, scale: 0.4, rotation: -8 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.8)" }, 2.5);
-        tl.fromTo("#logoname", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.5 + B);
-        tl.fromTo("#logov", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.5 + 2 * B);
-        tl.to("#logoimg", { scale: 1.04, duration: 3.6, ease: "sine.inOut" }, 3.2);
-        tl.to("#logo", { opacity: 0, duration: 0.3, ease: "power2.in" }, 7.2);
+        // DROP : logo
+        flash(2.0, 0.95);
+        tl.fromTo("#logoimg", { opacity: 0, scale: 0.3, rotation: -10 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2)" }, 2.0);
+        tl.fromTo("#logoname", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 2.0 + B);
+        tl.to("#logo", { scale: 1.06, duration: 1.4, ease: "sine.inOut" }, 2.5);
+        tl.to("#logo", { opacity: 0, scale: 1.2, duration: 0.2, ease: "power2.in" }, 3.75);
 
-        // FEATURES : même grammaire à chaque coupe
-        function feature(id, t, dur) {
-          tl.fromTo(id + " .phone", { x: 240, opacity: 0, rotation: 4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, t);
-          tl.fromTo(id + " .num", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, t + 0.05);
-          tl.fromTo(id + " .big", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, t + 0.15);
-          tl.fromTo(id + " .bar", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, t + 0.45);
-          tl.fromTo(id + " .sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, t + 0.6);
-          tl.fromTo(id + " .scroll", { y: 0 }, { y: -110, duration: dur - 0.8, ease: "sine.inOut" }, t + 0.3);
-          tl.to(id + " .phone", { x: -120, opacity: 0, duration: 0.3, ease: "power2.in" }, t + dur - 0.3);
-          tl.to([id + " .num", id + " .big", id + " .bar", id + " .sub"], { opacity: 0, duration: 0.25, ease: "power2.in" }, t + dur - 0.25);
+        // DEMO : même grammaire à chaque coupe, sur le temps
+        function demo(id, t, dur) {
+          tl.fromTo(id + " .phone", { x: 200, opacity: 0, rotation: 3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.4, ease: "power3.out" }, t);
+          tl.fromTo(id + " .num", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.25 }, t + 0.05);
+          tl.fromTo(id + " .big", { opacity: 0, y: 40, scale: 1.08 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out" }, t + 0.1);
+          tl.fromTo(id + " .sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, t + B);
+          tl.to(id + " .phone", { y: -16, duration: dur - 0.6, ease: "sine.inOut" }, t + 0.4);
+          tl.to([id + " .phone", id + " .word"], { opacity: 0, duration: 0.15, ease: "power2.in" }, t + dur - 0.15);
         }
-        feature("#s-f1", 7.5, 5.0); feature("#s-f2", 12.5, 5.0); feature("#s-f3", 17.5, 5.0); feature("#s-f4", 22.5, 5.0); feature("#s-f5", 27.5, 5.0); feature("#s-f6", 32.5, 2.5);
+        demo("#s-d1", 3.94, 3.87); demo("#s-d2", 7.81, 1.93); demo("#s-d3", 9.74, 1.93); demo("#s-d4", 11.68, 1.93); demo("#s-d5", 13.61, 1.93); demo("#s-d6", 15.55, 1.93);
 
-        // PRIVACY : trois frappes, une par bar
-        [["#p1", 35], ["#p2", 37.5], ["#p3", 40]].forEach(function (p, i) {
-          flash(p[1], 0.25);
-          tl.fromTo(p[0], { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }, p[1]);
-          tl.to(p[0], { opacity: 0, scale: 0.96, duration: 0.25, ease: "power2.in" }, p[1] + (i === 2 ? 2.3 : 2.2));
+        // STAMPS : trois frappes, deux temps chacune, la dernière tient
+        [["#p1", 17.48, 0.9], ["#p2", 18.45, 0.9], ["#p3", 19.42, 1.75]].forEach(function (p) {
+          flash(p[1], 0.3);
+          tl.fromTo(p[0], { opacity: 0, scale: 1.2 }, { opacity: 1, scale: 1, duration: 0.25, ease: "power3.out" }, p[1]);
+          tl.to(p[0], { opacity: 0, scale: 0.96, duration: 0.15, ease: "power2.in" }, p[1] + p[2]);
         });
 
-        // SOCIAL PROOF : le globe tourne, les villes s'allument l'une après l'autre
-        tl.fromTo("#globe", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, 42.5);
-        tl.fromTo(GLOBE, { rot: -0.6, lit: 0 }, { rot: 1.1, lit: 1, duration: 4.9, ease: "none", onUpdate: drawGlobe }, 42.5);
-        tl.fromTo("#s-proof .num", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.35 }, 42.6);
-        tl.fromTo("#s-proof .big", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 42.7);
-        tl.fromTo("#s-proof .bar", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.4 }, 43.2);
-        tl.fromTo("#s-proof .sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45 }, 44.4);
-        tl.to(["#s-proof .kicker", "#globe"], { opacity: 0, duration: 0.3, ease: "power2.in" }, 47.2);
-
-        // PLANS
-        tl.fromTo("#planhead", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 47.6);
-        ["#c1", "#c2", "#c3"].forEach(function (c, i) { tl.fromTo(c, { opacity: 0, y: 80, rotation: 2 }, { opacity: 1, y: 0, rotation: 0, duration: 0.55, ease: "back.out(1.4)" }, 48.1 + i * 0.4); });
-        tl.to("#c2", { y: -16, duration: 0.4, ease: "power2.out" }, 49.6);
-        tl.to(["#planhead", "#plans"], { opacity: 0, duration: 0.3, ease: "power2.in" }, 52.2);
-
-        // CTA
-        flash(52.5, 0.6);
-        tl.fromTo("#ctat", { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 52.5);
-        tl.fromTo("#stores .store", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.15, ease: "power3.out" }, 53.0);
-        tl.fromTo("#ctaphone", { x: 240, opacity: 0, rotation: 4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.6, ease: "power3.out" }, 52.6);
-        tl.to("#ctaphone", { y: -30, duration: 4.4, ease: "sine.inOut" }, 53.2);
-        tl.to(["#s-cta .kicker", "#ctaphone"], { opacity: 0, duration: 0.3, ease: "power2.in" }, 57.2);
+        // CTA : titre, puis bascule du titre à la mesure suivante (Revolut), boutiques
+        flash(21.35, 0.7);
+        tl.fromTo("#c1", { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 21.35);
+        tl.fromTo("#stores .store", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.12, ease: "power3.out" }, 21.35 + B);
+        tl.fromTo("#ctaphone", { x: 200, opacity: 0, rotation: 3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.45, ease: "power3.out" }, 21.4);
+        tl.to("#c1", { opacity: 0, y: -30, duration: 0.2, ease: "power2.in" }, 23.29);
+        tl.fromTo("#c2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 23.34);
+        tl.to("#ctaphone", { y: -20, duration: 3.4, ease: "sine.inOut" }, 21.8);
+        tl.to(["#s-cta .word", "#ctaphone"], { opacity: 0, duration: 0.2, ease: "power2.in" }, 25.05);
 
         // OUTRO
-        tl.fromTo("#outro", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 57.6);
-        tl.to("#fadeout", { opacity: 1, duration: 1.1, ease: "power2.in" }, 58.9);
+        tl.fromTo("#outro", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 25.3);
+        tl.to("#fadeout", { opacity: 1, duration: 1.1, ease: "power2.in" }, 28.9);
 
         window.__timelines["annonce20"] = tl;
       });

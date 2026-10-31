@@ -1,5 +1,6 @@
 video/renders/
 video/.hyperframes/
-video-reels/renders/
-video-reels/.hyperframes/
+video-reels/
 */node_modules/
+tools/.rec.pid
+tools/.metro.log
