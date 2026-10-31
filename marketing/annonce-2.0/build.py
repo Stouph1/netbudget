@@ -26,30 +26,9 @@ def transcode():
         print(f"{c}: {float(d):.1f} s")
 
 REELS = [
- ('<meta name="viewport" content="width=1920, height=1080" />','<meta name="viewport" content="width=1080, height=1920" />'),
- ('html, body { width: 1920px; height: 1080px;','html, body { width: 1080px; height: 1920px;'),
- ('radial-gradient(ellipse 1100px 700px at 68% 55%','radial-gradient(ellipse 800px 1100px at 50% 60%'),
- ('.phone { position: absolute; left: 1180px; top: 100px; width: 420px; height: 900px;','.phone { position: absolute; left: 300px; top: 760px; width: 480px; height: 1030px;'),
- ('.phone .scr { width: 400px; height: 880px; border-radius: 58px;','.phone .scr { width: 460px; height: 1010px; border-radius: 64px;'),
- ('.phone .scr video { position: absolute; left: 0; top: 0; width: 400px; height: 880px;','.phone .scr video { position: absolute; left: 0; top: 0; width: 460px; height: 1010px;'),
- ('.word { position: absolute; left: 120px; top: 0; height: 1080px; width: 980px; display: flex; flex-direction: column; justify-content: center; gap: 26px; }','.word { position: absolute; left: 80px; top: 150px; height: 560px; width: 920px; display: flex; flex-direction: column; justify-content: center; gap: 20px; }'),
- ('.word .big { font-size: 170px;','.word .big { font-size: 150px;'),
- ('.word .sub { font-size: 44px;','.word .sub { font-size: 40px;'),
- ('.kt { position: absolute; left: 120px; top: 0; height: 1080px; width: 1600px;','.kt { position: absolute; left: 80px; top: 0; height: 1920px; width: 920px;'),
- ('.kt .l { font-size: 170px;','.kt .l { font-size: 140px;'),
- ('<span class="l accent" id="h4" style="font-size:230px">','<span class="l accent" id="h4" style="font-size:190px">'),
- ('#globe { position: absolute; left: 1060px; top: 100px; width: 820px; height: 820px; opacity: 0; }','#globe { position: absolute; left: 130px; top: 860px; width: 820px; height: 820px; opacity: 0; }'),
- ('.center .big { font-size: 180px;','.center .big { font-size: 130px; padding: 0 60px;'),
- ('#logo img { width: 230px; height: 230px;','#logo img { width: 280px; height: 280px;'),
- ('#logo .name { font-size: 120px;','#logo .name { font-size: 100px;'),
- ('#stores { display: flex; gap: 22px; margin-top: 44px; }','#stores { display: flex; gap: 18px; margin-top: 36px; flex-wrap: wrap; }'),
- ('<div class="big accent" id="p3">Chiffré de bout en bout.</div>','<div class="big accent" id="p3">Chiffré de<br/>bout en bout.</div>'),
- ('<div class="big" style="font-size:110px">netbudget.app</div>','<div class="big" style="font-size:88px">netbudget.app</div>'),
- ('data-composition-id="annonce20" data-width="1920" data-height="1080"','data-composition-id="annonce20reels" data-width="1080" data-height="1920"'),
- ('window.__timelines["annonce20"] = tl;','window.__timelines["annonce20reels"] = tl;'),
- ('tl.fromTo(id + " .phone", { x: 200, opacity: 0, rotation: 3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.4, ease: "power3.out" }, t);','tl.fromTo(id + " .phone", { y: 200, opacity: 0, rotation: 2 }, { y: 0, opacity: 1, rotation: 0, duration: 0.4, ease: "power3.out" }, t);'),
- ('tl.to(id + " .phone", { y: -16, duration: dur - 0.6, ease: "sine.inOut" }, t + 0.4);','tl.to(id + " .phone", { y: -12, duration: dur - 0.6, ease: "sine.inOut" }, t + 0.4);'),
- ('tl.fromTo("#ctaphone", { x: 200, opacity: 0, rotation: 3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.45, ease: "power3.out" }, 27.27);','tl.fromTo("#ctaphone", { y: 200, opacity: 0, rotation: 2 }, { y: 0, opacity: 1, rotation: 0, duration: 0.45, ease: "power3.out" }, 27.27);'),
+ ('<meta name="viewport" content="width=1920, height=1080" />', '<meta name="viewport" content="width=1080, height=1920" />'),
+ ('html, body { width: 1920px; height: 1080px;', 'html, body { width: 1080px; height: 1920px;'),
+ ('<div id="root" data-composition-id="annonce20" data-width="1920" data-height="1080"', '<div id="root" class="p" data-composition-id="annonce20reels" data-width="1080" data-height="1920"'),
 ]
 
 def reels():
