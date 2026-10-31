@@ -22,6 +22,7 @@ from visuels import font, phone, WHITE, MINT_DIM, SITE
 from evenement import bg, mixed, mixed_width
 
 OUT_I = os.path.join(HERE, "images"); os.makedirs(OUT_I, exist_ok=True)
+from textes_langues import TEXTES
 CAPS = os.path.join(APPSTORE, "captures")
 LANG = "fr"
 SCREENS = {
@@ -47,6 +48,10 @@ DESCRIPTIONS = [
 ]
 LIMITS = {"headline": 30, "description": 90}
 
+def out_dir():
+    d = OUT_I if LANG == "fr" else os.path.join(OUT_I, LANG)
+    os.makedirs(d, exist_ok=True); return d
+
 def landscape(screen, caption):
     w, h = 1200, 628
     img = bg(w, h); d = ImageDraw.Draw(img); m = 60
@@ -54,7 +59,7 @@ def landscape(screen, caption):
     img.paste(logo, (m, m), logo); d.text((m + 70, m + 10), "NETbudget", font=font("en", 34), fill=WHITE)
     p = phone(os.path.join(CAPS, f"{LANG}-{screen}.png"), int(h * 1.3))
     img.paste(p, ((w - p.width) // 2, int(h * 0.14)), p)
-    img.convert("RGB").save(os.path.join(OUT_I, f"paysage-1200x628-{screen}.png"), optimize=True)
+    img.convert("RGB").save(os.path.join(out_dir(), f"paysage-1200x628-{screen}.png"), optimize=True)
 
 def square(screen, caption):
     w, h = 1200, 1200
@@ -63,7 +68,7 @@ def square(screen, caption):
     img.paste(logo, (m, m), logo); d.text((m + 76, m + 10), "NETbudget", font=font("en", 38), fill=WHITE)
     p = phone(os.path.join(CAPS, f"{LANG}-{screen}.png"), int(h * 1.05))
     img.paste(p, ((w - p.width) // 2, 150), p)
-    img.convert("RGB").save(os.path.join(OUT_I, f"carre-1200x1200-{screen}.png"), optimize=True)
+    img.convert("RGB").save(os.path.join(out_dir(), f"carre-1200x1200-{screen}.png"), optimize=True)
 
 def portrait(screen, caption):
     w, h = 1200, 1500
@@ -72,10 +77,12 @@ def portrait(screen, caption):
     img.paste(logo, (m, m), logo); d.text((m + 76, m + 10), "NETbudget", font=font("en", 38), fill=WHITE)
     p = phone(os.path.join(CAPS, f"{LANG}-{screen}.png"), int(h * 1.0))
     img.paste(p, ((w - p.width) // 2, 160), p)
-    img.convert("RGB").save(os.path.join(OUT_I, f"portrait-1200x1500-{screen}.png"), optimize=True)
+    img.convert("RGB").save(os.path.join(out_dir(), f"portrait-1200x1500-{screen}.png"), optimize=True)
 
 if __name__ == "__main__":
-    for s, c in SCREENS.items(): landscape(s, c); square(s, c); portrait(s, c)
+    for LANG in TEXTES:
+        for s, c in SCREENS.items(): landscape(s, c); square(s, c); portrait(s, c)
+    LANG = "fr"
     bad = [h for h in HEADLINES if len(h) > LIMITS["headline"]] + [x for x in DESCRIPTIONS if len(x) > LIMITS["description"]]
     md = ["# Google Ads · campagne pour applications · NETbudget 2.0", "", "## Titres (30 max)", ""]
     md += [f"- `{x}` ({len(x)})" for x in HEADLINES]
