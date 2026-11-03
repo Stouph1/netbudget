@@ -266,7 +266,7 @@ const fr: Catalog = {
   "maker.name": "Stéphane Pizeuil",
   "maker.role": "Créateur indépendant · Ingénieur logiciel",
   "maker.bio":
-    "J'ai conçu, codé et lancé NETbudget en solo. L'objectif : un outil de budget personnel simple, honnête, qui respecte ta vie privée et fonctionne partout dans le monde. Pas de modèle économique caché — pas de pub, pas de vente de données, pas d'abonnement.",
+    "J'ai conçu, codé et lancé NETbudget en solo. L'objectif : un outil de budget personnel simple, honnête, qui respecte ta vie privée et fonctionne partout dans le monde. Pas de modèle économique caché : pas de pub, pas de vente de données, et un budget gratuit sans abonnement. Les formules payantes financent le reste, en toute transparence.",
   "maker.stat1": "Solo maker",
   "maker.stat2": "Sur l'App Store",
   "maker.stat3": "100 % indépendant",
@@ -412,7 +412,7 @@ const fr: Catalog = {
   "join.title": "Invitation à un espace partagé",
   "join.desc": "Quelqu'un t'invite à gérer un budget avec lui sur NETbudget.",
   "join.eyebrow": "Invitation",
-  "join.h1": "On t'invite à rejoindre un espace 💚",
+  "join.h1": "On t'invite à rejoindre un espace",
   "join.body": "Un budget partagé sur NETbudget : chacun voit les mêmes chiffres, chiffrés de bout en bout. Ouvre l'app pour accepter.",
   "join.open": "Ouvrir NETbudget et rejoindre",
   "join.code": "Ton code d'invitation",
@@ -567,7 +567,7 @@ const fr: Catalog = {
 
   "page.terms.section8.title": "Remboursement et droit de rétractation",
   "page.terms.section8.body":
-    "Les abonnements sont vendus et encaissés par l'App Store d'Apple ou le Play Store de Google, jamais par nous — nous ne voyons donc aucune donnée bancaire. Lorsqu'une période d'essai gratuite est proposée, elle se transforme en abonnement payant à son terme si elle n'a pas été résiliée avant : la boutique t'en informe, et la date figure dans la gestion de tes abonnements. Les abonnements se renouvellent ensuite automatiquement à chaque échéance, sauf résiliation au moins vingt-quatre heures avant. La résiliation se fait depuis les réglages de ton téléphone, dans la gestion des abonnements : nous n'avons pas la main dessus, et c'est mieux ainsi. L'application peut afficher un écran te demandant la raison de ton départ et te proposant une réponse — une formule moins chère, une aide. Cet écran est facultatif de bout en bout : le lien vers la boutique y est visible dès son ouverture, aucune réponse n'est exigée, et rien ne peut retarder ta résiliation. Elle prend effet à la fin de la période déjà payée, sans frais, et tes données restent accessibles en version gratuite.",
+    "Les remboursements relèvent de la boutique qui a encaissé le paiement, selon ses propres règles : sur l'App Store, la demande se fait sur reportaproblem.apple.com ; sur Google Play, depuis l'historique des commandes de ton compte Google Play. Nous ne pouvons ni accorder ni refuser un remboursement à la place de la boutique. Si tu résides dans l'Union européenne, tu disposes en principe de quatorze jours pour te rétracter d'un achat en ligne ; en t'abonnant, tu demandes que l'accès commence tout de suite, et la boutique applique ce droit selon ses conditions. Lorsqu'une période d'essai gratuite est proposée, elle te permet d'essayer avant tout paiement. En cas de difficulté, écris-nous à contact@netbudget.app : nous t'aiderons dans ta démarche auprès de la boutique.",
 
   "page.terms.section9.title": "Codes promotionnels",
   "page.terms.section9.body":
@@ -839,7 +839,7 @@ const en: Catalog = {
   "maker.name": "Stéphane Pizeuil",
   "maker.role": "Indie maker · Software engineer",
   "maker.bio":
-    "I designed, built and launched NETbudget on my own. The goal: a simple, honest personal-budgeting tool that respects your privacy and works anywhere in the world. No hidden business model — no ads, no data selling, no subscription.",
+    "I designed, built and launched NETbudget on my own. The goal: a simple, honest personal-budgeting tool that respects your privacy and works anywhere in the world. No hidden business model: no ads, no data selling, and a budget that stays free with no subscription. The paid plans fund the rest, in the open.",
   "maker.stat1": "Solo maker",
   "maker.stat2": "On the App Store",
   "maker.stat3": "100% independent",
@@ -985,7 +985,7 @@ const en: Catalog = {
   "join.title": "Invitation to a shared space",
   "join.desc": "Someone is inviting you to manage a budget together on NETbudget.",
   "join.eyebrow": "Invitation",
-  "join.h1": "You're invited to join a space 💚",
+  "join.h1": "You're invited to join a space",
   "join.body": "A shared budget on NETbudget: everyone sees the same numbers, end-to-end encrypted. Open the app to accept.",
   "join.open": "Open NETbudget and join",
   "join.code": "Your invitation code",
@@ -1140,7 +1140,7 @@ const en: Catalog = {
 
   "page.terms.section8.title": "Refunds and right of withdrawal",
   "page.terms.section8.body":
-    "Subscriptions are sold and charged by Apple's App Store or Google's Play Store, never by us — so we never see any payment details. Where a free trial is offered, it turns into a paid subscription at the end unless cancelled beforehand: the store tells you so, and the date appears in your subscription management. Subscriptions then renew automatically at each period end unless cancelled at least twenty-four hours in advance. Cancellation happens in your phone's settings, under subscription management: we have no control over it, and that is better. The app may show one screen asking why you are leaving and offering an answer — a cheaper plan, some help. That screen is optional from start to finish: the link to the store is visible the moment it opens, no answer is required, and nothing can delay your cancellation. It takes effect at the end of the period you already paid for, at no cost, and your data stays accessible on the free tier.",
+    "Refunds are handled by the store that took the payment, under its own rules: on the App Store, request one at reportaproblem.apple.com; on Google Play, from the order history of your Google Play account. We can neither grant nor refuse a refund in the store's place. If you live in the European Union, you normally have fourteen days to withdraw from an online purchase; by subscribing, you ask for access to start straight away, and the store applies this right under its own terms. Where a free trial is offered, it lets you try before any payment. If you run into trouble, write to contact@netbudget.app and we will help you with the store.",
 
   "page.terms.section9.title": "Promotional codes",
   "page.terms.section9.body":
