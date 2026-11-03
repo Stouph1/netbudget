@@ -292,6 +292,7 @@ export const it: Catalog = {
 
   "summary.totalBrutAnnual": "Lordo annuo totale",
   "summary.netMonthlyEst": "Netto mensile stimato",
+  "summary.givingDeducted": " (donazioni dedotte)",
   "summary.brutMonthlyAvg": "Lordo mensile medio",
 
   "income.netPerMonth": "Netto / mese",
@@ -996,6 +997,7 @@ export const it: Catalog = {
   "schedule.remaining": "Restano",
   "schedule.finished": "estinto",
   "schedule.rem.months": "{m} mesi",
+  "schedule.rem.months.one": "1 mese",
   "schedule.rem.years.one": "1 anno",
   "schedule.rem.years.many": "{y} anni",
   "schedule.rem.combo": "{years} e {months}",

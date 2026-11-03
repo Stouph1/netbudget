@@ -512,7 +512,7 @@ export default function AdviceScreen() {
     const parts: string[] = [];
     const age = ageOptions(t).find((o) => o.value === profile.age)?.label;
     if (age) parts.push(age);
-    if (profile.region) parts.push(profile.region);
+    if ((profile.country ?? "FR") === "FR" && profile.region) parts.push(profile.region);
     else {
       const country = countryOptions(t).find((o) => o.value === profile.country)?.label;
       if (country) parts.push(country);
@@ -867,7 +867,11 @@ export default function AdviceScreen() {
               hint={t("coach.country.hint")}
               options={countryOptions(t)}
               value={profile.country}
-              onSelect={(v) => updateField("country", v)}
+              onSelect={(v) =>
+                // La région n'a de sens qu'en France : sans purge, l'ancienne
+                // région restait affichée et appliquée au nouveau pays.
+                persist({ ...profile, country: v, region: v === "FR" ? profile.region : undefined })
+              }
             />
           ) : null}
           {cfg.askCountry &&

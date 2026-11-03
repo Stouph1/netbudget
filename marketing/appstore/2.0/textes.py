@@ -20,7 +20,7 @@ LIMITS = {"subtitle": 30, "promo": 170, "keywords": 100, "description": 4000, "w
 T = {
 "fr": {
 "subtitle": "Budget, reste à vivre, Coach",
-"promo": "2.0 : budget partagé en couple ou en famille, Coach avec 282 conseils sourcés, repères officiels. Sans connexion bancaire, sans publicité.",
+"promo": "2.0 : budget partagé en couple ou en famille, Coach avec 282 conseils sourcés dans 17 pays, repères officiels. Sans connexion bancaire, sans publicité.",
 "keywords": "budget,reste à vivre,dépenses,épargne,finances,couple,famille,conseils,argent,prêt,convertisseur",
 "description": """Combien te reste-t-il vraiment à la fin du mois ?
 
@@ -37,7 +37,7 @@ DES REPÈRES OFFICIELS, PAS DES OPINIONS
 Ta part logement, courses ou sorties face à la moyenne des ménages de ton pays : Eurostat en Europe, BLS aux États-Unis, ONS au Royaume-Uni, Statistique Canada, ABS en Australie. La source et l'année sont toujours affichées. Un repère 50/30/20 qui s'adapte à ton profil, à ta ville et à ton logement.
 
 UN COACH QUI CITE SES SOURCES
-282 conseils, triés par ton âge, ton foyer, ton logement et ton pays. Chacun cite sa page officielle et sa date de vérification : droits non réclamés, épargne réglementée, fiscalité, prévoyance. Un conseil de la semaine chaque lundi.
+282 conseils dans 17 pays, triés par ton âge, ton foyer, ton logement et ton pays. Chacun cite sa page officielle et sa date de vérification : droits non réclamés, épargne réglementée, fiscalité, prévoyance. Un conseil de la semaine chaque lundi.
 
 UN BUDGET À PLUSIEURS
 Un code d'invitation, et le budget commun se voit des deux côtés. Chacun garde son espace privé. En famille : jusqu'à six personnes, trois espaces, les anniversaires et les projets du foyer.
@@ -55,7 +55,7 @@ Huit langues, 59 pays, 499 villes avec leur coût de la vie. Développé en Fran
 "whatsnew": """NETbudget 2.0, la plus grande mise à jour depuis le lancement.
 
 • Espaces partagés : un budget commun en couple, en famille, en colocation, par simple code d'invitation. Chacun garde son espace privé.
-• Coach : 282 conseils sourcés, adaptés à ton âge, ton foyer, ton logement et ton pays, avec un conseil de la semaine chaque lundi.
+• Coach : 282 conseils sourcés dans 17 pays, adaptés à ton âge, ton foyer, ton logement et ton pays, avec un conseil de la semaine chaque lundi.
 • Repères face aux moyennes nationales : Eurostat, BLS, ONS, Statistique Canada, ABS, avec la source et l'année.
 • Projets et événements : mariage, voyage, naissance, fête, avec budget guidé, rétro-planning et rappels.
 • Budget épuré : pictogrammes par poste, dépenses par période, repère 50/30/20 adapté à ton profil.
@@ -67,7 +67,7 @@ Huit langues, 59 pays, 499 villes avec leur coût de la vie. Développé en Fran
 },
 "en": {
 "subtitle": "Budget, money left, Coach",
-"promo": "2.0: shared budgets for couples and families, a Coach with 282 sourced tips, official benchmarks. No bank connection, no ads.",
+"promo": "2.0: shared budgets for couples and families, a Coach with 282 sourced tips across 17 countries, official benchmarks. No bank connection, no ads.",
 "keywords": "budget,money left,expenses,savings,finance,couple,family,tips,money,loan,converter,planner",
 "description": """How much do you really have left at the end of the month?
 
@@ -84,7 +84,7 @@ OFFICIAL BENCHMARKS, NOT OPINIONS
 Your housing, grocery or dining share against the average household in your country: Eurostat in Europe, BLS in the United States, ONS in the United Kingdom, Statistics Canada, ABS in Australia. The source and the year are always shown. A 50/30/20 benchmark that adapts to your profile, your city and your housing.
 
 A COACH THAT CITES ITS SOURCES
-282 tips, filtered by your age, household, housing and country. Each one cites its official page and its verification date: unclaimed benefits, regulated savings, taxes, insurance. A tip of the week every Monday.
+282 tips across 17 countries, filtered by your age, household, housing and country. Each one cites its official page and its verification date: unclaimed benefits, regulated savings, taxes, insurance. A tip of the week every Monday.
 
 A BUDGET FOR TWO, OR MORE
 One invitation code, and the shared budget shows on both sides. Each of you keeps a private space. As a family: up to six people, three spaces, the household's birthdays and projects.
@@ -102,7 +102,7 @@ Eight languages, 59 countries, 499 cities with their cost of living. Built in Fr
 "whatsnew": """NETbudget 2.0, the biggest update since launch.
 
 • Shared spaces: a common budget as a couple, a family or flatmates, with a simple invitation code. Each person keeps a private space.
-• Coach: 282 sourced tips, adapted to your age, household, housing and country, with a tip of the week every Monday.
+• Coach: 282 sourced tips across 17 countries, adapted to your age, household, housing and country, with a tip of the week every Monday.
 • Benchmarks against national averages: Eurostat, BLS, ONS, Statistics Canada, ABS, with the source and the year.
 • Projects and events: wedding, trip, baby, party, with a guided budget, a timeline and reminders.
 • A lighter budget: pictograms per line, expenses by period, a 50/30/20 benchmark adapted to your profile.
@@ -114,7 +114,7 @@ Eight languages, 59 countries, 499 cities with their cost of living. Built in Fr
 },
 "es": {
 "subtitle": "Presupuesto, lo que te queda",
-"promo": "2.0: presupuesto compartido en pareja o en familia, un Coach con 282 consejos con fuente, referencias oficiales. Sin conexión bancaria, sin anuncios.",
+"promo": "2.0: presupuesto compartido en pareja o en familia, un Coach con 282 consejos con fuente en 17 países, referencias oficiales. Sin conexión bancaria, sin anuncios.",
 "keywords": "presupuesto,gastos,ahorro,finanzas,pareja,familia,consejos,dinero,préstamo,conversor,planificador",
 "description": """¿Cuánto te queda de verdad a final de mes?
 
@@ -131,7 +131,7 @@ REFERENCIAS OFICIALES, NO OPINIONES
 Tu parte de vivienda, compra o salidas frente al hogar medio de tu país: Eurostat en Europa, BLS en Estados Unidos, ONS en el Reino Unido, Statistics Canada, ABS en Australia. La fuente y el año siempre a la vista. Una referencia 50/30/20 que se adapta a tu perfil, tu ciudad y tu vivienda.
 
 UN COACH QUE CITA SUS FUENTES
-282 consejos, filtrados por tu edad, tu hogar, tu vivienda y tu país. Cada uno cita su página oficial y su fecha de verificación: ayudas no reclamadas, ahorro regulado, impuestos, previsión. Un consejo de la semana cada lunes.
+282 consejos en 17 países, filtrados por tu edad, tu hogar, tu vivienda y tu país. Cada uno cita su página oficial y su fecha de verificación: ayudas no reclamadas, ahorro regulado, impuestos, previsión. Un consejo de la semana cada lunes.
 
 UN PRESUPUESTO A VARIOS
 Un código de invitación, y el presupuesto común se ve en los dos lados. Cada uno conserva su espacio privado. En familia: hasta seis personas, tres espacios, los cumpleaños y los proyectos del hogar.
@@ -149,7 +149,7 @@ Ocho idiomas, 59 países, 499 ciudades con su coste de vida. Desarrollada en Fra
 "whatsnew": """NETbudget 2.0, la mayor actualización desde el lanzamiento.
 
 • Espacios compartidos: un presupuesto común en pareja, en familia o entre compañeros de piso, con un simple código de invitación. Cada uno conserva su espacio privado.
-• Coach: 282 consejos con fuente, adaptados a tu edad, tu hogar, tu vivienda y tu país, con un consejo de la semana cada lunes.
+• Coach: 282 consejos con fuente en 17 países, adaptados a tu edad, tu hogar, tu vivienda y tu país, con un consejo de la semana cada lunes.
 • Referencias frente a las medias nacionales: Eurostat, BLS, ONS, Statistics Canada, ABS, con la fuente y el año.
 • Proyectos y eventos: boda, viaje, nacimiento, fiesta, con presupuesto guiado, calendario y recordatorios.
 • Presupuesto más ligero: pictogramas por partida, gastos por periodo, referencia 50/30/20 adaptada a tu perfil.
@@ -161,7 +161,7 @@ Ocho idiomas, 59 países, 499 ciudades con su coste de vida. Desarrollada en Fra
 },
 "pt": {
 "subtitle": "Orçamento, o que te sobra",
-"promo": "2.0: orçamento partilhado a dois ou em família, um Coach com 282 dicas com fonte, referências oficiais. Sem ligação ao banco, sem anúncios.",
+"promo": "2.0: orçamento partilhado a dois ou em família, um Coach com 282 dicas com fonte em 17 países, referências oficiais. Sem ligação ao banco, sem anúncios.",
 "keywords": "orçamento,despesas,poupança,finanças,casal,família,dicas,dinheiro,empréstimo,conversor,planeador",
 "description": """Quanto te sobra mesmo no fim do mês?
 
@@ -178,7 +178,7 @@ REFERÊNCIAS OFICIAIS, NÃO OPINIÕES
 A tua parte de habitação, compras ou saídas face ao agregado médio do teu país: Eurostat na Europa, BLS nos Estados Unidos, ONS no Reino Unido, Statistics Canada, ABS na Austrália. A fonte e o ano estão sempre visíveis. Uma referência 50/30/20 que se adapta ao teu perfil, à tua cidade e à tua habitação.
 
 UM COACH QUE CITA AS FONTES
-282 dicas, filtradas pela tua idade, o teu agregado, a tua habitação e o teu país. Cada uma cita a página oficial e a data de verificação: apoios por reclamar, poupança regulada, impostos, proteção. Uma dica da semana todas as segundas.
+282 dicas em 17 países, filtradas pela tua idade, o teu agregado, a tua habitação e o teu país. Cada uma cita a página oficial e a data de verificação: apoios por reclamar, poupança regulada, impostos, proteção. Uma dica da semana todas as segundas.
 
 UM ORÇAMENTO A VÁRIOS
 Um código de convite, e o orçamento comum vê-se dos dois lados. Cada um mantém o seu espaço privado. Em família: até seis pessoas, três espaços, os aniversários e os projetos do agregado.
@@ -196,7 +196,7 @@ Oito idiomas, 59 países, 499 cidades com o seu custo de vida. Desenvolvida em F
 "whatsnew": """NETbudget 2.0, a maior atualização desde o lançamento.
 
 • Espaços partilhados: um orçamento comum a dois, em família ou entre colegas de casa, com um simples código de convite. Cada um mantém o seu espaço privado.
-• Coach: 282 dicas com fonte, adaptadas à tua idade, ao teu agregado, à tua habitação e ao teu país, com uma dica da semana todas as segundas.
+• Coach: 282 dicas com fonte em 17 países, adaptadas à tua idade, ao teu agregado, à tua habitação e ao teu país, com uma dica da semana todas as segundas.
 • Referências face às médias nacionais: Eurostat, BLS, ONS, Statistics Canada, ABS, com a fonte e o ano.
 • Projetos e eventos: casamento, viagem, nascimento, festa, com orçamento guiado, calendário e lembretes.
 • Orçamento mais leve: pictogramas por rubrica, despesas por período, referência 50/30/20 adaptada ao teu perfil.
@@ -208,7 +208,7 @@ Oito idiomas, 59 países, 499 cidades com o seu custo de vida. Desenvolvida em F
 },
 "de": {
 "subtitle": "Budget, was wirklich bleibt",
-"promo": "2.0: gemeinsames Budget für Paare und Familien, ein Coach mit 282 belegten Tipps, offizielle Vergleichswerte. Ohne Bankverbindung, ohne Werbung.",
+"promo": "2.0: gemeinsames Budget für Paare und Familien, ein Coach mit 282 belegten Tipps aus 17 Ländern, offizielle Vergleichswerte. Ohne Bankverbindung, ohne Werbung.",
 "keywords": "budget,haushalt,ausgaben,sparen,finanzen,paar,familie,tipps,geld,kredit,währungsrechner,planer",
 "description": """Wie viel bleibt dir am Monatsende wirklich übrig?
 
@@ -225,7 +225,7 @@ OFFIZIELLE VERGLEICHSWERTE, KEINE MEINUNGEN
 Dein Anteil für Wohnen, Einkäufe oder Ausgehen im Vergleich zum Durchschnittshaushalt deines Landes: Eurostat in Europa, BLS in den USA, ONS in Großbritannien, Statistics Canada, ABS in Australien. Quelle und Jahr werden immer angezeigt. Eine 50/30/20-Orientierung, die sich an dein Profil, deine Stadt und deine Wohnsituation anpasst.
 
 EIN COACH, DER SEINE QUELLEN NENNT
-282 Tipps, gefiltert nach Alter, Haushalt, Wohnsituation und Land. Jeder nennt seine offizielle Seite und sein Prüfdatum: nicht beantragte Leistungen, geregeltes Sparen, Steuern, Vorsorge. Jeden Montag ein Tipp der Woche.
+282 Tipps aus 17 Ländern, gefiltert nach Alter, Haushalt, Wohnsituation und Land. Jeder nennt seine offizielle Seite und sein Prüfdatum: nicht beantragte Leistungen, geregeltes Sparen, Steuern, Vorsorge. Jeden Montag ein Tipp der Woche.
 
 EIN BUDGET ZU ZWEIT ODER MEHR
 Ein Einladungscode, und das gemeinsame Budget ist auf beiden Seiten sichtbar. Jeder behält seinen privaten Bereich. Als Familie: bis zu sechs Personen, drei Bereiche, Geburtstage und Projekte des Haushalts.
@@ -243,7 +243,7 @@ Acht Sprachen, 59 Länder, 499 Städte mit ihren Lebenshaltungskosten. Entwickel
 "whatsnew": """NETbudget 2.0, das größte Update seit dem Start.
 
 • Gemeinsame Bereiche: ein gemeinsames Budget als Paar, Familie oder WG, per einfachem Einladungscode. Jeder behält seinen privaten Bereich.
-• Coach: 282 belegte Tipps, angepasst an Alter, Haushalt, Wohnsituation und Land, mit einem Tipp der Woche jeden Montag.
+• Coach: 282 belegte Tipps aus 17 Ländern, angepasst an Alter, Haushalt, Wohnsituation und Land, mit einem Tipp der Woche jeden Montag.
 • Vergleichswerte gegenüber nationalen Durchschnitten: Eurostat, BLS, ONS, Statistics Canada, ABS, mit Quelle und Jahr.
 • Projekte und Ereignisse: Hochzeit, Reise, Baby, Feier, mit geführtem Budget, Zeitplan und Erinnerungen.
 • Schlankeres Budget: Piktogramme pro Posten, Ausgaben nach Zeitraum, 50/30/20-Orientierung passend zu deinem Profil.
@@ -255,7 +255,7 @@ Acht Sprachen, 59 Länder, 499 Städte mit ihren Lebenshaltungskosten. Entwickel
 },
 "it": {
 "subtitle": "Budget, quanto ti resta",
-"promo": "2.0: budget condiviso in coppia o in famiglia, un Coach con 282 consigli con fonte, riferimenti ufficiali. Senza collegamento alla banca, senza pubblicità.",
+"promo": "2.0: budget condiviso in coppia o in famiglia, un Coach con 282 consigli con fonte in 17 paesi, riferimenti ufficiali. Senza collegamento alla banca, senza pubblicità.",
 "keywords": "budget,spese,risparmio,finanze,coppia,famiglia,consigli,soldi,prestito,convertitore,pianificatore",
 "description": """Quanto ti resta davvero a fine mese?
 
@@ -272,7 +272,7 @@ RIFERIMENTI UFFICIALI, NON OPINIONI
 La tua quota di casa, spesa o uscite rispetto alla famiglia media del tuo paese: Eurostat in Europa, BLS negli Stati Uniti, ONS nel Regno Unito, Statistics Canada, ABS in Australia. Fonte e anno sempre visibili. Un riferimento 50/30/20 che si adatta al tuo profilo, alla tua città e alla tua casa.
 
 UN COACH CHE CITA LE FONTI
-282 consigli, filtrati per età, nucleo familiare, abitazione e paese. Ognuno cita la sua pagina ufficiale e la data di verifica: diritti non richiesti, risparmio regolamentato, fisco, previdenza. Un consiglio della settimana ogni lunedì.
+282 consigli in 17 paesi, filtrati per età, nucleo familiare, abitazione e paese. Ognuno cita la sua pagina ufficiale e la data di verifica: diritti non richiesti, risparmio regolamentato, fisco, previdenza. Un consiglio della settimana ogni lunedì.
 
 UN BUDGET IN DUE, O PIÙ
 Un codice di invito, e il budget comune si vede da entrambe le parti. Ognuno conserva il proprio spazio privato. In famiglia: fino a sei persone, tre spazi, i compleanni e i progetti di casa.
@@ -290,7 +290,7 @@ Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Fr
 "whatsnew": """NETbudget 2.0, il più grande aggiornamento dal lancio.
 
 • Spazi condivisi: un budget comune in coppia, in famiglia o tra coinquilini, con un semplice codice di invito. Ognuno conserva il proprio spazio privato.
-• Coach: 282 consigli con fonte, adattati a età, nucleo familiare, abitazione e paese, con un consiglio della settimana ogni lunedì.
+• Coach: 282 consigli con fonte in 17 paesi, adattati a età, nucleo familiare, abitazione e paese, con un consiglio della settimana ogni lunedì.
 • Riferimenti rispetto alle medie nazionali: Eurostat, BLS, ONS, Statistics Canada, ABS, con fonte e anno.
 • Progetti ed eventi: matrimonio, viaggio, nascita, festa, con budget guidato, calendario e promemoria.
 • Budget più leggero: pittogrammi per voce, spese per periodo, riferimento 50/30/20 adattato al tuo profilo.
@@ -302,7 +302,7 @@ Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Fr
 },
 "ar": {
 "subtitle": "ميزانية، ما يتبقّى لك فعلًا",
-"promo": "الإصدار 2.0: ميزانية مشتركة للزوجين والعائلة، مرشد بـ 282 نصيحة موثّقة، ومعايير رسمية. دون ربط بالبنك، ودون إعلانات.",
+"promo": "الإصدار 2.0: ميزانية مشتركة للزوجين والعائلة، مرشد بـ 282 نصيحة موثّقة في 17 بلدًا، ومعايير رسمية. دون ربط بالبنك، ودون إعلانات.",
 "keywords": "ميزانية,مصاريف,ادخار,مال,زوجين,عائلة,نصائح,قرض,محوّل عملات,مخطط,راتب,تخطيط",
 "description": """كم يتبقّى لك فعلًا في نهاية الشهر؟
 
@@ -319,7 +319,7 @@ Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Fr
 حصة السكن أو المشتريات أو الخروج لديك مقارنة بمتوسط الأسر في بلدك: يوروستات في أوروبا، BLS في الولايات المتحدة، ONS في المملكة المتحدة، إحصاءات كندا، ABS في أستراليا. المصدر والسنة ظاهران دائمًا. معيار 50/30/20 يتكيّف مع ملفك ومدينتك وسكنك.
 
 مرشد يذكر مصادره
-282 نصيحة مصنّفة حسب عمرك وأسرتك وسكنك وبلدك. كل نصيحة تذكر صفحتها الرسمية وتاريخ التحقق منها: حقوق لم تُطالب بها، ادخار منظّم، ضرائب، تأمين. نصيحة الأسبوع كل يوم اثنين.
+282 نصيحة في 17 بلدًا، مصنّفة حسب عمرك وأسرتك وسكنك وبلدك. كل نصيحة تذكر صفحتها الرسمية وتاريخ التحقق منها: حقوق لم تُطالب بها، ادخار منظّم، ضرائب، تأمين. نصيحة الأسبوع كل يوم اثنين.
 
 ميزانية لاثنين أو أكثر
 رمز دعوة واحد، وتظهر الميزانية المشتركة لدى الطرفين. يحتفظ كل واحد بمساحته الخاصة. للعائلة: حتى ستة أشخاص، ثلاث مساحات، أعياد ميلاد الأسرة ومشاريعها.
@@ -337,7 +337,7 @@ Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Fr
 "whatsnew": """NETbudget 2.0، أكبر تحديث منذ الإطلاق.
 
 • مساحات مشتركة: ميزانية مشتركة للزوجين أو العائلة أو شركاء السكن، برمز دعوة بسيط. يحتفظ كل واحد بمساحته الخاصة.
-• المرشد: 282 نصيحة موثّقة، متكيّفة مع عمرك وأسرتك وسكنك وبلدك، مع نصيحة الأسبوع كل يوم اثنين.
+• المرشد: 282 نصيحة موثّقة في 17 بلدًا، متكيّفة مع عمرك وأسرتك وسكنك وبلدك، مع نصيحة الأسبوع كل يوم اثنين.
 • معايير مقارنة بالمتوسطات الوطنية: يوروستات، BLS، ONS، إحصاءات كندا، ABS، مع المصدر والسنة.
 • مشاريع ومناسبات: زفاف، سفر، مولود، حفلة، مع ميزانية موجّهة وجدول زمني وتذكيرات.
 • ميزانية أخف: رموز لكل بند، مصاريف حسب الفترة، معيار 50/30/20 متكيّف مع ملفك.
@@ -349,7 +349,7 @@ Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Fr
 },
 "ja": {
 "subtitle": "家計簿、本当に残るお金",
-"promo": "2.0：カップル・家族で共有できる家計、出典つき282のアドバイスを持つコーチ、公的統計との比較。銀行連携なし、広告なし。",
+"promo": "2.0：カップル・家族で共有できる家計、17か国・出典つき282のアドバイスを持つコーチ、公的統計との比較。銀行連携なし、広告なし。",
 "keywords": "家計簿,予算,支出,貯金,家計,カップル,家族,アドバイス,お金,ローン,為替,計画",
 "description": """月末に本当に残るお金はいくら？
 
@@ -366,7 +366,7 @@ NETbudget は数分で答えを出します。収入と支出を入力すれば�
 住居・食料・外食の割合を、あなたの国の平均世帯と比較：欧州のユーロスタット、米国のBLS、英国のONS、カナダ統計局、豪州のABS。出典と年は常に表示。プロフィール・都市・住まいに合わせて調整される50/30/20の目安。
 
 出典を示すコーチ
-年齢・世帯・住まい・国で絞り込まれた282のアドバイス。それぞれが公式ページと確認日を示します：未申請の給付、規制貯蓄、税、保障。毎週月曜に今週のアドバイス。
+年齢・世帯・住まい・国で絞り込まれた、17か国・282のアドバイス。それぞれが公式ページと確認日を示します：未申請の給付、規制貯蓄、税、保障。毎週月曜に今週のアドバイス。
 
 二人以上で使う家計
 招待コードひとつで、共有家計が双方に表示されます。それぞれにプライベートな領域も残ります。家族なら最大6人、3つのスペース、家族の誕生日とプロジェクト。
@@ -384,7 +384,7 @@ NETbudget は数分で答えを出します。収入と支出を入力すれば�
 "whatsnew": """NETbudget 2.0、リリース以来最大のアップデートです。
 
 • 共有スペース：カップル、家族、ルームシェアで、招待コードひとつで共有家計。それぞれのプライベート領域はそのまま。
-• コーチ：年齢・世帯・住まい・国に合わせた、出典つき282のアドバイス。毎週月曜に今週のアドバイス。
+• コーチ：年齢・世帯・住まい・国に合わせた、17か国・出典つき282のアドバイス。毎週月曜に今週のアドバイス。
 • 全国平均との比較：ユーロスタット、BLS、ONS、カナダ統計局、ABS。出典と年を表示。
 • プロジェクトと行事：結婚式、旅行、出産、パーティー。ガイドつき予算、スケジュール、リマインダー。
 • より軽い家計画面：項目ごとのピクトグラム、期間つき支出、プロフィールに合わせた50/30/20の目安。

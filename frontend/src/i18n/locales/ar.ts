@@ -292,6 +292,7 @@ export const ar: Catalog = {
 
   "summary.totalBrutAnnual": "إجمالي الدخل السنوي",
   "summary.netMonthlyEst": "صافي شهري تقديري",
+  "summary.givingDeducted": " (بعد خصم التبرعات)",
   "summary.brutMonthlyAvg": "متوسط الإجمالي الشهري",
 
   "income.netPerMonth": "صافي / شهر",
@@ -996,6 +997,7 @@ export const ar: Catalog = {
   "schedule.remaining": "المتبقي",
   "schedule.finished": "منتهٍ",
   "schedule.rem.months": "{m} أشهر",
+  "schedule.rem.months.one": "شهر واحد",
   "schedule.rem.years.one": "سنة واحدة",
   "schedule.rem.years.many": "{y} سنوات",
   "schedule.rem.combo": "{years} و{months}",

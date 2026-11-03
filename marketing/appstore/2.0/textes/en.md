@@ -6,10 +6,10 @@
 Budget, money left, Coach
 ```
 
-## Texte promotionnel (125/170)
+## Texte promotionnel (145/170)
 
 ```
-2.0: shared budgets for couples and families, a Coach with 282 sourced tips, official benchmarks. No bank connection, no ads.
+2.0: shared budgets for couples and families, a Coach with 282 sourced tips across 17 countries, official benchmarks. No bank connection, no ads.
 ```
 
 ## Mots-clés (90/100)
@@ -18,7 +18,7 @@ Budget, money left, Coach
 budget,money left,expenses,savings,finance,couple,family,tips,money,loan,converter,planner
 ```
 
-## Description (2312/4000)
+## Description (2332/4000)
 
 ```
 How much do you really have left at the end of the month?
@@ -36,7 +36,7 @@ OFFICIAL BENCHMARKS, NOT OPINIONS
 Your housing, grocery or dining share against the average household in your country: Eurostat in Europe, BLS in the United States, ONS in the United Kingdom, Statistics Canada, ABS in Australia. The source and the year are always shown. A 50/30/20 benchmark that adapts to your profile, your city and your housing.
 
 A COACH THAT CITES ITS SOURCES
-282 tips, filtered by your age, household, housing and country. Each one cites its official page and its verification date: unclaimed benefits, regulated savings, taxes, insurance. A tip of the week every Monday.
+282 tips across 17 countries, filtered by your age, household, housing and country. Each one cites its official page and its verification date: unclaimed benefits, regulated savings, taxes, insurance. A tip of the week every Monday.
 
 A BUDGET FOR TWO, OR MORE
 One invitation code, and the shared budget shows on both sides. Each of you keeps a private space. As a family: up to six people, three spaces, the household's birthdays and projects.
@@ -56,13 +56,13 @@ Terms of Use (Apple standard EULA): https://www.apple.com/legal/internet-service
 Privacy Policy: https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1003/4000)
+## Nouveautés de cette version (1023/4000)
 
 ```
 NETbudget 2.0, the biggest update since launch.
 
 • Shared spaces: a common budget as a couple, a family or flatmates, with a simple invitation code. Each person keeps a private space.
-• Coach: 282 sourced tips, adapted to your age, household, housing and country, with a tip of the week every Monday.
+• Coach: 282 sourced tips across 17 countries, adapted to your age, household, housing and country, with a tip of the week every Monday.
 • Benchmarks against national averages: Eurostat, BLS, ONS, Statistics Canada, ABS, with the source and the year.
 • Projects and events: wedding, trip, baby, party, with a guided budget, a timeline and reminders.
 • A lighter budget: pictograms per line, expenses by period, a 50/30/20 benchmark adapted to your profile.

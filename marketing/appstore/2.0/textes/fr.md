@@ -6,10 +6,10 @@
 Budget, reste à vivre, Coach
 ```
 
-## Texte promotionnel (138/170)
+## Texte promotionnel (151/170)
 
 ```
-2.0 : budget partagé en couple ou en famille, Coach avec 282 conseils sourcés, repères officiels. Sans connexion bancaire, sans publicité.
+2.0 : budget partagé en couple ou en famille, Coach avec 282 conseils sourcés dans 17 pays, repères officiels. Sans connexion bancaire, sans publicité.
 ```
 
 ## Mots-clés (96/100)
@@ -18,7 +18,7 @@ Budget, reste à vivre, Coach
 budget,reste à vivre,dépenses,épargne,finances,couple,famille,conseils,argent,prêt,convertisseur
 ```
 
-## Description (2479/4000)
+## Description (2492/4000)
 
 ```
 Combien te reste-t-il vraiment à la fin du mois ?
@@ -36,7 +36,7 @@ DES REPÈRES OFFICIELS, PAS DES OPINIONS
 Ta part logement, courses ou sorties face à la moyenne des ménages de ton pays : Eurostat en Europe, BLS aux États-Unis, ONS au Royaume-Uni, Statistique Canada, ABS en Australie. La source et l'année sont toujours affichées. Un repère 50/30/20 qui s'adapte à ton profil, à ta ville et à ton logement.
 
 UN COACH QUI CITE SES SOURCES
-282 conseils, triés par ton âge, ton foyer, ton logement et ton pays. Chacun cite sa page officielle et sa date de vérification : droits non réclamés, épargne réglementée, fiscalité, prévoyance. Un conseil de la semaine chaque lundi.
+282 conseils dans 17 pays, triés par ton âge, ton foyer, ton logement et ton pays. Chacun cite sa page officielle et sa date de vérification : droits non réclamés, épargne réglementée, fiscalité, prévoyance. Un conseil de la semaine chaque lundi.
 
 UN BUDGET À PLUSIEURS
 Un code d'invitation, et le budget commun se voit des deux côtés. Chacun garde son espace privé. En famille : jusqu'à six personnes, trois espaces, les anniversaires et les projets du foyer.
@@ -56,13 +56,13 @@ Conditions d'utilisation (CLUF standard d'Apple) : https://www.apple.com/legal/i
 Politique de confidentialité : https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1055/4000)
+## Nouveautés de cette version (1068/4000)
 
 ```
 NETbudget 2.0, la plus grande mise à jour depuis le lancement.
 
 • Espaces partagés : un budget commun en couple, en famille, en colocation, par simple code d'invitation. Chacun garde son espace privé.
-• Coach : 282 conseils sourcés, adaptés à ton âge, ton foyer, ton logement et ton pays, avec un conseil de la semaine chaque lundi.
+• Coach : 282 conseils sourcés dans 17 pays, adaptés à ton âge, ton foyer, ton logement et ton pays, avec un conseil de la semaine chaque lundi.
 • Repères face aux moyennes nationales : Eurostat, BLS, ONS, Statistique Canada, ABS, avec la source et l'année.
 • Projets et événements : mariage, voyage, naissance, fête, avec budget guidé, rétro-planning et rappels.
 • Budget épuré : pictogrammes par poste, dépenses par période, repère 50/30/20 adapté à ton profil.

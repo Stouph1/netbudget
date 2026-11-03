@@ -292,6 +292,7 @@ export const en: Catalog = {
 
   "summary.totalBrutAnnual": "Total annual gross",
   "summary.netMonthlyEst": "Estimated monthly net",
+  "summary.givingDeducted": " (after giving)",
   "summary.brutMonthlyAvg": "Average monthly gross",
 
   "income.netPerMonth": "Net / month",
@@ -996,6 +997,7 @@ export const en: Catalog = {
   "schedule.remaining": "Left",
   "schedule.finished": "paid off",
   "schedule.rem.months": "{m} months",
+  "schedule.rem.months.one": "1 month",
   "schedule.rem.years.one": "1 year",
   "schedule.rem.years.many": "{y} years",
   "schedule.rem.combo": "{years} and {months}",

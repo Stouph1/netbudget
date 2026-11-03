@@ -26,7 +26,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { countryOptions, FR_REGIONS } from "../../src/constants/geo";
+import { COUNTRY_OPTIONS, countryOptions, FR_REGIONS } from "../../src/constants/geo";
 import { CITIES, getCountry } from "../../src/constants/cities";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
@@ -503,7 +503,11 @@ export default function CompleteProfile() {
                     setCity(c.name);
                     setCityTouched(false);
                     // La ville dicte le pays et la région : on les aligne.
-                    setCountry(c.countryCode as Country);
+                    // Un pays hors de la liste du Coach (Brésil, Japon…) devient
+                    // « Autre pays » : un code inconnu ne trouvait aucun conseil.
+                    const supported = COUNTRY_OPTIONS.some((o) => o.value === c.countryCode);
+                    setCountry(supported ? (c.countryCode as Country) : "OTHER");
+                    if (c.countryCode !== "FR") setRegion(undefined);
                     if (c.countryCode === "FR") setRegion(c.region);
                   }}
                   accessibilityRole="button"

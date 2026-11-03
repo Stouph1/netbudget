@@ -6,10 +6,10 @@
 Budget, was wirklich bleibt
 ```
 
-## Texte promotionnel (144/170)
+## Texte promotionnel (159/170)
 
 ```
-2.0: gemeinsames Budget für Paare und Familien, ein Coach mit 282 belegten Tipps, offizielle Vergleichswerte. Ohne Bankverbindung, ohne Werbung.
+2.0: gemeinsames Budget für Paare und Familien, ein Coach mit 282 belegten Tipps aus 17 Ländern, offizielle Vergleichswerte. Ohne Bankverbindung, ohne Werbung.
 ```
 
 ## Mots-clés (94/100)
@@ -18,7 +18,7 @@ Budget, was wirklich bleibt
 budget,haushalt,ausgaben,sparen,finanzen,paar,familie,tipps,geld,kredit,währungsrechner,planer
 ```
 
-## Description (2570/4000)
+## Description (2585/4000)
 
 ```
 Wie viel bleibt dir am Monatsende wirklich übrig?
@@ -36,7 +36,7 @@ OFFIZIELLE VERGLEICHSWERTE, KEINE MEINUNGEN
 Dein Anteil für Wohnen, Einkäufe oder Ausgehen im Vergleich zum Durchschnittshaushalt deines Landes: Eurostat in Europa, BLS in den USA, ONS in Großbritannien, Statistics Canada, ABS in Australien. Quelle und Jahr werden immer angezeigt. Eine 50/30/20-Orientierung, die sich an dein Profil, deine Stadt und deine Wohnsituation anpasst.
 
 EIN COACH, DER SEINE QUELLEN NENNT
-282 Tipps, gefiltert nach Alter, Haushalt, Wohnsituation und Land. Jeder nennt seine offizielle Seite und sein Prüfdatum: nicht beantragte Leistungen, geregeltes Sparen, Steuern, Vorsorge. Jeden Montag ein Tipp der Woche.
+282 Tipps aus 17 Ländern, gefiltert nach Alter, Haushalt, Wohnsituation und Land. Jeder nennt seine offizielle Seite und sein Prüfdatum: nicht beantragte Leistungen, geregeltes Sparen, Steuern, Vorsorge. Jeden Montag ein Tipp der Woche.
 
 EIN BUDGET ZU ZWEIT ODER MEHR
 Ein Einladungscode, und das gemeinsame Budget ist auf beiden Seiten sichtbar. Jeder behält seinen privaten Bereich. Als Familie: bis zu sechs Personen, drei Bereiche, Geburtstage und Projekte des Haushalts.
@@ -56,13 +56,13 @@ Nutzungsbedingungen (Standard-EULA von Apple): https://www.apple.com/legal/inter
 Datenschutzerklärung: https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1080/4000)
+## Nouveautés de cette version (1095/4000)
 
 ```
 NETbudget 2.0, das größte Update seit dem Start.
 
 • Gemeinsame Bereiche: ein gemeinsames Budget als Paar, Familie oder WG, per einfachem Einladungscode. Jeder behält seinen privaten Bereich.
-• Coach: 282 belegte Tipps, angepasst an Alter, Haushalt, Wohnsituation und Land, mit einem Tipp der Woche jeden Montag.
+• Coach: 282 belegte Tipps aus 17 Ländern, angepasst an Alter, Haushalt, Wohnsituation und Land, mit einem Tipp der Woche jeden Montag.
 • Vergleichswerte gegenüber nationalen Durchschnitten: Eurostat, BLS, ONS, Statistics Canada, ABS, mit Quelle und Jahr.
 • Projekte und Ereignisse: Hochzeit, Reise, Baby, Feier, mit geführtem Budget, Zeitplan und Erinnerungen.
 • Schlankeres Budget: Piktogramme pro Posten, Ausgaben nach Zeitraum, 50/30/20-Orientierung passend zu deinem Profil.

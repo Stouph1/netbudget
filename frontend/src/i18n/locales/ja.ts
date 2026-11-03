@@ -292,6 +292,7 @@ export const ja: Catalog = {
 
   "summary.totalBrutAnnual": "年間総支給額",
   "summary.netMonthlyEst": "月間手取り（推定）",
+  "summary.givingDeducted": "（寄付控除後）",
   "summary.brutMonthlyAvg": "月間総支給額（平均）",
 
   "income.netPerMonth": "手取り / 月",
@@ -996,6 +997,7 @@ export const ja: Catalog = {
   "schedule.remaining": "残り",
   "schedule.finished": "完済",
   "schedule.rem.months": "{m}か月",
+  "schedule.rem.months.one": "1か月",
   "schedule.rem.years.one": "1年",
   "schedule.rem.years.many": "{y}年",
   "schedule.rem.combo": "{years}{months}",

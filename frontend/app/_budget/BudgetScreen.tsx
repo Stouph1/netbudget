@@ -438,7 +438,7 @@ export default function BudgetScreen({
           <View style={styles.revenusRow}>
             <Text style={styles.revenusLabel}>
               {t("summary.netMonthlyEst")}
-              {monthlyTithe > 0 ? " (dons déduits)" : ""}
+              {monthlyTithe > 0 ? t("summary.givingDeducted") : ""}
             </Text>
             <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">
               {fmt(netMoyen)}

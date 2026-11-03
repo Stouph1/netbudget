@@ -332,6 +332,7 @@ export const fr: Catalog = {
   // Summary tiles
   "summary.totalBrutAnnual": "Brut annuel total",
   "summary.netMonthlyEst": "Net mensuel estimé",
+  "summary.givingDeducted": " (dons déduits)",
   "summary.brutMonthlyAvg": "Brut mensuel moyen",
 
   // Income meta
@@ -1051,6 +1052,7 @@ export const fr: Catalog = {
   "schedule.remaining": "Reste",
   "schedule.finished": "terminé",
   "schedule.rem.months": "{m} mois",
+  "schedule.rem.months.one": "1 mois",
   "schedule.rem.years.one": "1 an",
   "schedule.rem.years.many": "{y} ans",
   "schedule.rem.combo": "{years} et {months}",

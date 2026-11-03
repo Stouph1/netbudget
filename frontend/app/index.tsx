@@ -252,7 +252,10 @@ export default function Index() {
     (p: Parameters<typeof remainingParts>[0]): string => {
       const { finished, years, months } = remainingParts(p);
       if (finished) return t("schedule.finished");
-      const mLabel = interpolate(t("schedule.rem.months"), { m: months });
+      const mLabel =
+        months === 1
+          ? t("schedule.rem.months.one")
+          : interpolate(t("schedule.rem.months"), { m: months });
       if (years === 0) return mLabel;
       const yLabel =
         years === 1

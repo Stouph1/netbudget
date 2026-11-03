@@ -84,7 +84,7 @@ export default function LoanScheduleModal({
     if (p.finished) return t("schedule.finished");
     const y = Math.floor(p.remainingMonths / 12);
     const m = p.remainingMonths % 12;
-    const months = tp("schedule.rem.months", { m });
+    const months = m === 1 ? t("schedule.rem.months.one") : tp("schedule.rem.months", { m });
     if (y === 0) return months;
     const years =
       y === 1
