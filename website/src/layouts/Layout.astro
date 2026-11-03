@@ -5,7 +5,7 @@ import Footer from "../components/Footer.astro";
 import StickyCta from "../components/StickyCta.astro";
 import ConsentNotice from "../components/ConsentNotice.astro";
 import { getAppStoreFacts } from "../lib/appStore";
-import { useTranslations, isRtl, type Locale } from "../i18n/utils";
+import { useTranslations, isRtl, translatePath, screenPath, LOCALES, OG_LOCALES, type Locale } from "../i18n/utils";
 
 interface Props {
   locale: Locale;
@@ -68,16 +68,12 @@ const canonical = new URL(cleanPath, SITE).href;
 // depuis /faq, « en » menait à /en au lieu de /en/faq, et les moteurs
 // recevaient une carte fausse. Une page hors index (404) n'en déclare
 // pas : elle n'a pas de jumelle indexable.
-const pathSansLocale = cleanPath.replace(/^\/en(?=\/|$)/, "") || "/";
 const alternates = noindex
   ? null
-  : {
-      fr: new URL(pathSansLocale, SITE).href,
-      en: new URL(pathSansLocale === "/" ? "/en" : `/en${pathSansLocale}`, SITE).href,
-    };
+  : LOCALES.map((l) => ({ code: l.code, href: new URL(translatePath(cleanPath, l.code), SITE).href }));
 
 const shareImage = new URL(
-  ogImage ?? (locale === "en" ? "/og-image-en.png" : "/og-image.png"),
+  ogImage ?? (locale === "fr" ? "/og-image.png" : "/og-image-en.png"),
   SITE,
 ).href;
 
@@ -102,7 +98,7 @@ const appSchema = {
     "https://apps.apple.com/app/netbudget/id6763551701",
     "https://play.google.com/store/apps/details?id=com.stouph.netbudget",
   ],
-  screenshot: ["/screens/" + locale + "/budget-720.webp", "/screens/" + locale + "/depenses-720.webp", "/screens/" + locale + "/reperes-720.webp", "/screens/" + locale + "/coach-720.webp", "/screens/" + locale + "/projet-720.webp", "/screens/" + locale + "/objectifs-720.webp", "/screens/" + locale + "/annee-720.webp", "/screens/" + locale + "/notifications-720.webp", "/screens/" + locale + "/convertir-720.webp"].map((p) => new URL(p, SITE).href),
+  screenshot: ["budget", "depenses", "reperes", "coach", "projet", "objectifs", "annee", "notifications", "convertir"].map((n) => new URL(`${screenPath(locale, n)}.webp`, SITE).href),
   isAccessibleForFree: true,
   ...(store?.version ? { softwareVersion: store.version } : {}),
   ...(store?.datePublished ? { datePublished: store.datePublished } : {}),
@@ -125,9 +121,9 @@ const appSchema = {
     price: "0",
     priceCurrency: "EUR",
     description:
-      locale === "en"
-        ? "Free, no account required. Optional subscription for syncing and shared budgets."
-        : "Gratuit, sans compte. Abonnement facultatif pour la synchronisation et les budgets partagés.",
+      locale === "fr"
+        ? "Gratuit, sans compte. Abonnement facultatif pour la synchronisation et les budgets partagés."
+        : "Free, no account required. Optional subscription for syncing and shared budgets.",
   },
   author: {
     "@type": "Person",
@@ -206,8 +202,10 @@ const jsonLd = {
     <meta property="og:image:height" content="630" />
     {/* Décrit l'aperçu aux lecteurs d'écran des réseaux qui l'exposent. */}
     <meta property="og:image:alt" content={pageTitle} />
-    <meta property="og:locale" content={locale === "en" ? "en_GB" : "fr_FR"} />
-    <meta property="og:locale:alternate" content={locale === "en" ? "fr_FR" : "en_GB"} />
+    <meta property="og:locale" content={OG_LOCALES[locale]} />
+    {LOCALES.filter((l) => l.code !== locale).map((l) => (
+      <meta property="og:locale:alternate" content={OG_LOCALES[l.code]} />
+    ))}
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={pageTitle} />
@@ -216,9 +214,10 @@ const jsonLd = {
 
     {alternates ? (
       <>
-        <link rel="alternate" hreflang="x-default" href={alternates.fr} />
-        <link rel="alternate" hreflang="fr" href={alternates.fr} />
-        <link rel="alternate" hreflang="en" href={alternates.en} />
+        <link rel="alternate" hreflang="x-default" href={alternates[0].href} />
+        {alternates.map((a) => (
+          <link rel="alternate" hreflang={a.code} href={a.href} />
+        ))}
       </>
     ) : null}
 

@@ -1,5 +1,5 @@
 ---
-import { useTranslations, localizedPath, LOCALES, type Locale } from "../i18n/utils";
+import { useTranslations, localizedPath, pagePath, translatePath, LOCALES, type Locale } from "../i18n/utils";
 
 interface Props {
   locale: Locale;
@@ -25,7 +25,7 @@ const t = useTranslations(locale);
         <p class="mt-4 max-w-sm text-sm text-text-2">{t("footer.tagline")}</p>
         {/* La 2.0 arrive : un lien discret vers la page des nouveautés. */}
         <p class="mt-2 text-xs text-text-3">
-          <a href={locale === "en" ? "/en/whats-new" : "/nouveautes"} class="inline-flex min-h-11 items-center text-mint-400/90 transition hover:text-mint-300">{t("footer.hint")}</a>
+          <a href={pagePath(locale, "whatsNew")} class="inline-flex min-h-11 items-center text-mint-400/90 transition hover:text-mint-300">{t("footer.hint")}</a>
         </p>
         <!-- Social icons sous la tagline -->
         <div class="mt-5 flex items-center gap-2">
@@ -69,7 +69,7 @@ const t = useTranslations(locale);
         <ul class="mt-2 text-sm">
           <li><a href={localizedPath(locale, "/privacy/")} class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.privacy")}</a></li>
           <li><a href={localizedPath(locale, "/terms/")} class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.terms")}</a></li>
-          <li><a href={locale === "en" ? "/en/thank-you" : "/merci"} class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.thanks")}</a></li>
+          <li><a href={pagePath(locale, "thanks")} class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.thanks")}</a></li>
           <li><a href="mailto:contact@netbudget.app" class="inline-flex min-h-11 items-center text-text-2 hover:text-text-1 transition">{t("footer.contact")}</a></li>
           <li><button type="button" data-consent-open class="inline-flex min-h-11 items-center text-left text-text-2 hover:text-text-1 transition">{t("footer.consent")}</button></li>
         </ul>
@@ -138,7 +138,7 @@ const t = useTranslations(locale);
         <div class="mt-4 flex flex-wrap gap-2">
           {LOCALES.map((l) => (
             <a
-              href={localizedPath(l.code, "/")}
+              href={translatePath(Astro.url.pathname, l.code)}
               class:list={[
                 "inline-flex min-h-11 items-center rounded-full border px-3 text-sm transition",
                 l.code === locale

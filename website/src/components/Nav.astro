@@ -14,7 +14,7 @@
 //
 // 3. Rien n'était accessible sur mobile, où la navigation entière était
 //    masquée. Le menu « Légal » y reste atteignable.
-import { useTranslations, localizedPath, LOCALES, type Locale } from "../i18n/utils";
+import { useTranslations, localizedPath, pagePath, translatePath, LOCALES, type Locale } from "../i18n/utils";
 
 interface Props {
   locale: Locale;
@@ -24,7 +24,7 @@ interface Props {
 const { locale, pageKind = "home" } = Astro.props;
 const t = useTranslations(locale);
 const home = localizedPath(locale, "/");
-const whatsNewPath = locale === "en" ? "/whats-new" : "/nouveautes";
+const whatsNewPath = pagePath(locale, "whatsNew");
 
 // Les documents que l'on doit pouvoir trouver sans chercher. Un utilisateur qui
 // veut vérifier ce qu'on fait de ses données ne doit pas avoir à descendre
@@ -88,7 +88,7 @@ const legalLinks = [
           la navigation est masqué. C'est la page que tout le monde cherche
           en ce moment. */}
       <a
-        href={localizedPath(locale, whatsNewPath)}
+        href={whatsNewPath}
         aria-current={Astro.url.pathname.replace(/\/+$/, "").endsWith(whatsNewPath) ? "page" : undefined}
         class="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-mint-500/30 bg-mint-500/10 px-2.5 text-sm font-semibold text-mint-400 transition hover:bg-mint-500/20 sm:px-3.5"
       >
@@ -212,7 +212,7 @@ const legalLinks = [
           {
             LOCALES.map((l) => (
               <a
-                href={localizedPath(l.code, "/")}
+                href={translatePath(Astro.url.pathname, l.code)}
                 class:list={[
                   "flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition",
                   l.code === locale

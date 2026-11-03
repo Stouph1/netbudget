@@ -2,7 +2,7 @@
 // Section "tous les liens" — pensée pour être LA destination unique du lien
 // Instagram (bio) et du bouton "Télécharger" de la nav : App Store, Google
 // Play et le teaser de la 2.0, réunis au même endroit.
-import { useTranslations, type Locale } from "../i18n/utils";
+import { useTranslations, pagePath, type Locale } from "../i18n/utils";
 
 interface Props {
   locale: Locale;
@@ -10,17 +10,19 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-// Le teaser de la 2.0 (22 s, 16:9), hébergé ici : aucun script externe, la
-// CSP du site reste intacte. Lancé sans le son, les contrôles natifs
-// permettent de l'activer.
-const TEASER_VIDEO = "/videos/netbudget-teaser-2-0.mp4";
-const TEASER_POSTER = "/videos/netbudget-teaser-2-0.jpg";
+// L'annonce de la 2.0 (36 s, 16:9), hébergée ici : aucun script externe, la
+// CSP du site reste intacte. Lancée sans le son, les contrôles natifs
+// permettent de l'activer. Version française pour le français, version
+// anglaise pour les sept autres langues.
+const videoBase = locale === "fr" ? "/videos/netbudget-annonce-2-0" : "/videos/netbudget-annonce-2-0-en";
+const TEASER_VIDEO = `${videoBase}.mp4`;
+const TEASER_POSTER = `${videoBase}.jpg`;
 // Sur téléphone, la version verticale (9:16) remplit l'écran au lieu d'une
 // bande de 16:9 ; le script choisit la source avant la lecture.
-const TEASER_VIDEO_PORTRAIT = "/videos/netbudget-teaser-2-0-portrait.mp4";
-const TEASER_POSTER_PORTRAIT = "/videos/netbudget-teaser-2-0-portrait.jpg";
+const TEASER_VIDEO_PORTRAIT = `${videoBase}-portrait.mp4`;
+const TEASER_POSTER_PORTRAIT = `${videoBase}-portrait.jpg`;
 // La page des nouveautés a un nom par langue (même règle que la navigation).
-const whatsNewPath = locale === "en" ? "/en/whats-new" : "/nouveautes";
+const whatsNewPath = pagePath(locale, "whatsNew");
 const APPSTORE_URL = "https://apps.apple.com/app/netbudget/id6763551701";
 const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.stouph.netbudget";
 ---

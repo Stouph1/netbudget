@@ -10,7 +10,7 @@
 // téléchargement — combien ça coûte, où vont mes données, est-ce que ça marche
 // dans mon pays. Répondre franchement à « c'est payant ? » vaut mieux que
 // laisser le doute.
-import { useTranslations, type Locale } from "../i18n/utils";
+import { useTranslations, localizedPath, type Locale } from "../i18n/utils";
 import { FAQ_HOME_COUNT, FAQ_IDS } from "../lib/faq";
 
 interface Props {
@@ -86,7 +86,7 @@ const QHeading = compact ? "h3" : "h2";
       compact ? (
         <div class="mt-10 text-center">
           <a
-            href={locale === "en" ? "/en/faq" : "/faq"}
+            href={localizedPath(locale, "/faq")}
             class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-mint-400 transition hover:text-mint-300"
           >
             {t("faq.seeAll")}

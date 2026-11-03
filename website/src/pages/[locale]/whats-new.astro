@@ -1,0 +1,34 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import Highlights from "../../components/Highlights.astro";
+import WhatsNew from "../../components/WhatsNew.astro";
+import FinalCTA from "../../components/FinalCTA.astro";
+import V2Header from "../../components/V2Header.astro";
+import { useTranslations, localizedPath, pagePath, LOCALES, DEFAULT_LOCALE, type Locale } from "../../i18n/utils";
+
+export function getStaticPaths() {
+  return LOCALES.filter((l) => l.code !== DEFAULT_LOCALE).map((l) => ({ params: { locale: l.code } }));
+}
+
+const locale = Astro.params.locale as Locale;
+const SITE = "https://www.netbudget.app";
+const t = useTranslations(locale);
+const crumbSchema = {
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: t("breadcrumb.home"), item: new URL(localizedPath(locale, "/"), SITE).href },
+    { "@type": "ListItem", position: 2, name: t("v2.eyebrow"), item: new URL(pagePath(locale, "whatsNew"), SITE).href },
+  ],
+};
+---
+
+<Layout locale={locale} title={t("page.v2.title")} description={t("page.v2.desc")} pageKind="page" schema={crumbSchema}>
+  <div class="container-app pt-6">
+    <Breadcrumb locale={locale} items={[{ label: t("v2.eyebrow") }]} />
+  </div>
+  <V2Header locale={locale} />
+  <Highlights locale={locale} />
+  <WhatsNew locale={locale} />
+  <FinalCTA locale={locale} />
+</Layout>

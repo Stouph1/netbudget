@@ -8,6 +8,7 @@
 // Les pages exclues le sont pour une raison, pas par oubli — voir EXCLUDE.
 
 import type { APIRoute } from "astro";
+import { DEFAULT_LOCALE, LOCALES, translatePath } from "../i18n/utils";
 
 const SITE = "https://www.netbudget.app";
 
@@ -25,7 +26,7 @@ const EXCLUDE = /(^|\/)(404|sitemap|confirmation|rejoindre)(\/|\.|$)/;
 /** Priorité et fréquence selon la nature de la page, pas au hasard. */
 function weight(path: string): { priority: string; changefreq: string } {
   if (path === "/") return { priority: "1.0", changefreq: "weekly" };
-  if (path === "/en/") return { priority: "0.9", changefreq: "weekly" };
+  if (LOCALES.some((l) => path === `/${l.code}/`)) return { priority: "0.9", changefreq: "weekly" };
   if (path.includes("/nouveautes") || path.includes("/whats-new")) return { priority: "0.9", changefreq: "weekly" };
   if (path.includes("/faq")) return { priority: "0.8", changefreq: "monthly" };
   if (path.includes("/merci") || path.includes("/thank-you")) return { priority: "0.5", changefreq: "monthly" };
@@ -34,7 +35,8 @@ function weight(path: string): { priority: string; changefreq: string } {
 }
 
 /**
- * `./en/privacy.astro` → `/en/privacy/`
+ * `./[locale]/privacy.astro` → `/[locale]/privacy/`, développé plus bas en
+ * une adresse par langue
  *
  * `import.meta.glob` renvoie des clés RELATIVES commençant par `./`. Les
  * oublier laissait passer des URL en `https://netbudget.app/./faq/`, et surtout
@@ -56,7 +58,10 @@ export const GET: APIRoute = () => {
     import.meta.glob("./**/*.{astro,md,mdx}", { eager: false }),
   );
 
+  // Les pages `[locale]/…` existent une fois par langue autre que le français.
+  const others = LOCALES.filter((l) => l.code !== DEFAULT_LOCALE).map((l) => l.code);
   const paths = [...new Set(files.map(toUrlPath))]
+    .flatMap((p) => (p.startsWith("/[locale]/") ? others.map((c) => p.replace("[locale]", c)) : [p]))
     .filter((p) => !EXCLUDE.test(p))
     .sort();
 
@@ -69,17 +74,16 @@ export const GET: APIRoute = () => {
   // perdre du budget d'exploration.
   const serve = (p: string) => (p === "/" ? "/" : p.replace(/\/+$/, ""));
 
-  // Chaque URL déclare sa jumelle dans l'autre langue : Google apprend ainsi
-  // que /faq et /en/faq sont la même page en deux langues, et sert la bonne
-  // selon la personne, au lieu de les voir comme deux pages concurrentes.
-  const alternates = (p: string) => {
-    const bare = p.replace(/^\/en(?=\/|$)/, "") || "/";
-    const fr = `${SITE}${serve(bare)}`;
-    const en = `${SITE}${serve(bare === "/" ? "/en/" : `/en${bare}`)}`;
-    return `    <xhtml:link rel="alternate" hreflang="fr" href="${fr}"/>
-    <xhtml:link rel="alternate" hreflang="en" href="${en}"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="${fr}"/>`;
-  };
+  // Chaque URL déclare ses jumelles dans les autres langues : Google apprend
+  // ainsi que /faq, /en/faq ou /ja/faq sont la même page, et sert la bonne
+  // selon la personne, au lieu de les voir comme des pages concurrentes.
+  const alternates = (p: string) =>
+    [
+      ...LOCALES.map((l) => ({ code: l.code, href: `${SITE}${translatePath(p, l.code)}` })),
+      { code: "x-default", href: `${SITE}${translatePath(p, DEFAULT_LOCALE)}` },
+    ]
+      .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.code}" href="${a.href}"/>`)
+      .join("\n");
 
   const urls = paths
     .map((p) => {

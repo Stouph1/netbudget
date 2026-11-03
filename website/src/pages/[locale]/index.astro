@@ -1,0 +1,39 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Hero from "../../components/Hero.astro";
+import LinksHub from "../../components/LinksHub.astro";
+import Stats from "../../components/Stats.astro";
+import Screens from "../../components/Screens.astro";
+import Features from "../../components/Features.astro";
+import Globe from "../../components/Globe.astro";
+import Plans from "../../components/Plans.astro";
+import Reviews from "../../components/Reviews.astro";
+import Privacy from "../../components/Privacy.astro";
+import Maker from "../../components/Maker.astro";
+import Scripture from "../../components/Scripture.astro";
+import Faq from "../../components/Faq.astro";
+import FinalCTA from "../../components/FinalCTA.astro";
+import { LOCALES, DEFAULT_LOCALE, type Locale } from "../../i18n/utils";
+
+export function getStaticPaths() {
+  return LOCALES.filter((l) => l.code !== DEFAULT_LOCALE).map((l) => ({ params: { locale: l.code } }));
+}
+
+const locale = Astro.params.locale as Locale;
+---
+
+<Layout locale={locale}>
+  <Hero locale={locale} />
+  <LinksHub locale={locale} />
+  <Stats locale={locale} />
+  <Globe locale={locale} />
+  <Screens locale={locale} />
+  <Features locale={locale} />
+  <Plans locale={locale} />
+  <Reviews locale={locale} />
+  <Privacy locale={locale} />
+  <Maker locale={locale} />
+  <Faq locale={locale} compact={true} />
+  <FinalCTA locale={locale} />
+  <Scripture locale={locale} />
+</Layout>

@@ -1,0 +1,37 @@
+---
+// Thank-you page, in English. Le contenu vit dans components/Thanks.
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumb from "../../components/Breadcrumb.astro";
+import Thanks from "../../components/Thanks.astro";
+import { useTranslations, localizedPath, pagePath, LOCALES, DEFAULT_LOCALE, type Locale } from "../../i18n/utils";
+
+export function getStaticPaths() {
+  return LOCALES.filter((l) => l.code !== DEFAULT_LOCALE).map((l) => ({ params: { locale: l.code } }));
+}
+
+const locale = Astro.params.locale as Locale;
+const SITE = "https://www.netbudget.app";
+const t = useTranslations(locale);
+
+const crumbSchema = {
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: t("breadcrumb.home"), item: new URL(localizedPath(locale, "/"), SITE).href },
+    { "@type": "ListItem", position: 2, name: t("page.thanks.title"), item: new URL(pagePath(locale, "thanks"), SITE).href },
+  ],
+};
+---
+
+<Layout
+  locale={locale}
+  title={`${t("page.thanks.title")} — NETbudget`}
+  description={t("page.thanks.desc")}
+  pageKind="page"
+  schema={crumbSchema}
+  hideStickyCta={true}
+>
+  <div class="container-app pt-8">
+    <Breadcrumb locale={locale} items={[{ label: t("page.thanks.title") }]} />
+  </div>
+  <Thanks locale={locale} />
+</Layout>

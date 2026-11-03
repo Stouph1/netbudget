@@ -1,13 +1,28 @@
 // Catalogues de traduction pour le site marketing.
-// Volontairement limités au FR et EN pour le lancement.
+// FR et EN sont écrits ici ; les six autres langues de l'app vivent dans
+// `locales/<code>.json`, traduites depuis le français, clé pour clé.
 
-export type Locale = "fr" | "en";
+import es from "./locales/es.json";
+import pt from "./locales/pt.json";
+import de from "./locales/de.json";
+import it from "./locales/it.json";
+import ar from "./locales/ar.json";
+import ja from "./locales/ja.json";
+
+export type Locale = "fr" | "en" | "es" | "pt" | "de" | "it" | "ar" | "ja";
 
 export const DEFAULT_LOCALE: Locale = "fr";
 
+// Mêmes langues, même ordre que dans l'app.
 export const LOCALES: { code: Locale; label: string; flag: string; rtl?: boolean }[] = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
   { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "pt", label: "Português", flag: "🇵🇹" },
+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "it", label: "Italiano", flag: "🇮🇹" },
+  { code: "ar", label: "العربية", flag: "🇸🇦", rtl: true },
+  { code: "ja", label: "日本語", flag: "🇯🇵" },
 ];
 
 type Catalog = Record<string, string>;
@@ -1158,4 +1173,4 @@ const en: Catalog = {
   "back.home": "Back to home",
 };
 
-export const CATALOGS: Record<Locale, Catalog> = { fr, en };
+export const CATALOGS: Record<Locale, Catalog> = { fr, en, es, pt, de, it, ar, ja };

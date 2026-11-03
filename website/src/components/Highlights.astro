@@ -5,7 +5,7 @@
 // vidéos d'annonce, et la capture des notifications est un vrai écran
 // verrouillé.
 import Phone from "./Phone.astro";
-import { useTranslations, type Locale } from "../i18n/utils";
+import { useTranslations, screenPath, type Locale } from "../i18n/utils";
 
 interface Props {
   locale: Locale;
@@ -21,19 +21,19 @@ type Row =
 // affiches des vidéos et l'écran verrouillé sont en français, on ne les y
 // montre pas.
 const rows: Row[] = [
-  { n: 1, kind: "phone", src: `/screens/${locale}/depenses-720`, alt: t("screens.expenses") },
-  { n: 2, kind: "phone", src: `/screens/${locale}/reperes-720`, alt: t("screens.benchmark") },
+  { n: 1, kind: "phone", src: screenPath(locale, "depenses"), alt: t("screens.expenses") },
+  { n: 2, kind: "phone", src: screenPath(locale, "reperes"), alt: t("screens.benchmark") },
   locale === "fr"
     ? { n: 3, kind: "image", src: "/promo/notifications", alt: t("highlights.alt.notifications"), ratio: "aspect-[1170/650]", width: 1170, height: 650 }
-    : { n: 3, kind: "phone", src: `/screens/${locale}/notifications-720`, alt: t("screens.notifications") },
-  { n: 4, kind: "phone", src: `/screens/${locale}/coach-720`, alt: t("screens.coach") },
-  { n: 5, kind: "phone", src: `/screens/${locale}/projet-720`, alt: t("screens.project") },
+    : { n: 3, kind: "phone", src: screenPath(locale, "notifications"), alt: t("screens.notifications") },
+  { n: 4, kind: "phone", src: screenPath(locale, "coach"), alt: t("screens.coach") },
+  { n: 5, kind: "phone", src: screenPath(locale, "projet"), alt: t("screens.project") },
   locale === "fr"
     ? { n: 6, kind: "image", src: "/promo/03-duo", alt: t("highlights.alt.duo"), ratio: "aspect-[18/25]", width: 720, height: 1000 }
-    : { n: 6, kind: "phone", src: `/screens/${locale}/espaces-720`, alt: t("screens.spaces") },
+    : { n: 6, kind: "phone", src: screenPath(locale, "espaces"), alt: t("screens.spaces") },
   locale === "fr"
-    ? { n: 7, kind: "phone", src: `/screens/${locale}/espaces-720`, alt: t("screens.spaces") }
-    : { n: 7, kind: "phone", src: `/screens/${locale}/foyer-720`, alt: t("screens.household") },
+    ? { n: 7, kind: "phone", src: screenPath(locale, "espaces"), alt: t("screens.spaces") }
+    : { n: 7, kind: "phone", src: screenPath(locale, "foyer"), alt: t("screens.household") },
 ];
 ---
 
