@@ -51,9 +51,6 @@ const BORDER = "rgba(255,255,255,0.08)";
 // — la première ligne est celle qu'on lit, et c'est celle qu'il faut garder.
 const CATEGORIES: { key: NotifCategory; icon: keyof typeof Feather.glyphMap }[] = [
   { key: "rights", icon: "award" },
-  // Un seul avis, trois jours avant l'échéance. Désactivable comme les autres :
-  // Apple et Google préviennent de toute façon, celui-ci est un confort.
-  { key: "billing", icon: "credit-card" },
   { key: "workspace", icon: "users" },
   { key: "event", icon: "calendar" },
   { key: "goal", icon: "target" },

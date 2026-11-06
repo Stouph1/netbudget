@@ -44,6 +44,7 @@ import {
 import { notify } from "../../src/utils/notify";
 import type { AgeBracket, Country, Occupation } from "../../src/types/advice";
 import { switchStyle } from "../../src/theme/controls";
+import { takePendingPlan } from "../../src/lib/pendingPlan";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -239,6 +240,13 @@ export default function CompleteProfile() {
     // ?onboard=1 force l'écran d'édition du profil conseils, jamais la liste.
     // (Pas d'Alert ici : les popups à boutons sont muettes sur le web.)
     await setScope(null);
+    // Venu de l'écran des formules : l'achat d'abord, le questionnaire du
+    // Coach se fera depuis la formule active.
+    const plan = await takePendingPlan();
+    if (plan) {
+      router.replace({ pathname: "/plans", params: { tier: plan } } as never);
+      return;
+    }
     router.replace("/(premium)/advice?onboard=1" as never);
   }
 

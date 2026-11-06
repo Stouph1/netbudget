@@ -126,9 +126,6 @@ export function PaywallSheet({
             />
           </View>
 
-          {/* L'essai est annoncé ici aussi : c'est le moment où la question se
-              pose, pas deux écrans plus loin. */}
-          <Text style={s.trial}>{t("paywall.trialOnce")}</Text>
 
           <TouchableOpacity
             style={s.cta}
@@ -183,7 +180,6 @@ const makeS = (GOLD: string) =>
   head: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   title: { flex: 1, color: TEXT_1, fontSize: 19, fontWeight: "800", lineHeight: 25 },
   sub: { color: TEXT_2, fontSize: 14, lineHeight: 20, marginTop: 8, marginBottom: 16 },
-  trial: { color: TEXT_3, fontSize: 11.5, lineHeight: 16, marginTop: 6, marginBottom: 12 },
   cta: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 15, alignItems: "center" },
   ctaText: { color: "#000", fontSize: 15, fontWeight: "800" },
   later: { color: TEXT_3, fontSize: 13, fontWeight: "600", textAlign: "center" },

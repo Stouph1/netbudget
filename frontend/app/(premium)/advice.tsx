@@ -694,12 +694,23 @@ export default function AdviceScreen() {
         <View style={styles.center}>
           <Feather name="lock" size={32} color={TEXT_3} />
           <Text style={styles.emptyTitle}>{t("coach.locked.title")}</Text>
+          {/* On arrive souvent ici depuis une notification : dire ce que le
+              Coach apporte et où se connecter, plutôt qu'un simple « retour ». */}
+          <Text style={styles.emptyBody}>{t("coach.locked.body")}</Text>
           <TouchableOpacity
-            onPress={() => goBack()}
-            style={styles.emptyBtn}
+            onPress={() =>
+              router.replace({ pathname: "/", params: { tab: "premium" } } as never)
+            }
+            style={[styles.emptyBtn, { backgroundColor: GOLD }]}
             activeOpacity={0.85}
+            accessibilityRole="button"
           >
-            <Text style={styles.emptyBtnText}>{t("coach.locked.back")}</Text>
+            <Text style={[styles.emptyBtnText, { color: "#000", fontWeight: "700" }]}>
+              {t("coach.locked.cta")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => goBack()} style={{ paddingVertical: 12 }} activeOpacity={0.7}>
+            <Text style={[styles.emptyBtnText, { color: TEXT_3 }]}>{t("coach.locked.back")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

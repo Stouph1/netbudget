@@ -28,6 +28,7 @@ import { useLang } from "../contexts/LangContext";
 import { buildRecap, type Recap, type Snapshot } from "../lib/recap";
 import { milestoneReached, type Streak } from "../lib/streak";
 import { claimMilestone, lastSnapshot, loadStreak, recordCheckIn } from "../lib/streakStore";
+import { askForReviewAfterHappyMoment } from "../lib/reviewPrompt";
 import { monthKey } from "../lib/streak";
 
 const TEXT_1 = "#FFFFFF";
@@ -89,6 +90,8 @@ export function StreakCard({
       setMilestone(reached);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
+    // Point du mois validé : on laisse le bilan s'afficher avant la note.
+    setTimeout(() => void askForReviewAfterHappyMoment(), 2500);
   }, [figures]);
 
   if (!streak) return null;

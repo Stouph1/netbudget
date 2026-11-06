@@ -6,10 +6,10 @@
 Budget, money left, Coach
 ```
 
-## Texte promotionnel (145/170)
+## Texte promotionnel (162/170)
 
 ```
-2.0: shared budgets for couples and families, a Coach with 282 sourced tips across 17 countries, official benchmarks. No bank connection, no ads.
+How much do you really have left this month? 2.0 adds budgets for couples and families, and a Coach with 282 sourced tips across 17 countries. No bank connection.
 ```
 
 ## Mots-clés (90/100)
@@ -56,19 +56,19 @@ Terms of Use (Apple standard EULA): https://www.apple.com/legal/internet-service
 Privacy Policy: https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1023/4000)
+## Nouveautés de cette version (864/4000)
 
 ```
 NETbudget 2.0, the biggest update since launch.
 
-• Shared spaces: a common budget as a couple, a family or flatmates, with a simple invitation code. Each person keeps a private space.
-• Coach: 282 sourced tips across 17 countries, adapted to your age, household, housing and country, with a tip of the week every Monday.
-• Benchmarks against national averages: Eurostat, BLS, ONS, Statistics Canada, ABS, with the source and the year.
-• Projects and events: wedding, trip, baby, party, with a guided budget, a timeline and reminders.
-• A lighter budget: pictograms per line, expenses by period, a 50/30/20 benchmark adapted to your profile.
-• Income tax withheld at source in 32 countries, with the official tables one tap away.
+• Shared budgets: as a couple, a family or flatmates, with a simple invite code. Everyone keeps a private space.
+• Coach: 282 sourced tips across 17 countries, picked for your age, household, housing and country. A new tip every Monday.
+• Official benchmarks: your share for housing, groceries or going out against the average household in your country, with source and year.
+• Projects: wedding, trip, new baby, party, with a guided budget, a countdown plan and reminders.
+• A clearer budget: an icon for each item, seasonal expenses, a 50/30/20 guide tuned to your profile.
+• Tax withheld at source in 32 countries.
+• Savings goals with a deadline, a rebuilt PDF export.
 • Useful notifications, with a weekly cap you choose.
-• End-to-end encryption: your data leaves encrypted, and a twelve-word phrase brings it back on a new phone.
-• Rebuilt PDF export, savings goals with deadlines, household birthdays.
-• Eight complete languages, including Arabic and Japanese.
+• Synced data is end-to-end encrypted.
+• Eight languages, including Arabic and Japanese.
 ```

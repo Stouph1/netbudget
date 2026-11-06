@@ -6,10 +6,10 @@
 Budget, quanto ti resta
 ```
 
-## Texte promotionnel (167/170)
+## Texte promotionnel (168/170)
 
 ```
-2.0: budget condiviso in coppia o in famiglia, un Coach con 282 consigli con fonte in 17 paesi, riferimenti ufficiali. Senza collegamento alla banca, senza pubblicità.
+Quanto ti resta davvero questo mese? La 2.0 aggiunge il budget in coppia o in famiglia e un Coach con 282 consigli con fonte in 17 paesi. Senza collegamento alla banca.
 ```
 
 ## Mots-clés (97/100)
@@ -56,19 +56,19 @@ Termini di utilizzo (EULA standard di Apple): https://www.apple.com/legal/intern
 Informativa sulla privacy: https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1068/4000)
+## Nouveautés de cette version (927/4000)
 
 ```
 NETbudget 2.0, il più grande aggiornamento dal lancio.
 
-• Spazi condivisi: un budget comune in coppia, in famiglia o tra coinquilini, con un semplice codice di invito. Ognuno conserva il proprio spazio privato.
-• Coach: 282 consigli con fonte in 17 paesi, adattati a età, nucleo familiare, abitazione e paese, con un consiglio della settimana ogni lunedì.
-• Riferimenti rispetto alle medie nazionali: Eurostat, BLS, ONS, Statistics Canada, ABS, con fonte e anno.
-• Progetti ed eventi: matrimonio, viaggio, nascita, festa, con budget guidato, calendario e promemoria.
-• Budget più leggero: pittogrammi per voce, spese per periodo, riferimento 50/30/20 adattato al tuo profilo.
-• Imposta trattenuta alla fonte in 32 paesi, con le tabelle ufficiali a un tocco.
-• Notifiche utili, con un tetto settimanale a tua scelta.
-• Cifratura end-to-end: i tuoi dati partono cifrati e una frase di dodici parole li riporta su un nuovo telefono.
-• Esportazione PDF rinnovata, obiettivi di risparmio con scadenza, compleanni di casa.
-• Otto lingue complete, tra cui arabo e giapponese.
+• Budget condiviso: in coppia, in famiglia o tra coinquilini, con un semplice codice di invito. Ognuno mantiene il proprio spazio privato.
+• Coach: 282 consigli con fonte in 17 paesi, scelti in base a età, famiglia, abitazione e paese. Un consiglio nuovo ogni lunedì.
+• Riferimenti ufficiali: la tua quota per casa, spesa o svago rispetto alla media delle famiglie del tuo paese, con fonte e anno.
+• Progetti: matrimonio, viaggio, nascita, festa, con budget guidato, conto alla rovescia e promemoria.
+• Un budget più chiaro: un pittogramma per voce, spese per periodo, un riferimento 50/30/20 adatto al tuo profilo.
+• Imposta trattenuta alla fonte in 32 paesi.
+• Obiettivi di risparmio con scadenza, esportazione PDF rinnovata.
+• Notifiche utili, con un limite settimanale che scegli tu.
+• Dati sincronizzati cifrati end-to-end.
+• Otto lingue, tra cui arabo e giapponese.
 ```

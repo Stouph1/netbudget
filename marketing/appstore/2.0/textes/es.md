@@ -6,10 +6,10 @@
 Presupuesto, lo que te queda
 ```
 
-## Texte promotionnel (162/170)
+## Texte promotionnel (163/170)
 
 ```
-2.0: presupuesto compartido en pareja o en familia, un Coach con 282 consejos con fuente en 17 países, referencias oficiales. Sin conexión bancaria, sin anuncios.
+¿Cuánto te queda de verdad este mes? La 2.0 añade el presupuesto en pareja o en familia y un Coach con 282 consejos con fuente en 17 países. Sin conexión bancaria.
 ```
 
 ## Mots-clés (97/100)
@@ -56,19 +56,19 @@ Condiciones de uso (CLUF estándar de Apple): https://www.apple.com/legal/intern
 Política de privacidad: https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1112/4000)
+## Nouveautés de cette version (972/4000)
 
 ```
 NETbudget 2.0, la mayor actualización desde el lanzamiento.
 
-• Espacios compartidos: un presupuesto común en pareja, en familia o entre compañeros de piso, con un simple código de invitación. Cada uno conserva su espacio privado.
-• Coach: 282 consejos con fuente en 17 países, adaptados a tu edad, tu hogar, tu vivienda y tu país, con un consejo de la semana cada lunes.
-• Referencias frente a las medias nacionales: Eurostat, BLS, ONS, Statistics Canada, ABS, con la fuente y el año.
-• Proyectos y eventos: boda, viaje, nacimiento, fiesta, con presupuesto guiado, calendario y recordatorios.
-• Presupuesto más ligero: pictogramas por partida, gastos por periodo, referencia 50/30/20 adaptada a tu perfil.
-• Impuesto retenido en nómina en 32 países, con las tablas oficiales a un toque.
+• Presupuesto compartido: en pareja, en familia o entre compañeros de piso, con un simple código de invitación. Cada uno conserva su espacio privado.
+• Coach: 282 consejos con fuente en 17 países, elegidos según tu edad, tu hogar, tu vivienda y tu país. Un consejo nuevo cada lunes.
+• Referencias oficiales: tu parte de vivienda, compra u ocio frente a la media de los hogares de tu país, con la fuente y el año.
+• Proyectos: boda, viaje, nacimiento, fiesta, con presupuesto guiado, cuenta atrás y recordatorios.
+• Un presupuesto más claro: un pictograma por partida, gastos por temporada, una referencia 50/30/20 adaptada a tu perfil.
+• Impuesto retenido en origen en 32 países.
+• Objetivos de ahorro con fecha límite, exportación PDF renovada.
 • Notificaciones útiles, con un límite semanal que eliges tú.
-• Cifrado de extremo a extremo: tus datos salen cifrados y una frase de doce palabras los recupera en un teléfono nuevo.
-• Exportación en PDF renovada, objetivos de ahorro con fecha, cumpleaños del hogar.
-• Ocho idiomas completos, incluidos el árabe y el japonés.
+• Datos sincronizados cifrados de extremo a extremo.
+• Ocho idiomas, entre ellos el árabe y el japonés.
 ```

@@ -6,10 +6,10 @@
 Budget, was wirklich bleibt
 ```
 
-## Texte promotionnel (159/170)
+## Texte promotionnel (169/170)
 
 ```
-2.0: gemeinsames Budget für Paare und Familien, ein Coach mit 282 belegten Tipps aus 17 Ländern, offizielle Vergleichswerte. Ohne Bankverbindung, ohne Werbung.
+Wie viel bleibt dir diesen Monat wirklich? Die 2.0 bringt das Budget zu zweit oder als Familie und einen Coach mit 282 belegten Tipps aus 17 Ländern. Ohne Bankanbindung.
 ```
 
 ## Mots-clés (94/100)
@@ -56,19 +56,19 @@ Nutzungsbedingungen (Standard-EULA von Apple): https://www.apple.com/legal/inter
 Datenschutzerklärung: https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1095/4000)
+## Nouveautés de cette version (936/4000)
 
 ```
 NETbudget 2.0, das größte Update seit dem Start.
 
-• Gemeinsame Bereiche: ein gemeinsames Budget als Paar, Familie oder WG, per einfachem Einladungscode. Jeder behält seinen privaten Bereich.
-• Coach: 282 belegte Tipps aus 17 Ländern, angepasst an Alter, Haushalt, Wohnsituation und Land, mit einem Tipp der Woche jeden Montag.
-• Vergleichswerte gegenüber nationalen Durchschnitten: Eurostat, BLS, ONS, Statistics Canada, ABS, mit Quelle und Jahr.
-• Projekte und Ereignisse: Hochzeit, Reise, Baby, Feier, mit geführtem Budget, Zeitplan und Erinnerungen.
-• Schlankeres Budget: Piktogramme pro Posten, Ausgaben nach Zeitraum, 50/30/20-Orientierung passend zu deinem Profil.
-• Einbehaltene Lohnsteuer in 32 Ländern, mit den offiziellen Tabellen auf einen Tipp.
-• Nützliche Benachrichtigungen mit einer Wochenobergrenze nach deiner Wahl.
-• Ende-zu-Ende-Verschlüsselung: deine Daten verlassen das Gerät verschlüsselt, zwölf Wörter holen sie auf ein neues Telefon zurück.
-• Neuer PDF-Export, Sparziele mit Frist, Geburtstage des Haushalts.
-• Acht vollständige Sprachen, darunter Arabisch und Japanisch.
+• Gemeinsames Budget: als Paar, Familie oder WG, mit einem einfachen Einladungscode. Jeder behält seinen privaten Bereich.
+• Coach: 282 belegte Tipps aus 17 Ländern, ausgewählt nach Alter, Haushalt, Wohnsituation und Land. Jeden Montag ein neuer Tipp.
+• Offizielle Vergleichswerte: dein Anteil für Wohnen, Einkauf oder Freizeit im Vergleich zum Durchschnittshaushalt deines Landes, mit Quelle und Jahr.
+• Projekte: Hochzeit, Reise, Geburt, Feier, mit geführtem Budget, Zeitplan und Erinnerungen.
+• Ein übersichtlicheres Budget: ein Symbol pro Posten, saisonale Ausgaben, eine 50/30/20-Orientierung passend zu deinem Profil.
+• Quellensteuer in 32 Ländern.
+• Sparziele mit Frist, neu gestalteter PDF-Export.
+• Nützliche Benachrichtigungen, mit einer Wochengrenze, die du festlegst.
+• Synchronisierte Daten sind Ende-zu-Ende-verschlüsselt.
+• Acht Sprachen, darunter Arabisch und Japanisch.
 ```

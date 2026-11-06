@@ -307,6 +307,18 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
         <Text style={{ fontSize: 34 }}>🗓️</Text>
         <Text style={styles.emptyTitle}>{t("events.plan.title")}</Text>
         <Text style={styles.emptyBody}>{t("events.locked.body")}</Text>
+        {/* Sans ce bouton, l'écran disait « connecte-toi » sans dire où. */}
+        <TouchableOpacity
+          style={[styles.primaryBtn, { paddingHorizontal: 22, marginTop: 16 }]}
+          onPress={() =>
+            router.replace({ pathname: "/", params: { tab: "premium" } } as never)
+          }
+          activeOpacity={0.85}
+          accessibilityRole="button"
+        >
+          <Feather name="user" size={16} color="#000" />
+          <Text style={styles.primaryBtnText}>{t("events.locked.cta")}</Text>
+        </TouchableOpacity>
       </View>
     );
   }

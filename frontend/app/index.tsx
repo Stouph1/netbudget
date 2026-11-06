@@ -25,7 +25,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import * as StoreReview from "expo-store-review";
+import { askForReviewAfterHappyMoment } from "../src/lib/reviewPrompt";
 import * as Application from "expo-application";
 import { checkForUpdate, type UpdateInfo } from "../src/utils/appUpdate";
 import { remainingParts } from "../src/utils/loanSchedule";
@@ -682,34 +682,18 @@ export default function Index() {
     return { besoins: 50, envies: 30, epargne: 20, personalized: false };
   }, [premiumProfile]);
 
-  // Prompt de note App Store : se déclenche une seule fois, quand l'utilisateur
-  // scrolle jusqu'en bas de l'onglet Budget après avoir rempli quelques données.
-  const RATE_KEY = "netbudget:ratePromptShown";
-  const ratePromptShownRef = useRef(false);
-  useEffect(() => {
-    (async () => {
-      try {
-        const v = await AsyncStorage.getItem(RATE_KEY);
-        ratePromptShownRef.current = v === "1";
-      } catch {}
-    })();
-  }, []);
-  const maybePromptRate = useCallback(async () => {
-    if (ratePromptShownRef.current) return;
+  // Demande de note : bas de l'onglet Budget atteint avec un budget rempli.
+  // La règle (usage répété, espacement, plafond annuel) vit dans reviewPrompt.
+  const rateTriedRef = useRef(false);
+  const maybePromptRate = useCallback(() => {
+    if (rateTriedRef.current) return;
     const hasData =
       incomes.some((s) => parseNumber(s.amount) > 0) ||
       parseNumber(rent) > 0 ||
       expenseItems.some((e) => parseNumber(e.amount) > 0);
     if (!hasData) return;
-    try {
-      const ok = await StoreReview.isAvailableAsync();
-      if (!ok) return;
-      ratePromptShownRef.current = true;
-      await AsyncStorage.setItem(RATE_KEY, "1");
-      await StoreReview.requestReview();
-    } catch {
-      // silencieux : le prompt est non-essentiel
-    }
+    rateTriedRef.current = true; // une tentative par session, pas par scroll
+    void askForReviewAfterHappyMoment();
   }, [incomes, rent, expenseItems]);
   const onBudgetScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {

@@ -21,7 +21,6 @@ export type NotifCategory =
   | "loan" // étape d'un prêt
   | "seasonal" // fenêtre courte : impôts, soldes, rentrée, fêtes
   | "comeback" // reprise après une absence
-  | "billing" // échéance d'abonnement — un seul avis, discret, désactivable
   | "workspace"; // vie d'un espace partagé : arrivée, départ, gros changement
 
 export type NotifCandidate = {
@@ -50,16 +49,6 @@ export type NotifPrefs = {
   seasonal: boolean;
   comeback: boolean;
   /**
-   * Échéance d'abonnement.
-   *
-   * Un seul avis, trois jours avant, désactivable comme les autres. Il avait
-   * été retiré parce qu'Apple et Google préviennent déjà ; il revient à la
-   * demande des testeurs, qui voulaient un rappel VISIBLE DANS L'APP plutôt
-   * qu'un courriel de boutique noyé parmi d'autres. Il reste soumis au plafond
-   * hebdomadaire : c'est ce qui le rend discret et non pressant.
-   */
-  billing: boolean;
-  /**
    * Vie d'un espace partagé : quelqu'un arrive ou part, le budget ou les
    * objectifs bougent nettement. Immédiate et hors plafond — c'est ce qui se
    * passe MAINTENANT chez les autres membres, pas un rappel.
@@ -79,7 +68,6 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   loan: true,
   seasonal: true,
   comeback: true,
-  billing: true,
   workspace: true,
   // 5 par semaine : assez pour exister, pas assez pour lasser. Au-delà,
   // l'utilisateur coupe TOUT — on perd alors même les rappels utiles.
@@ -192,45 +180,10 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     out.push(c);
   };
 
-  // --- 0. ÉCHÉANCE D'ABONNEMENT ------------------------------------------
-  //
-  // UN SEUL AVIS, TROIS JOURS AVANT. Cet avis avait été retiré : Apple et
-  // Google préviennent déjà, et un rappel de plus sur un sujet d'argent se lit
-  // comme de la pression. Les testeurs ont demandé son retour, pour une raison
-  // recevable : le courriel de la boutique se noie, alors que l'app est ce
-  // qu'ils ouvrent. On le remet donc, mais aux conditions qui le rendent
-  // acceptable :
-  //
-  //   - trois jours avant, pas la veille : le temps de décider sans se presser ;
-  //   - le message dit ce qui va se passer, jamais « attention » ni « vite » ;
-  //   - il est DÉSACTIVABLE, comme toute autre catégorie ;
-  //   - il compte dans le plafond hebdomadaire et la règle « une par jour » —
-  //     aucune exemption. Un avis d'argent qui saute la file redevient de la
-  //     pression.
-  //
-  // Rien si la résiliation est déjà demandée : il n'y aura pas de prélèvement,
-  // et annoncer un renouvellement à quelqu'un qui a résilié le ferait douter
-  // que sa résiliation a été prise en compte.
-  const sub = ctx.subscription;
-  if (sub && !sub.cancelled) {
-    const daysLeft = daysBetween(now, sub.renewsAt);
-    if (daysLeft >= 3) {
-      const at = atHour(new Date(sub.renewsAt.getTime() - 3 * DAY_MS), prefs.hour);
-      const dateKey = sub.renewsAt.toISOString().slice(0, 10);
-      push({
-        id: `billing-${sub.isTrial ? "trial" : "renew"}-${dateKey}`,
-        category: "billing",
-        titleKey: sub.isTrial ? "notif.billing.trial.title" : "notif.billing.renew.title",
-        bodyKey: sub.isTrial ? "notif.billing.trial.body" : "notif.billing.renew.body",
-        params: { days: 3 },
-        // Utile sans être urgent : au-dessus des saisonniers, sous un droit
-        // non réclamé — de l'argent à toucher passe avant de l'argent à payer.
-        score: 70,
-        at,
-        route: "/plans",
-      });
-    }
-  }
+  // Aucun avis d'échéance d'abonnement, ni fin d'essai ni renouvellement.
+  // Apple et Google préviennent déjà, et ce rappel, qui expliquait comment
+  // arrêter, coïncidait avec zéro conversion. `ctx.subscription` reste
+  // ignoré ici.
 
   // --- 1. DROITS NON RÉCLAMÉS -------------------------------------------
   // C'est la notification qui justifie l'app à elle seule : de l'argent que
@@ -518,7 +471,6 @@ const CATEGORY_EMOJI: Record<string, string> = {
   loan: "🏁",
   budget: "📊",
   comeback: "👋",
-  billing: "🔔",
   workspace: "👥",
 };
 

@@ -6,10 +6,10 @@
 Orçamento, o que te sobra
 ```
 
-## Texte promotionnel (152/170)
+## Texte promotionnel (146/170)
 
 ```
-2.0: orçamento partilhado a dois ou em família, um Coach com 282 dicas com fonte em 17 países, referências oficiais. Sem ligação ao banco, sem anúncios.
+Quanto te sobra mesmo este mês? A 2.0 traz o orçamento a dois ou em família e um Coach com 282 dicas com fonte em 17 países. Sem ligação ao banco.
 ```
 
 ## Mots-clés (96/100)
@@ -56,19 +56,19 @@ Termos de utilização (CLUF padrão da Apple): https://www.apple.com/legal/inte
 Política de privacidade: https://www.netbudget.app/privacy
 ```
 
-## Nouveautés de cette version (1086/4000)
+## Nouveautés de cette version (947/4000)
 
 ```
 NETbudget 2.0, a maior atualização desde o lançamento.
 
-• Espaços partilhados: um orçamento comum a dois, em família ou entre colegas de casa, com um simples código de convite. Cada um mantém o seu espaço privado.
-• Coach: 282 dicas com fonte em 17 países, adaptadas à tua idade, ao teu agregado, à tua habitação e ao teu país, com uma dica da semana todas as segundas.
-• Referências face às médias nacionais: Eurostat, BLS, ONS, Statistics Canada, ABS, com a fonte e o ano.
-• Projetos e eventos: casamento, viagem, nascimento, festa, com orçamento guiado, calendário e lembretes.
-• Orçamento mais leve: pictogramas por rubrica, despesas por período, referência 50/30/20 adaptada ao teu perfil.
-• Imposto retido na fonte em 32 países, com as tabelas oficiais a um toque.
-• Notificações úteis, com um limite semanal à tua escolha.
-• Cifra de ponta a ponta: os teus dados saem cifrados e uma frase de doze palavras recupera-os num telemóvel novo.
-• Exportação em PDF renovada, objetivos de poupança com prazo, aniversários do agregado.
-• Oito idiomas completos, incluindo árabe e japonês.
+• Orçamento partilhado: a dois, em família ou entre colegas de casa, com um simples código de convite. Cada um mantém o seu espaço privado.
+• Coach: 282 dicas com fonte em 17 países, escolhidas pela tua idade, agregado, habitação e país. Uma dica nova todas as segundas-feiras.
+• Referências oficiais: a tua parte de habitação, supermercado ou lazer face à média dos agregados do teu país, com a fonte e o ano.
+• Projetos: casamento, viagem, nascimento, festa, com orçamento guiado, contagem decrescente e lembretes.
+• Um orçamento mais claro: um pictograma por rubrica, despesas por época, uma referência 50/30/20 adaptada ao teu perfil.
+• Imposto retido na fonte em 32 países.
+• Objetivos de poupança com prazo, exportação PDF renovada.
+• Notificações úteis, com um limite semanal que tu escolhes.
+• Dados sincronizados cifrados de ponta a ponta.
+• Oito idiomas, incluindo árabe e japonês.
 ```

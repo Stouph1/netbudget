@@ -26,6 +26,7 @@ import { recordConsent } from "../../src/lib/profile";
 import { notify } from "../../src/utils/notify";
 import { loadProfileBasics } from "../../src/lib/profile";
 import { hasPendingJoin } from "../../src/lib/pendingJoin";
+import { takePendingPlan } from "../../src/lib/pendingPlan";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -61,8 +62,12 @@ export default function EmailAuth() {
     await recordConsent(userId); // case RGPD cochée en amont (hero Profil)
     // Même enchaînement qu'Apple/Google : inscription incomplète → écran dédié
     const basics = await loadProfileBasics(userId);
+    let pendingPlan: string | null = null;
     if (!basics.username) {
       router.replace("/(premium)/complete-profile" as never);
+    } else if ((pendingPlan = await takePendingPlan())) {
+      // Venu de l'écran des formules : on y retourne finir l'achat.
+      router.replace({ pathname: "/plans", params: { tier: pendingPlan } } as never);
     } else if (await hasPendingJoin()) {
       // Venu d'un lien d'invitation : on retourne aux espaces, où la feuille
       // « Rejoindre » s'ouvre avec le code.

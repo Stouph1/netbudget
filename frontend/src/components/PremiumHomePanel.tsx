@@ -65,6 +65,7 @@ import { usePaywall } from "../hooks/usePaywall";
 import { PaywallSheet } from "./PaywallSheet";
 import { useTourScroller, useTourTarget } from "./tour/TourContext";
 import { useTabBarReserve } from "../hooks/useSheetBottom";
+import { takePendingPlan } from "../lib/pendingPlan";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -228,7 +229,11 @@ export default function PremiumHomePanel(_props: Props) {
     const basics = await loadProfileBasics(userId);
     if (!basics.username) {
       router.push("/(premium)/complete-profile" as never);
+      return;
     }
+    // Venu de l'écran des formules : on y retourne finir l'achat.
+    const plan = await takePendingPlan();
+    if (plan) router.push({ pathname: "/plans", params: { tier: plan } } as never);
   }
 
   function requireConsent(): boolean {

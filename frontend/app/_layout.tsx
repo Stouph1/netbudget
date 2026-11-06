@@ -13,6 +13,7 @@ import { usePersonalNotifications } from "../src/hooks/usePersonalNotifications"
 import { useVault } from "../src/hooks/useVault";
 import { useEffect } from "react";
 import { loadInflation } from "../src/lib/inflationLive";
+import { recordReviewVisit } from "../src/lib/reviewPrompt";
 
 // Effets qui doivent vivre aussi longtemps que l'app, quel que soit l'écran
 // affiché. Monté DANS les providers pour accéder à la langue, la session et le
@@ -30,6 +31,7 @@ function AppEffects() {
   // aucun écran n'attend son résultat.
   useEffect(() => {
     void loadInflation();
+    void recordReviewVisit();
   }, []);
 
   return null;

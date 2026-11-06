@@ -42,6 +42,7 @@ import {
   rememberMilestone,
   seenMilestones,
 } from "../../src/lib/goalMilestonesStore";
+import { askForReviewAfterHappyMoment } from "../../src/lib/reviewPrompt";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -202,6 +203,8 @@ export default function S1Epargne() {
       if (!alive || !best) return;
       setReached(best);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      // Un objectif qui franchit un cap : le meilleur moment pour une note.
+      setTimeout(() => void askForReviewAfterHappyMoment(), 2500);
     })();
     void pruneMilestones(payload.goals.map((g) => g.id));
     return () => {

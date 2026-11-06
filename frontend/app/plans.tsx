@@ -52,6 +52,8 @@ import { TIER_RANK, type Tier } from "../src/lib/entitlements";
 import { usePaywall } from "../src/hooks/usePaywall";
 import { CancelSheet } from "../src/components/CancelSheet";
 import { notify } from "../src/utils/notify";
+import { useSession } from "../src/contexts/SessionContext";
+import { setPendingPlan } from "../src/lib/pendingPlan";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -89,6 +91,7 @@ export default function Plans() {
   // laisse quelqu'un racheter ce qu'il a déjà : Apple le refuse, mais avec un
   // message technique qui donne l'impression d'une panne.
   const paywall = usePaywall();
+  const { user } = useSession();
 
   const [cancelOpen, setCancelOpen] = useState(false);
   const loadingOffers = offerings === null;
@@ -153,6 +156,16 @@ export default function Plans() {
   }
 
   async function buy(productId: string, bought: Tier) {
+    // Pas de compte, pas d'achat : le serveur ne saurait pas à qui accorder
+    // la formule, et la personne paierait pour rien. On la fait se connecter,
+    // puis on la ramène ici avec la même formule.
+    if (!user) {
+      await setPendingPlan(bought);
+      notify(t("plan.needAccount.title"), t("plan.needAccount.body"), () =>
+        router.replace({ pathname: "/", params: { tab: "premium" } } as never),
+      );
+      return;
+    }
     setBusy(productId);
     const result = await billing().purchase(productId);
     setBusy(null);

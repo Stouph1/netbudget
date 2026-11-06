@@ -66,7 +66,6 @@ export function PremiumGate({
           }
         />
 
-        <Text style={s.trial}>{t("paywall.trialOnce")}</Text>
 
         <TouchableOpacity
           style={s.cta}
@@ -110,7 +109,6 @@ const makeS = (GOLD: string) =>
     textAlign: "center",
     marginBottom: 24,
   },
-  trial: { color: TEXT_3, fontSize: 11.5, lineHeight: 16, marginTop: 6, marginBottom: 14 },
   cta: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 15, alignItems: "center" },
   ctaText: { color: "#000", fontSize: 15, fontWeight: "800" },
   });
