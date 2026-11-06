@@ -27,6 +27,31 @@ function keyFor(userId: string): string {
   return KEY_PREFIX + userId;
 }
 
+// FÊTE RÉSERVÉE PAR L'ÉCRAN D'ACHAT. Quand l'achat se fait sur /plans, c'est
+// LUI qui montre la fête, au premier plan, à l'instant où le serveur confirme.
+// L'accueil, dessous, reçoit le même changement de palier : sans cette réserve,
+// il ouvrirait sa propre modale derrière l'écran d'achat — sur iOS, une modale
+// présentée pendant qu'une autre est à l'écran est silencieusement perdue, et
+// l'abonné ne voit rien.
+let claimed: Tier | null = null;
+
+/** L'écran d'achat prend la fête de ce palier à sa charge. */
+export function claimCelebration(tier: Tier): void {
+  claimed = tier;
+}
+
+/** Rend la main : la fête reviendra à l'accueil, au prochain changement. */
+export function releaseCelebration(): void {
+  claimed = null;
+}
+
+/** Mémorise le palier comme fêté pour ce compte. */
+export async function markCelebrated(userId: string, tier: Tier): Promise<void> {
+  try {
+    await AsyncStorage.setItem(keyFor(userId), tier);
+  } catch {}
+}
+
 export function useTierUnlock() {
   const { user } = useSession();
   const [pending, setPending] = useState<Exclude<Tier, "free"> | null>(null);
@@ -41,6 +66,7 @@ export function useTierUnlock() {
       return;
     }
     if (!shouldCelebrate(seen, tier)) return;
+    if (claimed && !shouldCelebrate(claimed, tier)) return;
     setPending(tier as Exclude<Tier, "free">);
   }, []);
 

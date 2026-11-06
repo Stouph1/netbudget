@@ -104,10 +104,17 @@ export function TierUnlock({
   tier,
   visible,
   onClose,
+  next,
 }: {
   tier: Exclude<Tier, "free">;
   visible: boolean;
   onClose: () => void;
+  /**
+   * Première chose à faire avec la formule. Juste après l'achat, « C'est
+   * parti » ne dit pas OÙ aller : l'abonné ferme la fête et se retrouve devant
+   * le même écran qu'avant. On lui montre plutôt la porte qui vient de s'ouvrir.
+   */
+  next?: { label: string; onPress: () => void };
 }) {
   const GOLD = useAccent().main;
   const s = useMemo(() => makeS(GOLD), [GOLD]);
@@ -251,13 +258,23 @@ export function TierUnlock({
             style={s.cta}
             onPress={() => {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-              onClose();
+              (next?.onPress ?? onClose)();
             }}
             activeOpacity={0.85}
             accessibilityRole="button"
           >
-            <Text style={s.ctaText}>{t("unlock.cta")}</Text>
+            <Text style={s.ctaText}>{next?.label ?? t("unlock.cta")}</Text>
           </TouchableOpacity>
+          {next ? (
+            <TouchableOpacity
+              style={s.later}
+              onPress={onClose}
+              hitSlop={8}
+              accessibilityRole="button"
+            >
+              <Text style={s.laterText}>{t("unlock.later")}</Text>
+            </TouchableOpacity>
+          ) : null}
         </Reanimated.View>
 
         {/* L'éclair du moment de révélation. Posé en dernier pour passer
@@ -339,4 +356,6 @@ const makeS = (GOLD: string) =>
   ctaWrap: { maxWidth: 330, width: "100%", paddingHorizontal: 26, marginTop: 26 },
   cta: { backgroundColor: GOLD, borderRadius: 15, paddingVertical: 16, alignItems: "center" },
   ctaText: { color: "#04140B", fontSize: 15.5, fontWeight: "900", letterSpacing: 0.2 },
+  later: { alignItems: "center", paddingVertical: 14 },
+  laterText: { color: TEXT_2, fontSize: 14, fontWeight: "600" },
   });

@@ -54,6 +54,15 @@ import { CancelSheet } from "../src/components/CancelSheet";
 import { notify } from "../src/utils/notify";
 import { useSession } from "../src/contexts/SessionContext";
 import { setPendingPlan } from "../src/lib/pendingPlan";
+import * as Haptics from "expo-haptics";
+import { reachedTier } from "../src/lib/entitlements";
+import { PurchaseActivation, type ActivationState } from "../src/components/PurchaseActivation";
+import { TierUnlock } from "../src/components/TierUnlock";
+import {
+  claimCelebration,
+  markCelebrated,
+  releaseCelebration,
+} from "../src/hooks/useTierUnlock";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -94,6 +103,9 @@ export default function Plans() {
   const { user } = useSession();
 
   const [cancelOpen, setCancelOpen] = useState(false);
+  // Après un achat : où en est l'activation, et quelle formule fêter.
+  const [activation, setActivation] = useState<ActivationState | null>(null);
+  const [purchased, setPurchased] = useState<Exclude<Tier, "free"> | null>(null);
   const loadingOffers = offerings === null;
   const sellable = available && !loadingOffers && offerings.length > 0;
 
@@ -155,7 +167,7 @@ export default function Plans() {
     }
   }
 
-  async function buy(productId: string, bought: Tier) {
+  async function buy(productId: string, bought: Exclude<Tier, "free">) {
     // Pas de compte, pas d'achat : le serveur ne saurait pas à qui accorder
     // la formule, et la personne paierait pour rien. On la fait se connecter,
     // puis on la ramène ici avec la même formule.
@@ -171,30 +183,28 @@ export default function Plans() {
     setBusy(null);
 
     if (result.ok) {
-      // Le serveur fait autorité, et il ne voit l'achat qu'une fois le webhook
-      // arrivé. On lui redemande le palier en tâche de fond, en lui disant ce
-      // qu'on attend : sans ça, un changement de formule s'arrêterait sur
-      // l'ancien palier, qui est déjà payant.
-      //
-      // Volontairement non attendu : l'alerte doit s'afficher tout de suite.
-      // Les écrans se remettent à jour par `onTierChange` quand la réponse
-      // arrive.
-      void refreshTier(bought);
-
       // RÉTROGRADATION : la boutique laisse la formule en cours courir jusqu'à
       // la fin de la période déjà payée, et ne bascule qu'au renouvellement.
-      // Rien ne change donc à l'écran dans la minute qui suit.
-      //
-      // Annoncer « c'est actif » ici serait un mensonge visible : le client a
-      // choisi Solo, lit que c'est en place, et voit toujours Famille. Il
-      // conclut à une panne et écrit au support. On dit donc ce qui va
-      // réellement se passer.
-      const deferred = TIER_RANK[bought] < TIER_RANK[paywall.tier];
-      notify(
-        t(deferred ? "plan.switched.title" : "plan.bought.title"),
-        t(deferred ? "plan.switched.body" : "plan.bought.body"),
-        () => goBack(),
-      );
+      // Rien ne change donc à l'écran dans la minute qui suit : on dit ce qui
+      // va réellement se passer, plutôt qu'un « c'est actif » démenti à l'écran.
+      if (TIER_RANK[bought] < TIER_RANK[paywall.tier]) {
+        void refreshTier(bought);
+        notify(t("plan.switched.title"), t("plan.switched.body"), () => goBack());
+        return;
+      }
+
+      // NOUVELLE FORMULE OU MONTÉE. Le serveur fait autorité, et il ne voit
+      // l'achat qu'une fois le webhook arrivé, de une à quinze secondes plus
+      // tard. Pendant ce temps, l'écran d'activation dit où on en est, puis la
+      // fête prend le relais ici même — pas sur l'accueil, caché dessous.
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      claimCelebration(bought);
+      setPurchased(bought);
+      // La feuille de paiement de la boutique finit de se fermer : une modale
+      // présentée pendant ce temps est perdue sur iOS.
+      await new Promise((r) => setTimeout(r, 400));
+      setActivation("activating");
+      await activate(bought);
       return;
     }
     if (result.reason === "cancelled") return; // l'utilisateur a renoncé, rien à dire
@@ -208,6 +218,44 @@ export default function Plans() {
             : "plan.failed.error",
       ),
     );
+  }
+
+  /** Attend que le serveur confirme la formule, puis lance la fête. */
+  async function activate(tier: Exclude<Tier, "free">, attempts?: number) {
+    const got = await refreshTier(tier, attempts);
+    setActivation(reachedTier(got, tier) ? "done" : "delayed");
+  }
+
+  /** « Vérifier à nouveau » : on redemande le reçu à la boutique, puis au serveur. */
+  async function retryActivation() {
+    if (!purchased) return;
+    setActivation("checking");
+    await billing().restore();
+    await activate(purchased, 3);
+  }
+
+  /** Quitter l'activation ou la fête, en revenant à l'endroit choisi. */
+  function finishPurchase(go?: () => void) {
+    const done = activation === "done";
+    if (done && user && purchased) void markCelebrated(user.id, purchased);
+    // Pas confirmé : la fête reviendra à l'accueil dès que le serveur aura
+    // tranché, au prochain changement de palier ou au prochain lancement.
+    releaseCelebration();
+    setActivation(null);
+    setPurchased(null);
+    if (go) go();
+    else goBack();
+  }
+
+  /** La première porte que la formule ouvre. */
+  function nextStep(tier: Exclude<Tier, "free">) {
+    return {
+      label: t(`unlock.next.${tier}`),
+      onPress: () =>
+        finishPurchase(() =>
+          router.replace((tier === "solo" ? "/advice" : "/workspaces") as never),
+        ),
+    };
   }
 
   /**
@@ -506,6 +554,20 @@ export default function Plans() {
           openSubscriptionSettings();
         }}
       />
+      <PurchaseActivation
+        state={activation}
+        onRetry={() => void retryActivation()}
+        onLater={() => finishPurchase()}
+      >
+        {purchased ? (
+          <TierUnlock
+            tier={purchased}
+            visible={activation === "done"}
+            onClose={() => finishPurchase()}
+            next={nextStep(purchased)}
+          />
+        ) : null}
+      </PurchaseActivation>
     </SafeAreaView>
   );
 }
