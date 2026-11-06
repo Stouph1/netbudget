@@ -425,6 +425,38 @@
 
   <section>
     <div class="section-head">
+      <h2>Projections : utilisateurs et premier revenu</h2>
+      <p class="muted">Des scénarios, pas des prévisions. Ils prolongent les chiffres mesurés plus haut ; chaque hypothèse est écrite sous le graphique. Point de départ : 758 nouveaux utilisateurs au 4 novembre.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Nouveaux utilisateurs cumulés, jusqu'au 31 mars 2027</h3></div>
+      <div class="legend" id="lg-proj"></div>
+      <div class="chart" id="chart-proj"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Scénario</th><th class="n" scope="col">Par jour</th><th class="n" scope="col">1 000 atteint</th><th class="n" scope="col">31 déc.</th><th class="n" scope="col">31 mars</th></tr></thead>
+          <tbody id="t-proj"></tbody>
+        </table>
+      </div>
+      <div class="note"><div><b>Hypothèses.</b> Sans publicité, environ 4 nouveaux utilisateurs par jour (rythme naturel des deux stores). Avec publicité, on ajoute le budget divisé par le coût moyen d'une installation mesuré depuis le 14 octobre : 78,15 € pour environ 340 installations (231 Android comptées par Google Ads, environ 110 iPhone estimées), soit 0,23 €. Pour la montée de janvier, on double ce coût (0,46 €), parce qu'un budget plus gros touche un public plus cher. Le scénario « 4,50 € par jour » est le plan en cours d'ici janvier.</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Probabilité d'avoir au moins un abonné, après la sortie de la 2.0.2</h3></div>
+      <div class="legend" id="lg-prob"></div>
+      <div class="chart" id="chart-prob"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Si … des utilisateurs actifs s'abonnent</th><th class="n" scope="col">Abonnés attendus à 30 jours</th><th class="n" scope="col">1 chance sur 2 après</th><th class="n" scope="col">9 chances sur 10 après</th></tr></thead>
+          <tbody id="t-prob"></tbody>
+        </table>
+      </div>
+      <div class="note"><div><b>Hypothèses.</b> Budget de 4,50 € par jour, soit environ 24 nouveaux utilisateurs par jour, dont la moitié ouvre vraiment l'app (une sur quatre sur Android, la plupart sur iPhone). S'y ajoutent les quelque 100 utilisateurs déjà actifs (44 sur Android, 56 sur iPhone), qui voient l'offre au fil du premier mois. Chaque utilisateur actif décide indépendamment ; la probabilité suit une loi de Poisson. Le taux de conversion de NETbudget n'est pas encore connu : aucun achat n'a pu aboutir sans compte avant la 2.0.2. D'où trois taux possibles.</div></div>
+      <p class="muted" style="font-size:13px">Lecture : si aucun abonnement n'arrive dans le mois qui suit la sortie, le taux de conversion est très probablement sous 0,5 %. Le problème sera alors l'offre (essai gratuit, prix, moment où on la montre), pas le nombre d'utilisateurs.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
       <h2>Ce qu'il faut retenir</h2>
     </div>
     <div class="panel method">
@@ -434,7 +466,7 @@
         <li><b>La publicité iPhone rapporte, même si Google Ads ne le voit pas.</b> Environ 110 téléchargements en plus pour 51,63 €. Sans App-1, le rythme de début octobre était de 1 à 2 téléchargements par jour.</li>
         <li><b>La publicité Android coûte très peu par installation, mais peu d'installations sont ouvertes.</b> Le recentrage du 2 novembre a coupé le Pakistan dès le lendemain. Reste le vrai problème : une installation sur quatre seulement est ouverte, et 6 utilisateurs Android sont encore là après 7 jours.</li>
         <li><b>iOS EN ne rapporte presque rien.</b> 3,70 € et 281 clics pour 4 téléchargements visibles dans les pays visés. App-1 reste la seule campagne iPhone qui fonctionne.</li>
-        <li><b>Aucun abonnement à ce jour.</b> La 2.0.2 corrige l'achat sans compte ; tant qu'elle n'est pas publiée, acheter plus d'installations ne peut rien rapporter.</li>
+        <li><b>Aucun abonnement à ce jour.</b> Les projections montrent qu'avec 1 % de conversion, il y a 9 chances sur 10 d'avoir un premier abonné environ 16 jours après la sortie de la 2.0.2. La 2.0.2 corrige l'achat sans compte ; tant qu'elle n'est pas publiée, acheter plus d'installations ne peut rien rapporter.</li>
         <li><b>À mesurer après la sortie de la 2.0.2 :</b> la part des installations ouvertes, les essais et les premiers abonnements, et la reprise ou non des téléchargements iPhone.</li>
       </ul>
     </div>
@@ -544,6 +576,83 @@
   const usage = [[361, 188, 147, 22, 6], [328, 127, 267, 33, 7], [474, 123, 180, 32, 6], [626, 110, 410, 48, 15], [755, 131, 227, 47, 19], [7064, 5463, 189, 56, 41]];
   const tu = document.getElementById("t-usage");
   usage.forEach((r, i) => tu.insertAdjacentHTML("beforeend", `<tr><td>${months[i]}</td>${r.map((v) => `<td class="n num">${fr(v)}</td>`).join("")}</tr>`));
+  // ---- Projections ---------------------------------------------------------
+  (function () {
+    const start = Date.UTC(2026, 10, 4), DAY = 86400000, base = 758;
+    const end = Date.UTC(2027, 2, 31), N = Math.round((end - start) / DAY);
+    const jan = Math.round((Date.UTC(2027, 0, 1) - start) / DAY);
+    const dec31 = jan - 1;
+    const organic = 4, cpi = 78.15 / 340;
+    const perDay = (budget, cost) => organic + budget / cost;
+    const sc = [
+      { name: "Sans publicité", color: "var(--faint)", rate: () => organic },
+      { name: "4,50 € par jour", color: "var(--google)", rate: () => perDay(4.5, cpi) },
+      { name: "4,50 € puis 23 € par jour dès janvier", color: "var(--search)", rate: (d) => (d < jan ? perDay(4.5, cpi) : perDay(23, cpi * 2)) },
+    ];
+    sc.forEach((s) => { s.v = [base]; for (let d = 1; d <= N; d++) s.v.push(s.v[d - 1] + s.rate(d)); });
+    const W = 960, H = 300, x0 = 54, x1 = W - 12, y0 = 16, y1 = H - 30;
+    const svg = frame(W, H);
+    svg.setAttribute("aria-label", "Projection des nouveaux utilisateurs cumulés selon trois scénarios de budget publicitaire");
+    const yMax = Math.ceil(Math.max(...sc[2].v) / 2000) * 2000;
+    for (let i = 0; i <= 4; i++) {
+      const v = (yMax / 4) * i, y = y1 - ((y1 - y0) * v) / yMax;
+      svg.appendChild(el("line", { x1: x0, x2: x1, y1: y, y2: y, class: "grid-line" }));
+      svg.appendChild(el("text", { x: x0 - 8, y: y + 4, "text-anchor": "end" }, fr(v)));
+    }
+    const X = (d) => x0 + ((x1 - x0) * d) / N, Y = (v) => y1 - ((y1 - y0) * v) / yMax;
+    const y1000 = Y(1000);
+    svg.appendChild(el("line", { x1: x0, x2: x1, y1: y1000, y2: y1000, stroke: "var(--warn)", "stroke-dasharray": "3 3" }));
+    svg.appendChild(el("text", { x: x0 + 6, y: y1000 - 5, style: "fill:var(--warn);font-weight:700" }, "1 000 utilisateurs"));
+    svg.appendChild(el("line", { x1: X(jan), x2: X(jan), y1: y0, y2: y1, class: "grid-line", "stroke-dasharray": "2 4" }));
+    sc.forEach((s) => {
+      svg.appendChild(el("path", { d: s.v.map((v, d) => `${d ? "L" : "M"}${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join(""), fill: "none", stroke: s.color, "stroke-width": 2.5 }));
+      const last = s.v[N];
+      svg.appendChild(el("text", { x: x1 - 4, y: Y(last) - 6, "text-anchor": "end", style: `fill:var(--text);font-weight:700` }, fr(Math.round(last))));
+    });
+    svg.appendChild(el("line", { x1: x0, x2: x1, y1: y1, y2: y1, class: "axis" }));
+    [["4 nov.", 0], ["1er déc.", 27], ["1er janv.", jan], ["1er févr.", jan + 31], ["1er mars", jan + 59], ["31 mars", N]].forEach(([t, d]) =>
+      svg.appendChild(el("text", { x: X(d), y: y1 + 18, "text-anchor": d === 0 ? "start" : d === N ? "end" : "middle" }, t)));
+    document.getElementById("chart-proj").appendChild(svg);
+    const lg = document.getElementById("lg-proj"), tb = document.getElementById("t-proj");
+    const dateOf = (d) => new Date(start + d * DAY).toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "UTC" });
+    sc.forEach((s) => {
+      lg.insertAdjacentHTML("beforeend", `<span><i style="background:${s.color}"></i>${s.name}</span>`);
+      const hit = s.v.findIndex((v) => v >= 1000);
+      const r1 = s.rate(1), r2 = s.rate(jan);
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${s.name}</td><td class="n num">${r1 === r2 ? fr(r1) : fr(r1) + " puis " + fr(r2)}</td><td class="n num">${hit < 0 ? "après mars" : dateOf(hit)}</td><td class="n num">${fr(Math.round(s.v[dec31]))}</td><td class="n num"><b>${fr(Math.round(s.v[N]))}</b></td></tr>`);
+    });
+  })();
+
+  // ---- Probability of a first subscription ---------------------------------
+  (function () {
+    const N = 60, newActive = (4 + 4.5 / (78.15 / 340)) * 0.5, existing = 100;
+    const exposed = (t) => newActive * t + existing * Math.min(t, 30) / 30;
+    const rates = [{ p: 0.005, color: "var(--warn)" }, { p: 0.01, color: "var(--google)" }, { p: 0.02, color: "var(--search)" }];
+    const W = 960, H = 260, x0 = 44, x1 = W - 12, y0 = 14, y1 = H - 30;
+    const svg = frame(W, H);
+    svg.setAttribute("aria-label", "Probabilité d'au moins un abonnement selon le nombre de jours après la sortie de la 2.0.2, pour trois taux de conversion");
+    const X = (t) => x0 + ((x1 - x0) * t) / N, Y = (q) => y1 - (y1 - y0) * q;
+    [0, 0.25, 0.5, 0.75, 1].forEach((q) => {
+      svg.appendChild(el("line", { x1: x0, x2: x1, y1: Y(q), y2: Y(q), class: "grid-line" }));
+      svg.appendChild(el("text", { x: x0 - 8, y: Y(q) + 4, "text-anchor": "end" }, fr(q * 100) + " %"));
+    });
+    svg.appendChild(el("line", { x1: x0, x2: x1, y1: Y(0.9), y2: Y(0.9), stroke: "var(--warn)", "stroke-dasharray": "3 3" }));
+    svg.appendChild(el("text", { x: x1, y: Y(0.9) - 5, "text-anchor": "end", style: "fill:var(--warn);font-weight:700" }, "9 chances sur 10"));
+    const lg = document.getElementById("lg-prob"), tb = document.getElementById("t-prob");
+    const daysTo = (p, q) => { for (let t = 0; t <= 365; t += 0.25) if (1 - Math.exp(-p * exposed(t)) >= q) return t; return null; };
+    rates.forEach(({ p, color }) => {
+      const pts = [];
+      for (let t = 0; t <= N; t += 0.5) pts.push(`${pts.length ? "L" : "M"}${X(t).toFixed(1)},${Y(1 - Math.exp(-p * exposed(t))).toFixed(1)}`);
+      svg.appendChild(el("path", { d: pts.join(""), fill: "none", stroke: color, "stroke-width": 2.5 }));
+      const label = fr(p * 100, p < 0.01 ? 1 : 0) + " %";
+      lg.insertAdjacentHTML("beforeend", `<span><i style="background:${color}"></i>${label} des utilisateurs actifs</span>`);
+      const d50 = daysTo(p, 0.5), d90 = daysTo(p, 0.9);
+      tb.insertAdjacentHTML("beforeend", `<tr><td>${label}</td><td class="n num">${fr(p * exposed(30), 1)}</td><td class="n num">${fr(Math.ceil(d50))} jours</td><td class="n num"><b>${fr(Math.ceil(d90))} jours</b></td></tr>`);
+    });
+    svg.appendChild(el("line", { x1: x0, x2: x1, y1: y1, y2: y1, class: "axis" }));
+    [0, 7, 14, 30, 45, 60].forEach((t) => svg.appendChild(el("text", { x: X(t), y: y1 + 18, "text-anchor": t === 0 ? "start" : t === N ? "end" : "middle" }, t === 0 ? "sortie" : `J+${t}`)));
+    document.getElementById("chart-prob").appendChild(svg);
+  })();
 })();
 </script>
 </body>
