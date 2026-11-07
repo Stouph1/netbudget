@@ -11,6 +11,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   Modal,
+  AppState,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -434,9 +435,6 @@ export default function Index() {
   const [premiumProfileName, setPremiumProfileName] = useState<string | null>(null);
   // Situation professionnelle du profil : décide si la ligne ACRE a un sens.
   const [profileOccupation, setProfileOccupation] = useState<string | null>(null);
-  // Palier réel, utilisé par l'écran d'approbation pour nommer la formule
-  // testée dans le texte du contrat.
-  const [testerTier, setTesterTier] = useState<Tier>("free");
   // Palier forcé pour les tests. Lu au montage : le réglage survit à un
   // redémarrage, sinon on le repose à chaque essai.
   const [forcedTier, setForcedTier] = useState<Tier | null>(null);
@@ -471,6 +469,21 @@ export default function Index() {
   // délai. Sans ça, le projecteur se posait au bon endroit du mauvais écran.
   const { setActiveTab } = useTour();
   const paywall = usePaywall();
+  // LE palier affiché par cet écran. Il suit `usePaywall`, qui écoute les
+  // changements de palier : avant, on lisait `testerTier`, chargé une seule
+  // fois avec le profil. Une abonnée Solo revenait de l'achat sur Budget et
+  // voyait encore « 2 repères de plus avec une formule » jusqu'au relancement.
+  const tier: Tier = forcedTier ?? paywall.tier;
+  // Au retour au premier plan, on redemande le palier au serveur. Si le webhook
+  // a mis plus longtemps que l'écran d'activation, la formule s'ouvre dès que
+  // l'abonné revient dans l'app, sans avoir à la fermer.
+  useEffect(() => {
+    if (!premiumUser?.id) return;
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") void refreshTier(undefined, 1).catch(() => {});
+    });
+    return () => sub.remove();
+  }, [premiumUser?.id]);
   const tourSettings = useTourTarget("home:settings");
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Un écran ouvert depuis les Réglages ferme d'abord la modale ; au retour,
@@ -566,7 +579,6 @@ export default function Index() {
     // fête qui ne s'ouvre pas mais dont on reçoit l'annonce la veille est un
     // rappel de ce qu'on n'a pas.
     const tier = await loadTier();
-    setTesterTier(tier);
     setPremiumProfileName(details.first_name ?? null);
     const birthdaysOpen = limitsFor(tier).birthdays;
     const year = new Date().getFullYear();
@@ -659,6 +671,14 @@ export default function Index() {
       reloadPremiumProfile();
     }
   }, [tab, reloadPremiumProfile]);
+  // Un palier qui change (achat, changement de formule, expiration) ouvre ou
+  // ferme les anniversaires du foyer : on recharge sans attendre un relancement.
+  const firstTier = useRef(true);
+  useEffect(() => {
+    if (firstTier.current) { firstTier.current = false; return; }
+    reloadPremiumProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paywall.tier]);
 
   const budgetRatio = useMemo(() => {
     // Dès qu'UN signal du profil est connu (âge, famille, logement, pays,
@@ -1456,7 +1476,7 @@ export default function Index() {
           onItemPeriod={(it) => setPeriodItem(it)}
           onItemEmoji={(it) => setEmojiFor(it)}
           benchmark={benchmark}
-          benchmarkPremium={(forcedTier ?? testerTier) !== "free"}
+          benchmarkPremium={tier !== "free"}
           onItemLabelChange={updateItemLabel}
           onDeleteItem={deleteItem}
           onExportPdf={exportPdf}
@@ -1556,7 +1576,7 @@ export default function Index() {
 
       <TesterConsent
         visible={consent.needed}
-        tier={testerTier}
+        tier={tier}
         defaultName={premiumProfileName}
         busy={consent.busy}
         onAccept={(name) => void consent.submit(name, true)}
@@ -1689,7 +1709,7 @@ export default function Index() {
             isTester={isTester}
             onReplayBirthday={(kind) => void replayBirthday(kind)}
             forcedTier={forcedTier}
-            tier={forcedTier ?? testerTier}
+            tier={tier}
             occupation={profileOccupation}
             onForceTier={(tier) => {
               void setTierOverride(tier).then(() => {

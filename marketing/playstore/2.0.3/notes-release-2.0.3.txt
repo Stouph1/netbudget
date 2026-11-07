@@ -1,0 +1,36 @@
+<fr-FR>
+NETbudget 2.0.3 : après le paiement, un écran te montre que ta formule s'active, puis tout ce qu'elle débloque. L'app te propose ta première action : découvrir ton Coach avec Solo, inviter ton ou ta partenaire avec Duo, ta famille avec Famille. Si la boutique met un peu de temps à confirmer ton abonnement, l'app te le dit et te permet de vérifier à nouveau.
+</fr-FR>
+<ar>
+NETbudget 2.0.3: بعد الدفع، تعرض لك شاشة أن باقتك قيد التفعيل، ثم كل ما تتيحه لك. يقترح عليك التطبيق خطوتك الأولى: اكتشاف مرشدك مع باقة «فردي»، أو دعوة شريكك مع باقة «ثنائي»، أو عائلتك مع باقة «عائلة». إذا تأخر المتجر قليلاً في تأكيد اشتراكك، يخبرك التطبيق بذلك ويتيح لك التحقق مجدداً.
+</ar>
+<de-DE>
+NETbudget 2.0.3: Nach der Zahlung zeigt dir ein Bildschirm, dass dein Abo aktiviert wird, und danach alles, was es freischaltet. Die App schlägt dir den ersten Schritt vor: deinen Coach entdecken mit Solo, deine Partnerin oder deinen Partner einladen mit Duo, deine Familie mit Familie. Wenn der Store etwas länger braucht, um dein Abo zu bestätigen, sagt dir die App das und lässt dich erneut prüfen.
+</de-DE>
+<en-AU>
+NETbudget 2.0.3: after payment, a screen shows your plan being activated, then everything it unlocks. The app suggests your first step: meet your Coach with Solo, invite your partner with Duo, or your family with Family. If the store takes a moment to confirm your subscription, the app tells you and lets you check again.
+</en-AU>
+<en-CA>
+NETbudget 2.0.3: after payment, a screen shows your plan being activated, then everything it unlocks. The app suggests your first step: meet your Coach with Solo, invite your partner with Duo, or your family with Family. If the store takes a moment to confirm your subscription, the app tells you and lets you check again.
+</en-CA>
+<en-GB>
+NETbudget 2.0.3: after payment, a screen shows your plan being activated, then everything it unlocks. The app suggests your first step: meet your Coach with Solo, invite your partner with Duo, or your family with Family. If the store takes a moment to confirm your subscription, the app tells you and lets you check again.
+</en-GB>
+<en-US>
+NETbudget 2.0.3: after payment, a screen shows your plan being activated, then everything it unlocks. The app suggests your first step: meet your Coach with Solo, invite your partner with Duo, or your family with Family. If the store takes a moment to confirm your subscription, the app tells you and lets you check again.
+</en-US>
+<es-ES>
+NETbudget 2.0.3: tras el pago, una pantalla te muestra que tu plan se está activando y luego todo lo que desbloquea. La app te propone tu primer paso: descubrir tu Coach con Solo, invitar a tu pareja con Dúo o a tu familia con Familia. Si la tienda tarda un poco en confirmar tu suscripción, la app te lo indica y te permite volver a comprobarlo.
+</es-ES>
+<it-IT>
+NETbudget 2.0.3: dopo il pagamento, una schermata ti mostra che il tuo piano si sta attivando e poi tutto ciò che sblocca. L'app ti propone il primo passo: scoprire il tuo Coach con Solo, invitare il tuo partner con Duo o la tua famiglia con Famiglia. Se lo store impiega un po' a confermare l'abbonamento, l'app te lo dice e ti permette di verificare di nuovo.
+</it-IT>
+<ja-JP>
+NETbudget 2.0.3：お支払いのあと、プランが有効になっていく様子と、使えるようになった機能を画面でお知らせします。最初のステップもご提案します。ソロならコーチを見る、デュオならパートナーを招待、ファミリーなら家族を招待。ストアでのサブスクリプション確認に時間がかかる場合は、その旨をお知らせし、再確認できるようにしました。
+</ja-JP>
+<pt-BR>
+NETbudget 2.0.3: depois do pagamento, uma tela mostra que seu plano está sendo ativado e, em seguida, tudo o que ele desbloqueia. O app propõe seu primeiro passo: conhecer seu Coach com Solo, convidar seu par com Duo ou sua família com Família. Se a loja demorar um pouco para confirmar sua assinatura, o app avisa e permite verificar de novo.
+</pt-BR>
+<pt-PT>
+NETbudget 2.0.3: depois do pagamento, um ecrã mostra-lhe que o seu plano está a ser ativado e, a seguir, tudo o que desbloqueia. A app propõe-lhe o primeiro passo: conhecer o seu Coach com Solo, convidar o seu par com Duo ou a sua família com Família. Se a loja demorar um pouco a confirmar a sua assinatura, a app avisa-o e deixa-o verificar de novo.
+</pt-PT>
