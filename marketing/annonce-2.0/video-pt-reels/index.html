@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>NETbudget 2.0 - Launch (PT)</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/land.js"></script>
+    <style>
+      @font-face { font-family: "Manrope"; font-style: normal; font-weight: 200 800; font-display: block; src: url("fonts/Manrope-latin.woff2") format("woff2"); }
+      @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: block; src: url("fonts/JetBrainsMono-latin.woff2") format("woff2"); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #070E1C; color: #FAFAFA; font-family: "Manrope", sans-serif; -webkit-font-smoothing: antialiased; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #070E1C; }
+      .bg { position: absolute; inset: 0; background: radial-gradient(ellipse 1200px 800px at 70% 50%, #0F3B2F 0%, #0A1626 50%, #070E1C 85%); }
+      #root.p .bg { background: radial-gradient(ellipse 900px 1200px at 50% 62%, #0F3B2F 0%, #0A1626 50%, #070E1C 85%); }
+      .grain { position: absolute; inset: 0; opacity: 0.07; background-image: radial-gradient(rgba(255,255,255,0.6) 0.6px, transparent 0.7px); background-size: 7px 7px; pointer-events: none; }
+      .clip { position: absolute; inset: 0; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+
+      /* HOOK : un chiffre verrouillé au centre, les fonds coupent de plus en plus vite dessous (Pulse Local) */
+      .field { position: absolute; inset: 0; opacity: 0; }
+      .f0 { background: #070E1C; } .f1 { background: #10B981; } .f2 { background: #F2EEE3; }
+      .f3 { background: radial-gradient(circle at 50% 45%, #145A45, #04110C 75%); } .f4 { background: #1D3FD1; } .f5 { background: #FF6B57; }
+      .f6 { background-color: #F2EEE3; background-image: linear-gradient(rgba(11,18,32,0.09) 2px, transparent 2px), linear-gradient(90deg, rgba(11,18,32,0.09) 2px, transparent 2px); background-size: 64px 64px; }
+      .f7 { background: #000; }
+      #hk { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 46px; color: #FAFAFA; }
+      #hnum { font-size: 270px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; display: block; }
+      #hcap { font-size: 74px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.12; text-align: center; display: block; }
+      #hcap span { opacity: 0; }
+      #root.p #hnum { font-size: 170px; } #root.p #hcap { font-size: 64px; }
+
+      /* SCÈNE : un seul téléphone en 3D, la caméra ne s'arrête jamais */
+      .stage { position: absolute; inset: 0; perspective: 2400px; perspective-origin: 70% 50%; }
+      #root.p .stage { perspective-origin: 50% 65%; }
+      .cam, .pos { position: absolute; inset: 0; transform-style: preserve-3d; }
+      .rig { position: absolute; left: 1150px; top: 90px; width: 420px; height: 900px; transform-style: preserve-3d; }
+      #root.p .rig { left: 330px; top: 880px; }
+      .face { position: absolute; inset: 0; border-radius: 66px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+      .front { background: #16181F; padding: 10px; box-shadow: 0 70px 140px -30px rgba(0,0,0,0.9), 0 0 110px -20px rgba(16,185,129,0.5); }
+      .front .scr { width: 400px; height: 880px; border-radius: 58px; overflow: hidden; background: #0B0E14; position: relative; }
+      .front .scr video { position: absolute; left: 0; top: 0; width: 400px; height: 880px; object-fit: cover; display: block; }
+      .back { transform: rotateY(180deg); background: linear-gradient(150deg, #1E2A26 0%, #0C1513 55%, #070C0B 100%); border: 2px solid #2A3A35; box-shadow: 0 70px 140px -30px rgba(0,0,0,0.9), 0 0 140px -10px rgba(16,185,129,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+      .back .lens { position: absolute; left: 34px; top: 34px; width: 150px; height: 150px; border-radius: 40px; background: #121A18; border: 2px solid #26332F; }
+      .back .lens i { position: absolute; width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, #2B3B54, #05080C 70%); border: 3px solid #2E3B37; }
+      .back svg { width: 150px; height: 150px; filter: drop-shadow(0 0 30px rgba(110,231,183,0.8)); }
+      .back .t { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; color: #E8FFF5; text-align: center; line-height: 1.2; }
+      .chipwrap { position: absolute; transform-style: preserve-3d; }
+      .chip { padding: 22px 30px; border-radius: 26px; background: rgba(250,250,250,0.96); color: #070E1C; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; box-shadow: 0 30px 60px -16px rgba(0,0,0,0.7); opacity: 0; }
+      .chip b { color: #059669; }
+
+      /* mots géants qui défilent derrière le téléphone */
+      .mq { position: absolute; left: 0; top: 600px; white-space: nowrap; font-size: 400px; font-weight: 800; letter-spacing: -0.06em; line-height: 1; color: rgba(110,231,183,0.035); -webkit-text-stroke: 3px rgba(110,231,183,0.16); opacity: 0; }
+      #root.p .mq { top: 1050px; font-size: 300px; }
+
+      /* une seule phrase qui s'assemble (pas de cartons) */
+      .sent { position: absolute; left: 120px; top: 150px; height: 800px; width: 1000px; display: flex; flex-direction: column; justify-content: flex-start; }
+      #priv { top: 0; height: 1080px; width: 1100px; justify-content: center; }
+      #root.p #priv { top: 120px; height: 700px; justify-content: flex-start; }
+      #root.p .sent { left: 80px; top: 120px; height: 700px; width: 920px; justify-content: flex-start; }
+      .sent .eb { font-family: "JetBrains Mono", monospace; font-size: 26px; letter-spacing: 0.24em; color: #6EE7B7; margin-bottom: 22px; display: block; opacity: 0; }
+      .sent .ln { font-size: 100px; font-weight: 800; letter-spacing: -0.05em; line-height: 1.02; display: block; opacity: 0; }
+      #root.p .sent .ln { font-size: 92px; }
+      .ok { display: flex; align-items: center; gap: 26px; white-space: nowrap; font-size: 72px; font-weight: 800; letter-spacing: -0.05em; line-height: 1.12; opacity: 0; }
+      .ok svg { width: 74px; height: 74px; flex: none; }
+      #root.p .ok { font-size: 64px; } #root.p .ok svg { width: 62px; height: 62px; }
+
+      /* globe */
+      .gwrap { position: absolute; left: 960px; top: 40px; width: 1000px; height: 1000px; opacity: 0; }
+      #root.p .gwrap { left: 40px; top: 760px; }
+      #gl { width: 1000px; height: 1000px; display: block; }
+      .gtxt { position: absolute; left: 120px; top: 0; height: 1080px; width: 900px; display: flex; flex-direction: column; justify-content: center; }
+      #root.p .gtxt { left: 80px; top: 150px; height: 600px; }
+      .gtxt .a { font-size: 64px; font-weight: 700; color: #C7CDD8; letter-spacing: -0.03em; opacity: 0; }
+      .gtxt .b { font-size: 215px; font-weight: 800; letter-spacing: -0.06em; line-height: 0.95; color: #6EE7B7; font-variant-numeric: tabular-nums; opacity: 0; }
+      .gtxt .c { font-size: 50px; font-weight: 700; color: #FAFAFA; letter-spacing: -0.02em; margin-top: 18px; opacity: 0; }
+      #root.p .gtxt .b { font-size: 220px; }
+
+      /* appel */
+      .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      #icon { width: 210px; height: 210px; border-radius: 50px; box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8), 0 0 140px -20px rgba(16,185,129,0.7); }
+      .ctat { font-size: 150px; font-weight: 800; letter-spacing: -0.055em; line-height: 0.98; margin-top: 46px; }
+      #root.p .ctat { font-size: 120px; }
+      .accent { color: #6EE7B7; }
+      #stores { display: flex; gap: 22px; margin-top: 50px; }
+      .store { display: inline-flex; align-items: center; gap: 14px; padding: 22px 36px; border-radius: 999px; background: #FAFAFA; color: #070E1C; font-size: 36px; font-weight: 800; letter-spacing: -0.02em; }
+      .store svg { width: 38px; height: 38px; }
+      #flash { position: absolute; inset: 0; background: #6EE7B7; opacity: 0; }
+      .fade { position: absolute; inset: 0; background: #070E1C; opacity: 0; }
+      /* pt */
+.chip { white-space: normal; width: max-content; max-width: 380px; line-height: 1.2; }
+.sent .ln { font-size: 92px; } .gtxt .b { font-size: 185px; white-space: nowrap; } .ok { font-size: 66px; } .chip { font-size: 28px; }
+#root.p .sent .ln { font-size: 78px; } #root.p .gtxt .b { font-size: 170px; } #root.p .ok { font-size: 56px; } #root.p .ok svg { width: 56px; height: 56px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" class="p" data-composition-id="annonce20ptreels" data-width="1080" data-height="1920" data-fps="30" data-duration="36">
+      <div class="bg"></div>
+
+      <!-- mots géants derrière le téléphone -->
+      <div class="mq" id="mq0" data-layout-allow-overflow>NETBUDGET 2.0 · NETBUDGET 2.0</div>
+      <div class="mq" id="mq1" data-layout-allow-overflow>RENDIMENTOS · RENDIMENTOS</div>
+      <div class="mq" id="mq2" data-layout-allow-overflow>REFERÊNCIAS · REFERÊNCIAS</div>
+      <div class="mq" id="mq3" data-layout-allow-overflow>PROJETOS · PROJETOS · PROJETOS</div>
+      <div class="mq" id="mq4" data-layout-allow-overflow>COACH · COACH · COACH · COACH</div>
+      <div class="mq" id="mq5" data-layout-allow-overflow>A DOIS · EM FAMÍLIA · A DOIS</div>
+
+      <!-- la phrase qui s'assemble pendant les plans réels -->
+      <div class="sent" id="sent">
+        <span class="eb" id="eb">NETBUDGET 2.0</span>
+        <span class="ln" id="l0">O que te sobra,</span>
+        <span class="ln" id="l1">os teus rendimentos,</span>
+        <span class="ln" id="l2">as tuas referências,</span>
+        <span class="ln" id="l3">os teus projetos,</span>
+        <span class="ln" id="l4">o teu coach,</span>
+        <span class="ln" id="l5">a dois ou em família.</span>
+      </div>
+      <div class="sent" id="priv">
+        <div class="ok" id="k1"><svg viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>Sem ligação bancária.</div>
+        <div class="ok" id="k2"><svg viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>Sem anúncios.</div>
+        <div class="ok" id="k3"><svg viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>Encriptação ponta a ponta.</div>
+      </div>
+
+      <!-- le téléphone : une seule caméra, un seul objet, des coupes franches sur l'écran -->
+      <div class="stage" data-layout-allow-overflow>
+        <div class="cam" id="cam"><div class="pos" id="pos">
+          <div class="rig" id="rig">
+            <div class="face front"><div class="scr">
+              <video id="v0" src="assets/rec/budget.mp4" data-start="4.0" data-duration="5.81" data-media-start="0.93" muted playsinline></video>
+              <video id="v1" src="assets/rec/revenu.mp4" data-start="9.81" data-duration="1.93" data-media-start="2.0" muted playsinline></video>
+              <video id="v2" src="assets/rec/reperes.mp4" data-start="11.74" data-duration="1.94" data-media-start="4.8" muted playsinline></video>
+              <video id="v3" src="assets/rec/projet.mp4" data-start="13.68" data-duration="1.93" data-media-start="1.2" muted playsinline></video>
+              <video id="v4" src="assets/rec/coach.mp4" data-start="15.61" data-duration="1.94" data-media-start="1.6" muted playsinline></video>
+              <video id="v5" src="assets/rec/espaces.mp4" data-start="17.55" data-duration="2.3" data-media-start="0.6" muted playsinline></video>
+            </div></div>
+            <div class="face back" data-layout-allow-overlap>
+              <div class="lens"><i style="left:16px;top:16px"></i><i style="left:80px;top:16px"></i><i style="left:16px;top:80px"></i></div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4" fill="#6EE7B7"/></svg>
+              <div class="t">Os teus dados.<br/>Só teus.</div>
+            </div>
+            <div class="chipwrap" data-layout-allow-overflow style="left:250px; top:120px; transform: translateZ(160px)"><div class="chip" id="ch1">Bruto <b>→</b> líquido, impostos incluídos</div></div>
+            <div class="chipwrap" data-layout-allow-overflow style="left:230px; top:560px; transform: translateZ(160px)"><div class="chip" id="ch2">Face às <b>médias</b> do teu país</div></div>
+            <div class="chipwrap" data-layout-allow-overflow style="left:240px; top:640px; transform: translateZ(160px)"><div class="chip" id="ch3">Um orçamento <b>por projeto</b></div></div>
+            <div class="chipwrap" data-layout-allow-overflow style="left:220px; top:200px; transform: translateZ(160px)"><div class="chip" id="ch4"><b>282</b> conselhos, com fontes</div></div>
+            <div class="chipwrap" data-layout-allow-overflow style="left:260px; top:420px; transform: translateZ(160px)"><div class="chip" id="ch5">Cada um <b>com o seu espaço</b></div></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- globe 3D -->
+      <div class="gwrap" id="gwrap"><canvas id="gl" width="1000" height="1000"></canvas></div>
+      <div class="gtxt">
+        <div class="a" id="ga">Já usado em</div>
+        <div class="b" id="gb">0 países.</div>
+        <div class="c" id="gc">Em 8 línguas. E isto é só o começo.</div>
+      </div>
+
+      <!-- HOOK 0 → 4.0 -->
+      <div class="clip" id="s-hook" data-start="0" data-duration="4.0" data-layout-allow-overflow>
+        <div class="field f0" id="fd0"></div><div class="field f1" id="fd1"></div><div class="field f2" id="fd2"></div><div class="field f3" id="fd3"></div>
+        <div class="field f4" id="fd4"></div><div class="field f5" id="fd5"></div><div class="field f6" id="fd6"></div><div class="field f7" id="fd7"></div>
+        <div class="grain"></div>
+      </div>
+      <div class="clip" id="s-num" data-start="0" data-duration="4.6" data-layout-allow-overflow>
+        <div id="hk">
+          <span id="hnum">0,00 €</span>
+          <span id="hcap"><span id="w1">Ganhas.</span> <span id="w2">Gastas.</span><br/><span id="w3">E sobra-te…</span> <span id="w4" style="color:inherit">quanto?</span></span>
+        </div>
+      </div>
+
+      <!-- APPEL 27.22 → 31.1 -->
+      <div class="clip" id="s-cta" data-start="27.22" data-duration="3.9" data-layout-allow-overflow>
+        <div class="center">
+          <img id="icon" src="assets/img/logo.png" alt="" />
+          <div class="ctat" id="ct1">Grátis para<br/><span class="accent">começar.</span></div>
+          <div id="stores">
+            <span class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 14.44c.02 2.15 1.94 2.76 1.95 2.78-.02.05-.33 1.13-1.08 2.24-.64.95-1.31 1.9-2.37 1.92-1.07.02-1.38-.65-2.59-.65-1.21 0-1.56.63-2.57.67-1.03.04-1.81-1.03-2.46-1.97C6.59 16.480 5.59 12.99 6.97 10.61c.69-1.17 1.920-1.92 3.25-1.95 1.02-.02 1.97.69 2.59.69.62 0 1.78-.85 3-.72.5.02 1.94.21 2.85 1.54-.07.05-1.71.96-1.69 3.27zM14.77 7.34c.55-.67.91-1.6.81-2.51-.78.03-1.73.52-2.29 1.2-.52.6-.96 1.54-.85 2.43.88.07 1.77-.47 2.33-1.12z"/></svg>App Store</span>
+            <span class="store"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5V3.5c0-.59.34-1.11.84-1.35L13.69 12 3.84 21.85A1.53 1.53 0 0 1 3 20.5zm13.81-5.38L6.05 21.34l8.49-8.490 2.27 2.27zm3.35-4.31c.34.27.59.69.59 1.19s-.25.92-.59 1.19l-2.27 1.31L15.39 12l2.5-2.5 2.27 1.31zM6.05 2.66l10.76 6.22-2.27 2.27L6.05 2.66z"/></svg>Google Play</span>
+          </div>
+        </div>
+      </div>
+      <!-- FIN 31.1 → 36 -->
+      <div class="clip" id="s-outro" data-start="31.1" data-duration="4.9" data-layout-allow-overflow>
+        <div class="center" id="outro"><img src="assets/img/logo.png" alt="" style="width:150px;height:150px;border-radius:36px;margin-bottom:34px" /><div style="font-size:120px;font-weight:800;letter-spacing:-0.05em">netbudget.app</div><div style="margin-top:22px;font-size:44px;color:#A8B3C7;font-weight:600">Já disponível para iPhone e Android.</div></div>
+      </div>
+
+      <div class="grain"></div>
+      <div id="flash" class="clip" data-start="0" data-duration="36" data-layout-allow-overflow></div>
+      <div class="fade clip" id="fadeout" data-start="34.6" data-duration="1.4" data-layout-allow-overflow></div>
+
+      <!-- Take this Higher (Mixkit, 124 BPM, temps 0,4839 s, mesure 1,935 s) : le drop du morceau (52,26 s) tombe à 4,0 s -->
+      <audio id="music" data-start="0" data-duration="36" data-media-start="48.26" data-volume="0.75" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.7},{"t":3.9,"v":0.7},{"t":4.0,"v":1},{"t":33.4,"v":1},{"t":36,"v":0}]}]}' src="assets/music/take-this-higher.mp3"></audio>
+      <audio id="sfx-h1" data-start="0.1" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-h2" data-start="1.07" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-h3" data-start="2.03" data-duration="0.2" data-volume="0.4" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-h4" data-start="3.0" data-duration="0.2" data-volume="0.45" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-drop" data-start="4.0" data-duration="0.4" data-volume="0.5" src="assets/sfx/impact/impactBell_heavy_004.ogg"></audio>
+      <audio id="sfx-d1" data-start="9.81" data-duration="0.2" data-volume="0.35" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d2" data-start="11.74" data-duration="0.2" data-volume="0.35" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d3" data-start="13.68" data-duration="0.2" data-volume="0.35" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d4" data-start="15.61" data-duration="0.2" data-volume="0.35" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-d5" data-start="17.55" data-duration="0.2" data-volume="0.35" src="assets/sfx/interface/switch_007.ogg"></audio>
+      <audio id="sfx-flip" data-start="19.48" data-duration="0.4" data-volume="0.4" src="assets/sfx/ui/rollover2.ogg"></audio>
+      <audio id="sfx-p1" data-start="19.97" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_medium_000.ogg"></audio>
+      <audio id="sfx-p2" data-start="20.94" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-p3" data-start="21.9" data-duration="0.3" data-volume="0.5" src="assets/sfx/impact/impactSoft_medium_002.ogg"></audio>
+      <audio id="sfx-globe" data-start="23.29" data-duration="0.3" data-volume="0.45" src="assets/sfx/interface/bong_001.ogg"></audio>
+      <audio id="sfx-cta" data-start="27.22" data-duration="0.4" data-volume="0.55" src="assets/sfx/impact/impactSoft_heavy_000.ogg"></audio>
+    </div>
+
+    <script type="module">
+      import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.181.2/+esm";
+      const root = document.getElementById("root");
+      const P = root.classList.contains("p");
+      const ID = root.dataset.compositionId;
+
+      /* ---------- globe 3D : points de terre, atmosphère, arcs depuis Paris ---------- */
+      const G0 = 23.29, G1 = 27.6;
+      const canvas = document.getElementById("gl");
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1); renderer.setSize(1000, 1000, false);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100); camera.position.set(0, 0.35, 4.6); camera.lookAt(0, 0, 0);
+      const world = new THREE.Group(); scene.add(world);
+      world.rotation.x = 0.32;
+      const ll = (lat, lon, r) => { const a = (90 - lat) * Math.PI / 180, b = (lon + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(a) * Math.cos(b), r * Math.cos(a), r * Math.sin(a) * Math.sin(b)); };
+      world.add(new THREE.Mesh(new THREE.SphereGeometry(0.995, 64, 64), new THREE.MeshBasicMaterial({ color: 0x0a1a1f })));
+      const L = window.LAND, pos = [];
+      for (let i = 0; i < L.length; i += 2) { const p = ll(L[i] / 10, L[i + 1] / 10, 1.004); pos.push(p.x, p.y, p.z); }
+      const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      const pm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uLit: { value: 0 } },
+        vertexShader: "uniform float uLit; varying float vF; void main(){ vec4 mv = modelViewMatrix*vec4(position,1.0); vec3 n = normalize(normalMatrix*position); vF = clamp(dot(n, normalize(-mv.xyz)),0.0,1.0); gl_PointSize = 5.2*uLit; gl_Position = projectionMatrix*mv; }",
+        fragmentShader: "varying float vF; void main(){ vec2 c = gl_PointCoord-0.5; if(length(c)>0.5) discard; vec3 col = mix(vec3(0.06,0.45,0.36), vec3(0.52,0.98,0.80), pow(vF,1.4)); gl_FragColor = vec4(col, 0.25+0.75*vF); }" });
+      world.add(new THREE.Points(pg, pm));
+      const atm = new THREE.Mesh(new THREE.SphereGeometry(1.1, 64, 64), new THREE.ShaderMaterial({ transparent: true, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
+        vertexShader: "varying vec3 vN; void main(){ vN = normalize(normalMatrix*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+        fragmentShader: "varying vec3 vN; void main(){ float i = pow(max(0.0, 0.62 - dot(vN, vec3(0.0,0.0,1.0))), 4.0); gl_FragColor = vec4(0.30,0.90,0.70,1.0)*i*0.9; }" }));
+      scene.add(atm);
+      const HOME = [48.86, 2.35];
+      const CITIES = [[40.71,-74.0],[45.5,-73.57],[33.57,-7.59],[14.69,-17.45],[40.42,-3.7],[38.72,-9.14],[52.52,13.4],[41.9,12.5],[51.5,-0.12],[35.68,139.69],[-33.87,151.21],[-23.55,-46.63],[5.35,-4.0],[25.2,55.27],[19.43,-99.13],[-26.2,28.05]];
+      const arcs = CITIES.map((c, i) => {
+        const a = ll(HOME[0], HOME[1], 1.0), b = ll(c[0], c[1], 1.0);
+        const mid = a.clone().add(b).multiplyScalar(0.5); const h = 1.0 + 0.25 + a.distanceTo(b) * 0.28; mid.normalize().multiplyScalar(h);
+        const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+        const geo = new THREE.TubeGeometry(curve, 80, 0.0065, 6, false);
+        const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x6ee7b7, transparent: true, opacity: 0.95 }));
+        world.add(mesh);
+        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.016, 12, 12), new THREE.MeshBasicMaterial({ color: 0xeafff6 })); dot.position.copy(b); world.add(dot);
+        const ring = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.028, 32), new THREE.MeshBasicMaterial({ color: 0x6ee7b7, transparent: true, side: THREE.DoubleSide }));
+        ring.position.copy(b.clone().multiplyScalar(1.002)); ring.lookAt(b.clone().multiplyScalar(2)); world.add(ring);
+        return { geo, mesh, dot, ring, total: geo.index.count, delay: 0.35 + i * 0.12 };
+      });
+      const home = new THREE.Mesh(new THREE.SphereGeometry(0.024, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffffff })); home.position.copy(ll(HOME[0], HOME[1], 1.0)); world.add(home);
+      const easeOut = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+      function renderGlobe(t) {
+        const l = t - G0;
+        world.rotation.y = -1.75 + Math.max(-1, l) * 0.22;
+        pm.uniforms.uLit.value = easeOut(l / 0.8);
+        arcs.forEach((a) => {
+          const p = easeOut((l - a.delay) / 0.9);
+          a.geo.setDrawRange(0, Math.floor(a.total * p / 3) * 3);
+          a.dot.visible = p >= 1; a.ring.visible = p >= 1;
+          const r = p >= 1 ? ((l - a.delay - 0.9) % 1.2) / 1.2 : 0; a.ring.scale.setScalar(1 + r * 2.4); a.ring.material.opacity = 1 - r;
+        });
+        renderer.render(scene, camera);
+      }
+      window.addEventListener("hf-seek", (e) => renderGlobe(e.detail.time));
+
+      /* ---------- timeline ---------- */
+      document.fonts.ready.then(function () {
+        const tl = gsap.timeline({ paused: true });
+        const B = 0.4839;
+        const fr = (v) => v.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " €";
+        const hnum = document.getElementById("hnum"), hk = document.getElementById("hk");
+        const rnd = (k) => { const x = Math.sin(k * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+        const scramble = (k) => { let s = ""; for (let i = 0; i < 5; i++) s += Math.floor(rnd(k * 7 + i) * 10); return s.slice(0, 3) + "," + s.slice(3) + " €"; };
+
+        /* HOOK : fonds qui coupent de plus en plus vite, couleur du texte qui suit */
+        const cuts = [0, 0.48, 0.97, 1.45, 1.94, 2.42, 2.66, 2.9, 3.15, 3.39, 3.51, 3.63, 3.75, 3.87];
+        const ink = ["#FAFAFA", "#052E22", "#0B1220", "#FAFAFA", "#FAFAFA", "#1A0A08", "#0B1220", "#6EE7B7"];
+        cuts.forEach((c, i) => {
+          const f = i % 8;
+          for (let j = 0; j < 8; j++) tl.set("#fd" + j, { opacity: j === f ? 1 : 0 }, c);
+          tl.set(hk, { color: ink[f] }, c);
+          tl.fromTo("#hnum", { scale: 1.05 }, { scale: 1, duration: 0.2, ease: "power2.out", immediateRender: false }, c);
+        });
+        [["#w1", 0.1], ["#w2", 1.07], ["#w3", 2.03], ["#w4", 3.0]].forEach((w, i, arr) => {
+          tl.fromTo(w[0], { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.2, ease: "power3.out" }, w[1]);
+          if (i > 0) tl.to(arr[i - 1][0], { opacity: 0.38, duration: 0.15 }, w[1]);
+        });
+        const C = { v: 0 };
+        tl.fromTo(C, { v: 0 }, { v: 2567.2, duration: 0.8, ease: "power2.out", onUpdate: () => { hnum.textContent = fr(C.v); } }, 0.1);
+        const D = { v: 0 };
+        tl.fromTo(D, { v: 0 }, { v: 2346, duration: 0.8, ease: "power2.out", immediateRender: false, onUpdate: () => { hnum.textContent = "− " + fr(D.v); } }, 1.07);
+        const S = { k: 0 };
+        tl.fromTo(S, { k: 0 }, { k: 60, duration: 1.84, ease: "none", immediateRender: false, onUpdate: () => { hnum.textContent = scramble(Math.floor(S.k)); } }, 2.03);
+        tl.set(hnum, { textContent: "? €" }, 3.87);
+        /* DROP : le chiffre se résout (vraie valeur de l'écran) puis file se loger dans la case « reste à vivre » */
+        tl.set(hnum, { textContent: "221,20 €", color: "#6EE7B7" }, 4.0);
+        tl.set("#hcap", { opacity: 0 }, 4.0);
+        tl.fromTo("#flash", { opacity: 0.9 }, { opacity: 0, duration: 0.45, ease: "power2.out", immediateRender: false }, 4.0);
+        const cell = P ? [330 + 324, 880 + 339] : [1150 + 324, 90 + 339];
+        const ctr = P ? [540, 960 - 60] : [960, 540 - 60];
+        tl.to("#hnum", { x: cell[0] - ctr[0] + 30, y: cell[1] - ctr[1] + 60, scale: 0.075, duration: 0.55, ease: "expo.inOut" }, 4.05);
+        tl.to("#hnum", { opacity: 0, duration: 0.12 }, 4.48);
+
+        /* le téléphone sort de la case : traversée de zoom */
+        tl.set("#rig", { transformOrigin: "324px 339px" }, 0);
+        tl.fromTo("#rig", { scale: 6, rotationY: 0, rotationX: 0, opacity: 0 }, { scale: 1, rotationY: -14, rotationX: 4, opacity: 1, duration: 1.3, ease: "expo.out", immediateRender: true }, 4.0);
+        tl.set("#rig", { transformOrigin: "50% 50%" }, 5.4);
+        tl.set("#cam", { transformOrigin: P ? "540px 1330px" : "1360px 540px" }, 0);
+
+        /* mots géants : chacun traverse l'écran pendant son plan */
+        const mqT = [[4.0, 5.81], [9.81, 1.93], [11.74, 1.94], [13.68, 1.93], [15.61, 1.94], [17.55, 1.93]];
+        mqT.forEach((m, i) => {
+          tl.set("#mq" + i, { opacity: 1 }, m[0]);
+          tl.fromTo("#mq" + i, { x: P ? 100 : 400 }, { x: P ? -900 : -500, duration: m[1], ease: "none", immediateRender: false }, m[0]);
+          tl.set("#mq" + i, { opacity: 0 }, m[0] + m[1]);
+        });
+
+        /* la phrase : une ligne par plan, la ligne courante en vert, les autres restent */
+        tl.fromTo("#eb", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 4.6);
+        const lt = [4.75, 9.81, 11.74, 13.68, 15.61, 17.55];
+        lt.forEach((t, i) => {
+          tl.fromTo("#l" + i, { opacity: 0, y: 50, color: "#6EE7B7" }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, t);
+          if (i > 0) tl.to("#l" + (i - 1), { color: "#FAFAFA", opacity: 0.4, duration: 0.25 }, t);
+        });
+        tl.to("#sent", { opacity: 0, x: -60, duration: 0.3, ease: "power2.in" }, 19.3);
+
+        /* caméra : jamais immobile. à chaque coupe, une impulsion et un nouvel angle */
+        tl.fromTo("#cam", { scale: 1 }, { scale: 1.06, duration: 5.4, ease: "sine.inOut" }, 4.4);
+        const ang = [-14, 12, -16, 14, -12, 16];
+        lt.slice(1).forEach((t, i) => {
+          tl.to("#rig", { rotationY: ang[i + 1], rotationX: i % 2 ? -3 : 5, duration: 1.9, ease: "sine.inOut" }, t);
+          tl.fromTo("#pos", { y: -34 }, { y: 0, duration: 0.45, ease: "back.out(2)", immediateRender: false }, t);
+          tl.fromTo("#flash", { opacity: 0.18 }, { opacity: 0, duration: 0.25, immediateRender: false }, t);
+        });
+        /* plongée dans l'interface : on entre dans l'écran des projets */
+        tl.to("#cam", { scale: 1.55, y: P ? 260 : 180, duration: 1.6, ease: "power2.inOut" }, 13.8);
+        tl.to("#cam", { scale: 1.04, y: 0, duration: 0.6, ease: "power3.inOut" }, 15.45);
+        /* bulles qui sortent du téléphone */
+        [1, 2, 3, 4, 5].forEach((n) => {
+          const t = lt[n];
+          tl.fromTo("#ch" + n, { opacity: 0, scale: 0.6, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out(1.8)" }, t + 0.25);
+          tl.to("#ch" + n, { opacity: 0, scale: 0.9, duration: 0.18, ease: "power2.in" }, t + 1.72);
+        });
+
+        /* CONFIDENTIALITÉ : le téléphone se retourne, le dos montre le cadenas */
+        tl.to("#rig", { rotationY: 180, rotationX: 0, duration: 0.75, ease: "power3.inOut" }, 19.48);
+        tl.to("#cam", { scale: 1.12, duration: 3.6, ease: "sine.inOut" }, 19.48);
+        [["#k1", 19.97], ["#k2", 20.94], ["#k3", 21.9]].forEach((k) => {
+          tl.fromTo(k[0], { opacity: 0, x: -80, scale: 1.08 }, { opacity: 1, x: 0, scale: 1, duration: 0.35, ease: "power3.out" }, k[1]);
+          tl.fromTo("#pos", { x: -16 }, { x: 0, duration: 0.3, ease: "back.out(3)", immediateRender: false }, k[1]);
+        });
+        tl.to("#priv", { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, 22.95);
+
+        /* GLOBE : le téléphone s'envole, la Terre monte */
+        tl.to("#pos", { y: P ? -1900 : -1300, rotation: P ? 0 : 8, duration: 0.7, ease: "power3.in" }, 22.9);
+        tl.fromTo("#gwrap", { opacity: 0, y: 500, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "expo.out" }, 23.29);
+        tl.fromTo("#ga", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 23.5);
+        const N = { v: 0 }, gb = document.getElementById("gb");
+        tl.fromTo("#gb", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 23.75);
+        tl.fromTo(N, { v: 0 }, { v: 59, duration: 1.3, ease: "power3.out", onUpdate: () => { gb.textContent = Math.round(N.v) + " países."; } }, 23.75);
+        tl.fromTo("#gc", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 25.2);
+        tl.to(["#ga", "#gb", "#gc"], { opacity: 0, x: -50, duration: 0.25, ease: "power2.in" }, 26.95);
+        /* la Terre se réduit en point et devient l'icône (raccord de forme) */
+        tl.to("#gwrap", { scale: 0.21, x: P ? 0 : -400, y: P ? -1100 : -160, duration: 0.55, ease: "power3.in" }, 26.85);
+        tl.to("#gwrap", { opacity: 0, duration: 0.1 }, 27.3);
+        tl.fromTo("#icon", { scale: 0.5, borderRadius: "105px", opacity: 0.6 }, { scale: 1, borderRadius: "50px", opacity: 1, duration: 0.6, ease: "back.out(1.7)" }, 27.25);
+        tl.fromTo("#ct1", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 27.55);
+        tl.fromTo("#stores .store", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.12, ease: "power3.out" }, 28.0);
+        tl.to("#s-cta .center", { scale: 1.04, duration: 3.6, ease: "sine.inOut" }, 27.4);
+        tl.to("#s-cta .center", { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, 30.8);
+        tl.fromTo("#outro", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, 31.15);
+        tl.to("#fadeout", { opacity: 1, duration: 1.3, ease: "power2.in" }, 34.65);
+
+        /* le globe suit le temps de la timeline */
+        tl.eventCallback("onUpdate", () => { const t = tl.time(); if (t > G0 - 0.5 && t < G1) renderGlobe(t); });
+        renderGlobe(window.__hfThreeTime || 0);
+        window.__timelines[ID] = tl;
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,633 @@
+{
+  "ok": false,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 6,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "duplicate_media_discovery_risk",
+        "severity": "warning",
+        "message": "Detected 2 matching img entries with the same source/start/duration.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-es/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Avoid duplicated media nodes that can be discovered twice during compilation."
+      },
+      {
+        "code": "gsap_repeated_fromto_without_baseline",
+        "severity": "warning",
+        "message": "2 tl.fromTo() calls target \"proxy (unresolved DOM association)\" with no stable baseline. The last-authored fromTo \"from\" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.",
+        "selector": "proxy (unresolved DOM association)",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-es/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Add `immediateRender: false` to every fromTo except the earliest-positioned one (at 0.1s), so pre-first-tween seeks keep its \"from\" values. A hiding `tl.set(..., 0)` baseline trips gsap_timeline_set_initial_hide, and a `gsap.set` authored before the fromTo calls is overwritten by them."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-hook\"> is a timeline element that contains nested <div id=\"fd0\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-hook",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-es/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-hook\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-num\"> is a timeline element that contains nested <div id=\"hk\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-num",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-es/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-num\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-cta\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-cta",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-es/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-cta\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-outro\"> is a timeline element that contains nested <div id=\"outro\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-outro",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-es/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-outro\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 10,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h1\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h2\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h3\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h4\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-drop\" is 0.30s but its slot (data-duration) is 0.40s — the slot is shortened to the media length when rendered. Set data-duration to ~0.30s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-flip\" is 0.06s but its slot (data-duration) is 0.40s — the slot is shortened to the media length when rendered. Set data-duration to ~0.06s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-p1\" is 0.12s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.12s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-p2\" is 0.18s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.18s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-p3\" is 0.14s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.14s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-globe\" is 0.12s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.12s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20es",
+          "data-width": "1920",
+          "data-height": "1080",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "time": 0
+      }
+    ]
+  },
+  "layout": {
+    "ok": false,
+    "errorCount": 4,
+    "warningCount": 0,
+    "infoCount": 1,
+    "findings": [
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 6,
+        "selector": "#mq0",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": 90.19,
+          "top": 527,
+          "right": 5835,
+          "bottom": 1073,
+          "width": 5744.81,
+          "height": 546
+        },
+        "text": "NETBUDGET 2.0 · NETBUDGET 2.0",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 90.19,
+          "y": 527,
+          "width": 5744.81,
+          "height": 546
+        },
+        "firstSeen": 6,
+        "lastSeen": 6,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6
+        ]
+      },
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 10,
+        "selector": "#mq1",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": 311.4,
+          "top": 527,
+          "right": 6286.6,
+          "bottom": 1073,
+          "width": 5975.2,
+          "height": 546
+        },
+        "text": "INGRESOS · INGRESOS · INGRESOS",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 311.4,
+          "y": 527,
+          "width": 5975.2,
+          "height": 546
+        },
+        "firstSeen": 10,
+        "lastSeen": 10,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          10
+        ]
+      },
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 14,
+        "selector": "#mq3",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": 250.78,
+          "top": 527,
+          "right": 4841.18,
+          "bottom": 1073,
+          "width": 4590.41,
+          "height": 546
+        },
+        "text": "PROYECTOS · PROYECTOS",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 250.78,
+          "y": 527,
+          "width": 4590.41,
+          "height": 546
+        },
+        "firstSeen": 14,
+        "lastSeen": 14,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          14
+        ]
+      },
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 18,
+        "selector": "#mq5",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": 190.16,
+          "top": 527,
+          "right": 4188.56,
+          "bottom": 1073,
+          "width": 3998.41,
+          "height": 546
+        },
+        "text": "EN PAREJA · EN FAMILIA",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 190.16,
+          "y": 527,
+          "width": 3998.41,
+          "height": 546
+        },
+        "firstSeen": 18,
+        "lastSeen": 18,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          18
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 22,
+        "selector": "#k3",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 87.74,
+          "top": 576.23,
+          "right": 1210.62,
+          "bottom": 651.77,
+          "width": 1122.88,
+          "height": 75.54
+        },
+        "containerSelector": "#priv",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 120,
+          "top": 0,
+          "right": 1220,
+          "bottom": 1080,
+          "width": 1100,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 32.26
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 87.74,
+          "y": 576.23,
+          "width": 1122.88,
+          "height": 75.54
+        },
+        "firstSeen": 22,
+        "lastSeen": 22,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          22
+        ]
+      }
+    ],
+    "duration": 36,
+    "samples": [
+      2,
+      6,
+      10,
+      14,
+      18,
+      22,
+      26,
+      30,
+      34
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 5,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 1.45:1; WCAG AA requires 3:1.",
+        "text": "INGRESOS · INGRESOS · INGRESOS",
+        "fg": "rgb(27,57,62)",
+        "bg": "rgb(11,24,39)",
+        "ratio": 1.45,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(81,104,107)",
+        "large": true,
+        "selector": "#mq1",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 311.39898681640625,
+          "y": 600,
+          "width": 5975.203125,
+          "height": 400
+        },
+        "time": 10,
+        "times": [
+          10
+        ]
+      },
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 1.45:1; WCAG AA requires 3:1.",
+        "text": "EN PAREJA · EN FAMILIA",
+        "fg": "rgb(26,55,60)",
+        "bg": "rgb(10,21,36)",
+        "ratio": 1.45,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(80,102,106)",
+        "large": true,
+        "selector": "#mq5",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 190.1553955078125,
+          "y": 600,
+          "width": 3998.40625,
+          "height": 400
+        },
+        "time": 18,
+        "times": [
+          18
+        ]
+      }
+    ],
+    "enabled": true,
+    "samples": [
+      2,
+      10,
+      18,
+      26,
+      34
+    ],
+    "checked": 24,
+    "passed": 22
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

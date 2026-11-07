@@ -1,0 +1,734 @@
+{
+  "ok": false,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 6,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "duplicate_media_discovery_risk",
+        "severity": "warning",
+        "message": "Detected 2 matching img entries with the same source/start/duration.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-ja-reels/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Avoid duplicated media nodes that can be discovered twice during compilation."
+      },
+      {
+        "code": "gsap_repeated_fromto_without_baseline",
+        "severity": "warning",
+        "message": "2 tl.fromTo() calls target \"proxy (unresolved DOM association)\" with no stable baseline. The last-authored fromTo \"from\" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.",
+        "selector": "proxy (unresolved DOM association)",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-ja-reels/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Add `immediateRender: false` to every fromTo except the earliest-positioned one (at 0.1s), so pre-first-tween seeks keep its \"from\" values. A hiding `tl.set(..., 0)` baseline trips gsap_timeline_set_initial_hide, and a `gsap.set` authored before the fromTo calls is overwritten by them."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-hook\"> is a timeline element that contains nested <div id=\"fd0\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-hook",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-ja-reels/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-hook\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-num\"> is a timeline element that contains nested <div id=\"hk\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-num",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-ja-reels/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-num\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-cta\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-cta",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-ja-reels/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-cta\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"s-outro\"> is a timeline element that contains nested <div id=\"outro\">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#s-outro",
+        "dataAttributes": {},
+        "sourceFile": "/Users/stephane.pizeuil/projet/netbudget/marketing/annonce-2.0/video-ja-reels/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"s-outro\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 10,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h1\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h2\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h3\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-h4\" is 0.01s but its slot (data-duration) is 0.20s — the slot is shortened to the media length when rendered. Set data-duration to ~0.01s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-drop\" is 0.30s but its slot (data-duration) is 0.40s — the slot is shortened to the media length when rendered. Set data-duration to ~0.30s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-flip\" is 0.06s but its slot (data-duration) is 0.40s — the slot is shortened to the media length when rendered. Set data-duration to ~0.06s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-p1\" is 0.12s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.12s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-p2\" is 0.18s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.18s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-p3\" is 0.14s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.14s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      },
+      {
+        "code": "clip_media_fit",
+        "severity": "warning",
+        "message": "Audio \"sfx-globe\" is 0.12s but its slot (data-duration) is 0.30s — the slot is shortened to the media length when rendered. Set data-duration to ~0.12s if that isn't intended.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {
+          "data-composition-id": "annonce20jareels",
+          "data-width": "1080",
+          "data-height": "1920",
+          "data-fps": "30",
+          "data-duration": "36",
+          "data-start": "0"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "time": 0
+      }
+    ]
+  },
+  "layout": {
+    "ok": false,
+    "errorCount": 4,
+    "warningCount": 1,
+    "infoCount": 3,
+    "findings": [
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 6,
+        "selector": "#mq0",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": -244.23,
+          "top": 995,
+          "right": 4499.38,
+          "bottom": 1405,
+          "width": 4743.61,
+          "height": 410
+        },
+        "text": "NETBUDGET 2.0 · NETBUDGET 2.0",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -244.23,
+          "y": 995,
+          "width": 4743.61,
+          "height": 410
+        },
+        "firstSeen": 6,
+        "lastSeen": 6,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          6
+        ]
+      },
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 10,
+        "selector": "#mq1",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": 1.55,
+          "top": 995,
+          "right": 3751.55,
+          "bottom": 1405,
+          "width": 3750,
+          "height": 410
+        },
+        "text": "収入 · 収入 · 収入 · 収入 · 収入",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1.55,
+          "y": 995,
+          "width": 3750,
+          "height": 410
+        },
+        "firstSeen": 10,
+        "lastSeen": 10,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          10
+        ]
+      },
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 14,
+        "selector": "#mq3",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": -65.8,
+          "top": 995,
+          "right": 3693.2,
+          "bottom": 1405,
+          "width": 3759,
+          "height": 410
+        },
+        "text": "プロジェクト · プロジェクト",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -65.8,
+          "y": 995,
+          "width": 3759,
+          "height": 410
+        },
+        "firstSeen": 14,
+        "lastSeen": 14,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          14
+        ]
+      },
+      {
+        "code": "text_not_painted",
+        "severity": "error",
+        "time": 18,
+        "selector": "#mq5",
+        "message": "Text paints with an effectively transparent fill (-webkit-text-fill-color / color), so its glyphs are invisible.",
+        "rect": {
+          "left": -133.16,
+          "top": 995,
+          "right": 3523.84,
+          "bottom": 1405,
+          "width": 3657,
+          "height": 410
+        },
+        "text": "ふたりで · 家族で · ふたりで",
+        "fixHint": "Set an explicit, opaque `color` on the text — and an explicit `-webkit-text-fill-color` if an ancestor makes the fill transparent. If the transparency is intentional gradient text, add `background-clip: text`.",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -133.16,
+          "y": 995,
+          "width": 3657,
+          "height": 410
+        },
+        "firstSeen": 18,
+        "lastSeen": 18,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          18
+        ]
+      },
+      {
+        "code": "rotation_pivot_drift",
+        "severity": "warning",
+        "time": 34,
+        "selector": "#rig",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 304.8,
+          "y": -1302,
+          "width": 470.4,
+          "height": 1008
+        },
+        "rect": {
+          "left": 304.8,
+          "top": -1302,
+          "right": 775.2,
+          "bottom": -294,
+          "width": 470.4,
+          "height": 1008
+        },
+        "message": "Rotating element's bounding-box center drifts 2139px across rotation — it is not spinning about its own center (check transformOrigin/svgOrigin).",
+        "fixHint": "The bounding-box center should stay fixed while the element spins; check its transformOrigin/svgOrigin so rotation pivots about the element's own center rather than a point in a coordinate space it was resized out of.",
+        "firstSeen": 34,
+        "lastSeen": 34,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          34
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 10,
+        "selector": "#mq1",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 1.55,
+          "top": 995,
+          "right": 3751.55,
+          "bottom": 1405,
+          "width": 3750,
+          "height": 410
+        },
+        "containerSelector": "#v1",
+        "text": "収入 · 収入 · 収入 · 収入 · 収入",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 0.22,
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1.55,
+          "y": 995,
+          "width": 3750,
+          "height": 410
+        },
+        "firstSeen": 10,
+        "lastSeen": 10,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          10
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 18,
+        "selector": "div.t",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 418.95,
+          "top": 1380.93,
+          "right": 663.46,
+          "bottom": 1462.97,
+          "width": 244.51,
+          "height": 82.04
+        },
+        "containerSelector": "#ch5",
+        "text": "あなたのデータはあなたのもの。",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 0.07,
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 418.95,
+          "y": 1380.93,
+          "width": 244.51,
+          "height": 82.04
+        },
+        "firstSeen": 18,
+        "lastSeen": 18,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          18
+        ]
+      },
+      {
+        "code": "container_overflow",
+        "severity": "info",
+        "time": 22,
+        "selector": "#k3",
+        "message": "Nowrap text is wider than its container.",
+        "rect": {
+          "left": 49.61,
+          "top": 244.79,
+          "right": 988.74,
+          "bottom": 308.81,
+          "width": 939.14,
+          "height": 64.02
+        },
+        "containerSelector": "#priv",
+        "fixHint": "Resize/reposition the child or container, or mark intentional overflow with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 80,
+          "top": 120,
+          "right": 1000,
+          "bottom": 820,
+          "width": 920,
+          "height": 700
+        },
+        "overflow": {
+          "left": 30.39
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 49.61,
+          "y": 244.79,
+          "width": 939.14,
+          "height": 64.02
+        },
+        "firstSeen": 22,
+        "lastSeen": 22,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          22
+        ]
+      }
+    ],
+    "duration": 36,
+    "samples": [
+      2,
+      6,
+      10,
+      14,
+      18,
+      22,
+      26,
+      30,
+      34
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 8,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 1.46:1; WCAG AA requires 3:1.",
+        "text": "収入 · 収入 · 収入 · 収入 · 収入",
+        "fg": "rgb(28,59,64)",
+        "bg": "rgb(12,26,41)",
+        "ratio": 1.46,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(81,105,109)",
+        "large": true,
+        "selector": "#mq1",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1.5543999671936035,
+          "y": 1050,
+          "width": 3750,
+          "height": 300
+        },
+        "time": 10,
+        "times": [
+          10
+        ]
+      },
+      {
+        "code": "contrast_aa_failure",
+        "severity": "warning",
+        "message": "Contrast is 1.46:1; WCAG AA requires 3:1.",
+        "text": "ふたりで · 家族で · ふたりで",
+        "fg": "rgb(27,61,64)",
+        "bg": "rgb(11,29,41)",
+        "ratio": 1.46,
+        "requiredRatio": 3,
+        "suggestedColor": "rgb(81,107,109)",
+        "large": true,
+        "selector": "#mq5",
+        "dataAttributes": {
+          "data-layout-allow-overflow": ""
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -133.1605987548828,
+          "y": 1050,
+          "width": 3657,
+          "height": 300
+        },
+        "time": 18,
+        "times": [
+          18
+        ]
+      }
+    ],
+    "enabled": true,
+    "samples": [
+      2,
+      10,
+      18,
+      26,
+      34
+    ],
+    "checked": 24,
+    "passed": 22
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}
