@@ -1,5 +1,5 @@
 <fr-FR>
-NETbudget 2.0.4: Nouvel encadré « Ta formule » : ta date de renouvellement, la fin de ton abonnement si tu l'as arrêté, ton essai gratuit, et un rappel si un paiement n'est pas passé. Membre d'un espace partagé : tu vois de qui vient ta formule, sans rien à payer ni à gérer. Après l'achat, les repères, les guides impôts et le conseil du lundi s'ouvrent tout de suite, sans relancer l'app. Solo : seuls les projets à venir comptent dans ta limite.
+NETbudget 2.0.4 : Nouvel encadré « Ta formule » : ta date de renouvellement, la fin de ton abonnement si tu l'as arrêté, ton essai gratuit, et un rappel si un paiement n'est pas passé. Membre d'un espace partagé : tu vois de qui vient ta formule, sans rien à payer ni à gérer. Après l'achat, les repères, les guides impôts et le conseil du lundi s'ouvrent tout de suite, sans relancer l'app. Solo : seuls les projets à venir comptent dans ta limite.
 </fr-FR>
 <ar>
 NETbudget 2.0.4: قسم جديد «باقتك»: تاريخ التجديد، ونهاية اشتراكك إن أوقفته، وتجربتك المجانية، وتنبيه إذا لم تنجح عملية دفع. عضو في مساحة مشتركة: ترى ممن تأتي باقتك، دون أي شيء تدفعه أو تديره. بعد الشراء، تُفتح المؤشرات وأدلة الضرائب ونصيحة يوم الاثنين فوراً، دون إعادة تشغيل التطبيق. باقة «فردي»: لا تُحتسب في حدّك إلا المشاريع القادمة. شاشة الباقات توضّح أكثر ما تتضمنه كل باقة.
