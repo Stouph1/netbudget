@@ -18,7 +18,7 @@ How much do you really have left this month? 2.0 adds budgets for couples and fa
 budget,money left,expenses,savings,finance,couple,family,tips,money,loan,converter,planner
 ```
 
-## Description (2332/4000)
+## Description (2388/4000)
 
 ```
 How much do you really have left at the end of the month?
@@ -48,7 +48,7 @@ NOTIFICATIONS WORTH THE INTERRUPTION
 The monthly check-in, the tip of the week, a project milestone coming up. You set the weekly cap.
 
 FREE TO START
-Budget, loans and converter are free, with no account and no time limit. The Solo, Duo and Family plans add the Coach, projects, shared spaces and encrypted sync. No advertising, ever.
+Budget, loans and converter are free, with no account and no time limit. The plans add the Coach, the Monday tip, projects, all benchmarks and unlimited incomes. Duo and Family add the shared budget: invited members enjoy it without paying.
 
 Eight languages, 59 countries, 499 cities with their cost of living. Built in France by an independent developer.
 

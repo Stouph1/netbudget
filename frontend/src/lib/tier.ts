@@ -194,3 +194,66 @@ export async function forgetTier(): Promise<void> {
   lastKnown = null;
   for (const notify of listeners) notify("free");
 }
+
+// ---------------------------------------------------------------------------
+// Ma formule : payée par moi, ou partagée par le propriétaire d'un espace.
+//
+// `my_tier()` dit ce qui est OUVERT. Il ne dit pas qui paie. Or l'écran des
+// formules doit le savoir : on ne propose pas « Gérer l'abonnement » à quelqu'un
+// qui ne paie rien, et on ne lui vend pas une formule qu'il a déjà par son
+// espace. Les offres Famille des services de musique font exactement ça :
+// « Tu fais partie de la formule de Marie ».
+// ---------------------------------------------------------------------------
+
+export type PlanInfo = {
+  /** Formule que j'ai payée. */
+  ownTier: Tier;
+  ownStatus: "trial" | "active" | "in_grace" | null;
+  ownExpiresAt: string | null;
+  ownProductId: string | null;
+  /** Boutique où elle a été prise : apple, google, promotional, test… */
+  ownPlatform: string | null;
+  /** Formule partagée plus généreuse que la mienne, s'il y en a une. */
+  sharedTier: Exclude<Tier, "free"> | null;
+  /** Prénom de celui qui la partage (peut manquer). */
+  sharedBy: string | null;
+};
+
+const NO_PLAN: PlanInfo = {
+  ownTier: "free",
+  ownStatus: null,
+  ownExpiresAt: null,
+  ownProductId: null,
+  ownPlatform: null,
+  sharedTier: null,
+  sharedBy: null,
+};
+
+/**
+ * Lit `my_plan()` (migration 031). Si la migration n'est pas encore appliquée,
+ * on retombe sur `my_tier()` en considérant le palier comme propre : c'est le
+ * comportement d'avant, jamais pire.
+ */
+export async function loadPlan(): Promise<PlanInfo> {
+  const forced = tierOverride();
+  if (forced) return { ...NO_PLAN, ownTier: forced };
+  try {
+    const { data, error } = await supabase.rpc("my_plan");
+    if (!error && data && typeof data === "object") {
+      const d = data as Record<string, unknown>;
+      const own = parseTier(d.own_tier) ?? "free";
+      const shared = parseTier(d.shared_tier);
+      const status = d.own_status;
+      return {
+        ownTier: own,
+        ownStatus: status === "trial" || status === "active" || status === "in_grace" ? status : null,
+        ownExpiresAt: typeof d.own_expires_at === "string" ? d.own_expires_at : null,
+        ownProductId: typeof d.own_product_id === "string" ? d.own_product_id : null,
+        ownPlatform: typeof d.own_platform === "string" ? d.own_platform : null,
+        sharedTier: shared && shared !== "free" && reachedTier(shared, own) && shared !== own ? shared : null,
+        sharedBy: typeof d.shared_by === "string" && d.shared_by.trim() ? d.shared_by.trim() : null,
+      };
+    }
+  } catch {}
+  return { ...NO_PLAN, ownTier: await loadTier() };
+}

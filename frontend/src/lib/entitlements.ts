@@ -162,7 +162,7 @@ export type Denial =
   | {
       allowed: false;
       /** Pourquoi, pour choisir le bon message et la bonne proposition. */
-      reason: "needsSubscription" | "eventLimit" | "typeLocked" | "goalLimit";
+      reason: "needsSubscription" | "eventLimit" | "typeLocked" | "goalLimit" | "spaceLimit";
       /** Palier à prendre pour lever le blocage. */
       upgradeTo: Tier | null;
     };
@@ -261,6 +261,20 @@ export function canCreateGoal(tier: Tier, currentGoalCount: number): Denial {
 export function canCreateSharedGoal(tier: Tier): Denial {
   if (tier !== "free") return { allowed: true };
   return { allowed: false, reason: "needsSubscription", upgradeTo: "solo" };
+}
+
+/**
+ * Créer un espace partagé de plus.
+ *
+ * `ownTier` est la formule PAYÉE par la personne, pas celle dont elle profite
+ * comme membre d'un espace : un invité n'invite pas à son tour sur la formule
+ * de quelqu'un d'autre. Le serveur applique la même règle (031).
+ */
+export function canCreateWorkspace(ownTier: Tier, ownedCount: number): Denial {
+  const max = limitsFor(ownTier).maxWorkspaces;
+  if (max === 0) return { allowed: false, reason: "needsSubscription", upgradeTo: "duo" };
+  if (ownedCount < max) return { allowed: true };
+  return { allowed: false, reason: "spaceLimit", upgradeTo: ownTier === "family" ? null : "family" };
 }
 
 /** Objectifs restants avant la limite. `null` = illimité. */

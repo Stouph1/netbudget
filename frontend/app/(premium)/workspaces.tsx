@@ -202,7 +202,10 @@ export default function WorkspacesScreen() {
   // C'est l'abonné qui paie pour partager son budget. Opposer un mur à la
   // personne qu'il vient d'inviter ferait échouer l'achat qu'on a encaissé, et
   // laisserait DEUX personnes déçues au lieu de zéro.
-  const canCreate = paywall.allows({ feature: "sharedSpace" });
+  // Les espaces que JE possède : c'est eux que la formule limite (1 en Duo,
+  // 3 en Famille), pas ceux où l'on m'a invité.
+  const ownedCount = workspaces.filter((w) => w.owner_id === user.id).length;
+  const canCreate = paywall.allows({ feature: "sharedSpace", ownedCount });
   const isMemberSomewhere = workspaces.length > 0;
 
   if (!paywall.loading && !loading && !canCreate && !isMemberSomewhere) {
@@ -293,7 +296,7 @@ export default function WorkspacesScreen() {
         <TouchableOpacity
           style={[styles.primaryBtn, !canCreate && styles.primaryBtnLocked]}
           onPress={() => {
-            if (!paywall.require({ feature: "sharedSpace" })) return;
+            if (!paywall.require({ feature: "sharedSpace", ownedCount })) return;
             setCreateOpen(true);
           }}
           activeOpacity={0.85}
@@ -493,7 +496,13 @@ function CreateModal({
     const result = await createWorkspace(name.trim(), kind, description, emoji);
     setBusy(false);
     if (!result.ok || !result.workspace) {
-      notify(t("common.error"), result.error ?? t("ws.err.createFailed"));
+      // Refus du serveur sur le nombre d'espaces (031) : on le dit en clair.
+      notify(
+        t("common.error"),
+        result.error && /workspace_limit/.test(result.error)
+          ? t("ws.err.spaceLimit")
+          : result.error ?? t("ws.err.createFailed"),
+      );
       return;
     }
     onCreated(result.workspace);

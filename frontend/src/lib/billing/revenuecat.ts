@@ -31,7 +31,7 @@ import { loadPurchases, type PurchasesModule } from "./purchases";
 // Import de TYPE uniquement : effacé à la compilation, donc rien n'entre dans
 // le bundle web où le SDK natif n'existe pas.
 import type { StoreProductChangeInfo } from "react-native-purchases";
-import type { BillingProvider, Offering, PurchaseResult } from "./provider";
+import type { BillingProvider, Offering, PurchaseResult, StoreSubscription } from "./provider";
 
 /**
  * Identifiants des droits, tels qu'ils doivent être créés dans RevenueCat
@@ -371,6 +371,35 @@ export const revenueCatBilling: BillingProvider = {
       return tierFromCustomerInfo(await Purchases.getCustomerInfo());
     } catch {
       return "free";
+    }
+  },
+
+  async subscription(): Promise<StoreSubscription | null> {
+    if (!Purchases) return null;
+    try {
+      const info = await Purchases.getCustomerInfo();
+      const rank = { solo: 1, duo: 2, family: 3 } as const;
+      let best: StoreSubscription | null = null;
+      let bestRank = 0;
+      for (const [id, sub] of Object.entries(info.subscriptionsByProductIdentifier ?? {})) {
+        if (!sub?.isActive) continue;
+        // Google renvoie « abonnement:base-plan » : on garde la formule.
+        const d = describeProduct(id);
+        const r = d ? rank[d.tier] : 0;
+        if (r < bestRank) continue;
+        bestRank = r;
+        best = {
+          productId: id,
+          period: d?.period ?? null,
+          expiresAt: sub.expiresDate ?? null,
+          willRenew: Boolean(sub.willRenew),
+          isTrial: String(sub.periodType).toUpperCase() === "TRIAL",
+          billingIssue: Boolean(sub.billingIssuesDetectedAt),
+        };
+      }
+      return best;
+    } catch {
+      return null;
     }
   },
 };

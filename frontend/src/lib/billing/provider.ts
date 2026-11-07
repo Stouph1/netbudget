@@ -58,6 +58,24 @@ export type PurchaseResult =
   | { ok: true; tier: Exclude<Tier, "free"> }
   | { ok: false; reason: "cancelled" | "unavailable" | "alreadyOwned" | "error"; message?: string };
 
+/**
+ * L'abonnement en cours, vu par la boutique. Ce que le serveur ne sait pas :
+ * le renouvellement automatique a-t-il été coupé ? un paiement a-t-il échoué ?
+ * C'est ce qui permet de dire « se termine le 12 mars » plutôt que
+ * « renouvellement le 12 mars » à quelqu'un qui a résilié.
+ */
+export type StoreSubscription = {
+  productId: string;
+  /** Mensuel ou annuel, quand l'identifiant est reconnu. */
+  period: "monthly" | "yearly" | null;
+  /** Fin de la période en cours, ISO. Null : sans échéance. */
+  expiresAt: string | null;
+  willRenew: boolean;
+  isTrial: boolean;
+  /** Un prélèvement a échoué : la boutique retente, l'accès continue. */
+  billingIssue: boolean;
+};
+
 export type BillingProvider = {
   /** La facturation est-elle réellement disponible sur cet appareil ? */
   isAvailable(): boolean;
@@ -74,6 +92,8 @@ export type BillingProvider = {
   restore(): Promise<{ ok: boolean; tier: Tier }>;
   /** Palier actif selon la boutique. C'est la seule autorité en la matière. */
   activeTier(): Promise<Tier>;
+  /** Abonnement le plus généreux encore actif, ou null. */
+  subscription?(): Promise<StoreSubscription | null>;
 };
 
 /**

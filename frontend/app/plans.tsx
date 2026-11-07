@@ -46,7 +46,8 @@ import {
   SELLABLE_TIERS,
   type Period,
 } from "../src/lib/billing/plans";
-import { billing, onBillingChange, type Offering } from "../src/lib/billing/provider";
+import { billing, onBillingChange, type Offering, type StoreSubscription } from "../src/lib/billing/provider";
+import { MyPlanCard } from "../src/components/MyPlanCard";
 import { refreshTier } from "../src/lib/tier";
 import { TIER_RANK, type Tier } from "../src/lib/entitlements";
 import { usePaywall } from "../src/hooks/usePaywall";
@@ -101,6 +102,29 @@ export default function Plans() {
   // message technique qui donne l'impression d'une panne.
   const paywall = usePaywall();
   const { user } = useSession();
+
+  // Ce que la boutique sait de l'abonnement : échéance, renouvellement coupé,
+  // paiement en échec. Relu quand la formule change (achat, restauration).
+  const [storeSub, setStoreSub] = useState<StoreSubscription | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const read = billing().subscription;
+    if (!read || paywall.ownTier === "free") {
+      setStoreSub(null);
+      return;
+    }
+    void read().then((sub) => {
+      if (alive) setStoreSub(sub);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [paywall.ownTier, available]);
+  // La formule payée par la personne. Un membre d'espace qui profite d'une
+  // formule partagée n'a ni « formule actuelle » ni abonnement à gérer.
+  const own = paywall.ownTier;
+  const shared = paywall.plan?.sharedTier ?? null;
+  const sharedBy = paywall.plan?.sharedBy ?? null;
 
   const [cancelOpen, setCancelOpen] = useState(false);
   // Après un achat : où en est l'activation, et quelle formule fêter.
@@ -187,7 +211,7 @@ export default function Plans() {
       // la fin de la période déjà payée, et ne bascule qu'au renouvellement.
       // Rien ne change donc à l'écran dans la minute qui suit : on dit ce qui
       // va réellement se passer, plutôt qu'un « c'est actif » démenti à l'écran.
-      if (TIER_RANK[bought] < TIER_RANK[paywall.tier]) {
+      if (TIER_RANK[bought] < TIER_RANK[own]) {
         void refreshTier(bought);
         notify(t("plan.switched.title"), t("plan.switched.body"), () => goBack());
         return;
@@ -302,7 +326,16 @@ export default function Plans() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
-        <Text style={s.intro}>{t("plan.intro")}</Text>
+        {paywall.plan ? (
+          <MyPlanCard
+            plan={paywall.plan}
+            store={storeSub}
+            onManage={() => setCancelOpen(true)}
+            onFixPayment={openSubscriptionSettings}
+          />
+        ) : null}
+
+        <Text style={s.intro}>{t(own === "free" ? "plan.intro" : "plan.introSubscribed")}</Text>
 
         {/* Bascule mensuel / annuel. Annuel par défaut : c'est le tarif le
             plus avantageux, et le mettre en second ferait choisir le mensuel
@@ -338,7 +371,10 @@ export default function Plans() {
           SELLABLE_TIERS.map((tier) => {
             const productId = PRODUCT_IDS[tier][period];
             const offer = priceFor(productId);
-            const isCurrent = paywall.tier === tier;
+            const isCurrent = own === tier;
+            // Déjà ouverte par la formule d'un autre membre : on ne la vend pas.
+            const includedViaShare =
+              !isCurrent && shared !== null && TIER_RANK[tier] <= TIER_RANK[shared] && TIER_RANK[tier] > TIER_RANK[own];
             // L'économie se calcule sur les deux prix réels de la boutique.
             // Null quand il n'y en a pas : on n'affiche alors rien, plutôt
             // qu'un « 0 % » ou un chiffre négatif présenté comme un avantage.
@@ -448,6 +484,13 @@ export default function Plans() {
                     <Feather name="check-circle" size={16} color={GOLD} />
                     <Text style={s.currentText}>{t("plan.current")}</Text>
                   </View>
+                ) : includedViaShare ? (
+                  <View style={s.currentBox}>
+                    <Feather name="users" size={16} color={GOLD} />
+                    <Text style={s.currentText}>
+                      {sharedBy ? tp("plan.includedVia", { name: sharedBy }) : t("plan.included")}
+                    </Text>
+                  </View>
                 ) : sellable ? (
                   <TouchableOpacity
                     style={[s.buyBtn, busy === productId && { opacity: 0.6 }]}
@@ -460,7 +503,7 @@ export default function Plans() {
                       <ActivityIndicator color="#000" />
                     ) : (
                       <Text style={s.buyText}>
-                        {t(paywall.tier === "free" ? "plan.choose" : "plan.switch")}
+                        {t(own === "free" ? "plan.choose" : "plan.switch")}
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -494,13 +537,15 @@ export default function Plans() {
             de la boutique. L'utilisateur y accède de toute façon depuis les
             réglages de son téléphone — cacher le lien ne retient personne, ça
             agace seulement celui qui cherche. */}
-        {paywall.tier !== "free" ? (
+        {/* « Gérer l'abonnement » vit dans la carte « Ta formule », en tête.
+            Sans carte (formule pas encore lue), on garde le lien ici : Apple,
+            Google et le droit européen exigent qu'il soit toujours trouvable. */}
+        {own !== "free" && !paywall.plan ? (
           <TouchableOpacity
             onPress={() => setCancelOpen(true)}
             style={{ paddingVertical: 14 }}
             activeOpacity={0.7}
             accessibilityRole="link"
-            testID="plan-manage"
           >
             <Text style={s.linkText}>{t("plan.manage.cta")}</Text>
           </TouchableOpacity>
@@ -533,7 +578,7 @@ export default function Plans() {
 
       <CancelSheet
         visible={cancelOpen}
-        tier={paywall.tier}
+        tier={own}
         onClose={() => setCancelOpen(false)}
         onDowngrade={() => {
           // On ne fait pas le changement à sa place : on le ramène sur les

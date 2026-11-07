@@ -49,7 +49,7 @@ DES NOTIFICATIONS QUI VALENT LE DÉRANGEMENT
 Le point du mois, le conseil de la semaine, un jalon de projet qui approche. Tu fixes le plafond hebdomadaire.
 
 GRATUIT POUR COMMENCER
-Le budget, les prêts et le convertisseur sont gratuits, sans compte et sans limite de temps. Les formules Solo, Duo et Famille ajoutent le Coach, les projets, les espaces partagés et la synchronisation chiffrée. Sans publicité, à aucun moment.
+Le budget, les prêts et le convertisseur sont gratuits, sans compte et sans limite de temps. Les formules ajoutent le Coach, le conseil du lundi, les projets, tous les repères et les revenus sans limite. Duo et Famille y ajoutent le budget partagé : les membres invités en profitent sans payer.
 
 Huit langues, 59 pays, 499 villes avec leur coût de la vie. Développé en France par un développeur indépendant.""",
 "whatsnew": """NETbudget 2.0, la plus grande mise à jour depuis le lancement.
@@ -96,7 +96,7 @@ NOTIFICATIONS WORTH THE INTERRUPTION
 The monthly check-in, the tip of the week, a project milestone coming up. You set the weekly cap.
 
 FREE TO START
-Budget, loans and converter are free, with no account and no time limit. The Solo, Duo and Family plans add the Coach, projects, shared spaces and encrypted sync. No advertising, ever.
+Budget, loans and converter are free, with no account and no time limit. The plans add the Coach, the Monday tip, projects, all benchmarks and unlimited incomes. Duo and Family add the shared budget: invited members enjoy it without paying.
 
 Eight languages, 59 countries, 499 cities with their cost of living. Built in France by an independent developer.""",
 "whatsnew": """NETbudget 2.0, the biggest update since launch.
@@ -143,7 +143,7 @@ NOTIFICACIONES QUE MERECEN LA PENA
 El balance del mes, el consejo de la semana, un hito de proyecto que se acerca. Tú fijas el límite semanal.
 
 GRATIS PARA EMPEZAR
-El presupuesto, los préstamos y el conversor son gratuitos, sin cuenta y sin límite de tiempo. Los planes Solo, Dúo y Familia añaden el Coach, los proyectos, los espacios compartidos y la sincronización cifrada. Sin publicidad, nunca.
+El presupuesto, los préstamos y el conversor son gratuitos, sin cuenta y sin límite de tiempo. Los planes añaden el Coach, el consejo del lunes, los proyectos, todas las referencias y los ingresos sin límite. Dúo y Familia suman el presupuesto compartido: los miembros invitados lo disfrutan sin pagar.
 
 Ocho idiomas, 59 países, 499 ciudades con su coste de vida. Desarrollada en Francia por un desarrollador independiente.""",
 "whatsnew": """NETbudget 2.0, la mayor actualización desde el lanzamiento.
@@ -190,7 +190,7 @@ NOTIFICAÇÕES QUE VALEM A PENA
 O ponto do mês, a dica da semana, um marco de projeto que se aproxima. Tu defines o limite semanal.
 
 GRÁTIS PARA COMEÇAR
-O orçamento, os empréstimos e o conversor são gratuitos, sem conta e sem limite de tempo. Os planos Solo, Duo e Família acrescentam o Coach, os projetos, os espaços partilhados e a sincronização cifrada. Sem publicidade, nunca.
+O orçamento, os empréstimos e o conversor são gratuitos, sem conta e sem limite de tempo. Os planos acrescentam o Coach, o conselho de segunda-feira, os projetos, todas as referências e os rendimentos sem limite. Duo e Família juntam o orçamento partilhado: os membros convidados usufruem dele sem pagar.
 
 Oito idiomas, 59 países, 499 cidades com o seu custo de vida. Desenvolvida em França por um programador independente.""",
 "whatsnew": """NETbudget 2.0, a maior atualização desde o lançamento.
@@ -237,7 +237,7 @@ BENACHRICHTIGUNGEN, DIE SICH LOHNEN
 Der Monatscheck, der Tipp der Woche, ein näher rückender Projektschritt. Die Wochenobergrenze legst du fest.
 
 KOSTENLOS STARTEN
-Budget, Kredite und Währungsrechner sind kostenlos, ohne Konto und ohne Zeitlimit. Die Tarife Solo, Duo und Familie ergänzen den Coach, Projekte, gemeinsame Bereiche und verschlüsselte Synchronisierung. Ohne Werbung, zu keinem Zeitpunkt.
+Budget, Kredite und Währungsrechner sind kostenlos, ohne Konto und ohne Zeitlimit. Die Tarife ergänzen den Coach, den Montags-Tipp, Projekte, alle Vergleichswerte und unbegrenzt Einkommen. Duo und Familie fügen das gemeinsame Budget hinzu: Eingeladene Mitglieder nutzen es, ohne zu zahlen.
 
 Acht Sprachen, 59 Länder, 499 Städte mit ihren Lebenshaltungskosten. Entwickelt in Frankreich von einem unabhängigen Entwickler.""",
 "whatsnew": """NETbudget 2.0, das größte Update seit dem Start.
@@ -284,7 +284,7 @@ NOTIFICHE CHE VALGONO IL DISTURBO
 Il punto del mese, il consiglio della settimana, una tappa di progetto che si avvicina. Il tetto settimanale lo decidi tu.
 
 GRATIS PER INIZIARE
-Budget, prestiti e convertitore sono gratuiti, senza account e senza limiti di tempo. I piani Solo, Duo e Famiglia aggiungono il Coach, i progetti, gli spazi condivisi e la sincronizzazione cifrata. Senza pubblicità, mai.
+Budget, prestiti e convertitore sono gratuiti, senza account e senza limiti di tempo. I piani aggiungono il Coach, il consiglio del lunedì, i progetti, tutti i riferimenti e le entrate senza limiti. Duo e Famiglia aggiungono il budget condiviso: i membri invitati lo usano senza pagare.
 
 Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Francia da uno sviluppatore indipendente.""",
 "whatsnew": """NETbudget 2.0, il più grande aggiornamento dal lancio.
@@ -331,7 +331,7 @@ Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Fr
 مراجعة الشهر، نصيحة الأسبوع، مرحلة مشروع تقترب. أنت من يحدد السقف الأسبوعي.
 
 مجاني للبدء
-الميزانية والقروض والمحوّل مجانية، دون حساب ودون حد زمني. تضيف باقات فردي وثنائي وعائلة المرشد والمشاريع والمساحات المشتركة والمزامنة المشفّرة. دون إعلانات، في أي وقت.
+الميزانية والقروض والمحوّل مجانية، دون حساب ودون حد زمني. تضيف الباقات المرشد ونصيحة يوم الاثنين والمشاريع وكل المؤشرات ومداخيل بلا حدود. وتضيف باقتا ثنائي وعائلة الميزانية المشتركة: يستفيد منها الأعضاء المدعوون دون دفع.
 
 ثماني لغات، 59 بلدًا، 499 مدينة مع تكلفة معيشتها. طُوّر في فرنسا على يد مطوّر مستقل.""",
 "whatsnew": """NETbudget 2.0، أكبر تحديث منذ الإطلاق.
@@ -378,7 +378,7 @@ NETbudget は数分で答えを出します。収入と支出を入力すれば�
 月次チェック、今週のアドバイス、近づくプロジェクトの節目。週ごとの上限はあなたが決めます。
 
 無料で始められます
-家計・ローン・為替計算は、アカウントなしで、期間制限なく無料。Solo・Duo・Family プランで、コーチ、プロジェクト、共有スペース、暗号化同期が加わります。広告は一切ありません。
+家計・ローン・為替計算は、アカウントなしで、期間制限なく無料。有料プランでは、コーチ、毎週月曜日のアドバイス、プロジェクト、すべての支出の目安、無制限の収入登録が加わります。デュオとファミリーでは家計の共有も。招待したメンバーは無料で利用できます。
 
 8言語、59か国、生活費の目安つき499都市。フランスの個人開発者が開発。""",
 "whatsnew": """NETbudget 2.0、リリース以来最大のアップデートです。

@@ -18,7 +18,7 @@ Quanto te sobra mesmo este mês? A 2.0 traz o orçamento a dois ou em família e
 orçamento,despesas,poupança,finanças,casal,família,dicas,dinheiro,empréstimo,conversor,planeador
 ```
 
-## Description (2458/4000)
+## Description (2535/4000)
 
 ```
 Quanto te sobra mesmo no fim do mês?
@@ -48,7 +48,7 @@ NOTIFICAÇÕES QUE VALEM A PENA
 O ponto do mês, a dica da semana, um marco de projeto que se aproxima. Tu defines o limite semanal.
 
 GRÁTIS PARA COMEÇAR
-O orçamento, os empréstimos e o conversor são gratuitos, sem conta e sem limite de tempo. Os planos Solo, Duo e Família acrescentam o Coach, os projetos, os espaços partilhados e a sincronização cifrada. Sem publicidade, nunca.
+O orçamento, os empréstimos e o conversor são gratuitos, sem conta e sem limite de tempo. Os planos acrescentam o Coach, o conselho de segunda-feira, os projetos, todas as referências e os rendimentos sem limite. Duo e Família juntam o orçamento partilhado: os membros convidados usufruem dele sem pagar.
 
 Oito idiomas, 59 países, 499 cidades com o seu custo de vida. Desenvolvida em França por um programador independente.
 

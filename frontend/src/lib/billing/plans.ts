@@ -110,8 +110,15 @@ export function planFeatures(tier: Exclude<Tier, "free">): PlanFeature[] {
 
   // 4. Ce que toutes les formules payantes partagent, en dernier.
   if (l.advice) out.push({ key: "plan.feature.advice" });
+  // Le conseil du lundi et les repères complets viennent avec le Coach.
+  if (l.advice) out.push({ key: "plan.feature.weekly" });
+  if (l.advice) out.push({ key: "plan.feature.benchmarks" });
+  if (l.maxIncomeSources === null) out.push({ key: "plan.feature.incomes" });
   if (l.loanScheduleYears === null) out.push({ key: "plan.feature.schedule" });
-  out.push({ key: "plan.feature.sync" });
+  // PAS de « tes données sur tous tes appareils » : la synchronisation est
+  // ouverte à tout compte, gratuit compris. La vendre, c'était faire payer ce
+  // que le client a déjà.
+
 
   return out;
 }

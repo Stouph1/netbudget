@@ -42,7 +42,7 @@ NOTIFICHE CHE VALGONO IL DISTURBO
 Il punto del mese, il consiglio della settimana, una tappa di progetto che si avvicina. Il tetto settimanale lo decidi tu.
 
 GRATIS PER INIZIARE
-Budget, prestiti e convertitore sono gratuiti, senza account e senza limiti di tempo. I piani Solo, Duo e Famiglia aggiungono il Coach, i progetti, gli spazi condivisi e la sincronizzazione cifrata. Senza pubblicità, mai.
+Budget, prestiti e convertitore sono gratuiti, senza account e senza limiti di tempo. I piani aggiungono il Coach, il consiglio del lunedì, i progetti, tutti i riferimenti e le entrate senza limiti. Duo e Famiglia aggiungono il budget condiviso: i membri invitati lo usano senza pagare.
 
 Otto lingue, 59 paesi, 499 città con il loro costo della vita. Sviluppata in Francia da uno sviluppatore indipendente.
 ```

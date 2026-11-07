@@ -18,7 +18,7 @@ Wie viel bleibt dir diesen Monat wirklich? Die 2.0 bringt das Budget zu zweit od
 budget,haushalt,ausgaben,sparen,finanzen,paar,familie,tipps,geld,kredit,währungsrechner,planer
 ```
 
-## Description (2585/4000)
+## Description (2637/4000)
 
 ```
 Wie viel bleibt dir am Monatsende wirklich übrig?
@@ -48,7 +48,7 @@ BENACHRICHTIGUNGEN, DIE SICH LOHNEN
 Der Monatscheck, der Tipp der Woche, ein näher rückender Projektschritt. Die Wochenobergrenze legst du fest.
 
 KOSTENLOS STARTEN
-Budget, Kredite und Währungsrechner sind kostenlos, ohne Konto und ohne Zeitlimit. Die Tarife Solo, Duo und Familie ergänzen den Coach, Projekte, gemeinsame Bereiche und verschlüsselte Synchronisierung. Ohne Werbung, zu keinem Zeitpunkt.
+Budget, Kredite und Währungsrechner sind kostenlos, ohne Konto und ohne Zeitlimit. Die Tarife ergänzen den Coach, den Montags-Tipp, Projekte, alle Vergleichswerte und unbegrenzt Einkommen. Duo und Familie fügen das gemeinsame Budget hinzu: Eingeladene Mitglieder nutzen es, ohne zu zahlen.
 
 Acht Sprachen, 59 Länder, 499 Städte mit ihren Lebenshaltungskosten. Entwickelt in Frankreich von einem unabhängigen Entwickler.
 

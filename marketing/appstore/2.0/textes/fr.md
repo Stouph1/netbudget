@@ -18,7 +18,7 @@ Combien te reste-t-il vraiment ce mois-ci ? La 2.0 ajoute le budget à deux ou e
 budget,reste à vivre,dépenses,épargne,finances,couple,famille,conseils,argent,prêt,convertisseur
 ```
 
-## Description (2492/4000)
+## Description (2543/4000)
 
 ```
 Combien te reste-t-il vraiment à la fin du mois ?
@@ -48,7 +48,7 @@ DES NOTIFICATIONS QUI VALENT LE DÉRANGEMENT
 Le point du mois, le conseil de la semaine, un jalon de projet qui approche. Tu fixes le plafond hebdomadaire.
 
 GRATUIT POUR COMMENCER
-Le budget, les prêts et le convertisseur sont gratuits, sans compte et sans limite de temps. Les formules Solo, Duo et Famille ajoutent le Coach, les projets, les espaces partagés et la synchronisation chiffrée. Sans publicité, à aucun moment.
+Le budget, les prêts et le convertisseur sont gratuits, sans compte et sans limite de temps. Les formules ajoutent le Coach, le conseil du lundi, les projets, tous les repères et les revenus sans limite. Duo et Famille y ajoutent le budget partagé : les membres invités en profitent sans payer.
 
 Huit langues, 59 pays, 499 villes avec leur coût de la vie. Développé en France par un développeur indépendant.
 

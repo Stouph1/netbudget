@@ -17,14 +17,19 @@ import {
   limitsFor,
   type Tier,
   canAddIncomeSource,
+  canCreateWorkspace,
 } from "../lib/entitlements";
-import { cachedTier, lastKnownTier, loadTier, onTierChange } from "../lib/tier";
+import { cachedTier, lastKnownTier, loadPlan, loadTier, onTierChange, type PlanInfo } from "../lib/tier";
 
 export type Gate =
   /** Conseils personnalisés : n'importe quelle formule payante. */
   | { feature: "advice" }
   /** Espaces partagés : formules à plusieurs seulement. */
-  | { feature: "sharedSpace" }
+  /**
+   * CRÉER un espace : sur la formule payée par la personne, et dans la limite
+   * d'espaces qu'elle possède déjà (`ownedCount`).
+   */
+  | { feature: "sharedSpace"; ownedCount?: number }
   /** Synchronisation entre appareils. */
   | { feature: "sync" }
   /** Anniversaires du foyer : fête du jour J et cartes liées à l'âge. */
@@ -48,6 +53,8 @@ export function usePaywall() {
   const [tier, setTier] = useState<Tier>(() => (user?.id ? lastKnownTier() ?? "free" : "free"));
   const [reason, setReason] = useState<PaywallReason | null>(null);
   const [loading, setLoading] = useState(true);
+  // Qui paie : moi, ou le propriétaire d'un espace dont je suis membre.
+  const [plan, setPlan] = useState<PlanInfo | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -73,10 +80,21 @@ export function usePaywall() {
       .catch(() => {
         if (alive) setLoading(false);
       });
+    const readPlan = () => {
+      if (!user?.id) {
+        setPlan(null);
+        return;
+      }
+      void loadPlan().then((p) => {
+        if (alive) setPlan(p);
+      });
+    };
+    readPlan();
     // Un achat qui vient d'aboutir doit ouvrir l'accès SANS relancer l'app.
     const off = onTierChange((next) => {
       settled = true;
       if (alive) setTier(next);
+      readPlan();
     });
 
     return () => {
@@ -100,7 +118,7 @@ export function usePaywall() {
         case "sharedSpace":
           // CRÉER un espace. Le rejoindre sur invitation reste ouvert à tous —
           // voir canJoinWorkspace().
-          return limits.maxWorkspaces > 0;
+          return canCreateWorkspace(plan?.ownTier ?? tier, gate.ownedCount ?? 0).allowed;
         case "event":
           return canCreateEvent(tier, gate.currentCount, gate.type).allowed;
         case "goal":
@@ -111,7 +129,7 @@ export function usePaywall() {
           return canAddIncomeSource(tier, gate.currentCount).allowed;
       }
     },
-    [tier],
+    [tier, plan],
   );
 
   /**
@@ -143,6 +161,25 @@ export function usePaywall() {
                 featureKey: "paywall.feature.goals",
               },
         );
+        return false;
+      }
+
+      if (gate.feature === "sharedSpace") {
+        const verdict = canCreateWorkspace(plan?.ownTier ?? tier, gate.ownedCount ?? 0);
+        if (!verdict.allowed && verdict.reason === "spaceLimit") {
+          setReason(
+            verdict.upgradeTo
+              ? { kind: "locked", featureKey: "paywall.feature.spaceQuota", requires: verdict.upgradeTo }
+              : { kind: "quota", featureKey: "paywall.feature.spaceQuotaMax" },
+          );
+          return false;
+        }
+        setReason({
+          kind: "needsSubscription",
+          // Un membre profite déjà d'une formule : on lui explique pourquoi
+          // celle-ci ne suffit pas pour créer, au lieu de lui vendre ce qu'il a.
+          featureKey: plan?.sharedTier ? "paywall.feature.sharedOwn" : "paywall.feature.shared",
+        });
         return false;
       }
 
@@ -179,21 +216,23 @@ export function usePaywall() {
         featureKey:
           gate.feature === "advice"
             ? "paywall.feature.advice"
-            : gate.feature === "sharedSpace"
-              ? "paywall.feature.shared"
-              : gate.feature === "birthdays"
-                ? "paywall.feature.birthdays"
-                : "paywall.feature.sync",
+            : gate.feature === "birthdays"
+              ? "paywall.feature.birthdays"
+              : "paywall.feature.sync",
       });
       return false;
     },
-    [allows, tier],
+    [allows, tier, plan],
   );
 
   const close = useCallback(() => setReason(null), []);
 
   return {
     tier,
+    /** Formule payée par la personne. Retombe sur `tier` tant qu'on ne sait pas. */
+    ownTier: plan?.ownTier ?? tier,
+    /** Détail de la formule (propre ou partagée), null tant que non chargé. */
+    plan,
     loading,
     allows,
     require,

@@ -516,18 +516,30 @@ export default function PremiumHomePanel(_props: Props) {
       {/* Ton foyer : avec qui je partage, et qui vit ici. Visible dès qu'il
           y a quelque chose à montrer ou une formule qui le permet. */}
       {household &&
-      (household.spaces.length > 0 || household.persons.length > 0 || limitsFor(paywall.tier).maxWorkspaces > 0) ? (
+      (household.spaces.length > 0 || household.persons.length > 0 || limitsFor(paywall.ownTier).maxWorkspaces > 0) ? (
         <View style={styles.overviewCard} testID="household-card">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text style={[styles.overviewLabel, { marginBottom: 0 }]}>{t("home.household.title")}</Text>
             <InfoTip title={t("help.household.title")} body={t("help.household.body")} />
           </View>
-          {limitsFor(paywall.tier).maxWorkspaces > 0 ? (
+          {/* Abonné : ce que SA formule permet. Membre d'un espace : de qui
+              vient la formule dont il profite. Lui dire « les membres que tu
+              invites » alors qu'il ne peut inviter personne était faux. */}
+          {limitsFor(paywall.ownTier).maxWorkspaces > 0 ? (
             <Text style={styles.householdPlan}>
               {tp("home.household.plan", {
-                plan: t(`plan.${paywall.tier}.name`),
-                members: limitsFor(paywall.tier).maxMembersPerWorkspace,
+                plan: t(`plan.${paywall.ownTier}.name`),
+                members: limitsFor(paywall.ownTier).maxMembersPerWorkspace,
               })}
+            </Text>
+          ) : paywall.plan?.sharedTier ? (
+            <Text style={styles.householdPlan}>
+              {paywall.plan.sharedBy
+                ? tp("home.household.sharedBy", {
+                    plan: t(`plan.${paywall.plan.sharedTier}.name`),
+                    name: paywall.plan.sharedBy,
+                  })
+                : tp("home.household.shared", { plan: t(`plan.${paywall.plan.sharedTier}.name`) })}
             </Text>
           ) : null}
 

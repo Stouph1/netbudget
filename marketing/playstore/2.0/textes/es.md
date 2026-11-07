@@ -42,7 +42,7 @@ NOTIFICACIONES QUE MERECEN LA PENA
 El balance del mes, el consejo de la semana, un hito de proyecto que se acerca. Tú fijas el límite semanal.
 
 GRATIS PARA EMPEZAR
-El presupuesto, los préstamos y el conversor son gratuitos, sin cuenta y sin límite de tiempo. Los planes Solo, Dúo y Familia añaden el Coach, los proyectos, los espacios compartidos y la sincronización cifrada. Sin publicidad, nunca.
+El presupuesto, los préstamos y el conversor son gratuitos, sin cuenta y sin límite de tiempo. Los planes añaden el Coach, el consejo del lunes, los proyectos, todas las referencias y los ingresos sin límite. Dúo y Familia suman el presupuesto compartido: los miembros invitados lo disfrutan sin pagar.
 
 Ocho idiomas, 59 países, 499 ciudades con su coste de vida. Desarrollada en Francia por un desarrollador independiente.
 ```

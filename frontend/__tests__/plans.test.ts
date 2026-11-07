@@ -89,10 +89,18 @@ describe("points forts affichés", () => {
     expect(keysOf("family")).toContain("plan.feature.eventsUnlimited");
   });
 
-  it("met la synchronisation et les conseils dans toutes les formules", () => {
+  it("met les conseils, le conseil du lundi, les repères et les revenus dans toutes les formules", () => {
     for (const tier of SELLABLE_TIERS) {
-      expect(keysOf(tier)).toContain("plan.feature.sync");
       expect(keysOf(tier)).toContain("plan.feature.advice");
+      expect(keysOf(tier)).toContain("plan.feature.weekly");
+      expect(keysOf(tier)).toContain("plan.feature.benchmarks");
+      expect(keysOf(tier)).toContain("plan.feature.incomes");
+    }
+  });
+
+  it("ne vend PAS la synchronisation, ouverte à tout compte gratuit", () => {
+    for (const tier of SELLABLE_TIERS) {
+      expect(keysOf(tier)).not.toContain("plan.feature.sync");
     }
   });
 
