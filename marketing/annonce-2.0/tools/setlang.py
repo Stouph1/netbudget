@@ -6,7 +6,13 @@ LS, lang, cur, city, scale = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4],
 PCOUNTRY = sys.argv[6] if len(sys.argv) > 6 else ""; PREGION = sys.argv[7] if len(sys.argv) > 7 else ""
 U = "90477ab6-acaa-43d6-9a64-7d725c2bebaf"
 L = {"fr": ["Salaire","Missions freelance","Navigo","Électricité","Mutuelle","Forfait mobile","Basket","Streaming","Ski","Vacances d'été"],
-     "en": ["Salary","Freelance work","Travel card","Electricity","Health plan","Phone plan","Basketball","Streaming","Ski","Summer holidays"]}.get(lang)
+     "en": ["Salary","Freelance work","Travel card","Electricity","Health plan","Phone plan","Basketball","Streaming","Ski","Summer holidays"],
+     "es": ["Salario","Trabajos freelance","Abono transporte","Electricidad","Seguro médico","Tarifa móvil","Baloncesto","Streaming","Esquí","Vacaciones de verano"],
+     "pt": ["Salário","Trabalhos freelance","Passe de transportes","Eletricidade","Seguro de saúde","Tarifário móvel","Basquetebol","Streaming","Esqui","Férias de verão"],
+     "de": ["Gehalt","Freelance-Aufträge","Monatsticket","Strom","Zusatzversicherung","Handyvertrag","Basketball","Streaming","Skifahren","Sommerurlaub"],
+     "it": ["Stipendio","Lavori freelance","Abbonamento trasporti","Elettricità","Assicurazione sanitaria","Piano telefonico","Basket","Streaming","Sci","Vacanze estive"],
+     "ar": ["راتب","عمل حر","بطاقة النقل","الكهرباء","التأمين الصحي","باقة الهاتف","كرة السلة","البث","التزلج","عطلة الصيف"],
+     "ja": ["給与","フリーランス収入","定期券","電気代","医療保険","携帯プラン","バスケットボール","動画配信","スキー","夏休み旅行"]}.get(lang)
 IDS = {"salary-demo":0,"free-demo":1,"oyster":2,"electricity":3,"health":4,"phone":5,"basket":6,"streaming":7,"ski":8,"holidays":9}
 BASE = {"salary-demo":3400,"free-demo":400,"loyer":1250,"alimentation":320,"oyster":160,"electricity":70,"health":40,"phone":15,"sorties":150,"basket":25,"streaming":16,"ski":120,"epargne":300,"holidays":150}
 FRLAB = {"loyer":"Loyer","alimentation":"Alimentation","sorties":"Sorties / Restos","epargne":"Épargne mensuelle"}
