@@ -1,0 +1,18 @@
+type,valeur,clics,impressions
+requete,net budget,6,269
+requete,budget net,1,133
+requete,intent prix / budget,0,203
+requete,nte budget,0,45
+pays,France,58,398
+pays,Inde,3,63
+pays,États-Unis,2,332
+pays,Australie,2,32
+pays,Brésil,1,25
+pays,Italie,1,16
+pays,Grèce,1,7
+pays,Danemark,1,6
+pays,Royaume-Uni,0,69
+pays,Philippines,0,38
+appareil,Mobile,51,512
+appareil,Ordinateur,17,885
+appareil,Tablette,1,12

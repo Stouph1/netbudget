@@ -1,0 +1,36 @@
+<fr-FR>
+NETbudget 2.0.2 : choisir une formule sans être connecté te guide désormais vers la création de ton compte, puis te ramène à l'offre pour finaliser l'achat. Accès plus clair au Coach et aux événements quand tu n'es pas connecté. Plus de notification de rappel d'échéance d'abonnement. Textes revus et petites corrections.
+</fr-FR>
+<ar>
+NETbudget 2.0.2: عند اختيار باقة دون تسجيل الدخول، يرشدك التطبيق الآن إلى إنشاء حسابك ثم يعيدك إلى العرض لإتمام الشراء. وصول أوضح إلى المرشد والأحداث عندما لا تكون مسجّلًا. لا مزيد من إشعارات التذكير بانتهاء الاشتراك. نصوص منقّحة وإصلاحات صغيرة.
+</ar>
+<de-DE>
+NETbudget 2.0.2: Wenn du ohne Anmeldung ein Abo wählst, führt dich die App jetzt zur Erstellung deines Kontos und danach zurück zum Angebot, um den Kauf abzuschließen. Klarerer Zugang zum Coach und zu den Ereignissen ohne Anmeldung. Keine Erinnerung mehr an das Ablaufen des Abos. Überarbeitete Texte und kleine Korrekturen.
+</de-DE>
+<en-AU>
+NETbudget 2.0.2: choosing a plan while signed out now walks you through creating your account, then brings you back to the offer to complete the purchase. Clearer access to the Coach and events when you are not signed in. No more subscription renewal reminder notification. Revised texts and small fixes.
+</en-AU>
+<en-CA>
+NETbudget 2.0.2: choosing a plan while signed out now walks you through creating your account, then brings you back to the offer to complete the purchase. Clearer access to the Coach and events when you are not signed in. No more subscription renewal reminder notification. Revised texts and small fixes.
+</en-CA>
+<en-GB>
+NETbudget 2.0.2: choosing a plan while signed out now walks you through creating your account, then brings you back to the offer to complete the purchase. Clearer access to the Coach and events when you are not signed in. No more subscription renewal reminder notification. Revised texts and small fixes.
+</en-GB>
+<en-US>
+NETbudget 2.0.2: choosing a plan while signed out now walks you through creating your account, then brings you back to the offer to complete the purchase. Clearer access to the Coach and events when you are not signed in. No more subscription renewal reminder notification. Revised texts and small fixes.
+</en-US>
+<es-ES>
+NETbudget 2.0.2: si eliges un plan sin haber iniciado sesión, ahora te guiamos para crear tu cuenta y luego te devolvemos a la oferta para completar la compra. Acceso más claro al Coach y a los eventos sin sesión iniciada. Se acabó la notificación de recordatorio de vencimiento de la suscripción. Textos revisados y pequeñas correcciones.
+</es-ES>
+<it-IT>
+NETbudget 2.0.2: se scegli un piano senza aver effettuato l'accesso, ora ti guidiamo nella creazione del tuo account e poi ti riportiamo all'offerta per completare l'acquisto. Accesso più chiaro al Coach e agli eventi senza accesso. Niente più notifica di promemoria per la scadenza dell'abbonamento. Testi rivisti e piccole correzioni.
+</it-IT>
+<ja-JP>
+NETbudget 2.0.2：ログインせずにプランを選ぶと、アカウント作成へご案内し、その後プランの画面に戻って購入を完了できるようになりました。ログインしていないときも、コーチとイベントへのアクセスがわかりやすくなりました。サブスクリプション期限のリマインダー通知は廃止しました。テキストの見直しと細かな修正。
+</ja-JP>
+<pt-BR>
+NETbudget 2.0.2: ao escolher um plano sem estar conectado, o app agora guia você na criação da sua conta e depois traz você de volta à oferta para concluir a compra. Acesso mais claro ao Coach e aos eventos sem estar conectado. Fim da notificação de lembrete de vencimento da assinatura. Textos revisados e pequenas correções.
+</pt-BR>
+<pt-PT>
+NETbudget 2.0.2: ao escolher um plano sem ter sessão iniciada, a app guia-o agora na criação da sua conta e depois leva-o de volta à oferta para concluir a compra. Acesso mais claro ao Coach e aos eventos sem sessão iniciada. Fim da notificação de lembrete de fim da assinatura. Textos revistos e pequenas correções.
+</pt-PT>
