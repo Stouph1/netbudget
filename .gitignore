@@ -117,3 +117,7 @@ design-system/
 play-service-account*.json
 AuthKey_*.p8
 SubscriptionKey_*.p8
+
+# Sorties de travail video (rendus intermediaires, essais /brag)
+brag-output-*/
+marketing/**/renders/
