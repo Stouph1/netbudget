@@ -13,6 +13,7 @@
 // refuser définitivement. La demande se fait depuis l'écran de réglages, quand
 // l'utilisateur a vu ce qu'il allait recevoir.
 
+import { onTierChange } from "../lib/tier";
 import { useCallback, useEffect, useRef } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { useCurrency } from "../contexts/CurrencyContext";
@@ -71,6 +72,10 @@ export function usePersonalNotifications(): void {
   // Permission accordée depuis l'écran d'explication : on programme tout de
   // suite, sans attendre la prochaine ouverture.
   useEffect(() => onNotificationsGranted(() => void sync()), [sync]);
+
+  // Nouvelle formule (achat, changement, fin) : le conseil du lundi et les
+  // rappels d'événements dépendent du palier, on reprogramme tout de suite.
+  useEffect(() => onTierChange(() => void sync()), [sync]);
 
   useEffect(() => {
     const onChange = (state: AppStateStatus) => {

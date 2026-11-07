@@ -52,6 +52,24 @@ export const BILLING_LIVE =
   Boolean(process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY) ||
   Boolean(process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY);
 
+/**
+ * Dernier palier connu, en mémoire. Sert de valeur de DÉPART aux écrans qui se
+ * montent pendant que le serveur répond : sans elle, chaque écran partait de
+ * « free » et un abonné voyait un instant « Voir les formules », un
+ * échéancier flouté ou le paywall s'il touchait un bouton trop vite. Ne fait
+ * qu'afficher ce que le serveur a déjà accordé ; le serveur tranche ensuite.
+ */
+let lastKnown: Tier | null = null;
+export function lastKnownTier(): Tier | null {
+  return lastKnown;
+}
+/** Palier du cache local, lu une fois au démarrage pour amorcer `lastKnown`. */
+export async function cachedTier(): Promise<Tier | null> {
+  const c = tierOverride() ?? (await readCache());
+  if (c && lastKnown === null) lastKnown = c;
+  return lastKnown ?? c;
+}
+
 async function readCache(): Promise<Tier | null> {
   try {
     return parseTier(await AsyncStorage.getItem(CACHE_KEY));
@@ -97,6 +115,7 @@ export async function loadTier(): Promise<Tier> {
     const { data, error } = await supabase.rpc("my_tier");
     const fromServer = error ? null : parseTier(data);
     if (fromServer) {
+      lastKnown = fromServer;
       await writeCache(fromServer);
       return fromServer;
     }
@@ -162,6 +181,7 @@ export async function refreshTier(expected?: Tier, attempts = 6): Promise<Tier> 
       await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
     }
   }
+  lastKnown = tier;
   for (const notify of listeners) notify(tier);
   return tier;
 }
@@ -171,5 +191,6 @@ export async function forgetTier(): Promise<void> {
   try {
     await AsyncStorage.removeItem(CACHE_KEY);
   } catch {}
+  lastKnown = null;
   for (const notify of listeners) notify("free");
 }

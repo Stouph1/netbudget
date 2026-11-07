@@ -18,7 +18,7 @@ import {
   type Tier,
   canAddIncomeSource,
 } from "../lib/entitlements";
-import { loadTier, onTierChange } from "../lib/tier";
+import { cachedTier, lastKnownTier, loadTier, onTierChange } from "../lib/tier";
 
 export type Gate =
   /** Conseils personnalisés : n'importe quelle formule payante. */
@@ -44,14 +44,26 @@ export type Gate =
 
 export function usePaywall() {
   const { user } = useSession();
-  const [tier, setTier] = useState<Tier>("free");
+  // On part du dernier palier connu, pas de « free » : voir lastKnownTier().
+  const [tier, setTier] = useState<Tier>(() => (user?.id ? lastKnownTier() ?? "free" : "free"));
   const [reason, setReason] = useState<PaywallReason | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
+    // Le serveur a parlé : le cache, plus lent à arriver par malchance, ne
+    // doit jamais le contredire (abonnement expiré entre-temps).
+    let settled = false;
+    // Démarrage à froid : le cache local répond en quelques millisecondes,
+    // bien avant le serveur. Il ne sert qu'à l'affichage d'attente.
+    if (user?.id && lastKnownTier() === null) {
+      void cachedTier().then((c) => {
+        if (alive && !settled && c) setTier(c);
+      });
+    }
     loadTier()
       .then((t) => {
+        settled = true;
         if (!alive) return;
         // Sans compte, aucun abonnement n'est possible : on reste en free, et
         // les écrans premium renverront vers la connexion.
@@ -63,6 +75,7 @@ export function usePaywall() {
       });
     // Un achat qui vient d'aboutir doit ouvrir l'accès SANS relancer l'app.
     const off = onTierChange((next) => {
+      settled = true;
       if (alive) setTier(next);
     });
 

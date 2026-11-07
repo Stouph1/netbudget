@@ -109,6 +109,14 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
   // Le scope perso renvoie une CLÉ i18n, un espace nommé renvoie son nom.
   const resolvedScopeLabel = scopeLabelIsKey ? t(scopeLabel) : scopeLabel;
   const [list, setList] = useState<EventProject[] | null>(null);
+  // Le quota Solo porte sur les événements EN COURS : un mariage passé ne doit
+  // pas bloquer le voyage de l'été. Il n'existe pas de statut « terminé »,
+  // donc la date fait foi — jour local, comparé en AAAA-MM-JJ.
+  const ongoingCount = useMemo(() => {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return (list ?? []).filter((e) => !e.dateIso || e.dateIso >= today).length;
+  }, [list]);
 
   // Assistant de création
   const [creating, setCreating] = useState(false);
@@ -183,10 +191,10 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     // On teste avec un type ordinaire : si SEUL le mariage est verrouillé,
     // l'assistant doit quand même s'ouvrir — le blocage se dira au moment de
     // choisir ce type-là, pas avant.
-    if (paywall.require({ feature: "event", type: "travel", currentCount: (list ?? []).length })) {
+    if (paywall.require({ feature: "event", type: "travel", currentCount: ongoingCount })) {
       setCreating(true);
     }
-  }, [paywall, list]);
+  }, [paywall, ongoingCount]);
 
   const days = Math.max(0, parseInt(stayLength, 10) || 0);
   const travelers = Math.max(1, parseInt(guests, 10) || 1);
@@ -208,7 +216,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     if (!paywall.require({
       feature: "event",
       type: tpl.type,
-      currentCount: (list ?? []).length,
+      currentCount: ongoingCount,
     })) {
       return;
     }
@@ -442,7 +450,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                 const locked = !paywall.allows({
                   feature: "event",
                   type: tpl0.type,
-                  currentCount: (list ?? []).length,
+                  currentCount: ongoingCount,
                 });
                 return (
                   <TouchableOpacity
@@ -461,7 +469,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
                         paywall.require({
                           feature: "event",
                           type: tpl0.type,
-                          currentCount: (list ?? []).length,
+                          currentCount: ongoingCount,
                         });
                         return;
                       }
