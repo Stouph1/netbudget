@@ -93,6 +93,7 @@ import {
   setupNotificationHandler,
 } from "../src/utils/notifications";
 import { NotificationPrimer } from "../src/components/NotificationPrimer";
+import { requestPrime } from "../src/utils/notificationPrimer";
 import * as Notifications from "expo-notifications";
 import { CITIES, City } from "../src/constants/cities";
 import { parseNumber } from "../src/utils/finance";
@@ -1107,7 +1108,11 @@ export default function Index() {
   }
   function openAddIncome() {
     // Deux sources sans abonnement : la troisième ouvre les formules.
-    if (!paywall.require({ feature: "income", currentCount: incomes.length })) return;
+    // On ne compte que les revenus RÉELS. La ligne vide créée au premier
+    // lancement (montant 0) comptait : le deuxième vrai revenu — le salaire du
+    // conjoint, une allocation — ouvrait déjà les formules.
+    const realIncomes = incomes.filter((i) => (parseFloat(String(i.amount).replace(",", ".")) || 0) > 0).length;
+    if (!paywall.require({ feature: "income", currentCount: realIncomes })) return;
     setEditingIncome(null);
     setIncomeForm({
       id: `inc-${Date.now()}`,
@@ -1144,12 +1149,21 @@ export default function Index() {
       ...incomeForm,
       label: incomeForm.label.trim() || t(`incomeType.${incomeForm.type}`),
     };
+    const firstReal = !incomes.some((i) => parseNumber(i.amount) > 0);
     if (editingIncome) {
       setIncomes((prev) => prev.map((s) => (s.id === editingIncome.id ? final : s)));
     } else {
-      setIncomes((prev) => [...prev, final]);
+      // La ligne vide du premier lancement (montant 0, sans nom) laisse la
+      // place au vrai revenu, au lieu de rester affichée à « 0 € ».
+      setIncomes((prev) => [
+        ...prev.filter((s) => !(parseNumber(s.amount) <= 0 && !s.label.trim())),
+        final,
+      ]);
     }
     setIncomeModalOpen(false);
+    // Premier vrai revenu : l'app vient de rendre service. C'est le moment de
+    // proposer les rappels — après la fermeture de la fenêtre, pas par-dessus.
+    if (firstReal) setTimeout(requestPrime, 1200);
   }
 
   function askDeleteIncome(id: string) {

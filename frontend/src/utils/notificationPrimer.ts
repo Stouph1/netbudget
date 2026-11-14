@@ -93,3 +93,50 @@ export function emitNotificationsGranted(): void {
     } catch {}
   }
 }
+
+// ---------------------------------------------------------------------------
+// Demande au BON MOMENT, dès la première session.
+//
+// On attendait la 2e ouverture pour demander. Or 84 % des nouveaux ne rouvrent
+// jamais l'app d'eux-mêmes : ils ne voyaient jamais la demande, donc aucune
+// notification ne pouvait les faire revenir. On demande maintenant juste après
+// le premier revenu enregistré — le moment où l'app vient de rendre service et
+// où « je te préviens quand ton budget du mois t'attend » a un sens.
+// ---------------------------------------------------------------------------
+const primeListeners = new Set<() => void>();
+
+export function onPrimeRequest(fn: () => void): () => void {
+  primeListeners.add(fn);
+  return () => primeListeners.delete(fn);
+}
+
+/** Signale un moment propice. L'écran ne s'ouvre que si la demande a un sens. */
+export function requestPrime(): void {
+  for (const fn of primeListeners) {
+    try {
+      fn();
+    } catch {}
+  }
+}
+
+/** Comme shouldPrimeNotifications, sans exiger une 2e ouverture. */
+export async function canPrimeNow(now: Date = new Date()): Promise<boolean> {
+  if (Platform.OS === "web") return false;
+  let primedAt: Date | null = null;
+  try {
+    const raw = await AsyncStorage.getItem(PRIMED_KEY);
+    primedAt = raw ? new Date(raw) : null;
+  } catch {}
+  try {
+    const perms = await Notifications.getPermissionsAsync();
+    return decidePrime({
+      opens: ASK_FROM_OPEN,
+      status: perms.status as "granted" | "denied" | "undetermined",
+      canAskAgain: perms.canAskAgain !== false,
+      primedAt,
+      now,
+    });
+  } catch {
+    return false;
+  }
+}

@@ -275,14 +275,19 @@ export default function BudgetScreen({
         onClose={onCloseBudgetSwitcher}
       />
 
-      <StreakCard
-        figures={{
-          net: netMensuel,
-          expenses: monthlyExpenses,
-          remaining: remaining,
-        }}
-        fmt={fmt}
-      />
+      {/* « Ton point du mois » n'a de sens qu'avec des chiffres : sur un écran
+          vide, il demandait de « vérifier ses chiffres » à quelqu'un qui n'en
+          avait saisi aucun, au-dessus de la seule action utile. */}
+      {netMoyen > 0 ? (
+        <StreakCard
+          figures={{
+            net: netMensuel,
+            expenses: monthlyExpenses,
+            remaining: remaining,
+          }}
+          fmt={fmt}
+        />
+      ) : null}
 
       {/* Top : onboarding tant qu'il n'y a pas de données, résultats live ensuite */}
       {netMoyen <= 0 ? (

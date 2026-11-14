@@ -10,6 +10,7 @@
 // des réglages, pour rester compatible avec l'existant.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { deviceLang } from "../i18n/deviceLocale";
 import {
   createContext,
   useCallback,
@@ -54,11 +55,13 @@ export function LangProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(STATE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as { lang?: string };
-          if (parsed.lang && parsed.lang in CATALOGS) {
-            setLangState(parsed.lang as Lang);
-          }
+        const parsed = raw ? (JSON.parse(raw) as { lang?: string }) : {};
+        if (parsed.lang && parsed.lang in CATALOGS) {
+          setLangState(parsed.lang as Lang);
+        } else {
+          // Rien de choisi : la langue du téléphone, si l'app la parle.
+          const fromDevice = deviceLang();
+          if (fromDevice) setLangState(fromDevice);
         }
       } catch {}
       setLoading(false);

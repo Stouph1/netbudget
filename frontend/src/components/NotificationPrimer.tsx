@@ -13,7 +13,13 @@ import { useAccent } from "../contexts/ThemeContext";
 import { useSheetBottom } from "../hooks/useSheetBottom";
 import { alpha } from "../theme/accents";
 import { ensureMonthlyRemindersScheduled, pickMonthlyVariants, requestPermissionOnce } from "../utils/notifications";
-import { emitNotificationsGranted, markPrimed, shouldPrimeNotifications } from "../utils/notificationPrimer";
+import {
+  canPrimeNow,
+  emitNotificationsGranted,
+  markPrimed,
+  onPrimeRequest,
+  shouldPrimeNotifications,
+} from "../utils/notificationPrimer";
 
 const MIDNIGHT = "#0F172A";
 const SURFACE = "#1A2238";
@@ -48,6 +54,17 @@ export function NotificationPrimer({ delayMs = 1800 }: { delayMs?: number }) {
       clearTimeout(timer);
     };
   }, [delayMs]);
+
+  // Moment propice signalé par l'app (premier revenu enregistré).
+  useEffect(
+    () =>
+      onPrimeRequest(() => {
+        void canPrimeNow().then((ok) => {
+          if (ok) setVisible(true);
+        });
+      }),
+    [],
+  );
 
   async function later() {
     await markPrimed();

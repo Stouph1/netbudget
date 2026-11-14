@@ -7,6 +7,7 @@
 // Persistée dans le même objet `netbudget:state` que le reste des réglages.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { deviceCurrency } from "../i18n/deviceLocale";
 import {
   createContext,
   useCallback,
@@ -43,11 +44,13 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(STATE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as { currency?: string };
-          if (parsed.currency && CURRENCIES.some((c) => c.code === parsed.currency)) {
-            setCurrencyState(parsed.currency as CurrencyCode);
-          }
+        const parsed = raw ? (JSON.parse(raw) as { currency?: string }) : {};
+        if (parsed.currency && CURRENCIES.some((c) => c.code === parsed.currency)) {
+          setCurrencyState(parsed.currency as CurrencyCode);
+        } else {
+          // Rien de choisi : la devise du pays du téléphone, si l'app la gère.
+          const fromDevice = deviceCurrency();
+          if (fromDevice) setCurrencyState(fromDevice);
         }
       } catch {}
       setLoading(false);
