@@ -3574,4 +3574,7 @@ export const de: Catalog = {
   "paywall.feature.spaceQuota": "Du hast die Zahl gemeinsamer Bereiche deines Tarifs erreicht. Der Tarif Familie erlaubt mehr.",
   "paywall.feature.spaceQuotaMax": "Du hast die Zahl gemeinsamer Bereiche deines Tarifs erreicht. Lösche einen Bereich, der dir gehört, um einen neuen zu erstellen.",
   "ws.err.spaceLimit": "Dein Tarif erlaubt keinen weiteren Bereich. Bereiche, zu denen du eingeladen wurdest, zählen nicht.",
+  "income.amount.net": "Nettobetrag (was auf deinem Konto ankommt)",
+  "income.kind.net": "Netto",
+  "income.kind.gross": "Brutto",
 };

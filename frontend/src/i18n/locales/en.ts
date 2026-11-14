@@ -3574,4 +3574,7 @@ export const en: Catalog = {
   "paywall.feature.spaceQuota": "You have reached your plan's number of shared spaces. The Family plan allows more.",
   "paywall.feature.spaceQuotaMax": "You have reached your plan's number of shared spaces. Delete a space you own to create another one.",
   "ws.err.spaceLimit": "Your plan does not allow one more space. Spaces you were invited to do not count.",
+  "income.amount.net": "Net amount (what reaches your account)",
+  "income.kind.net": "Net",
+  "income.kind.gross": "Gross",
 };

@@ -3574,4 +3574,7 @@ export const ar: Catalog = {
   "paywall.feature.spaceQuota": "بلغت عدد المساحات المشتركة الذي تسمح به باقتك. باقة «عائلة» تسمح بالمزيد.",
   "paywall.feature.spaceQuotaMax": "بلغت عدد المساحات المشتركة الذي تسمح به باقتك. احذف مساحة تملكها لإنشاء أخرى.",
   "ws.err.spaceLimit": "لا تسمح باقتك بإنشاء مساحة إضافية. المساحات التي دُعيت إليها لا تُحتسب.",
+  "income.amount.net": "المبلغ الصافي (ما يصل إلى حسابك)",
+  "income.kind.net": "صافٍ",
+  "income.kind.gross": "إجمالي",
 };

@@ -3628,4 +3628,7 @@ export const fr: Catalog = {
   "paywall.feature.spaceQuota": "Tu as atteint le nombre d'espaces partagés de ta formule. La formule Famille en permet davantage.",
   "paywall.feature.spaceQuotaMax": "Tu as atteint le nombre d'espaces partagés de ta formule. Supprime un espace dont tu es propriétaire pour en créer un autre.",
   "ws.err.spaceLimit": "Ta formule ne permet pas de créer un espace de plus. Les espaces où tu es invité ne comptent pas.",
+  "income.amount.net": "Montant net (sur ton compte)",
+  "income.kind.net": "Net",
+  "income.kind.gross": "Brut",
 };

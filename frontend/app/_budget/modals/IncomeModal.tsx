@@ -138,7 +138,11 @@ export default function IncomeModal({
                   un revenu « autre » se saisit en net, seul un freelance
                   raisonne en taux journalier. */}
               <Field
-                label={t(`income.amount.${incomeForm.type}`)}
+                label={
+                  incomeForm.type !== "autre" && incomeForm.amountKind === "net"
+                    ? t("income.amount.net")
+                    : t(`income.amount.${incomeForm.type}`)
+                }
                 info={{ title: t("help.incomeAmount.title"), body: t("help.incomeAmount.body") }}
                 icon={<Text style={styles.euroIcon}>{getCurrency(currency).symbol}</Text>}
                 right={getCurrency(currency).symbol}
@@ -148,6 +152,31 @@ export default function IncomeModal({
                 placeholder="0"
                 testID="income-amount"
               />
+              {/* Net ou brut : on demande ce que la personne CONNAÎT. En net,
+                  plus de charges ni d'impôt à estimer — le montant est déjà
+                  celui qui arrive sur le compte. Un revenu « autre » est
+                  toujours net. */}
+              {incomeForm.type !== "autre" ? (
+                <View style={[styles.segmentRow, { marginTop: 0, marginBottom: 12 }]} accessibilityRole="radiogroup">
+                  {(["net", "gross"] as const).map((k) => {
+                    const on = (incomeForm.amountKind ?? "gross") === k;
+                    return (
+                      <TouchableOpacity
+                        key={k}
+                        onPress={() => setIncomeForm((f) => ({ ...f, amountKind: k }))}
+                        style={[styles.segment, on && styles.segmentOn]}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: on }}
+                        testID={`income-kind-${k}`}
+                      >
+                        <Text style={[styles.segmentText, on && styles.segmentTextOn]}>
+                          {t(k === "net" ? "income.kind.net" : "income.kind.gross")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ) : null}
 
               <Dropdown<IncomeFrequency>
                 label={t("income.frequency")}
@@ -257,7 +286,7 @@ export default function IncomeModal({
                 </ScrollView>
               )}
 
-              {incomeForm.type === "salaire" && (
+              {incomeForm.type === "salaire" && incomeForm.amountKind !== "net" && (
                 <>
                   <Dropdown<ProStatus>
                     label={t("income.status")}
@@ -287,7 +316,7 @@ export default function IncomeModal({
                 </>
               )}
 
-              {incomeForm.type !== "autre" && (
+              {incomeForm.type !== "autre" && incomeForm.amountKind !== "net" && (
                 <Field
                   label={t("income.charges")}
                   info={{ title: t("help.charges.title"), body: t("help.charges.body") }}
@@ -305,7 +334,7 @@ export default function IncomeModal({
               {/* Impôt retenu sur le salaire par l'employeur. Seulement pour un
                   salaire, et seulement dans un pays où ça existe (vérifié) :
                   ailleurs, le champ serait une question sans réponse. */}
-              {incomeForm.type === "salaire" && withholding ? (
+              {incomeForm.type === "salaire" && withholding && incomeForm.amountKind !== "net" ? (
                 <Field
                   label={t("income.withholding")}
                   info={{

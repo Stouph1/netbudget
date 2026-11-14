@@ -1121,6 +1121,9 @@ export default function Index() {
       amount: "0",
       frequency: "monthly",
       chargesPercent: String(TYPE_DEFAULT_CHARGES["salaire"]),
+      // Net par défaut : c'est le chiffre que les gens ont sur leur fiche de
+      // paie et sur leur compte. Le brut reste à un geste.
+      amountKind: "net",
       proStatus: "non-cadre",
       timeMode: "plein",
     });

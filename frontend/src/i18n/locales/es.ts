@@ -3574,4 +3574,7 @@ export const es: Catalog = {
   "paywall.feature.spaceQuota": "Has alcanzado el número de espacios compartidos de tu plan. El plan Familia permite más.",
   "paywall.feature.spaceQuotaMax": "Has alcanzado el número de espacios compartidos de tu plan. Elimina un espacio del que seas propietario para crear otro.",
   "ws.err.spaceLimit": "Tu plan no permite crear un espacio más. Los espacios a los que te invitaron no cuentan.",
+  "income.amount.net": "Importe neto (lo que llega a tu cuenta)",
+  "income.kind.net": "Neto",
+  "income.kind.gross": "Bruto",
 };

@@ -3574,4 +3574,7 @@ export const ja: Catalog = {
   "paywall.feature.spaceQuota": "このプランで作れる共有スペースの上限に達しました。ファミリープランなら、さらに作成できます。",
   "paywall.feature.spaceQuotaMax": "このプランで作れる共有スペースの上限に達しました。新しく作るには、ご自身が所有するスペースを削除してください。",
   "ws.err.spaceLimit": "このプランでは、これ以上スペースを作成できません。招待されたスペースは数に含まれません。",
+  "income.amount.net": "手取り額（口座に入る金額）",
+  "income.kind.net": "手取り",
+  "income.kind.gross": "額面",
 };

@@ -3574,4 +3574,7 @@ export const it: Catalog = {
   "paywall.feature.spaceQuota": "Hai raggiunto il numero di spazi condivisi del tuo piano. Il piano Famiglia ne consente di più.",
   "paywall.feature.spaceQuotaMax": "Hai raggiunto il numero di spazi condivisi del tuo piano. Elimina uno spazio di cui sei proprietario per crearne un altro.",
   "ws.err.spaceLimit": "Il tuo piano non consente di creare un altro spazio. Gli spazi a cui sei stato invitato non contano.",
+  "income.amount.net": "Importo netto (quello che arriva sul conto)",
+  "income.kind.net": "Netto",
+  "income.kind.gross": "Lordo",
 };

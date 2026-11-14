@@ -25,6 +25,13 @@ export type IncomeSource = {
   frequency: IncomeFrequency;
   chargesPercent: string; // 0 = brut = net (ex: revenus déjà nets)
   /**
+   * Ce que représente `amount`. « net » : ce qui arrive sur le compte, aucune
+   * charge ni impôt retenu n'est déduit. Absent = brut, le comportement
+   * d'origine. La plupart des gens connaissent leur net, pas leur brut : une
+   * abonnée « n'arrivait pas à mettre son revenu en net ».
+   */
+  amountKind?: "net" | "gross";
+  /**
    * Impôt sur le revenu retenu sur le salaire par l'employeur, en % du net
    * (prélèvement à la source, PAYE, Lohnsteuer…). Absent ou 0 = pas concerné.
    * Les charges donnent le « net avant impôt » ; ceci donne ce qui arrive
@@ -179,9 +186,10 @@ export function monthlyNetForSource(
 ): number {
   const gross = grossForMonth(s, monthIndex);
   if (gross <= 0) return 0;
-  const charges = Math.max(0, Math.min(60, parseNumber(s.chargesPercent)));
+  const isNet = s.amountKind === "net";
+  const charges = isNet ? 0 : Math.max(0, Math.min(60, parseNumber(s.chargesPercent)));
   let net = gross * (1 - charges / 100);
-  const withholding = Math.max(0, Math.min(60, parseNumber(s.withholdingPercent ?? "0")));
+  const withholding = isNet ? 0 : Math.max(0, Math.min(60, parseNumber(s.withholdingPercent ?? "0")));
   net = net * (1 - withholding / 100);
   if (s.titheApplied && tithePercent > 0) {
     const base = s.titheBase === "gross" ? gross : net;
