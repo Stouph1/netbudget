@@ -20,6 +20,7 @@ import {
 import { setTierOverride } from "../lib/tierOverride";
 import { supabase } from "../lib/supabase";
 import { syncBilling } from "../lib/billing/start";
+import { refreshTier } from "../lib/tier";
 
 type SessionContextValue = {
   session: Session | null;
@@ -59,6 +60,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const userId = session?.user?.id ?? null;
   useEffect(() => {
     void syncBilling(userId);
+  }, [userId]);
+
+  // La formule se relit DÈS que la session est là, et elle est rediffusée à
+  // tous les écrans. Sans ça, un écran monté au démarrage interrogeait le
+  // serveur avant que la session soit attachée, recevait « gratuit », et n'y
+  // revenait jamais : une abonnée voyait « Famille » dans son profil et des
+  // repères verrouillés dans son budget, le même jour, dans la même app.
+  useEffect(() => {
+    if (!userId) return;
+    const timer = setTimeout(() => void refreshTier(undefined, 2).catch(() => {}), 300);
+    return () => clearTimeout(timer);
   }, [userId]);
 
   const value = useMemo<SessionContextValue>(
