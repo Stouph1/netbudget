@@ -26,6 +26,9 @@ export function MonthChips({
   const all = !months;
   const toggle = (m: number) => {
     const next = active.includes(m) ? active.filter((x) => x !== m) : [...active, m];
+    // Aucun mois : la dépense compterait sur toute l'année à l'enregistrement.
+    // Comme pour les revenus, le dernier mois ne se décoche pas.
+    if (next.length === 0) return;
     onChange(normalizeMonths(next) ?? (next.length === 0 ? [] : undefined));
   };
   return (

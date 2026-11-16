@@ -397,7 +397,10 @@ export default function BudgetScreen({
                 <View style={{ flex: 1 }}>
                   <Text style={styles.incomeLabel}>{src.label || t(`incomeType.${src.type}`)}</Text>
                   <Text style={styles.incomeMeta}>
-                    {t(`incomeType.${src.type}`)} · {freqLabel} · {parseNumber(src.chargesPercent)} %
+                    {t(`incomeType.${src.type}`)} · {freqLabel}
+                    {src.amountKind === "net" || src.type === "autre"
+                      ? ` · ${t("income.kind.net")}`
+                      : ` · ${parseNumber(src.chargesPercent)} %`}
                   </Text>
                 </View>
                 <View style={{ alignItems: "flex-end" }}>

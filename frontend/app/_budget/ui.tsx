@@ -84,13 +84,17 @@ export function Field({
 }) {
   const { styles } = useBudgetTheme();
   const [focused, setFocused] = useState(false);
+  // Le « 0 » de confort ne vaut que pour un MONTANT. Sur un champ texte, un
+  // nom laissé vide devenait « 0 » : un revenu, un prêt, une catégorie
+  // nommés « 0 ».
+  const numeric = !!keyboardType && keyboardType !== "default";
   const handleFocus = () => {
     setFocused(true);
-    if (!keepEmpty && value === "0") onChangeText("");
+    if (numeric && !keepEmpty && value === "0") onChangeText("");
   };
   const handleBlur = () => {
     setFocused(false);
-    if (!keepEmpty && value === "") onChangeText("0");
+    if (numeric && !keepEmpty && value === "") onChangeText("0");
   };
   return (
     <View>

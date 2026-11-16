@@ -198,7 +198,7 @@ export default function LoanModal({
                     const curMonth = m ? m[2] : "";
                     const curYear = m ? m[1] : "";
                     const thisYear = new Date().getFullYear();
-                    const years = Array.from({ length: 41 }, (_, i) => String(thisYear + 1 - i));
+                    const years = Array.from({ length: 46 }, (_, i) => String(thisYear + 5 - i));
                     const setStart = (month: string, year: string) => {
                       const iso = month && year ? `${year}-${month}-01` : undefined;
                       setForm((f) => ({ ...f, startDate: iso }));

@@ -3579,4 +3579,6 @@ export const ar: Catalog = {
   "income.kind.gross": "إجمالي",
   "loan.startNone": "غير محدد",
   "loan.startYear": "سنة القسط الأول",
+  "confirm.deleteItem.title": "حذف هذا المصروف؟",
+  "pdf.shareTitle": "ميزانيتي على NETbudget",
 };

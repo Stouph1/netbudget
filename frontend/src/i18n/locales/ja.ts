@@ -3579,4 +3579,6 @@ export const ja: Catalog = {
   "income.kind.gross": "額面",
   "loan.startNone": "未設定",
   "loan.startYear": "初回返済の年",
+  "confirm.deleteItem.title": "この支出を削除しますか？",
+  "pdf.shareTitle": "NETbudgetの家計",
 };

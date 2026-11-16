@@ -1232,7 +1232,16 @@ export default function Index() {
   }
 
   function deleteItem(id: string) {
-    setExpenseItems((prev) => prev.filter((it) => it.id !== id));
+    // Le « x » est petit et proche du montant : une suppression demande
+    // confirmation, comme pour un revenu ou un prêt.
+    setConfirm({
+      open: true,
+      title: t("confirm.deleteItem.title"),
+      message: t("confirm.deleteIncome.msg"),
+      danger: true,
+      confirmLabel: t("btn.delete"),
+      onConfirm: () => setExpenseItems((prev) => prev.filter((it) => it.id !== id)),
+    });
   }
 
   function openAddItem(family: ExpenseFamily) {
@@ -1343,7 +1352,7 @@ export default function Index() {
 
   async function exportPdf() {
     try {
-      await shareGeneratedPdf(generatePdfHtml(buildPdfData()), "Mon budget NETbudget");
+      await shareGeneratedPdf(generatePdfHtml(buildPdfData()), t("pdf.shareTitle"));
     } catch {
       notify(t("err.pdf.title"), t("err.pdf.msg"));
     }

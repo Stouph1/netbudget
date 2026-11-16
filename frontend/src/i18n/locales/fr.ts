@@ -3633,4 +3633,6 @@ export const fr: Catalog = {
   "income.kind.gross": "Brut",
   "loan.startNone": "Non renseigné",
   "loan.startYear": "Année de la 1re échéance",
+  "confirm.deleteItem.title": "Supprimer cette dépense ?",
+  "pdf.shareTitle": "Mon budget NETbudget",
 };

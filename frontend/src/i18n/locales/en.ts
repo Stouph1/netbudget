@@ -3579,4 +3579,6 @@ export const en: Catalog = {
   "income.kind.gross": "Gross",
   "loan.startNone": "Not set",
   "loan.startYear": "Year of the first payment",
+  "confirm.deleteItem.title": "Delete this expense?",
+  "pdf.shareTitle": "My NETbudget budget",
 };

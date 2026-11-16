@@ -3579,4 +3579,6 @@ export const es: Catalog = {
   "income.kind.gross": "Bruto",
   "loan.startNone": "Sin indicar",
   "loan.startYear": "Año de la primera cuota",
+  "confirm.deleteItem.title": "¿Eliminar este gasto?",
+  "pdf.shareTitle": "Mi presupuesto NETbudget",
 };

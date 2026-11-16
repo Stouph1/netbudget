@@ -25,7 +25,7 @@ import {
   MONTH_KEYS_LONG,
   MONTH_KEYS_SHORT,
 } from "./constants";
-import { displayItemLabel, loanMonthlyPayment, rentOf } from "./helpers";
+import { displayItemLabel, loanFinished, loanMonthlyPayment, rentOf } from "./helpers";
 import { amountForMonth, expenseSeries } from "./expensePeriod";
 import type { ExpenseFamily, ExpenseItem, Loan, Translate } from "./types";
 
@@ -83,7 +83,8 @@ export function useBudgetTotals({
   const rentNum = parseNumber(rent) + rentOf(expenseItems);
 
   const loansMonthly = useMemo(
-    () => loans.reduce((s, l) => s + loanMonthlyPayment(l), 0),
+    // Un prêt fini ne coûte plus rien : on ne retire que les prêts en cours.
+    () => loans.reduce((s, l) => s + (loanFinished(l) ? 0 : loanMonthlyPayment(l)), 0),
     [loans]
   );
 

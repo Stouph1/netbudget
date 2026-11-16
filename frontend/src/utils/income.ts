@@ -274,6 +274,7 @@ export function defaultIncomeSource(): IncomeSource {
     label: "",
     type: "salaire",
     amount: "0",
+    amountKind: "net",
     // Mensuel : c'est le chiffre que les gens ont en tête. En annuel par défaut,
     // beaucoup saisissaient leur salaire mensuel et voyaient un budget divisé
     // par douze.

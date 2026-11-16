@@ -180,3 +180,17 @@ export function rentOf(items: ExpenseItem[]): number {
     .filter((x) => x.family === "besoins" && (x.id === RENT_ITEM_ID || x.emoji === "🏠"))
     .reduce((s, x) => s + parseNumber(x.amount), 0);
 }
+
+/**
+ * Prêt entièrement remboursé à la date donnée ? Sans date de début, on ne sait
+ * pas : il reste compté. Un crédit auto de 2018 sur 5 ans affichait
+ * « Remboursé » et continuait pourtant d'être retiré du reste à vivre.
+ */
+export function loanFinished(l: Pick<Loan, "years" | "durationUnit" | "startDate">, now: Date = new Date()): boolean {
+  const m = l.startDate?.match(/^(\d{4})-(\d{2})/);
+  const months = loanTermMonths(l);
+  if (!m || !(months > 0)) return false;
+  const startIndex = parseInt(m[1], 10) * 12 + (parseInt(m[2], 10) - 1);
+  const nowIndex = now.getFullYear() * 12 + now.getMonth();
+  return nowIndex >= startIndex + months;
+}
