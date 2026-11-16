@@ -18,8 +18,8 @@ import { CurrencyCode, getCurrency } from "../../../src/utils/currency";
 import { parseNumber } from "../../../src/utils/finance";
 import { loanProgress, remainingParts } from "../../../src/utils/loanSchedule";
 import { interpolate } from "../../../src/utils/advice";
-import { GOLD, TEXT_2 } from "../constants";
-import { formatMonthInput, loanMonthlyPayment, loanTermYears, monthInputToIso } from "../helpers";
+import { GOLD, MONTH_KEYS_LONG, TEXT_2 } from "../constants";
+import { loanMonthlyPayment, loanTermYears } from "../helpers";
 import { styles } from "../styles";
 import { Dropdown, Field } from "../ui";
 import type { Loan, LoanDurationUnit, LoanMode, LoanRepayment, Translate } from "../types";
@@ -190,25 +190,54 @@ export default function LoanModal({
                     onChange={(next) => setForm({ ...form, durationUnit: next })}
                     testID="loan-duration-unit"
                   />
-                  <Field
-                    label={t("loan.startLabel")}
-                    info={{ title: t("help.loanStart.title"), body: t("help.loanStart.body") }}
-                    icon={<Feather name="clock" size={18} color={GOLD} />}
-                    value={loanStartText}
-                    onChangeText={(v) => {
-                      const formatted = formatMonthInput(v);
-                      setLoanStartText(formatted);
-                      setForm((f) => ({
-                        ...f,
-                        startDate: monthInputToIso(formatted),
-                      }));
-                    }}
-                    keyboardType="number-pad"
-                    maxLength={7}
-                    placeholder={t("loan.startPlaceholder")}
-                    hintText={t("loan.startHint")}
-                    testID="loan-start-input"
-                  />
+                  {/* Début du prêt : deux listes, mois puis année. La saisie au
+                      clavier (« 092023 ») donnait des dates impossibles comme
+                      « 90/9000 » au moindre chiffre de travers. */}
+                  {(() => {
+                    const m = form.startDate?.match(/^(\d{4})-(\d{2})/);
+                    const curMonth = m ? m[2] : "";
+                    const curYear = m ? m[1] : "";
+                    const thisYear = new Date().getFullYear();
+                    const years = Array.from({ length: 41 }, (_, i) => String(thisYear + 1 - i));
+                    const setStart = (month: string, year: string) => {
+                      const iso = month && year ? `${year}-${month}-01` : undefined;
+                      setForm((f) => ({ ...f, startDate: iso }));
+                      setLoanStartText(iso ? `${month}/${year}` : "");
+                    };
+                    return (
+                      <>
+                        <Dropdown<string>
+                          label={t("loan.startLabel")}
+                          info={{ title: t("help.loanStart.title"), body: t("help.loanStart.body") }}
+                          icon={<Feather name="clock" size={18} color={GOLD} />}
+                          value={curMonth}
+                          options={[
+                            { value: "", label: t("loan.startNone") },
+                            ...MONTH_KEYS_LONG.map((k, i) => ({
+                              value: String(i + 1).padStart(2, "0"),
+                              label: t(k),
+                            })),
+                          ]}
+                          // Un mois choisi sans année : l'année en cours, la plus probable.
+                          onChange={(month) => setStart(month, month ? curYear || String(thisYear) : "")}
+                          testID="loan-start-month"
+                        />
+                        {curMonth ? (
+                          <Dropdown<string>
+                            label={t("loan.startYear")}
+                            icon={<Feather name="calendar" size={18} color={GOLD} />}
+                            value={curYear}
+                            options={years.map((y) => ({ value: y, label: y }))}
+                            onChange={(year) => setStart(curMonth, year)}
+                            testID="loan-start-year"
+                          />
+                        ) : null}
+                        <Text style={[styles.previewHint, { marginTop: -4, marginBottom: 10 }]}>
+                          {t("loan.startHint")}
+                        </Text>
+                      </>
+                    );
+                  })()}
                   <View style={styles.previewBox}>
                     <Text style={styles.previewLabel}>{t("label.loanPreview")}</Text>
                     <Text style={styles.previewValue} testID="loan-preview-monthly">
