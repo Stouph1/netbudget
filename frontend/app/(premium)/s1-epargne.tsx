@@ -312,11 +312,11 @@ export default function S1Epargne() {
           <Text style={styles.emptyTitle}>{t("common.premiumRequired")}</Text>
           <Text style={styles.emptyBody}>{t("goals.premiumBody")}</Text>
           <TouchableOpacity
-            onPress={() => goBack()}
+            onPress={() => router.replace({ pathname: "/", params: { tab: "premium" } } as never)}
             style={styles.emptyBtn}
             activeOpacity={0.85}
           >
-            <Text style={styles.emptyBtnText}>{t("common.back")}</Text>
+            <Text style={styles.emptyBtnText}>{t("auth.title.signin")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

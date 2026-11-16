@@ -8,6 +8,7 @@
 // La session est gérée par supabase-js et persistée dans AsyncStorage.
 // Utiliser useSession() (voir src/contexts/SessionContext.tsx) côté UI.
 
+import { forgetTier } from "./tier";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
@@ -460,6 +461,8 @@ export async function hasRecoverySession(): Promise<boolean> {
 
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
+  // Sinon le compte suivant sur ce téléphone partait de la formule du précédent.
+  await forgetTier();
 }
 
 // Suppression DÉFINITIVE du compte (RGPD art. 17 / exigence App Store).

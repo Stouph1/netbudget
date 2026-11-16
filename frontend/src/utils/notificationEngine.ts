@@ -189,8 +189,11 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   // C'est la notification qui justifie l'app à elle seule : de l'argent que
   // l'utilisateur ignore pouvoir toucher. On envoie le conseil de plus forte
   // priorité, un seul à la fois pour ne pas banaliser.
+  // Réservé aux abonnés : le tap ouvre le Coach, qui est payant. Un compte
+  // gratuit recevait « Tu as peut-être droit à ça » et tombait sur un voile.
+  const paid = !!ctx.tier && ctx.tier !== "free";
   const topRight = [...ctx.unseenRights].sort((a, b) => b.priority - a.priority)[0];
-  if (topRight) {
+  if (topRight && paid) {
     push({
       id: `rights-${topRight.id}`,
       category: "rights",
@@ -209,14 +212,17 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   const topSeasonal = [...(ctx.seasonalRights ?? [])].sort(
     (a, b) => b.priority - a.priority,
   )[0];
-  if (topSeasonal) {
+  // Envoyée le lendemain : si le lendemain change de mois, la carte peut être
+  // hors de sa fenêtre (« fêtes » le 1er janvier, « rentrée » le 1er octobre).
+  const seasonalAt = atHour(new Date(now.getTime() + DAY_MS), prefs.hour);
+  if (topSeasonal && paid && seasonalAt.getMonth() === now.getMonth()) {
     push({
       id: `seasonal-${topSeasonal.id}`,
       category: "seasonal",
       titleKey: "notif.seasonal.title",
       bodyKey: topSeasonal.titleKey,
       score: 92,
-      at: atHour(new Date(now.getTime() + DAY_MS), prefs.hour),
+      at: seasonalAt,
       route: "/(premium)/advice",
     });
   }
@@ -336,8 +342,10 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
     // Dans les dix derniers jours du mois, le rappel du 28 suffit. Un dimanche
     // du mois SUIVANT reste valable : le plan est recalculé à chaque
     // ouverture, avec le montant du moment.
+    // Même mois seulement : un dimanche du mois suivant annonçait le reste à
+    // vivre du mois précédent (« il te reste 412 € ce mois-ci » le 6 déc.).
     const sameMonth = at.getMonth() === now.getMonth();
-    if (!sameMonth || monthEnd.getDate() - at.getDate() >= 10) {
+    if (sameMonth && monthEnd.getDate() - at.getDate() >= 10) {
       const week = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${at.getDate()}`;
       push({
         id: `budget-pulse-${week}`,
@@ -400,7 +408,9 @@ export function buildCandidates(ctx: NotifContext): NotifCandidate[] {
   if (ctx.lastOpenedAt) {
     const away = daysBetween(ctx.lastOpenedAt, now);
     const fresh = ctx.unseenRights.length + (ctx.seasonalRights?.length ?? 0);
-    if (away >= 7 && fresh >= 1) {
+    // Deux nouveautés au moins : « 1 conseils » se lisait mal dans toutes les
+    // langues, et un seul conseil passe déjà par la notification de droits.
+    if (away >= 7 && fresh >= 2 && paid) {
       push({
         id: `comeback-${now.getFullYear()}-${now.getMonth()}`,
         category: "comeback",

@@ -33,26 +33,29 @@ describe("droits non réclamés", () => {
   it("propose le conseil de plus forte priorité", () => {
     const out = buildCandidates(
       baseCtx({
+        tier: "solo",
         unseenRights: [
           { id: "hand-mva", titleKey: "adv.hand-mva.title", priority: 82 },
           { id: "hand-aah", titleKey: "adv.hand-aah.title", priority: 96 },
         ],
       }),
     );
-    const rights = out.filter((c) => c.category === "rights");
+    // Le conseil de la semaine (abonnés) est aussi rangé en « rights » : on ne
+    // compte ici que les droits non réclamés.
+    const rights = out.filter((c) => c.id.startsWith("rights-"));
     expect(rights).toHaveLength(1); // un seul à la fois, jamais une rafale
     expect(rights[0].bodyKey).toBe("adv.hand-aah.title");
   });
 
   it("ouvre l'écran des conseils au tap", () => {
     const out = buildCandidates(
-      baseCtx({ unseenRights: [{ id: "x", titleKey: "adv.x.title", priority: 90 }] }),
+      baseCtx({ tier: "solo", unseenRights: [{ id: "x", titleKey: "adv.x.title", priority: 90 }] }),
     );
     expect(out[0].route).toBe("/(premium)/advice");
   });
 
   it("ne propose rien quand tout a été vu", () => {
-    expect(buildCandidates(baseCtx()).filter((c) => c.category === "rights")).toEqual([]);
+    expect(buildCandidates(baseCtx({ tier: "solo" })).filter((c) => c.id.startsWith("rights-"))).toEqual([]);
   });
 });
 
@@ -62,6 +65,7 @@ describe("fenêtres saisonnières", () => {
   it("passe devant un jalon d'événement — la fenêtre se ferme", () => {
     const out = buildCandidates(
       baseCtx({
+        tier: "solo",
         seasonalRights: [impots],
         events: [
           {
@@ -79,13 +83,14 @@ describe("fenêtres saisonnières", () => {
   });
 
   it("part dès le lendemain, pas dans deux jours", () => {
-    const out = buildCandidates(baseCtx({ seasonalRights: [impots] }));
+    const out = buildCandidates(baseCtx({ tier: "solo", seasonalRights: [impots] }));
     expect(Math.round((out[0].at.getTime() - NOW.getTime()) / 86_400_000)).toBe(1);
   });
 
   it("n'en envoie qu'une à la fois", () => {
     const out = buildCandidates(
       baseCtx({
+        tier: "solo",
         seasonalRights: [impots, { id: "b", titleKey: "t", priority: 90 }],
       }),
     );
@@ -94,7 +99,7 @@ describe("fenêtres saisonnières", () => {
 
   it("respecte la catégorie désactivée", () => {
     const prefs: NotifPrefs = { ...DEFAULT_NOTIF_PREFS, seasonal: false };
-    const out = buildCandidates(baseCtx({ prefs, seasonalRights: [impots] }));
+    const out = buildCandidates(baseCtx({ tier: "solo", prefs, seasonalRights: [impots] }));
     expect(out.filter((c) => c.category === "seasonal")).toEqual([]);
   });
 
@@ -103,6 +108,7 @@ describe("fenêtres saisonnières", () => {
     // une relance après une longue absence.
     const out = buildCandidates(
       baseCtx({
+        tier: "solo",
         lastOpenedAt: new Date("2026-07-01T10:00:00Z"),
         unseenRights: [
           { id: "a", titleKey: "t", priority: 50 },
@@ -212,11 +218,12 @@ describe("budget du mois", () => {
 describe("reprise après absence", () => {
   it("ne relance QUE s'il y a du neuf à montrer", () => {
     const absent = new Date("2026-07-01T10:00:00Z"); // 45 jours
-    const sansRien = buildCandidates(baseCtx({ lastOpenedAt: absent }));
+    const sansRien = buildCandidates(baseCtx({ tier: "solo", lastOpenedAt: absent }));
     expect(sansRien.some((c) => c.category === "comeback")).toBe(false);
 
     const avecDuNeuf = buildCandidates(
       baseCtx({
+        tier: "solo",
         lastOpenedAt: absent,
         unseenRights: [
           { id: "a", titleKey: "t", priority: 50 },
@@ -231,6 +238,7 @@ describe("reprise après absence", () => {
   it("laisse tranquille avant une semaine d'absence", () => {
     const out = buildCandidates(
       baseCtx({
+        tier: "solo",
         lastOpenedAt: new Date("2026-08-11T10:00:00Z"), // 4 jours
         unseenRights: [
           { id: "a", titleKey: "t", priority: 50 },
@@ -255,7 +263,7 @@ describe("préférences", () => {
   it("envoie à l'heure choisie", () => {
     const prefs: NotifPrefs = { ...DEFAULT_NOTIF_PREFS, hour: 9 };
     const out = buildCandidates(
-      baseCtx({ prefs, unseenRights: [{ id: "x", titleKey: "t", priority: 90 }] }),
+      baseCtx({ tier: "solo", prefs, unseenRights: [{ id: "x", titleKey: "t", priority: 90 }] }),
     );
     expect(out[0].at.getHours()).toBe(9);
   });
@@ -301,7 +309,7 @@ describe("plafonds anti-harcèlement", () => {
   });
 
   it("garde les plus utiles quand il faut choisir", () => {
-    const planned = planNotifications(many());
+    const planned = planNotifications({ ...many(), tier: "solo" });
     // Le droit non réclamé (95) doit survivre à l'écrémage, pas le jalon de
     // prêt (55) qui n'apprend rien d'actionnable.
     expect(planned[0].category).toBe("rights");
@@ -471,5 +479,27 @@ describe("davantage de notifications", () => {
   });
   it("le plafond par défaut est de cinq par semaine", () => {
     expect(DEFAULT_NOTIF_PREFS.maxPerWeek).toBe(5);
+  });
+});
+
+describe("audit du 16 novembre", () => {
+  it("n'envoie ni droits ni saisonnier à un compte gratuit", () => {
+    const out = buildCandidates(
+      baseCtx({
+        tier: "free",
+        unseenRights: [{ id: "a", titleKey: "adv.a.title", priority: 90 }],
+        seasonalRights: [{ id: "b", titleKey: "adv.b.title", priority: 90 }],
+      }),
+    );
+    expect(out.some((c) => c.category === "rights" || c.category === "seasonal")).toBe(false);
+  });
+  it("n'envoie pas une carte saisonnière le lendemain si le mois change", () => {
+    const out = buildCandidates(
+      baseCtx({
+        now: new Date(2026, 11, 31, 10),
+        seasonalRights: [{ id: "season-fetes", titleKey: "adv.season-fetes.title", priority: 90 }],
+      }),
+    );
+    expect(out.some((c) => c.category === "seasonal")).toBe(false);
   });
 });

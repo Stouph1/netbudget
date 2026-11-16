@@ -35,7 +35,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "react-native";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
-import { PremiumGate } from "../../src/components/PremiumGate";
 import { usePaywall } from "../../src/hooks/usePaywall";
 import { PaywallSheet } from "../../src/components/PaywallSheet";
 import type { Lang } from "../../src/i18n/translations";
@@ -208,15 +207,12 @@ export default function WorkspacesScreen() {
   const canCreate = paywall.allows({ feature: "sharedSpace", ownedCount });
   const isMemberSomewhere = workspaces.length > 0;
 
-  if (!paywall.loading && !loading && !canCreate && !isMemberSomewhere) {
-    return (
-      <PremiumGate
-        titleKey="gate.shared.title"
-        bodyKey="gate.shared.body"
-        icon="users"
-      />
-    );
-  }
+  // PAS d'écran de blocage ici. Il cachait le bouton « Rejoindre via un code »
+  // et la fenêtre d'invitation : la personne invitée — gratuite, par
+  // définition souvent — touchait le lien et tombait sur la liste des
+  // formules, sans moyen de rejoindre. Le bouton « Créer » porte déjà son
+  // cadenas et ouvre les formules ; « Rejoindre » reste ouvert à tous.
+  void isMemberSomewhere;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>

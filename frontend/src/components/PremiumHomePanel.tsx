@@ -474,7 +474,18 @@ export default function PremiumHomePanel(_props: Props) {
               accessibilityLabel={t(`plan.${paywall.tier}.name`)}
               style={{ marginTop: 4 }}
             >
-              <TierBadge tier={paywall.tier} label={t(`plan.${paywall.tier}.name`)} size={13} />
+              {/* Formule venue d'un espace partagé : on le dit sur le badge,
+                  sinon un Solo membre d'un espace Famille lit « Famille » et
+                  ne comprend plus ce qu'il a payé. */}
+              <TierBadge
+                tier={paywall.tier}
+                label={
+                  paywall.plan?.sharedTier && paywall.plan.sharedTier === paywall.tier && paywall.plan.sharedBy
+                    ? tp("plan.badge.via", { plan: t(`plan.${paywall.tier}.name`), name: paywall.plan.sharedBy })
+                    : t(`plan.${paywall.tier}.name`)
+                }
+                size={13}
+              />
             </TouchableOpacity>
           </View>
           <Text style={styles.profileEmail} numberOfLines={1}>
@@ -585,6 +596,7 @@ export default function PremiumHomePanel(_props: Props) {
             })
           )}
 
+          {limitsFor(paywall.tier).birthdays || household.persons.length > 0 ? (
           <TouchableOpacity
             style={styles.householdRow}
             onPress={() => {
@@ -618,6 +630,7 @@ export default function PremiumHomePanel(_props: Props) {
             </View>
             <Feather name="chevron-right" size={16} color={TEXT_3} />
           </TouchableOpacity>
+          ) : null}
         </View>
       ) : null}
 

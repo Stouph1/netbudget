@@ -183,6 +183,13 @@ export function usePaywall() {
         return false;
       }
 
+      if (gate.feature === "birthdays" && tier !== "free") {
+        // Déjà abonné : ce n'est pas « un abonnement » qui manque, c'est la
+        // formule Famille.
+        setReason({ kind: "locked", featureKey: "paywall.feature.birthdays", requires: "family" });
+        return false;
+      }
+
       if (gate.feature === "income") {
         setReason({ kind: "needsSubscription", featureKey: "paywall.feature.incomes" });
         return false;
