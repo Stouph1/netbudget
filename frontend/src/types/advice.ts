@@ -363,6 +363,13 @@ export type AdviceCard = {
   figures?: AdviceFigure[] | ((p: UserProfile, i18n: AdviceI18n) => AdviceFigure[]);
   sources: string[];
   lastVerified: string;
+  /**
+   * Dernier jour où la carte est juste (AAAA-MM-JJ). Une carte qui cite un
+   * plafond, une date ou un barème d'une année précise disparaît le lendemain,
+   * au lieu d'afficher en 2027 les chiffres de 2026. Absent : sans échéance.
+   * À la revue annuelle, on met le texte à jour et on repousse la date.
+   */
+  validUntil?: string;
 };
 
 // Helpers pour l'UI : résoudre les champs dynamiques ET les clés i18n.

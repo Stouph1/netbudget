@@ -1123,6 +1123,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.shared-quotient-familial-1807.fig.2.label", value: "adv.shared-quotient-familial-1807.fig.2.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F2705"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-16",
   },
   {
@@ -1525,6 +1526,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.moneyvox.fr/assurance/actualites/107615/combien-ca-coute-assurer-votre-chien-ou-votre-chat-en-2026",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-18",
   },
   {
@@ -1648,6 +1650,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       "https://fin.belgium.be/fr/particuliers/avantages-fiscaux/epargne-pension",
       "https://www.wikifin.be/fr/impots-emploi-et-revenus/declaration-dimpots/reductions-fiscales/lepargne-pension",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -1669,6 +1672,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://fin.belgium.be/fr/particuliers/declaration-impot/revenus/taxe-plus-values",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -1739,6 +1743,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.ubs.com/ch/fr/services/pension/pillar-3/maximal-contribution.html",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -1754,6 +1759,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.zurich.ch/fr/services/savoir/prevoyance-et-placement/erachats-ulterieurs-pilier-3a",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -1871,6 +1877,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.lu-prevoyance-111bis.fig.1.label", value: "adv.lu-prevoyance-111bis.fig.1.value" },
     ],
     sources: ["https://impotsdirects.public.lu/fr/az/p/prevoyance_vieillesse.html"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -1935,6 +1942,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://cae.public.lu/fr/allocations/allocation-pour-lavenir-des-enfants/montants.html",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
 
@@ -1979,6 +1987,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2000,6 +2009,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2068,6 +2078,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/canada-child-benefit-overview/canada-child-benefit-we-calculate-your-ccb.html",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
 
@@ -2282,6 +2293,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       "https://www.gov.uk/child-benefit/what-youll-get",
       "https://www.gov.uk/child-benefit-tax-charge",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
 
@@ -2329,6 +2341,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2350,6 +2363,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2369,6 +2383,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.us-hsa.fig.1.label", value: "8 750 $" },
     ],
     sources: ["https://www.irs.gov/pub/irs-drop/rp-25-19.pdf"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2385,6 +2400,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 86,
     figures: [{ label: "adv.us-529.fig.0.label", value: "adv.us-529.fig.0.value" }],
     sources: ["https://www.irs.gov/taxtopics/tc313"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2463,6 +2479,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.bundesregierung.de/breg-de/aktuelles/beitragsgemessungsgrenzen-2386514",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2504,6 +2521,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.de-kindergeld.fig.1.label", value: "adv.de-kindergeld.fig.1.value" },
     ],
     sources: ["https://www.arbeitsagentur.de/news/kindergeld-steigt-2026"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2606,6 +2624,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       "https://www.boe.es/buscar/act.php?id=BOE-A-2022-802",
       "https://www.mivau.gob.es/vivienda/bono-alquiler-joven",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
   {
@@ -2645,6 +2664,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 84,
     figures: [{ label: "adv.es-avales-ico.fig.0.label", value: "adv.es-avales-ico.fig.0.value" }],
     sources: ["https://www.ico.es/en/linea-avales-hipoteca-primera-vivienda"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -2661,6 +2681,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 90,
     figures: [{ label: "adv.es-imv.fig.0.label", value: "adv.es-imv.fig.0.value" }],
     sources: ["https://revista.seg-social.es/-/gu%C3%ADa-sobre-el-nuevo-complemento-a-la-infancia-del-imv"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -2693,6 +2714,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 78,
     figures: [{ label: "adv.es-bono-cultural.fig.0.label", value: "400 €" }],
     sources: ["https://www.cultura.gob.es/actualidad/2026/06/260622-bono-cultural-joven-2026.html"],
+    validUntil: "2026-10-31",
     lastVerified: "2026-08-06",
   },
 
@@ -2786,6 +2808,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 70,
     figures: [{ label: "adv.cm-titres-publics.fig.0.label", value: "~1 M FCFA" }],
     sources: ["https://dgtcfm.cm/pourquoi-investir-dans-les-titres-publics/"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-27",
   },
 
@@ -2828,6 +2851,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     sources: [
       "https://www.mefop.it/blog/blog-mefop/deducibilita-extradeducibilita-post-legge-bilancio-2026",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-28",
   },
   {
@@ -2847,6 +2871,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.it-assegno-unico.fig.1.label", value: "+50 %" },
     ],
     sources: ["Circolare INPS n. 7 del 30/01/2026"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-28",
   },
   {
@@ -2882,6 +2907,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     appliesWhen: occupationIs("employee"),
     priority: 84,
     sources: ["https://www.covip.it/per-il-cittadino/educazione-previdenziale/faq/conferimento-tfr"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -2914,6 +2940,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 86,
     figures: [{ label: "adv.it-bonus-nido.fig.0.label", value: "adv.it-bonus-nido.fig.0.value" }],
     sources: ["https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.03.bonus-asilo-nido-2026-attivo-il-servizio-per-la-domanda.html"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -2930,6 +2957,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 80,
     figures: [{ label: "adv.it-carte-giovani.fig.0.label", value: "1 000 €" }],
     sources: ["https://cartegiovani.cultura.gov.it/"],
+    validUntil: "2026-06-30",
     lastVerified: "2026-08-06",
   },
   {
@@ -2945,6 +2973,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     appliesWhen: always,
     priority: 82,
     sources: ["https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-strumenti.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee-53358.come-acquisire-la-dsu-precompilata-e-richiedere-l-isee.html"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
 
@@ -3063,6 +3092,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 88,
     figures: [{ label: "adv.pt-garantia-publica.fig.0.label", value: "adv.pt-garantia-publica.fig.0.value" }],
     sources: ["https://www.gov.pt/servicos/pedir-a-garantia-publica-para-credito-a-habitacao"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -3424,6 +3454,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 90,
     figures: [{ label: "adv.tn-epargne-tre.fig.0.label", value: "adv.tn-epargne-tre.fig.0.value" }],
     sources: ["Banque Centrale de Tunisie — décision du 30/12/2025"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-28",
   },
   {
@@ -3564,6 +3595,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       "https://www.impots.gouv.fr/particulier/questions/je-donne-un-bien-en-location-dois-je-payer-des-prelevements-sociaux",
       "https://www.service-public.gouv.fr/particuliers/vosdroits/F2329",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -3602,6 +3634,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.immo-lmnp-2026.fig.1.label", value: "15 000 € · 30 %" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F32744"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -3796,6 +3829,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 76,
     figures: [{ label: "adv.fr-permis-1-euro.fig.0.label", value: "adv.fr-permis-1-euro.fig.0.value" }],
     sources: ["https://www.securite-routiere.gouv.fr/passer-son-permis-de-conduire/financement-du-permis-de-conduire/permis-1-eu-par-jour/conditions-deligibilite"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -3864,6 +3898,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.ae-provision.fig.2.label", value: "25,6 %" },
     ],
     sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F36232"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -3881,6 +3916,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.ae-plafonds-tva.fig.1.label", value: "85 000 €" },
     ],
     sources: ["https://entreprendre.service-public.gouv.fr/vosdroits/F23267", "https://entreprendre.service-public.gouv.fr/vosdroits/F21746"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -3901,6 +3937,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       "https://entreprendre.service-public.gouv.fr/vosdroits/F11677",
       "https://entreprendre.service-public.gouv.fr/actualites/A18795",
     ],
+    validUntil: "2026-12-31",
     lastVerified: "2026-09-10",
   },
   {
@@ -4008,6 +4045,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     // Aucun montant : la page officielle renvoie aux barèmes PDF et n'en
     // affiche pas. On ne recopie pas un chiffre qu'on n'a pas lu.
     sources: ["https://www.primealaconversion.gouv.fr/"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-09-10",
   },
 
@@ -4046,6 +4084,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.veh-moto-controle-technique.fig.1.label", value: "750 €" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F37538"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-01-01",
   },
   {
@@ -4098,6 +4137,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     appliesWhen: always,
     priority: 83,
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F358"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-06-05",
   },
   {
@@ -4246,6 +4286,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.tax-portal-es.fig.0.label", value: "8 avr. 2026" },
     ],
     sources: ["https://sede.agenciatributaria.gob.es/Sede/Renta.html"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-07-02",
   },
   {
@@ -4807,6 +4848,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 60,
     figures: [{ label: "adv.fr-frais-succession.fig.0.label", value: "adv.fr-frais-succession.fig.0.value" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A18973"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -4823,6 +4865,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     priority: 90,
     figures: [{ label: "adv.fr-cheque-energie.fig.0.label", value: "adv.fr-cheque-energie.fig.0.value" }],
     sources: ["https://www.service-public.gouv.fr/particuliers/actualites/A17885", "https://chequeenergie.gouv.fr/beneficiaire/faq"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-06",
   },
   {
@@ -4941,6 +4984,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.hand-aah.fig.1.label", value: "adv.hand-aah.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F12242", "https://www.service-public.gouv.fr/particuliers/actualites/A16521"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-08",
   },
   {
@@ -5088,6 +5132,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
       { label: "adv.hand-aeeh.fig.1.label", value: "adv.hand-aeeh.fig.1.value" },
     ],
     sources: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F14809"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-08",
   },
   {
@@ -5318,6 +5363,7 @@ export const ADVICE_CATALOG_FR: AdviceCard[] = [
     appliesWhen: disabledSelf,
     priority: 92,
     sources: ["https://laws.justice.gc.ca/fra/reglements/DORS-2025-35/TexteComplet.html"],
+    validUntil: "2026-12-31",
     lastVerified: "2026-08-08",
   },
   {
@@ -5471,6 +5517,7 @@ function countryMatches(card: AdviceCard, profile: UserProfile): boolean {
 // Conseils saisonniers : une carte peut déclarer les mois où elle est
 // pertinente (1-12). Sans `months`, elle est valable toute l'année.
 function monthMatches(card: AdviceCard, now: Date = new Date()): boolean {
+  if (card.validUntil && now.toISOString().slice(0, 10) > card.validUntil) return false;
   if (!card.months || card.months.length === 0) return true;
   return card.months.includes(now.getMonth() + 1);
 }
