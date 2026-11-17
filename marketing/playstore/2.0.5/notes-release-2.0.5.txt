@@ -1,0 +1,36 @@
+<fr-FR>
+NETbudget 2.0.5 : L'app démarre dans la langue et la devise de ton téléphone. Tes revenus se saisissent en net (par défaut) ou en brut. Le début d'un prêt se choisit dans deux listes, mois et année, et un prêt remboursé ne pèse plus sur ton reste à vivre. Une invitation à un espace partagé s'accepte sans formule. Ta formule est reconnue dès l'ouverture. Les notifications de saison arrivent au bon mois. Supprimer une dépense demande une confirmation.
+</fr-FR>
+<ar>
+NETbudget 2.0.5: يبدأ التطبيق بلغة هاتفك وعملته. تُدخل دخلك صافياً (افتراضياً) أو إجمالياً. يُختار بدء القرض من قائمتين، الشهر والسنة، والقرض المسدَّد لم يعد يُخصم مما يتبقى لك للعيش. يمكن قبول دعوة إلى مساحة مشتركة دون باقة. تُعرف باقتك منذ فتح التطبيق. تصل الإشعارات الموسمية في الشهر الصحيح. حذف مصروف يطلب تأكيداً.
+</ar>
+<de-DE>
+NETbudget 2.0.5: Die App startet in der Sprache und Währung deines Handys. Einkommen gibst du netto (Standard) oder brutto ein. Der Kreditbeginn wird aus zwei Listen gewählt, Monat und Jahr, und ein abbezahlter Kredit belastet dein frei verfügbares Geld nicht mehr. Eine Einladung in einen gemeinsamen Bereich lässt sich ohne Tarif annehmen. Dein Tarif wird gleich beim Öffnen erkannt. Saisonale Hinweise kommen im richtigen Monat. Das Löschen einer Ausgabe wird bestätigt.
+</de-DE>
+<en-AU>
+NETbudget 2.0.5: The app starts in your phone's language and currency. Enter income as net (default) or gross. Pick a loan's start date from two lists, month and year, and a paid-off loan no longer cuts into what's left to live on. You can accept an invitation to a shared space without a plan. Your plan is recognised as soon as the app opens. Seasonal notifications arrive in the right month. Deleting an expense now asks for confirmation.
+</en-AU>
+<en-CA>
+NETbudget 2.0.5: The app starts in your phone's language and currency. Enter income as net (default) or gross. Pick a loan's start date from two lists, month and year, and a paid-off loan no longer cuts into what's left to live on. You can accept an invitation to a shared space without a plan. Your plan is recognized as soon as the app opens. Seasonal notifications arrive in the right month. Deleting an expense now asks for confirmation.
+</en-CA>
+<en-GB>
+NETbudget 2.0.5: The app starts in your phone's language and currency. Enter income as net (default) or gross. Pick a loan's start date from two lists, month and year, and a paid-off loan no longer cuts into what's left to live on. You can accept an invitation to a shared space without a plan. Your plan is recognised as soon as the app opens. Seasonal notifications arrive in the right month. Deleting an expense now asks for confirmation.
+</en-GB>
+<en-US>
+NETbudget 2.0.5: The app starts in your phone's language and currency. Enter income as net (default) or gross. Pick a loan's start date from two lists, month and year, and a paid-off loan no longer cuts into what's left to live on. You can accept an invitation to a shared space without a plan. Your plan is recognized as soon as the app opens. Seasonal notifications arrive in the right month. Deleting an expense now asks for confirmation.
+</en-US>
+<es-ES>
+NETbudget 2.0.5: La app arranca en el idioma y la moneda de tu móvil. Tus ingresos se introducen en neto (por defecto) o en bruto. El inicio de un préstamo se elige en dos listas, mes y año, y un préstamo ya pagado deja de restar de lo que te queda para vivir. Una invitación a un espacio compartido se acepta sin plan. Tu plan se reconoce nada más abrir la app. Los avisos de temporada llegan en el mes correcto. Borrar un gasto pide confirmación.
+</es-ES>
+<it-IT>
+NETbudget 2.0.5: L'app si avvia nella lingua e nella valuta del tuo telefono. Le entrate si inseriscono al netto (predefinito) o al lordo. L'inizio di un prestito si sceglie da due elenchi, mese e anno, e un prestito estinto non pesa più su ciò che ti resta per vivere. Un invito a uno spazio condiviso si accetta senza piano. Il tuo piano è riconosciuto appena apri l'app. Le notifiche stagionali arrivano nel mese giusto. Eliminare una spesa chiede conferma.
+</it-IT>
+<ja-JP>
+NETbudget 2.0.5：アプリはお使いのスマートフォンの言語と通貨で起動します。収入は手取り（標準）または額面で入力できます。ローンの開始日は月と年の2つのリストから選べます。完済したローンは生活に使える金額から差し引かれなくなりました。共有スペースへの招待はプランなしで受けられます。ご利用中のプランはアプリを開いてすぐに反映されます。季節のお知らせは正しい月に届きます。支出の削除時に確認が表示されます。
+</ja-JP>
+<pt-BR>
+NETbudget 2.0.5: O app abre no idioma e na moeda do seu celular. Suas rendas são lançadas em líquido (padrão) ou bruto. O início de um empréstimo é escolhido em duas listas, mês e ano, e um empréstimo quitado não pesa mais no que sobra para viver. Um convite para um espaço compartilhado é aceito sem plano. Seu plano é reconhecido assim que o app abre. As notificações sazonais chegam no mês certo. Excluir uma despesa pede confirmação.
+</pt-BR>
+<pt-PT>
+NETbudget 2.0.5: A app abre no idioma e na moeda do teu telemóvel. Os teus rendimentos são introduzidos em líquido (por defeito) ou bruto. O início de um empréstimo escolhe-se em duas listas, mês e ano, e um empréstimo pago deixa de pesar no que te sobra para viver. Um convite para um espaço partilhado aceita-se sem plano. O teu plano é reconhecido logo que a app abre. As notificações sazonais chegam no mês certo. Apagar uma despesa pede confirmação.
+</pt-PT>
