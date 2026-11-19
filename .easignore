@@ -1,0 +1,148 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# IDE and editors
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Production builds
+/build
+dist/
+dist
+
+# Logs and debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dump.rdb
+
+# System files
+.DS_Store
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.venv
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Deployment
+.vercel
+
+# Archive files and large assets
+**/*.zip
+**/*.tar.gz
+**/*.tar
+**/*.tgz
+*.pack
+*.deb
+*.dylib
+
+# Build caches
+.cache/
+
+# Mobile development
+android-sdk/
+
+# Environment and credential files
+.env
+.env.*
+*.env
+# le template (placeholders uniquement) reste versionné
+!.env.example
+!*/.env.example
+credentials.json
+*.key
+.credentials
+*token.json*
+
+# Agent metadata
+.emergent/
+.claude/
+.agents/
+skills-lock.json
+
+# Third-party reference material (not for redistribution)
+BUDGET GOLD*.xlsx
+
+# Marketing project local artifacts
+marketing/**/.piper-models/
+marketing/**/.test-music
+marketing/**/.frames/
+marketing/**/work-*/
+marketing/**/narration-raw.wav
+marketing/**/*-OLD*
+
+# Local working notes
+# On exclut le CONTENU de docs/ et non le dossier lui-meme : git ne redescend
+# jamais dans un repertoire exclu, donc une exception a l'interieur serait
+# ignoree en silence.
+docs/*
+# Exception : les documents remis aux testeurs vivent avec le projet.
+!docs/testeurs/
+design-system/
+
+# Cles de signature Apple et Google. Un .p8 ne se telecharge QU'UNE FOIS et
+# permet de lire les transactions du compte : il n'a rien a faire dans un
+# depot, meme prive.
+*.p8
+*.mobileprovision
+*.keystore
+*.jks
+play-service-account*.json
+AuthKey_*.p8
+SubscriptionKey_*.p8
+
+# Sorties de travail video (rendus intermediaires, essais /brag)
+brag-output-*/
+marketing/**/renders/
+
+# ---- regles de frontend/.gitignore (EAS ne lit plus les .gitignore des qu un .easignore existe)
+.expo/
+web-build/
+expo-env.d.ts
+.kotlin/
+*.orig.*
+*.p12
+.metro-health-check*
+.metro-cache/
+.env*.local
+app-example
+coverage/
+# Dossiers natifs locaux : leur presence ferait basculer EAS en workflow bare.
+/frontend/ios/
+/frontend/android/
+
+# ---- inutile au build : allege l archive envoyee a EAS (1,8 Go -> quelques Mo)
+/marketing/
+/website/
+/docs/
+/memory/
+/.github/
+/*.sql
+/*.xlsx
