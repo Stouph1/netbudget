@@ -190,6 +190,8 @@ export default function BudgetScreen({
   onExportPdf: () => void;
 }) {
   const { styles, GOLD, scrollBottom } = useBudgetTheme();
+  const allNet =
+    incomes.length > 0 && incomes.every((i) => i.amountKind === "net" || i.type === "autre");
   const { tp, lang } = useLang();
   // Cibles de la visite guidée. Voir tourSteps.ts pour ce qu'elles racontent.
   const tourSummary = useTourTarget("budget:summary");
@@ -419,9 +421,10 @@ export default function BudgetScreen({
             );
           })
         )}
+        {/* Tout est saisi en net : parler de « brut » serait faux. */}
         <View style={styles.revenusSummary}>
           <View style={styles.revenusRow}>
-            <Text style={styles.revenusLabel}>{t("summary.totalBrutAnnual")}</Text>
+            <Text style={styles.revenusLabel}>{t(allNet ? "summary.totalAnnual" : "summary.totalBrutAnnual")}</Text>
             <Text style={styles.revenusTotal} testID="total-brut-annuel">
               {fmt(totalBrutAnnuel)}
             </Text>
@@ -429,10 +432,13 @@ export default function BudgetScreen({
           {/* Cascade mensuelle : brut moyen → dîme → net. L'annuel reste
               au-dessus, séparé, pour ne pas laisser croire que la dîme
               (mensuelle) se soustrait de l'annuel. */}
+          {/* En net et sans dons, cette ligne répéterait le net du dessous. */}
+          {!allNet || monthlyTithe > 0 ? (
           <View style={styles.revenusRow}>
-            <Text style={styles.revenusLabel}>{t("summary.brutMonthlyAvg")}</Text>
+            <Text style={styles.revenusLabel}>{t(allNet ? "summary.monthlyAvg" : "summary.brutMonthlyAvg")}</Text>
             <Text style={styles.revenusTotalMuted}>{fmt(brutMensuel)}</Text>
           </View>
+          ) : null}
           {monthlyTithe > 0 ? (
             <View style={styles.revenusRow}>
               <Text style={styles.revenusLabel} numberOfLines={2}>

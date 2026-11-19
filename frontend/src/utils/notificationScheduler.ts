@@ -107,7 +107,7 @@ export async function markAdviceSeen(ids: readonly string[]): Promise<void> {
 async function ensureChannel(): Promise<void> {
   if (Platform.OS !== "android") return;
   await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-    name: "NetBudget",
+    name: "NETbudget",
     importance: Notifications.AndroidImportance.DEFAULT,
     sound: "default",
     lightColor: "#4ADE80",

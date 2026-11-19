@@ -585,7 +585,7 @@ export default function Index() {
     const year = new Date().getFullYear();
     let opened = false;
     if (birthdaysOpen && details.birthdate) {
-      scheduleBirthdayNotification(details.birthdate, details.first_name);
+      scheduleBirthdayNotification(details.birthdate, details.first_name, t);
       if (isBirthdayToday(details.birthdate)) {
         const yearKey = `netbudget:bday:${year}`;
         const seen = await AsyncStorage.getItem(yearKey).catch(() => null);

@@ -95,6 +95,8 @@ export function nextBirthdayAt(birthdateIso: string, now: Date = new Date()): Da
 export async function scheduleBirthdayNotification(
   birthdateIso: string,
   firstName: string | null,
+  // Textes dans la langue de l'app : ils étaient en français pour tout le monde.
+  t: (key: string) => string,
 ): Promise<void> {
   try {
     const Notifications = await import("expo-notifications");
@@ -106,8 +108,10 @@ export async function scheduleBirthdayNotification(
     await Notifications.scheduleNotificationAsync({
       identifier: "birthday",
       content: {
-        title: `Joyeux anniversaire${firstName ? ` ${firstName}` : ""} ! 🎂`,
-        body: "Ouvre NetBudget — on t'a préparé quelque chose pour ton budget de l'année.",
+        title: firstName
+          ? t("notif.birthday.title").replace("{name}", firstName)
+          : t("notif.birthday.titleNoName"),
+        body: t("notif.birthday.body"),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,

@@ -232,9 +232,6 @@ export default function LoanModal({
                             testID="loan-start-year"
                           />
                         ) : null}
-                        <Text style={[styles.previewHint, { marginTop: -4, marginBottom: 10 }]}>
-                          {t("loan.startHint")}
-                        </Text>
                       </>
                     );
                   })()}

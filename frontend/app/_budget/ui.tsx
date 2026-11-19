@@ -1,8 +1,8 @@
 // Briques d'UI partagées de l'écran Budget (ex-app/index.tsx) : encadré de
 // section, champ de saisie, liste déroulante, pilule d'état.
 import { useBudgetTheme } from "./useBudgetTheme";
-import React, { useState } from "react";
-import { Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useRef, useState } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { GOLD, TEXT_3 } from "./constants";
 import { styles } from "./styles";
@@ -175,6 +175,8 @@ export function Dropdown<T extends string>({
 }) {
   const { styles, GOLD } = useBudgetTheme();
   const [open, setOpen] = useState(false);
+  const { height: winH } = useWindowDimensions();
+  const listRef = useRef<ScrollView>(null);
   const current = options.find((o) => o.value === value);
   return (
     <>
@@ -200,37 +202,52 @@ export function Dropdown<T extends string>({
         animationType="fade"
         onRequestClose={() => setOpen(false)}
       >
-        <TouchableOpacity
-          activeOpacity={1}
-          style={styles.dropdownBackdrop}
-          onPress={() => setOpen(false)}
-        >
-          <View style={styles.dropdownSheet} onStartShouldSetResponder={() => true}>
+        <View style={styles.dropdownBackdrop}>
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setOpen(false)} />
+          {/* Liste bornée et défilante : 46 années ne tiennent sur aucun écran.
+              Elle s'ouvre sur le choix en cours, pas en haut de la liste. */}
+          <View style={[styles.dropdownSheet, { maxHeight: Math.round(winH * 0.7) }]}>
             <Text style={styles.dropdownTitle}>{label}</Text>
-            {options.map((opt) => {
-              const active = opt.value === value;
-              return (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={[styles.dropdownItem, active && styles.dropdownItemActive]}
-                  onPress={() => {
-                    onChange(opt.value);
-                    setOpen(false);
-                  }}
-                  testID={testID ? `${testID}-opt-${opt.value}` : undefined}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.dropdownItemText, active && styles.dropdownItemTextActive]}>
-                      {opt.label}
-                    </Text>
-                    {opt.hint && <Text style={styles.dropdownItemHint}>{opt.hint}</Text>}
-                  </View>
-                  {active && <Feather name="check" size={16} color={GOLD} />}
-                </TouchableOpacity>
-              );
-            })}
+            <ScrollView
+              ref={listRef}
+              style={{ flexGrow: 0 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator
+              testID={testID ? `${testID}-list` : undefined}
+            >
+              {options.map((opt) => {
+                const active = opt.value === value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[styles.dropdownItem, active && styles.dropdownItemActive]}
+                    onLayout={
+                      active
+                        ? (e) => {
+                            const y = e.nativeEvent.layout.y;
+                            listRef.current?.scrollTo({ y: Math.max(0, y - 120), animated: false });
+                          }
+                        : undefined
+                    }
+                    onPress={() => {
+                      onChange(opt.value);
+                      setOpen(false);
+                    }}
+                    testID={testID ? `${testID}-opt-${opt.value}` : undefined}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.dropdownItemText, active && styles.dropdownItemTextActive]}>
+                        {opt.label}
+                      </Text>
+                      {opt.hint && <Text style={styles.dropdownItemHint}>{opt.hint}</Text>}
+                    </View>
+                    {active && <Feather name="check" size={16} color={GOLD} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </>
   );
