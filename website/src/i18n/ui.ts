@@ -53,16 +53,16 @@ const fr: Catalog = {
   "hero.title": "Sache ce qu'il te reste",
   "hero.title.accent": "vraiment",
   "hero.title.suffix": " chaque mois.",
-  "hero.subtitle": "Un budget qui se lit d'un coup d'œil, des repères tirés des statistiques officielles, 282 conseils sourcés, des projets, et des espaces partagés en couple ou en famille. Sans connexion bancaire, sans publicité : ton budget reste sur ton téléphone, et ce qui se synchronise est chiffré avant de partir.",
+  "hero.subtitle": "Un budget qui se lit d'un coup d'œil, des repères tirés des statistiques officielles, 282 conseils sourcés, des projets, et des espaces partagés en couple ou en famille. Sans connexion bancaire : ton budget reste sur ton téléphone, et ce qui se synchronise est chiffré avant de partir.",
   "hero.cta.appstore": "Télécharger sur l'App Store",
   "hero.cta.googleplay": "Disponible sur Google Play",
   "hero.cta.learn": "Voir les fonctionnalités",
-  "hero.note": "Budget, prêts et convertisseur gratuits, sans compte. Sans publicité. Aucune connexion bancaire.",
+  "hero.note": "Budget, prêts et convertisseur gratuits, sans compte. Aucune connexion bancaire.",
 
   // Links hub (destination unique : App Store + Google Play + compte à rebours)
   "links.eyebrow": "Tous les liens ici",
   "links.title": "Télécharge NETbudget",
-  "links.subtitle": "Disponible sur iPhone et Android. Gratuit pour commencer, sans publicité. Un compte seulement pour synchroniser, partager et profiter du Coach.",
+  "links.subtitle": "Disponible sur iPhone et Android. Gratuit pour commencer. Un compte seulement pour synchroniser, partager et profiter du Coach.",
 
   // Le 15 octobre : compte à rebours et indice, sans dire quoi.
   "teaser.eyebrow": "2.0 · 15 novembre",
@@ -244,10 +244,10 @@ const fr: Catalog = {
   // Privacy
   "privacy.eyebrow": "Vie privée par défaut",
   "privacy.title": "Tes données t'appartiennent, avec ou sans compte",
-  "privacy.text": "Sans compte, tout reste sur ton téléphone : la seule connexion sert aux taux de change. Avec un compte, ce qui se synchronise est chiffré sur ton téléphone avant de partir, avec une clé que nous n'avons pas. Jamais de connexion bancaire, jamais de publicité, jamais de traceur.",
+  "privacy.text": "Sans compte, tout reste sur ton téléphone : la seule connexion sert aux taux de change. Avec un compte, ce qui se synchronise est chiffré sur ton téléphone avant de partir, avec une clé que nous n'avons pas. Jamais de connexion bancaire, jamais de traceur.",
   "privacy.point1": "Sans compte : rien ne part de ton téléphone",
   "privacy.point2": "Avec un compte : chiffré de bout en bout",
-  "privacy.point3": "Aucune connexion bancaire, aucune publicité",
+  "privacy.point3": "Aucune connexion bancaire",
   "privacy.point4": "Code source consultable sur demande",
 
   // Final CTA
@@ -266,7 +266,7 @@ const fr: Catalog = {
   "maker.name": "Stéphane Pizeuil",
   "maker.role": "Créateur indépendant · Ingénieur logiciel",
   "maker.bio":
-    "J'ai conçu, codé et lancé NETbudget en solo. L'objectif : un outil de budget personnel simple, honnête, qui respecte ta vie privée et fonctionne partout dans le monde. Pas de modèle économique caché : pas de pub, pas de vente de données, et un budget gratuit sans abonnement. Les formules payantes financent le reste, en toute transparence.",
+    "J'ai conçu, codé et lancé NETbudget en solo. L'objectif : un outil de budget personnel simple, honnête, qui respecte ta vie privée et fonctionne partout dans le monde. Pas de modèle économique caché : pas de vente de données, et un budget gratuit sans abonnement. Les formules payantes financent le reste, en toute transparence.",
   "maker.stat1": "Solo maker",
   "maker.stat2": "Sur l'App Store",
   "maker.stat3": "100 % indépendant",
@@ -298,7 +298,7 @@ const fr: Catalog = {
 
   // --- Barre d'action mobile -------------------------------------------
   "sticky.title": "Sache ce qu'il te reste vraiment",
-  "sticky.sub": "Gratuit, sans publicité",
+  "sticky.sub": "Gratuit, sans compte",
   "sticky.cta": "Télécharger",
 
   // --- Titres et descriptions de pages ---------------------------------
@@ -351,7 +351,7 @@ const fr: Catalog = {
   "thanks.first.p5.role": "",
   "thanks.first.close": "Pour votre enseignement, vos prières et votre présence. Merci, du fond du cœur.",
 
-  "thanks.letter.p1": "Quand j'ai publié la première version, je pensais que personne ne l'installerait. Une app de budget de plus, faite par un inconnu, sans compte, sans connexion bancaire, sans publicité. Rien pour attirer l'œil.",
+  "thanks.letter.p1": "Quand j'ai publié la première version, je pensais que personne ne l'installerait. Une app de budget de plus, faite par un inconnu, sans compte, sans connexion bancaire. Rien pour attirer l'œil.",
   "thanks.letter.p2": "Puis des gens l'ont installée. Certains ont laissé une note. D'autres ont écrit, parfois pour dire merci, souvent pour signaler ce qui n'allait pas, et c'est ce second cas qui a le plus de valeur. Un retour honnête sur un bouton caché ou un calcul faux vaut plus que dix compliments.",
   "thanks.letter.p3": "Je réponds à chaque message moi-même. Je lis chaque avis. Je n'ai pas toujours le temps de tout corriger vite, mais rien n'est ignoré : chaque retour finit dans une liste, et cette liste dicte ce que je construis ensuite.",
   "thanks.letter.p4": "Vous ne me devez rien. Vous avez déjà donné le plus rare : du temps, et de la confiance. Merci de l'avoir accordée à une petite app qui vous promettait de garder vos chiffres pour vous.",
@@ -458,7 +458,7 @@ const fr: Catalog = {
   "faq.seeAll": "Voir toutes les questions",
 
   "faq.free.q": "C'est vraiment gratuit ?",
-  "faq.free.a": "Oui. Le budget complet, revenus, dépenses, prêts, reste à vivre, repère 50/30/20 et convertisseur, est gratuit et sans limite de temps. Un abonnement facultatif ajoute la synchronisation entre appareils, le Coach et ses conseils adaptés à ton profil, les projets et les budgets partagés. Aucune publicité, à aucun moment.",
+  "faq.free.a": "Oui. Le budget complet, revenus, dépenses, prêts, reste à vivre, repère 50/30/20 et convertisseur, est gratuit et sans limite de temps. Un abonnement facultatif ajoute la synchronisation entre appareils, le Coach et ses conseils adaptés à ton profil, les projets et les budgets partagés.",
   "faq.account.q": "Faut-il créer un compte ?",
   "faq.account.a": "Non pour le budget, les prêts et le convertisseur : tu peux t'en servir sans jamais donner d'adresse e-mail. Le compte sert à retrouver tes données sur un autre appareil, à partager un budget en couple ou en famille, et à ouvrir les projets et le Coach de la 2.0. Avec un compte, tes données partent chiffrées de bout en bout.",
   "faq.data.q": "Où sont stockées mes données financières ?",
@@ -504,7 +504,7 @@ const fr: Catalog = {
 
   "page.privacy.section6.title": "Sous-traitants",
   "page.privacy.section6.body":
-    "Supabase héberge les données de compte. Apple et Google interviennent si tu utilises leur méthode de connexion, et pour la vente et l'encaissement des abonnements. RevenueCat, qui gère les abonnements pour notre compte, reçoit un identifiant de compte et les informations d'achat transmises par la boutique — jamais tes données budgétaires, qu'il ne pourrait pas lire, et jamais tes coordonnées bancaires, que nous ne voyons pas davantage. open.er-api.com fournit les taux de change. Aucun autre tiers ne reçoit tes données : dans l'application, il n'y a ni publicité, ni mesure d'audience, ni traceur, ni revente. Le site netbudget.app est hébergé par Vercel, qui en mesure la fréquentation de façon agrégée — pages vues, pays, type d'appareil — sans cookie ni identifiant permanent, et sans aucun lien avec un compte de l'application. Tu peux refuser cette mesure depuis l'encart qui s'affiche à la première visite, ou à tout moment depuis le pied de page ; le signal Global Privacy Control de ton navigateur est respecté. Nous ne vendons pas de données, et ce n'est pas notre modèle économique — l'application se finance par l'abonnement.",
+    "Supabase héberge les données de compte. Apple et Google interviennent si tu utilises leur méthode de connexion, et pour la vente et l'encaissement des abonnements. RevenueCat, qui gère les abonnements pour notre compte, reçoit un identifiant de compte et les informations d'achat transmises par la boutique — jamais tes données budgétaires, qu'il ne pourrait pas lire, et jamais tes coordonnées bancaires, que nous ne voyons pas davantage. open.er-api.com fournit les taux de change. Aucun autre tiers ne reçoit tes données : dans l'application, il n'y a ni mesure d'audience, ni traceur, ni revente. Le site netbudget.app est hébergé par Vercel, qui en mesure la fréquentation de façon agrégée — pages vues, pays, type d'appareil — sans cookie ni identifiant permanent, et sans aucun lien avec un compte de l'application. Tu peux refuser cette mesure depuis l'encart qui s'affiche à la première visite, ou à tout moment depuis le pied de page ; le signal Global Privacy Control de ton navigateur est respecté. Nous ne vendons pas de données, et ce n'est pas notre modèle économique — l'application se finance par l'abonnement.",
 
   "page.privacy.section7.title": "Permissions demandées",
   "page.privacy.section7.body":
@@ -626,16 +626,16 @@ const en: Catalog = {
   "hero.title": "Know what you",
   "hero.title.accent": "really",
   "hero.title.suffix": " have left each month.",
-  "hero.subtitle": "A budget you read at a glance, benchmarks drawn from official statistics, 282 sourced tips, projects, and shared spaces for couples and families. No bank connection, no ads: your budget stays on your phone, and whatever syncs is encrypted before it leaves.",
+  "hero.subtitle": "A budget you read at a glance, benchmarks drawn from official statistics, 282 sourced tips, projects, and shared spaces for couples and families. No bank connection: your budget stays on your phone, and whatever syncs is encrypted before it leaves.",
   "hero.cta.appstore": "Download on the App Store",
   "hero.cta.googleplay": "Get it on Google Play",
   "hero.cta.learn": "See features",
-  "hero.note": "Budget, loans and converter are free, no account needed. No ads. No bank connection.",
+  "hero.note": "Budget, loans and converter are free, no account needed. No bank connection.",
 
   // Links hub (single destination: App Store + Google Play + countdown)
   "links.eyebrow": "All links here",
   "links.title": "Download NETbudget",
-  "links.subtitle": "Available on iPhone and Android. Free to start, no ads. An account only to sync, share and use the Coach.",
+  "links.subtitle": "Available on iPhone and Android. Free to start. An account only to sync, share and use the Coach.",
 
   // The 2.0 teaser video, in place of the October 15 countdown.
   "teaser.eyebrow": "2.0 · November 15",
@@ -817,10 +817,10 @@ const en: Catalog = {
   // Privacy
   "privacy.eyebrow": "Privacy by default",
   "privacy.title": "Your data is yours, with or without an account",
-  "privacy.text": "Without an account, everything stays on your phone: the only connection fetches exchange rates. With an account, whatever syncs is encrypted on your phone before it leaves, with a key we do not have. Never a bank connection, never ads, never trackers.",
+  "privacy.text": "Without an account, everything stays on your phone: the only connection fetches exchange rates. With an account, whatever syncs is encrypted on your phone before it leaves, with a key we do not have. Never a bank connection, never trackers.",
   "privacy.point1": "Without an account: nothing leaves your phone",
   "privacy.point2": "With an account: end-to-end encrypted",
-  "privacy.point3": "No bank connection, no ads",
+  "privacy.point3": "No bank connection",
   "privacy.point4": "Source code available on request",
 
   // Final CTA
@@ -839,7 +839,7 @@ const en: Catalog = {
   "maker.name": "Stéphane Pizeuil",
   "maker.role": "Indie maker · Software engineer",
   "maker.bio":
-    "I designed, built and launched NETbudget on my own. The goal: a simple, honest personal-budgeting tool that respects your privacy and works anywhere in the world. No hidden business model: no ads, no data selling, and a budget that stays free with no subscription. The paid plans fund the rest, in the open.",
+    "I designed, built and launched NETbudget on my own. The goal: a simple, honest personal-budgeting tool that respects your privacy and works anywhere in the world. No hidden business model: no data selling, and a budget that stays free with no subscription. The paid plans fund the rest, in the open.",
   "maker.stat1": "Solo maker",
   "maker.stat2": "On the App Store",
   "maker.stat3": "100% independent",
@@ -871,7 +871,7 @@ const en: Catalog = {
 
   // --- Mobile action bar ------------------------------------------------
   "sticky.title": "Know what you really have left",
-  "sticky.sub": "Free, no ads",
+  "sticky.sub": "Free, no account",
   "sticky.cta": "Download",
 
   // --- Page titles and descriptions -------------------------------------
@@ -924,7 +924,7 @@ const en: Catalog = {
   "thanks.first.p5.role": "",
   "thanks.first.close": "For your teaching, your prayers and your presence. Thank you, from the bottom of my heart.",
 
-  "thanks.letter.p1": "When I published the first version, I assumed nobody would install it. One more budgeting app, by an unknown, with no account, no bank connection, no ads. Nothing to catch the eye.",
+  "thanks.letter.p1": "When I published the first version, I assumed nobody would install it. One more budgeting app, by an unknown, with no account, no bank connection. Nothing to catch the eye.",
   "thanks.letter.p2": "Then people installed it. Some left a rating. Others wrote, sometimes to say thanks, more often to point out what was wrong, and that second kind is the most valuable. One honest report about a hidden button or a wrong calculation is worth more than ten compliments.",
   "thanks.letter.p3": "I answer every message myself. I read every review. I don't always have time to fix everything quickly, but nothing is ignored: every piece of feedback ends up on a list, and that list decides what I build next.",
   "thanks.letter.p4": "You owe me nothing. You have already given the rarest thing: time, and trust. Thank you for placing it in a small app that promised to keep your numbers to yourself.",
@@ -1031,7 +1031,7 @@ const en: Catalog = {
   "faq.seeAll": "See all questions",
 
   "faq.free.q": "Is it really free?",
-  "faq.free.a": "Yes. The full budget, income, expenses, loans, money left, the 50/30/20 benchmark and the converter, is free with no time limit. An optional subscription adds syncing across devices, the Coach with tips adapted to your profile, projects and shared budgets. No advertising, ever.",
+  "faq.free.a": "Yes. The full budget, income, expenses, loans, money left, the 50/30/20 benchmark and the converter, is free with no time limit. An optional subscription adds syncing across devices, the Coach with tips adapted to your profile, projects and shared budgets.",
   "faq.account.q": "Do I need an account?",
   "faq.account.a": "Not for the budget, loans and converter: you can use them without ever giving an email address. An account is for finding your data on another device, sharing a budget as a couple or a family, and opening the projects and the Coach of 2.0. With an account, your data leaves end-to-end encrypted.",
   "faq.data.q": "Where is my financial data stored?",
@@ -1077,7 +1077,7 @@ const en: Catalog = {
 
   "page.privacy.section6.title": "Processors",
   "page.privacy.section6.body":
-    "Supabase hosts account data. Apple and Google are involved if you use their sign-in method, and for selling and charging subscriptions. RevenueCat, which manages subscriptions on our behalf, receives an account identifier and the purchase information passed on by the store — never your budget data, which it could not read anyway, and never your payment details, which we do not see either. open.er-api.com supplies exchange rates. No other third party receives your data: inside the app there is no advertising, no analytics, no tracker, no resale. The netbudget.app website is hosted by Vercel, which measures its traffic in aggregate — page views, country, device type — without cookies or persistent identifiers, and with no link to any app account. You can refuse this measurement from the notice shown on your first visit, or at any time from the footer; your browser's Global Privacy Control signal is honoured. We do not sell data, and it is not our business model — the app is funded by subscriptions.",
+    "Supabase hosts account data. Apple and Google are involved if you use their sign-in method, and for selling and charging subscriptions. RevenueCat, which manages subscriptions on our behalf, receives an account identifier and the purchase information passed on by the store — never your budget data, which it could not read anyway, and never your payment details, which we do not see either. open.er-api.com supplies exchange rates. No other third party receives your data: inside the app there is no analytics, no tracker, no resale. The netbudget.app website is hosted by Vercel, which measures its traffic in aggregate — page views, country, device type — without cookies or persistent identifiers, and with no link to any app account. You can refuse this measurement from the notice shown on your first visit, or at any time from the footer; your browser's Global Privacy Control signal is honoured. We do not sell data, and it is not our business model — the app is funded by subscriptions.",
 
   "page.privacy.section7.title": "Permissions requested",
   "page.privacy.section7.body":
