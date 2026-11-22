@@ -167,6 +167,9 @@ function frequencyFactorMonthly(
  * part du mois, ou le montant du mois si la personne l'a fixé à la main.
  */
 export function grossForMonth(s: IncomeSource, monthIndex: number): number {
+  // Un mois non perçu vaut zéro, même s'il garde un montant retouché d'avant :
+  // sinon le mois affiché « non perçu » comptait quand même dans les totaux.
+  if (!isMonthActive(s, monthIndex)) return 0;
   const override = s.monthOverrides?.[String(monthIndex)];
   if (override !== undefined && override !== "") return Math.max(0, parseNumber(override));
   const amount = parseNumber(s.amount);
@@ -213,6 +216,25 @@ export function averageMonthlyTithe(
     }
   }
   return sum / 12;
+}
+
+/**
+ * Ce qu'une source rapporte un mois où elle est perçue, et sur combien de mois.
+ * C'est le chiffre de la carte du revenu : une prime de 700 € versée en janvier
+ * s'affiche « 700 €, 1 mois sur 12 », pas « 58,33 € par mois ».
+ */
+export function paidMonthNet(
+  s: IncomeSource,
+  tithePercent: number = 0,
+): { amount: number; months: number } {
+  let sum = 0;
+  let months = 0;
+  for (let i = 0; i < 12; i++) {
+    if (!isMonthActive(s, i)) continue;
+    months++;
+    sum += monthlyNetForSource(s, i, tithePercent);
+  }
+  return { amount: months > 0 ? sum / months : 0, months };
 }
 
 // Moyenne sur 12 mois (utile pour les widgets « net mensuel »).

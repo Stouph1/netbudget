@@ -27,7 +27,7 @@ import { CurrencyCode, getCurrency } from "../../src/utils/currency";
 import { parseNumber } from "../../src/utils/finance";
 import { loanProgress, remainingParts } from "../../src/utils/loanSchedule";
 import { AdviceItem, interpolate } from "../../src/utils/advice";
-import { averageMonthlyNet, IncomeSource, TYPE_ICON, editedMonths } from "../../src/utils/income";
+import { paidMonthNet, IncomeSource, TYPE_ICON, editedMonths } from "../../src/utils/income";
 import { getBudgetMixProfile } from "../../src/lib/adviceEngine";
 import type { UserProfile } from "../../src/types/advice";
 import {
@@ -372,7 +372,9 @@ export default function BudgetScreen({
           </View>
         ) : (
           incomes.map((src) => {
-            const monthly = averageMonthlyNet([src], tithePercent);
+            // Le montant d'un mois où le revenu tombe, pas la moyenne sur douze
+            // mois : un versement unique de 700 € s'affichait « 58,33 € / mois ».
+            const paid = paidMonthNet(src, tithePercent);
             const freqLabel =
               src.frequency === "monthly"
                 ? t("freq.monthly")
@@ -406,8 +408,12 @@ export default function BudgetScreen({
                   </Text>
                 </View>
                 <View style={{ alignItems: "flex-end" }}>
-                  <Text style={styles.incomeNet}>{fmt(monthly)}</Text>
-                  <Text style={styles.incomeMetaSmall}>{t("income.netPerMonth")}</Text>
+                  <Text style={styles.incomeNet}>{fmt(paid.amount)}</Text>
+                  <Text style={styles.incomeMetaSmall}>
+                    {paid.months === 12
+                      ? t("income.netPerMonth")
+                      : interpolate(t("income.activeMonthsCount"), { n: paid.months })}
+                  </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => onDeleteIncome(src.id)}
@@ -451,7 +457,9 @@ export default function BudgetScreen({
           ) : null}
           <View style={styles.revenusRow}>
             <Text style={styles.revenusLabel}>
-              {t("summary.netMonthlyEst")}
+              {/* Revenus inégaux d'un mois à l'autre : ce chiffre est une
+                  moyenne, et il faut le dire. */}
+              {t(Math.abs(netMoyen - netMensuel) > 0.5 ? "summary.netMonthlyAvg" : "summary.netMonthlyEst")}
               {monthlyTithe > 0 ? t("summary.givingDeducted") : ""}
             </Text>
             <Text style={[styles.revenusTotal, { color: GOLD }]} testID="net-mensuel-value">

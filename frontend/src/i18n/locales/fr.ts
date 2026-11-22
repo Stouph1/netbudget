@@ -253,8 +253,8 @@ export const fr: Catalog = {
   "freq.monthlyHint": "Chaque mois (ex: salaire net mensuel)",
   "freq.annual": "Annuel",
   "freq.annualHint": "Le total sur 1 an, réparti automatiquement",
-  "freq.monthOnce": "Versé un mois précis",
-  "freq.monthOnceHint": "Prime, 13e mois, dividende annuel…",
+  "freq.monthOnce": "Une fois par an",
+  "freq.monthOnceHint": "Un seul mois : prime, 13e mois, dividende annuel…",
   "freq.daily": "Taux journalier (TJM)",
   "freq.dailyHint": "Un montant par jour facturé, multiplié par tes jours du mois",
   "income.daysPerMonth": "Jours facturés par mois",
@@ -343,6 +343,8 @@ export const fr: Catalog = {
   // Income meta
   "income.netPerMonth": "Net / mois",
   "income.paidIn": "Versé en {month}",
+  "income.monthOnceNote": "Compté une seule fois, en {month}. Les autres mois : rien. Pour un revenu de chaque mois, choisis « Mensuel ».",
+  "summary.netMonthlyAvg": "Net mensuel moyen (sur 12 mois)",
 
   // Donut labels
   "donut.rent": "Loyer",

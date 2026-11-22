@@ -228,8 +228,8 @@ export const es: Catalog = {
   "freq.monthlyHint": "Cada mes (ej.: salario neto mensual)",
   "freq.annual": "Anual",
   "freq.annualHint": "El total en 1 año, repartido automáticamente",
-  "freq.monthOnce": "Pagado un mes concreto",
-  "freq.monthOnceHint": "Prima, 13ª paga, dividendo anual…",
+  "freq.monthOnce": "Una vez al año",
+  "freq.monthOnceHint": "Un solo mes: prima, 13ª paga, dividendo anual…",
   "freq.daily": "Tarifa diaria",
   "freq.dailyHint": "Un importe por día facturado, multiplicado por tus días del mes",
   "income.daysPerMonth": "Días facturados al mes",
@@ -302,6 +302,8 @@ export const es: Catalog = {
 
   "income.netPerMonth": "Neto / mes",
   "income.paidIn": "Pagado en {month}",
+  "income.monthOnceNote": "Cuenta una sola vez, en {month}. Los demás meses, nada. Para un ingreso de cada mes, elige «Mensual».",
+  "summary.netMonthlyAvg": "Neto mensual medio (12 meses)",
 
   "donut.rent": "Alquiler",
   "donut.loans": "Préstamos",

@@ -228,8 +228,8 @@ export const ja: Catalog = {
   "freq.monthlyHint": "毎月（例：月給）",
   "freq.annual": "年間",
   "freq.annualHint": "1年間の合計を自動的に分割",
-  "freq.monthOnce": "特定の月に支給",
-  "freq.monthOnceHint": "ボーナス、年1回の配当など",
+  "freq.monthOnce": "年1回",
+  "freq.monthOnceHint": "1か月のみ：ボーナス、年1回の配当など",
   "freq.daily": "日当（デイリーレート）",
   "freq.dailyHint": "請求日数 × 1日あたりの金額で計算します",
   "income.daysPerMonth": "月あたりの請求日数",
@@ -302,6 +302,8 @@ export const ja: Catalog = {
 
   "income.netPerMonth": "手取り / 月",
   "income.paidIn": "{month} に支給",
+  "income.monthOnceNote": "{month} に1回だけ計上されます。ほかの月は0です。毎月の収入は「毎月」を選んでください。",
+  "summary.netMonthlyAvg": "月間手取りの平均（12か月）",
 
   "donut.rent": "家賃",
   "donut.loans": "ローン",

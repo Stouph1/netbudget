@@ -228,8 +228,8 @@ export const it: Catalog = {
   "freq.monthlyHint": "Ogni mese (es. stipendio netto mensile)",
   "freq.annual": "Annuale",
   "freq.annualHint": "Il totale annuo, suddiviso automaticamente",
-  "freq.monthOnce": "Pagato in un mese specifico",
-  "freq.monthOnceHint": "Bonus, 13ª, dividendo annuo…",
+  "freq.monthOnce": "Una volta l'anno",
+  "freq.monthOnceHint": "Un solo mese: bonus, 13ª, dividendo annuo…",
   "freq.daily": "Tariffa giornaliera",
   "freq.dailyHint": "Un importo per giorno fatturato, moltiplicato per i tuoi giorni del mese",
   "income.daysPerMonth": "Giorni fatturati al mese",
@@ -302,6 +302,8 @@ export const it: Catalog = {
 
   "income.netPerMonth": "Netto / mese",
   "income.paidIn": "Versato a {month}",
+  "income.monthOnceNote": "Conta una sola volta, a {month}. Negli altri mesi, niente. Per un reddito di ogni mese, scegli «Mensile».",
+  "summary.netMonthlyAvg": "Netto mensile medio (12 mesi)",
 
   "donut.rent": "Affitto",
   "donut.loans": "Prestiti",

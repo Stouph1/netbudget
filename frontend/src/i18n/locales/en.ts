@@ -228,8 +228,8 @@ export const en: Catalog = {
   "freq.monthlyHint": "Every month (e.g. net monthly salary)",
   "freq.annual": "Annual",
   "freq.annualHint": "The total over 1 year, automatically split",
-  "freq.monthOnce": "Paid a specific month",
-  "freq.monthOnceHint": "Bonus, 13th month, annual dividend…",
+  "freq.monthOnce": "Once a year",
+  "freq.monthOnceHint": "One month only: bonus, 13th month, annual dividend…",
   "freq.daily": "Daily rate",
   "freq.dailyHint": "An amount per billed day, times your days in the month",
   "income.daysPerMonth": "Billed days per month",
@@ -302,6 +302,8 @@ export const en: Catalog = {
 
   "income.netPerMonth": "Net / month",
   "income.paidIn": "Paid in {month}",
+  "income.monthOnceNote": "Counted once, in {month}. Nothing the other months. For income you get every month, choose “Monthly”.",
+  "summary.netMonthlyAvg": "Average monthly net (over 12 months)",
 
   "donut.rent": "Rent",
   "donut.loans": "Loans",

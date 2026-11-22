@@ -3,6 +3,7 @@ import {
   averageMonthlyTithe,
   averageMonthlyNet,
   annualGross,
+  paidMonthNet,
   type IncomeSource,
 } from "./income";
 
@@ -67,5 +68,27 @@ describe("récap mensuel", () => {
     const s = salary({ monthOverrides: { "5": "5000" }, chargesPercent: "0", withholdingPercent: "0" });
     expect(monthlyNetForSource(s, 5)).toBe(5000);
     expect(monthlyNetForSource(s, 4)).toBe(3400);
+  });
+});
+
+describe("revenu perçu une partie de l'année", () => {
+  const once = salary({ type: "autre", amount: "700", frequency: "monthOnce", variableMonth: 0, amountKind: "net" });
+  it("un versement unique compte entier son mois, zéro les autres", () => {
+    expect(monthlyNetForSource(once, 0)).toBe(700);
+    expect(monthlyNetForSource(once, 10)).toBe(0);
+    expect(annualGross([once])).toBe(700);
+  });
+  it("la carte affiche le montant versé, pas la moyenne sur douze mois", () => {
+    expect(paidMonthNet(once)).toEqual({ amount: 700, months: 1 });
+    expect(averageMonthlyNet([once])).toBeCloseTo(58.33, 2);
+  });
+  it("un mensuel sur dix mois affiche son montant mensuel", () => {
+    const s = salary({ amount: "1000", amountKind: "net", activeMonths: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] });
+    expect(paidMonthNet(s)).toEqual({ amount: 1000, months: 10 });
+  });
+  it("un mois non perçu vaut zéro même avec un montant retouché", () => {
+    const s = salary({ amount: "1000", amountKind: "net", activeMonths: [0, 1], monthOverrides: { "5": "5000" } });
+    expect(monthlyNetForSource(s, 5)).toBe(0);
+    expect(annualGross([s])).toBe(2000);
   });
 });

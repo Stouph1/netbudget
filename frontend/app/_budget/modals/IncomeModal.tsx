@@ -25,7 +25,7 @@ import {
   TYPE_LABEL,
 } from "../../../src/utils/income";
 import { CurrencyCode, getCurrency } from "../../../src/utils/currency";
-import { BORDER, GOLD, MONTH_KEYS_SHORT, TEXT_2, TEXT_3 } from "../constants";
+import { BORDER, GOLD, MONTH_KEYS_LONG, MONTH_KEYS_SHORT, TEXT_2, TEXT_3 } from "../constants";
 import { styles } from "../styles";
 import { Dropdown, Field } from "../ui";
 import { InfoTip } from "../../../src/components/InfoTip";
@@ -195,7 +195,9 @@ export default function IncomeModal({
                   setIncomeForm((f) => ({
                     ...f,
                     frequency: next,
-                    variableMonth: next === "monthOnce" ? f.variableMonth ?? 11 : f.variableMonth,
+                    // Mois en cours par défaut : décembre, hors de l'écran dans la
+                    // rangée de mois, laissait le revenu à zéro « ce mois-ci ».
+                    variableMonth: next === "monthOnce" ? f.variableMonth ?? new Date().getMonth() : f.variableMonth,
                   }))
                 }
                 testID="income-freq-dropdown"
@@ -266,24 +268,29 @@ export default function IncomeModal({
                 </View>
               ) : null}
               {incomeForm.frequency === "monthOnce" && (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 6, paddingVertical: 8, paddingHorizontal: 4 }}
-                >
-                  {MONTH_KEYS_SHORT.map((key, i) => (
-                    <TouchableOpacity
-                      key={i}
-                      onPress={() => setIncomeForm((f) => ({ ...f, variableMonth: i }))}
-                      style={[styles.distribPill, incomeForm.variableMonth === i && styles.distribPillActive]}
-                      testID={`income-month-${i}`}
-                    >
-                      <Text style={[styles.distribPillText, incomeForm.variableMonth === i && styles.distribPillTextActive]}>
-                        {t(key)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                // Les douze mois visibles d'un coup, et la conséquence écrite :
+                // des salaires mensuels ont été saisis ici et comptés une fois.
+                <View style={[styles.toggleRow, { flexDirection: "column", alignItems: "stretch" }]}>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                    {MONTH_KEYS_SHORT.map((key, i) => (
+                      <TouchableOpacity
+                        key={i}
+                        onPress={() => setIncomeForm((f) => ({ ...f, variableMonth: i }))}
+                        style={[styles.distribPill, incomeForm.variableMonth === i && styles.distribPillActive, { paddingHorizontal: 11 }]}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: incomeForm.variableMonth === i }}
+                        testID={`income-month-${i}`}
+                      >
+                        <Text style={[styles.distribPillText, incomeForm.variableMonth === i && styles.distribPillTextActive]}>
+                          {t(key)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <Text style={{ color: TEXT_2, fontSize: 13, lineHeight: 18, marginTop: 10 }} testID="income-once-note">
+                    {interpolate(t("income.monthOnceNote"), { month: t(MONTH_KEYS_LONG[incomeForm.variableMonth ?? 0]) })}
+                  </Text>
+                </View>
               )}
 
               {incomeForm.type === "salaire" && incomeForm.amountKind !== "net" && (

@@ -228,8 +228,8 @@ export const ar: Catalog = {
   "freq.monthlyHint": "كل شهر (مثلاً: راتب صافي شهري)",
   "freq.annual": "سنوي",
   "freq.annualHint": "المجموع لسنة، يُوزع تلقائيًا",
-  "freq.monthOnce": "يُدفع في شهر محدد",
-  "freq.monthOnceHint": "علاوة، الشهر الـ13، أرباح سنوية…",
+  "freq.monthOnce": "مرة واحدة في السنة",
+  "freq.monthOnceHint": "شهر واحد فقط: علاوة، الشهر الـ13، أرباح سنوية…",
   "freq.daily": "أجر يومي",
   "freq.dailyHint": "مبلغ لكل يوم عمل مفوتر، مضروباً في أيامك في الشهر",
   "income.daysPerMonth": "الأيام المفوترة شهرياً",
@@ -302,6 +302,8 @@ export const ar: Catalog = {
 
   "income.netPerMonth": "صافي / شهر",
   "income.paidIn": "يُدفع في {month}",
+  "income.monthOnceNote": "يُحتسب مرة واحدة فقط، في {month}. لا شيء في باقي الأشهر. لدخل يصلك كل شهر، اختر «شهري».",
+  "summary.netMonthlyAvg": "متوسط الصافي الشهري (12 شهرًا)",
 
   "donut.rent": "الإيجار",
   "donut.loans": "القروض",

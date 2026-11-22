@@ -228,8 +228,8 @@ export const pt: Catalog = {
   "freq.monthlyHint": "Todos os meses (ex.: salário líquido mensal)",
   "freq.annual": "Anual",
   "freq.annualHint": "O total em 1 ano, repartido automaticamente",
-  "freq.monthOnce": "Pago num mês específico",
-  "freq.monthOnceHint": "Prémio, 13.º mês, dividendo anual…",
+  "freq.monthOnce": "Uma vez por ano",
+  "freq.monthOnceHint": "Um só mês: prémio, 13.º mês, dividendo anual…",
   "freq.daily": "Tarifa diária",
   "freq.dailyHint": "Um valor por dia faturado, multiplicado pelos teus dias do mês",
   "income.daysPerMonth": "Dias faturados por mês",
@@ -302,6 +302,8 @@ export const pt: Catalog = {
 
   "income.netPerMonth": "Líquido / mês",
   "income.paidIn": "Pago em {month}",
+  "income.monthOnceNote": "Conta uma só vez, em {month}. Nos outros meses, nada. Para um rendimento de todos os meses, escolhe «Mensal».",
+  "summary.netMonthlyAvg": "Líquido mensal médio (12 meses)",
 
   "donut.rent": "Renda",
   "donut.loans": "Empréstimos",

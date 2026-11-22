@@ -228,8 +228,8 @@ export const de: Catalog = {
   "freq.monthlyHint": "Jeden Monat (z. B. monatliches Nettogehalt)",
   "freq.annual": "Jährlich",
   "freq.annualHint": "Die Summe für 1 Jahr, automatisch verteilt",
-  "freq.monthOnce": "In einem bestimmten Monat",
-  "freq.monthOnceHint": "Bonus, 13. Gehalt, jährliche Dividende…",
+  "freq.monthOnce": "Einmal im Jahr",
+  "freq.monthOnceHint": "Nur ein Monat: Bonus, 13. Gehalt, jährliche Dividende…",
   "freq.daily": "Tagessatz",
   "freq.dailyHint": "Ein Betrag pro abgerechnetem Tag, mal deine Tage im Monat",
   "income.daysPerMonth": "Abgerechnete Tage pro Monat",
@@ -302,6 +302,8 @@ export const de: Catalog = {
 
   "income.netPerMonth": "Netto / Monat",
   "income.paidIn": "Ausgezahlt im {month}",
+  "income.monthOnceNote": "Zählt nur einmal, im {month}. In den anderen Monaten nichts. Für ein Einkommen in jedem Monat wähle „Monatlich“.",
+  "summary.netMonthlyAvg": "Durchschnittliches Netto pro Monat (12 Monate)",
 
   "donut.rent": "Miete",
   "donut.loans": "Kredite",
