@@ -129,6 +129,7 @@ export function useBudgetTotals({
         loisirs: familyTotals.loisirs,
         epargne: familyTotals.epargne,
         remaining,
+        incomeOtherMonths: netMensuel <= 0 && netMoyen > 0,
         // Seuils basés sur le mix personnalisé si Premium loggé (sinon 50/30/20)
         targetSplit: budgetRatio.personalized
           ? {
@@ -138,7 +139,7 @@ export function useBudgetTotals({
             }
           : undefined,
       }),
-    [netMensuel, rentNum, loansMonthly, familyTotals, remaining, budgetRatio]
+    [netMensuel, netMoyen, rentNum, loansMonthly, familyTotals, remaining, budgetRatio]
   );
 
   // Donut

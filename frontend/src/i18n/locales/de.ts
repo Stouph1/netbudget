@@ -410,6 +410,8 @@ export const de: Catalog = {
 
   "advice.noIncome.title": "Gib deine Einnahmen ein",
   "advice.noIncome.msg": "Trage dein Gehalt und deine Ausgaben ein, um personalisierte Empfehlungen nach der 50/30/20-Regel zu erhalten.",
+  "advice.noIncomeThisMonth.title": "Keine Einnahmen in diesem Monat",
+  "advice.noIncomeThisMonth.msg": "Deine Einnahmen fallen in andere Monate des Jahres. Die Tipps kommen zurück, sobald in diesem Monat Einnahmen zählen.",
   "advice.overspend.title": "Du gibst mehr aus, als du verdienst",
   "advice.overspend.msg": "Deine Ausgaben übersteigen dein Nettoeinkommen. Streiche zuerst nicht essenzielle Abos, dann verhandle Nebenkosten (Energie, Versicherung, Bank) neu, bevor Schulden entstehen.",
   "advice.debt35.title": "Schuldenquote über 35 %",

@@ -465,6 +465,8 @@ export const fr: Catalog = {
   // Advice cards
   "advice.noIncome.title": "Saisis tes revenus",
   "advice.noIncome.msg": "Renseigne ton salaire et tes dépenses pour obtenir des conseils adaptés à ton profil.",
+  "advice.noIncomeThisMonth.title": "Aucun revenu ce mois-ci",
+  "advice.noIncomeThisMonth.msg": "Tes revenus tombent d'autres mois de l'année. Les conseils reviennent dès qu'un revenu est compté ce mois-ci.",
   "advice.overspend.title": "Tu dépenses plus que tu ne gagnes",
   "advice.overspend.msg": "Tes dépenses dépassent ton net mensuel. Coupe d'abord les abonnements non essentiels, puis renégocie les charges (énergie, mutuelle, banque) avant que la dette s'installe.",
   "advice.debt35.title": "Endettement au-dessus de 35 %",

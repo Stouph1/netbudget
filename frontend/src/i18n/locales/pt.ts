@@ -410,6 +410,8 @@ export const pt: Catalog = {
 
   "advice.noIncome.title": "Indica os teus rendimentos",
   "advice.noIncome.msg": "Preenche o teu salário e as tuas despesas para receber conselhos personalizados baseados na regra 50/30/20.",
+  "advice.noIncomeThisMonth.title": "Sem rendimentos este mês",
+  "advice.noIncomeThisMonth.msg": "Os teus rendimentos caem noutros meses do ano. Os conselhos voltam assim que um rendimento contar para este mês.",
   "advice.overspend.title": "Gastas mais do que ganhas",
   "advice.overspend.msg": "As tuas despesas excedem o teu líquido mensal. Corta primeiro as subscrições não essenciais, depois renegoceia encargos (energia, seguro, banco) antes que a dívida se instale.",
   "advice.debt35.title": "Endividamento acima de 35 %",

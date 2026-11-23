@@ -410,6 +410,8 @@ export const ar: Catalog = {
 
   "advice.noIncome.title": "أدخل دخلك",
   "advice.noIncome.msg": "أدخل راتبك ونفقاتك للحصول على نصائح شخصية بناءً على قاعدة 50/30/20.",
+  "advice.noIncomeThisMonth.title": "لا دخل هذا الشهر",
+  "advice.noIncomeThisMonth.msg": "دخلك يقع في أشهر أخرى من السنة. تعود النصائح فور احتساب دخل في هذا الشهر.",
   "advice.overspend.title": "تنفق أكثر مما تكسب",
   "advice.overspend.msg": "نفقاتك تتجاوز صافي دخلك الشهري. ألغِ أولاً الاشتراكات غير الأساسية، ثم أعد التفاوض على الفواتير (الطاقة، التأمين، البنك) قبل أن يتراكم الدين.",
   "advice.debt35.title": "المديونية فوق 35٪",

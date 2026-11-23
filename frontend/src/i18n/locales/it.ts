@@ -410,6 +410,8 @@ export const it: Catalog = {
 
   "advice.noIncome.title": "Inserisci le tue entrate",
   "advice.noIncome.msg": "Inserisci stipendio e spese per ottenere consigli personalizzati basati sulla regola 50/30/20.",
+  "advice.noIncomeThisMonth.title": "Nessuna entrata questo mese",
+  "advice.noIncomeThisMonth.msg": "Le tue entrate cadono in altri mesi dell'anno. I consigli tornano appena un'entrata conta per questo mese.",
   "advice.overspend.title": "Spendi più di quanto guadagni",
   "advice.overspend.msg": "Le spese superano il netto mensile. Taglia prima gli abbonamenti non essenziali, poi rinegozia bollette (energia, assicurazione, banca) prima che il debito si accumuli.",
   "advice.debt35.title": "Indebitamento oltre il 35 %",

@@ -1148,6 +1148,18 @@ export default function Index() {
       });
       return;
     }
+    // Un taux journalier sans nombre de jours donne un revenu de zéro, sans un
+    // mot : on demande les jours avant d'enregistrer.
+    if (incomeForm.frequency === "daily" && !((incomeForm.daysPerMonth ?? 0) > 0)) {
+      setConfirm({
+        open: true,
+        title: t("income.daysPerMonth"),
+        message: t("income.daysPerMonthHint"),
+        confirmLabel: t("btn.ok"),
+        onConfirm: () => {},
+      });
+      return;
+    }
     const final: IncomeSource = {
       ...incomeForm,
       label: incomeForm.label.trim() || t(`incomeType.${incomeForm.type}`),

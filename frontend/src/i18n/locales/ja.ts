@@ -410,6 +410,8 @@ export const ja: Catalog = {
 
   "advice.noIncome.title": "収入を入力してください",
   "advice.noIncome.msg": "給与と支出を入力すると、50/30/20ルールに基づくパーソナライズされたアドバイスが得られます。",
+  "advice.noIncomeThisMonth.title": "今月は収入がありません",
+  "advice.noIncomeThisMonth.msg": "収入はほかの月に計上されています。今月に収入が計上されると、アドバイスが再び表示されます。",
   "advice.overspend.title": "収入より支出が多くなっています",
   "advice.overspend.msg": "支出が月間手取りを超えています。まず不要なサブスクを解約し、次に光熱費・保険・銀行手数料を見直して、借金が膨らむ前に対処しましょう。",
   "advice.debt35.title": "返済比率35%超",

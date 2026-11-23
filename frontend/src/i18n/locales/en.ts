@@ -410,6 +410,8 @@ export const en: Catalog = {
 
   "advice.noIncome.title": "Enter your income",
   "advice.noIncome.msg": "Fill in your salary and expenses to get personalised advice based on the 50/30/20 rule.",
+  "advice.noIncomeThisMonth.title": "No income this month",
+  "advice.noIncomeThisMonth.msg": "Your income falls in other months of the year. Advice comes back as soon as income counts for this month.",
   "advice.overspend.title": "You spend more than you earn",
   "advice.overspend.msg": "Your expenses exceed your monthly net. Cut non-essential subscriptions first, then renegotiate utility, insurance and bank fees before debt builds up.",
   "advice.debt35.title": "Debt above 35%",

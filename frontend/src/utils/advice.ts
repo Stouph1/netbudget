@@ -22,6 +22,8 @@ export type AdviceInput = {
   loisirs: number;
   epargne: number;
   remaining: number;
+  /** Un revenu existe, mais sur d'autres mois que celui-ci. */
+  incomeOtherMonths?: boolean;
   // Cible optionnelle (default = 50/30/20). Fournie par le profil Premium.
   targetSplit?: { besoins: number; envies: number; epargne: number };
 };
@@ -45,8 +47,10 @@ export function buildAdvice(input: AdviceInput): AdviceItem[] {
     out.push({
       tone: "info",
       icon: "info",
-      titleKey: "advice.noIncome.title",
-      messageKey: "advice.noIncome.msg",
+      // « Saisis tes revenus » à quelqu'un qui en a saisi un pour un autre
+      // mois : faux, et il croit que sa saisie est perdue.
+      titleKey: input.incomeOtherMonths ? "advice.noIncomeThisMonth.title" : "advice.noIncome.title",
+      messageKey: input.incomeOtherMonths ? "advice.noIncomeThisMonth.msg" : "advice.noIncome.msg",
     });
     return out;
   }
