@@ -38,6 +38,7 @@ const TAB_ICONS: { key: Tab; icon: keyof typeof Feather.glyphMap }[] = [
 export default function TabBar({
   tab,
   tabBadges,
+  above,
   swipeX,
   screenW,
   bottomInset,
@@ -47,6 +48,8 @@ export default function TabBar({
 }: {
   tab: Tab;
   tabBadges: Partial<Record<Tab, boolean>>;
+  /** Posé juste au-dessus de la barre (bannière de la formule gratuite). */
+  above?: React.ReactNode;
   /** Translation horizontale du pager (lecture seule ici). */
   swipeX: SharedValue<number>;
   screenW: number;
@@ -153,6 +156,7 @@ export default function TabBar({
       ]}
       pointerEvents="box-none"
     >
+      {above}
       <GestureDetector gesture={tabSlideGesture}>
         <BlurView
           intensity={55}

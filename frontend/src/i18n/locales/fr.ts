@@ -1246,7 +1246,7 @@ export const fr: Catalog = {
   "auth.error.unknown": "Erreur inconnue",
   "auth.signup.failed": "Inscription impossible",
   "auth.signin.failed": "Connexion impossible",
-  "auth.footnote.signup": "Ton e-mail sert uniquement à la connexion et à la récupération du compte. Aucune publicité.",
+  "auth.footnote.signup": "Ton e-mail sert uniquement à la connexion et à la récupération du compte. Aucun e-mail publicitaire.",
   "auth.footnote.signin": "Ton mot de passe ne nous est jamais visible. Le lien de réinitialisation part par e-mail et ne sert qu'une fois.",
   "celeb.title": "Anniversaires",
   "celeb.intro": "Ajoute tes enfants et tes animaux : le jour de leur anniversaire, NETbudget fête ça avec des cartes-conseils adaptées à leur âge.",

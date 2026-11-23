@@ -1,0 +1,36 @@
+<fr-FR>
+NETbudget 2.0.7 : Un revenu versé une seule fois dans l'année s'affiche à son vrai montant, et non plus divisé par douze. Le formulaire dit quand choisir « Mensuel ». Un mois marqué non perçu compte bien zéro. Un taux journalier demande ses jours avant d'enregistrer. La formule gratuite affiche désormais de la publicité non personnalisée ; les formules Solo, Duo et Famille n'en affichent aucune.
+</fr-FR>
+<ar>
+NETbudget 2.0.7: الدخل الذي يُدفع مرة واحدة في السنة يظهر بمبلغه الحقيقي، لا مقسوماً على اثني عشر. النموذج يوضح متى تختار «شهري». الشهر المحدد كغير مقبوض يُحتسب صفراً. الأجر اليومي يطلب عدد الأيام قبل الحفظ. الباقة المجانية تعرض الآن إعلانات غير مخصصة؛ باقات Solo وDuo وFamille بلا أي إعلان.
+</ar>
+<de-DE>
+NETbudget 2.0.7: Ein Einkommen, das nur einmal im Jahr kommt, wird mit seinem echten Betrag angezeigt, nicht mehr durch zwölf geteilt. Das Formular sagt, wann „Monatlich“ richtig ist. Ein als nicht erhalten markierter Monat zählt null. Ein Tagessatz verlangt die Tage vor dem Speichern. Die kostenlose Version zeigt jetzt nicht personalisierte Werbung; Solo, Duo und Famille bleiben werbefrei.
+</de-DE>
+<en-AU>
+NETbudget 2.0.7: Income paid once a year now shows its real amount instead of being divided by twelve. The form tells you when to choose “Monthly”. A month marked as not received counts as zero. A daily rate asks for its days before saving. The free plan now shows non-personalised ads; the Solo, Duo and Famille plans show none.
+</en-AU>
+<en-CA>
+NETbudget 2.0.7: Income paid once a year now shows its real amount instead of being divided by twelve. The form tells you when to choose “Monthly”. A month marked as not received counts as zero. A daily rate asks for its days before saving. The free plan now shows non-personalized ads; the Solo, Duo and Famille plans show none.
+</en-CA>
+<en-GB>
+NETbudget 2.0.7: Income paid once a year now shows its real amount instead of being divided by twelve. The form tells you when to choose “Monthly”. A month marked as not received counts as zero. A daily rate asks for its days before saving. The free plan now shows non-personalised ads; the Solo, Duo and Famille plans show none.
+</en-GB>
+<en-US>
+NETbudget 2.0.7: Income paid once a year now shows its real amount instead of being divided by twelve. The form tells you when to choose “Monthly”. A month marked as not received counts as zero. A daily rate asks for its days before saving. The free plan now shows non-personalized ads; the Solo, Duo and Famille plans show none.
+</en-US>
+<es-ES>
+NETbudget 2.0.7: Un ingreso que se cobra una sola vez al año se muestra con su importe real, ya no dividido entre doce. El formulario indica cuándo elegir «Mensual». Un mes marcado como no cobrado cuenta cero. Una tarifa diaria pide los días antes de guardar. El plan gratuito muestra ahora publicidad no personalizada; los planes Solo, Duo y Famille no muestran ninguna.
+</es-ES>
+<it-IT>
+NETbudget 2.0.7: Un'entrata versata una sola volta l'anno compare con il suo importo reale, non più divisa per dodici. Il modulo indica quando scegliere «Mensile». Un mese segnato come non percepito conta zero. Una tariffa giornaliera chiede i giorni prima di salvare. Il piano gratuito mostra ora pubblicità non personalizzata; i piani Solo, Duo e Famille non ne mostrano.
+</it-IT>
+<ja-JP>
+NETbudget 2.0.7：年1回の収入が12で割られず、実際の金額で表示されます。フォームで「毎月」を選ぶべき場合がわかります。未受取にした月は0として計算されます。日当は日数を入力してから保存します。無料プランではパーソナライズされていない広告が表示されます。Solo・Duo・Famille プランに広告はありません。
+</ja-JP>
+<pt-BR>
+NETbudget 2.0.7: Uma renda recebida uma única vez no ano aparece com o valor real, não mais dividida por doze. O formulário indica quando escolher «Mensal». Um mês marcado como não recebido conta zero. Uma diária pede os dias antes de salvar. O plano gratuito agora exibe publicidade não personalizada; os planos Solo, Duo e Famille não exibem nenhuma.
+</pt-BR>
+<pt-PT>
+NETbudget 2.0.7: Um rendimento recebido uma só vez por ano aparece com o valor real, já não dividido por doze. O formulário indica quando escolher «Mensal». Um mês marcado como não recebido conta zero. Uma tarifa diária pede os dias antes de guardar. O plano gratuito mostra agora publicidade não personalizada; os planos Solo, Duo e Famille não mostram nenhuma.
+</pt-PT>

@@ -1191,7 +1191,7 @@ export const en: Catalog = {
   "auth.error.unknown": "Unknown error",
   "auth.signup.failed": "Sign-up failed",
   "auth.signin.failed": "Sign-in failed",
-  "auth.footnote.signup": "Your email is only used to sign in and recover your account. No advertising.",
+  "auth.footnote.signup": "Your email is only used to sign in and recover your account. No marketing emails.",
   "auth.footnote.signin": "Your password is never visible to us. The reset link is emailed to you and works only once.",
   "celeb.title": "Birthdays",
   "celeb.intro": "Add your children and pets: on their birthday, NETbudget celebrates with advice cards tailored to their age.",

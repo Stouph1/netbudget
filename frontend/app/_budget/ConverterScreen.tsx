@@ -32,6 +32,7 @@ export default function ConverterScreen({
   onRefreshRates,
   onRestoreHistory,
   onClearHistory,
+  bottomExtra = 0,
 }: {
   convFrom: CurrencyCode;
   convTo: CurrencyCode;
@@ -47,6 +48,8 @@ export default function ConverterScreen({
   onRefreshRates: () => void;
   onRestoreHistory: (h: ConvHistoryItem) => void;
   onClearHistory: () => void;
+  /** Place réservée sous la liste pour la bannière de la formule gratuite. */
+  bottomExtra?: number;
 }) {
   const { styles, GOLD, scrollBottom } = useBudgetTheme();
   // Ancienneté localisée : l'utilitaire ne renvoie que l'unité et la valeur,
@@ -69,7 +72,7 @@ export default function ConverterScreen({
       onScroll={tourScroll.onScroll}
       scrollEventThrottle={64}
       style={styles.scroll}
-      contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottom }]}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottom + bottomExtra }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >

@@ -1191,7 +1191,7 @@ export const de: Catalog = {
   "auth.error.unknown": "Unbekannter Fehler",
   "auth.signup.failed": "Registrierung fehlgeschlagen",
   "auth.signin.failed": "Anmeldung fehlgeschlagen",
-  "auth.footnote.signup": "Deine E-Mail dient nur zur Anmeldung und Kontowiederherstellung. Keine Werbung.",
+  "auth.footnote.signup": "Deine E-Mail dient nur zur Anmeldung und Kontowiederherstellung. Keine Werbe-E-Mails.",
   "auth.footnote.signin": "Dein Passwort ist für uns nie sichtbar. Der Link zum Zurücksetzen kommt per E-Mail und funktioniert nur einmal.",
   "celeb.title": "Geburtstage",
   "celeb.intro": "Füge deine Kinder und Haustiere hinzu: An ihrem Geburtstag feiert NETbudget mit Tipp-Karten passend zum Alter.",

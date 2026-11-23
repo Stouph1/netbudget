@@ -1191,7 +1191,7 @@ export const pt: Catalog = {
   "auth.error.unknown": "Erro desconhecido",
   "auth.signup.failed": "Não foi possível criar a conta",
   "auth.signin.failed": "Não foi possível iniciar sessão",
-  "auth.footnote.signup": "O teu e-mail serve apenas para iniciar sessão e recuperar a conta. Sem publicidade.",
+  "auth.footnote.signup": "O teu e-mail serve apenas para iniciar sessão e recuperar a conta. Sem e-mails publicitários.",
   "auth.footnote.signin": "A tua palavra-passe nunca nos é visível. O link de reposição é enviado por e-mail e serve uma só vez.",
   "celeb.title": "Aniversários",
   "celeb.intro": "Adiciona os teus filhos e animais: no dia do aniversário, o NETbudget festeja com cartões de conselhos à medida da idade.",

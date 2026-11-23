@@ -120,6 +120,7 @@ export default function BudgetScreen({
   onItemLabelChange,
   onDeleteItem,
   onExportPdf,
+  bottomExtra = 0,
 }: {
   t: Translate;
   /** Refus de la dernière sauvegarde cloud, voir SyncBanner. */
@@ -188,6 +189,8 @@ export default function BudgetScreen({
   onItemLabelChange: (id: string, label: string) => void;
   onDeleteItem: (id: string) => void;
   onExportPdf: () => void;
+  /** Place réservée sous la liste pour la bannière de la formule gratuite. */
+  bottomExtra?: number;
 }) {
   const { styles, GOLD, scrollBottom } = useBudgetTheme();
   const allNet =
@@ -208,7 +211,7 @@ export default function BudgetScreen({
       automaticallyAdjustKeyboardInsets
       keyboardDismissMode="interactive"
       style={styles.scroll}
-      contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottom }]}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottom + bottomExtra }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       ref={tourScroll.ref}

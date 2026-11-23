@@ -156,6 +156,8 @@ import { SCREEN_H, styles } from "./_budget/styles";
 import SettingsScreen from "./_budget/SettingsScreen";
 import ConverterScreen from "./_budget/ConverterScreen";
 import TabBar from "./_budget/TabBar";
+import AdBanner from "../src/components/AdBanner";
+import { preloadExportAd, showExportAd } from "../src/lib/ads";
 import BudgetScreen from "./_budget/BudgetScreen";
 import { useConverter } from "./_budget/useConverter";
 import { useBudgetPersistence } from "./_budget/useBudgetPersistence";
@@ -475,6 +477,15 @@ export default function Index() {
   // fois avec le profil. Une abonnée Solo revenait de l'achat sur Budget et
   // voyait encore « 2 repères de plus avec une formule » jusqu'au relancement.
   const tier: Tier = forcedTier ?? paywall.tier;
+  // Publicité : formule gratuite seulement, sur Budget et Convertisseur, et
+  // jamais avant que le serveur ait dit le palier (un abonné ne doit pas voir
+  // passer une bannière au démarrage).
+  const showsAds = tier === "free" && !paywall.loading;
+  const adsOn = showsAds && (tab === "budget" || tab === "converter");
+  useEffect(() => {
+    if (showsAds) preloadExportAd();
+  }, [showsAds]);
+  const [adHeight, setAdHeight] = useState(0);
   // Au retour au premier plan, on redemande le palier au serveur. Si le webhook
   // a mis plus longtemps que l'écran d'activation, la formule s'ouvre dès que
   // l'abonné revient dans l'app, sans avoir à la fermer.
@@ -1363,6 +1374,13 @@ export default function Index() {
   }
 
   async function exportPdf() {
+    // Formule gratuite : une pub plein écran avant l'export. Si elle n'est pas
+    // prête, l'export part quand même.
+    if (showsAds) {
+      await showExportAd();
+      // iOS refuse d'ouvrir la feuille de partage pendant que la pub se referme.
+      if (Platform.OS === "ios") await new Promise((r) => setTimeout(r, 400));
+    }
     try {
       await shareGeneratedPdf(generatePdfHtml(buildPdfData()), t("pdf.shareTitle"));
     } catch {
@@ -1460,6 +1478,7 @@ export default function Index() {
         <View style={{ width: screenW, position: "absolute", left: 0, top: 0, bottom: 0 }}>
         <BudgetScreen
           t={t}
+          bottomExtra={adHeight}
           syncError={budgetSyncError}
           fmt={fmt}
           currency={currency}
@@ -1524,6 +1543,7 @@ export default function Index() {
         {/* ====== Converter tab (Google Translate style) ====== */}
         <View style={{ width: screenW, position: "absolute", left: screenW * 2, top: 0, bottom: 0 }}>
           <ConverterScreen
+            bottomExtra={adHeight}
             convFrom={convFrom}
             convTo={convTo}
             convAmount={convAmount}
@@ -1653,6 +1673,7 @@ export default function Index() {
       <TabBar
         tab={tab}
         tabBadges={tabBadges}
+        above={<AdBanner enabled={adsOn} onHeight={setAdHeight} />}
         swipeX={swipeX}
         screenW={screenW}
         bottomInset={insets.bottom}

@@ -1191,7 +1191,7 @@ export const es: Catalog = {
   "auth.error.unknown": "Error desconocido",
   "auth.signup.failed": "No se pudo crear la cuenta",
   "auth.signin.failed": "No se pudo iniciar sesión",
-  "auth.footnote.signup": "Tu correo solo sirve para iniciar sesión y recuperar la cuenta. Sin publicidad.",
+  "auth.footnote.signup": "Tu correo solo sirve para iniciar sesión y recuperar la cuenta. Sin correos publicitarios.",
   "auth.footnote.signin": "Tu contraseña nunca es visible para nosotros. El enlace de restablecimiento se envía por correo y sirve una sola vez.",
   "celeb.title": "Cumpleaños",
   "celeb.intro": "Añade a tus hijos y a tus mascotas: el día de su cumpleaños, NETbudget lo celebra con tarjetas de consejos adaptadas a su edad.",

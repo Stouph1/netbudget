@@ -1191,7 +1191,7 @@ export const ja: Catalog = {
   "auth.error.unknown": "不明なエラー",
   "auth.signup.failed": "登録できませんでした",
   "auth.signin.failed": "ログインできませんでした",
-  "auth.footnote.signup": "メールアドレスはログインとアカウント復旧にのみ使用します。広告配信はありません。",
+  "auth.footnote.signup": "メールアドレスはログインとアカウント復旧にのみ使用します。広告メールは送りません。",
   "auth.footnote.signin": "パスワードは私たちには一切見えません。再設定リンクはメールで届き、一度だけ使えます。",
   "celeb.title": "誕生日",
   "celeb.intro": "お子さんやペットを登録しましょう。誕生日には、年齢に合わせたアドバイスカードでNETbudgetがお祝いします。",

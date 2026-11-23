@@ -1191,7 +1191,7 @@ export const it: Catalog = {
   "auth.error.unknown": "Errore sconosciuto",
   "auth.signup.failed": "Iscrizione non riuscita",
   "auth.signin.failed": "Accesso non riuscito",
-  "auth.footnote.signup": "La tua e-mail serve solo per accedere e recuperare l'account. Nessuna pubblicità.",
+  "auth.footnote.signup": "La tua e-mail serve solo per accedere e recuperare l'account. Nessuna e-mail pubblicitaria.",
   "auth.footnote.signin": "La tua password non ci è mai visibile. Il link di reimpostazione arriva per e-mail e funziona una volta sola.",
   "celeb.title": "Compleanni",
   "celeb.intro": "Aggiungi i tuoi figli e i tuoi animali: il giorno del compleanno NETbudget festeggia con carte-consiglio adatte alla loro età.",
