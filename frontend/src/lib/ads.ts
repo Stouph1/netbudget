@@ -7,13 +7,15 @@
 //  2. Publicités NON personnalisées, toujours. L'app ne demande pas
 //     l'autorisation de suivi d'Apple et n'utilise pas l'identifiant
 //     publicitaire.
-//  3. Sans identifiant de bloc publicitaire, pas de pub : un build sans les
-//     variables EXPO_PUBLIC_ADMOB_* n'affiche rien plutôt qu'une pub de test
-//     en production.
+//  3. Les identifiants de blocs ci-dessous sont ceux du compte AdMob de
+//     NETbudget. Ils sont publics (ils voyagent dans l'app) ; une variable
+//     EXPO_PUBLIC_ADMOB_* les remplace si elle est définie. En développement,
+//     ce sont les blocs de test de Google.
 import { Platform } from "react-native";
 import mobileAds, {
   AdEventType,
   AdsConsent,
+  AdsConsentPrivacyOptionsRequirementStatus,
   InterstitialAd,
   MaxAdContentRating,
   TestIds,
@@ -24,15 +26,19 @@ export const AD_REQUEST = { requestNonPersonalizedAdsOnly: true } as const;
 export const BANNER_UNIT: string | undefined = __DEV__
   ? TestIds.ADAPTIVE_BANNER
   : Platform.select({
-      ios: process.env.EXPO_PUBLIC_ADMOB_BANNER_IOS,
-      android: process.env.EXPO_PUBLIC_ADMOB_BANNER_ANDROID,
+      ios: process.env.EXPO_PUBLIC_ADMOB_BANNER_IOS || "ca-app-pub-8277496768662994/4322125943",
+      android:
+        process.env.EXPO_PUBLIC_ADMOB_BANNER_ANDROID || "ca-app-pub-8277496768662994/2725459896",
     }) || undefined;
 
 const INTERSTITIAL_UNIT: string | undefined = __DEV__
   ? TestIds.INTERSTITIAL
   : Platform.select({
-      ios: process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_IOS,
-      android: process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ANDROID,
+      ios:
+        process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_IOS || "ca-app-pub-8277496768662994/8549592673",
+      android:
+        process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ANDROID ||
+        "ca-app-pub-8277496768662994/6756717594",
     }) || undefined;
 
 let started: Promise<boolean> | null = null;
@@ -54,6 +60,30 @@ export function startAds(): Promise<boolean> {
     })().catch(() => false);
   }
   return started;
+}
+
+// ---- Revenir sur son choix ----
+/**
+ * Vrai là où la loi impose de pouvoir revenir sur son consentement (Europe,
+ * Royaume-Uni, Suisse). Ailleurs il n'y a pas de fenêtre à rouvrir.
+ */
+export async function adChoicesAvailable(): Promise<boolean> {
+  try {
+    await startAds();
+    const info = await AdsConsent.getConsentInfo();
+    return (
+      info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.REQUIRED
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Rouvre la fenêtre de consentement de Google. */
+export async function showAdChoices(): Promise<void> {
+  try {
+    await AdsConsent.showPrivacyOptionsForm();
+  } catch {}
 }
 
 // ---- Plein écran à l'export PDF ----

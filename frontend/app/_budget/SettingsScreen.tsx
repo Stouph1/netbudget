@@ -27,6 +27,7 @@ import { limitsFor, type Tier } from "../../src/lib/entitlements";
 import type { Translate } from "./types";
 import { AppVersionLine } from "../../src/components/AppVersionLine";
 import { switchStyle } from "../../src/theme/controls";
+import { adChoicesAvailable, showAdChoices } from "../../src/lib/ads";
 
 export default function SettingsScreen({
   currency,
@@ -121,6 +122,22 @@ export default function SettingsScreen({
   // taper « 1 » puis « 5 » recalculerait le budget deux fois pour rien.
   const givingOn = tithePercent > 0;
   const [givingDraft, setGivingDraft] = React.useState(String(tithePercent || 10));
+  // Le lien « Choix publicitaires » : formule gratuite seulement (un abonné
+  // n'a pas de pub, et la question lancerait le SDK pour rien).
+  const [adChoices, setAdChoices] = React.useState(false);
+  React.useEffect(() => {
+    let alive = true;
+    if (tier !== "free") {
+      setAdChoices(false);
+      return;
+    }
+    void adChoicesAvailable().then((ok) => {
+      if (alive) setAdChoices(ok);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [tier]);
   React.useEffect(() => {
     if (tithePercent > 0) setGivingDraft(String(tithePercent));
   }, [tithePercent]);
@@ -608,6 +625,21 @@ export default function SettingsScreen({
             <Feather name="external-link" size={14} color={TEXT_3} />
           </TouchableOpacity>
         ))}
+        {/* Formule gratuite, là où la loi l'impose : revenir sur son choix
+            de consentement publicitaire. */}
+        {adChoices ? (
+          <TouchableOpacity
+            style={styles.profileLocNote}
+            activeOpacity={0.85}
+            onPress={() => void showAdChoices()}
+            accessibilityRole="button"
+            testID="settings-about-adchoices"
+          >
+            <Feather name="sliders" size={15} color={GOLD} />
+            <Text style={[styles.profileLocNoteText, { flex: 1 }]}>{t("settings.about.adChoices")}</Text>
+            <Feather name="chevron-right" size={14} color={TEXT_3} />
+          </TouchableOpacity>
+        ) : null}
       </Section>
 
       <Section title={t("settings.danger.title")}>

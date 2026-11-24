@@ -104,6 +104,7 @@ export const ja: Catalog = {
   "settings.about.site": "サイト netbudget.app",
   "settings.about.instagram": "Instagram @netbudget.app",
   "settings.about.privacy": "プライバシーポリシー",
+  "settings.about.adChoices": "広告の設定",
   "settings.about.terms": "利用規約",
   "settings.about.contact": "お問い合わせ",
   "settings.version.title": "アプリのバージョン",

@@ -104,6 +104,7 @@ export const ar: Catalog = {
   "settings.about.site": "الموقع netbudget.app",
   "settings.about.instagram": "إنستغرام @netbudget.app",
   "settings.about.privacy": "سياسة الخصوصية",
+  "settings.about.adChoices": "خيارات الإعلانات",
   "settings.about.terms": "شروط الاستخدام",
   "settings.about.contact": "راسلنا",
   "settings.version.title": "إصدار التطبيق",

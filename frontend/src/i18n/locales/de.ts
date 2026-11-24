@@ -104,6 +104,7 @@ export const de: Catalog = {
   "settings.about.site": "Website netbudget.app",
   "settings.about.instagram": "Instagram @netbudget.app",
   "settings.about.privacy": "Datenschutzerklärung",
+  "settings.about.adChoices": "Werbeeinstellungen",
   "settings.about.terms": "Nutzungsbedingungen",
   "settings.about.contact": "Schreib uns",
   "settings.version.title": "App-Version",
