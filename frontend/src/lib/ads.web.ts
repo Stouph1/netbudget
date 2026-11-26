@@ -9,3 +9,8 @@ export function adChoicesAvailable(): Promise<boolean> {
 export function showAdChoices(): Promise<void> {
   return Promise.resolve();
 }
+export const rewardedSupported = false;
+export type RewardedOutcome = "earned" | "dismissed" | "unavailable";
+export function showRewardedAd(): Promise<RewardedOutcome> {
+  return Promise.resolve("unavailable");
+}

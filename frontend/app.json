@@ -2,7 +2,7 @@
   "expo": {
     "name": "NETbudget",
     "slug": "netbudget",
-    "version": "2.0.7",
+    "version": "2.0.8",
     "runtimeVersion": {
       "policy": "fingerprint"
     },
@@ -22,7 +22,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "43"
+      "buildNumber": "44"
     },
     "android": {
       "package": "com.stouph.netbudget",
@@ -47,7 +47,7 @@
         "com.google.android.gms.permission.AD_ID"
       ],
       "softwareKeyboardLayoutMode": "resize",
-      "versionCode": 43
+      "versionCode": 44
     },
     "web": {
       "bundler": "metro",

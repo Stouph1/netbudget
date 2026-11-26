@@ -109,6 +109,8 @@ export function planFeatures(tier: Exclude<Tier, "free">): PlanFeature[] {
   );
 
   // 4. Ce que toutes les formules payantes partagent, en dernier.
+  // La formule gratuite porte des publicités ; aucune formule payante n'en a.
+  out.push({ key: "plan.feature.noAds" });
   if (l.advice) out.push({ key: "plan.feature.advice" });
   // Le conseil du lundi et les repères complets viennent avec le Coach.
   if (l.advice) out.push({ key: "plan.feature.weekly" });

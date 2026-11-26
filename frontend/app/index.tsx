@@ -1673,7 +1673,14 @@ export default function Index() {
       <TabBar
         tab={tab}
         tabBadges={tabBadges}
-        above={<AdBanner enabled={adsOn} onHeight={setAdHeight} />}
+        above={
+          <AdBanner
+            enabled={adsOn}
+            onHeight={setAdHeight}
+            removeLabel={t("ads.remove")}
+            onRemove={() => router.push("/plans" as never)}
+          />
+        }
         swipeX={swipeX}
         screenW={screenW}
         bottomInset={insets.bottom}

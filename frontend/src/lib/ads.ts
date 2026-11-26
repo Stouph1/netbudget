@@ -18,6 +18,8 @@ import mobileAds, {
   AdsConsentPrivacyOptionsRequirementStatus,
   InterstitialAd,
   MaxAdContentRating,
+  RewardedAd,
+  RewardedAdEventType,
   TestIds,
 } from "react-native-google-mobile-ads";
 
@@ -39,6 +41,14 @@ const INTERSTITIAL_UNIT: string | undefined = __DEV__
       android:
         process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ANDROID ||
         "ca-app-pub-8277496768662994/6756717594",
+    }) || undefined;
+
+const REWARDED_UNIT: string | undefined = __DEV__
+  ? TestIds.REWARDED
+  : Platform.select({
+      ios: process.env.EXPO_PUBLIC_ADMOB_REWARDED_IOS || "ca-app-pub-8277496768662994/6758757026",
+      android:
+        process.env.EXPO_PUBLIC_ADMOB_REWARDED_ANDROID || "ca-app-pub-8277496768662994/8614764171",
     }) || undefined;
 
 let started: Promise<boolean> | null = null;
@@ -135,5 +145,52 @@ export function showExportAd(): Promise<void> {
     const offClosed = ad.addAdEventListener(AdEventType.CLOSED, finish);
     const offError = ad.addAdEventListener(AdEventType.ERROR, finish);
     ad.show().catch(finish);
+  });
+}
+
+// ---- Vidéo avec récompense ----
+/** Faux sur le web : le bouton « voir une vidéo » n'y est pas proposé. */
+export const rewardedSupported = !!REWARDED_UNIT;
+
+export type RewardedOutcome = "earned" | "dismissed" | "unavailable";
+
+/**
+ * Charge puis montre une vidéo choisie par l'utilisateur.
+ *  - "earned" : vue jusqu'au bout, la récompense est due ;
+ *  - "dismissed" : fermée avant la fin, rien n'est dû ;
+ *  - "unavailable" : pas de vidéo (refus du consentement, hors ligne, stock
+ *    vide, ou plus de douze secondes de chargement).
+ */
+export function showRewardedAd(): Promise<RewardedOutcome> {
+  if (!REWARDED_UNIT) return Promise.resolve("unavailable");
+  const unit = REWARDED_UNIT;
+  return startAds().then((ok) => {
+    if (!ok) return "unavailable" as const;
+    return new Promise<RewardedOutcome>((resolve) => {
+      const ad = RewardedAd.createForAdRequest(unit, AD_REQUEST);
+      let earned = false;
+      let done = false;
+      const offs: (() => void)[] = [];
+      const finish = (r: RewardedOutcome) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        offs.forEach((off) => off());
+        resolve(r);
+      };
+      const timer = setTimeout(() => finish("unavailable"), 12000);
+      offs.push(
+        ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
+          clearTimeout(timer);
+          ad.show().catch(() => finish("unavailable"));
+        }),
+        ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+          earned = true;
+        }),
+        ad.addAdEventListener(AdEventType.CLOSED, () => finish(earned ? "earned" : "dismissed")),
+        ad.addAdEventListener(AdEventType.ERROR, () => finish(earned ? "earned" : "unavailable")),
+      );
+      ad.load();
+    });
   });
 }

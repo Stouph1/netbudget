@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -24,6 +25,8 @@ import { useLang } from "../contexts/LangContext";
 import { usePaywall } from "../hooks/usePaywall";
 import { PlanCards } from "./PlanCards";
 import { canSeeScheduleYear } from "../lib/entitlements";
+import { rewardedSupported, showRewardedAd } from "../lib/ads";
+import { useRewardPass } from "../lib/rewardPass";
 import {
   amortizationSchedule,
   type ScheduleYear,
@@ -126,9 +129,19 @@ export default function LoanScheduleModal({
   const paywall = usePaywall();
   const currentYear =
     schedule.find((y) => y.current)?.year ?? schedule[0]?.year ?? 0;
-  const firstLockedIndex = schedule.findIndex(
-    (y) => !canSeeScheduleYear(paywall.tier, y.year - currentYear),
-  );
+  // Une vidéo choisie par l'utilisateur ouvre la projection pour 24 heures.
+  const pass = useRewardPass("schedule", visible);
+  const [rewardState, setRewardState] = useState<"idle" | "loading" | "none">("idle");
+  const firstLockedIndex = pass.active
+    ? -1
+    : schedule.findIndex((y) => !canSeeScheduleYear(paywall.tier, y.year - currentYear));
+  const watchVideo = async () => {
+    if (rewardState === "loading") return;
+    setRewardState("loading");
+    const outcome = await showRewardedAd();
+    if (outcome === "earned") await pass.grant();
+    setRewardState(outcome === "unavailable" ? "none" : "idle");
+  };
   const hasLocked = firstLockedIndex >= 0;
 
   /**
@@ -399,6 +412,28 @@ export default function LoanScheduleModal({
                           Naviguer depuis une modale ouverte laisse la modale
                           au-dessus : l'écran paraît figé, et c'est exactement
                           ce qu'on prenait pour un bug. */}
+                      {rewardedSupported && paywall.tier === "free" ? (
+                        <>
+                          <TouchableOpacity
+                            style={styles.rewardBtn}
+                            onPress={() => void watchVideo()}
+                            disabled={rewardState === "loading"}
+                            activeOpacity={0.85}
+                            accessibilityRole="button"
+                            testID="schedule-reward"
+                          >
+                            {rewardState === "loading" ? (
+                              <ActivityIndicator size="small" color={GOLD} />
+                            ) : (
+                              <Feather name="play-circle" size={16} color={GOLD} />
+                            )}
+                            <Text style={styles.rewardBtnText}>{t("schedule.reward.cta")}</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.rewardNote}>
+                            {t(rewardState === "none" ? "schedule.reward.none" : "schedule.reward.or")}
+                          </Text>
+                        </>
+                      ) : null}
                       <PlanCards
                         featuresPerCard={2}
                         onPick={(tier) => {
@@ -435,6 +470,19 @@ const makeStyles = (GOLD: string) =>
     marginTop: -6,
     gap: 4,
   },
+  rewardBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: alpha(GOLD, 0.5),
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  rewardBtnText: { color: GOLD, fontSize: 13.5, fontWeight: "700", flexShrink: 1, textAlign: "center" },
+  rewardNote: { color: "#8193AC", fontSize: 12, textAlign: "center", marginTop: 8, marginBottom: 8 },
   lockedTitle: {
     color: "#FFFFFF",
     fontSize: 16,
