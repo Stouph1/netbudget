@@ -104,6 +104,7 @@
         }
       ],
       "expo-localization",
+      "./plugins/withAdsKotlinMetadata",
       [
         "react-native-google-mobile-ads",
         {
