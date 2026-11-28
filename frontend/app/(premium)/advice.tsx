@@ -29,7 +29,7 @@ import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { usePaywall } from "../../src/hooks/usePaywall";
 import { rewardedSupported } from "../../src/lib/ads";
-import { useRewardPass } from "../../src/lib/rewardPass";
+import { COACH_PREVIEW_COUNT, useRewardPass } from "../../src/lib/rewardPass";
 import { LockedOverlay } from "../../src/components/LockedOverlay";
 import { SyncBanner } from "../../src/components/SyncBanner";
 import { InflationBanner, RealReturnLine } from "../../src/components/InflationNote";
@@ -1197,6 +1197,15 @@ export default function AdviceScreen() {
     };
   });
 
+  // Formule gratuite avec une vidéo vue : TROIS conseils lisibles, pas la
+  // liste entière. De quoi juger la qualité, pas de quoi se passer de la
+  // formule (décision du 2026-11-28).
+  const previewOnly =
+    !paywall.loading && !paywall.allows({ feature: "advice" }) && coachPass.active;
+  const allCards = rotatedGrouped.flatMap((g) => g.cards);
+  const previewCards = previewOnly ? allCards.slice(0, COACH_PREVIEW_COUNT) : [];
+  const hiddenCount = Math.max(0, allCards.length - previewCards.length);
+
   if (justFinished) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
@@ -1339,6 +1348,31 @@ export default function AdviceScreen() {
             <Feather name="compass" size={28} color={TEXT_3} />
             <Text style={styles.emptyTitle}>{t("coach.empty.title")}</Text>
             <Text style={styles.emptyBody}>{t("coach.empty.body")}</Text>
+          </View>
+        ) : previewOnly ? (
+          <View style={{ marginTop: 20 }} testID="coach-preview">
+            {previewCards.map((card) => (
+              <AdviceCardView key={card.id} card={card} profile={profile} />
+            ))}
+            {hiddenCount > 0 ? (
+              <View style={styles.previewMore}>
+                <Text style={styles.previewMoreTitle}>
+                  {tp("coach.preview.more.title", { count: hiddenCount })}
+                </Text>
+                <Text style={styles.previewMoreBody}>{t("coach.preview.more.body")}</Text>
+                <TouchableOpacity
+                  style={[styles.emptyBtn, { backgroundColor: GOLD, alignSelf: "stretch" }]}
+                  onPress={() => router.push("/plans" as never)}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  testID="coach-preview-plans"
+                >
+                  <Text style={[styles.emptyBtnText, { color: "#000", fontWeight: "700", textAlign: "center" }]}>
+                    {t("plan.choose.cta")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
         ) : (
           rotatedGrouped.map(({ group, cards }) => {
@@ -1819,6 +1853,17 @@ const makeStyles = (GOLD: string) =>
   recapValue: { color: TEXT_1, fontSize: 14, fontWeight: "700", marginTop: 1 },
   recapEdit: { color: GOLD, fontSize: 12, fontWeight: "700" },
   // Commence sous l'en-tête et le badge de scope, qui restent nets et actifs.
+  previewMore: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    borderRadius: 16,
+    padding: 18,
+    alignItems: "center",
+    gap: 8,
+  },
+  previewMoreTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "800", textAlign: "center" },
+  previewMoreBody: { color: "#94A3B8", fontSize: 13, lineHeight: 19, textAlign: "center", marginBottom: 6 },
   lockedArea: { position: "absolute", left: 0, right: 0, top: 116, bottom: 0 },
   safe: { flex: 1, backgroundColor: MIDNIGHT },
   center: {

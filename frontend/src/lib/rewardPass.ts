@@ -10,6 +10,8 @@ import { useCallback, useEffect, useState } from "react";
 
 export type PassFeature = "schedule" | "coach";
 export const PASS_HOURS = 24;
+/** Conseils du Coach lisibles avec le laissez-passer : trois, pas la liste. */
+export const COACH_PREVIEW_COUNT = 3;
 const key = (f: PassFeature) => `netbudget:pass:${f}`;
 
 /** Fin du laissez-passer (ms), ou 0 s'il n'y en a pas ou plus. */
