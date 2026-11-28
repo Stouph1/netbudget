@@ -9,8 +9,8 @@ export function adChoicesAvailable(): Promise<boolean> {
 export function showAdChoices(): Promise<void> {
   return Promise.resolve();
 }
-export const rewardedSupported = false;
+export const rewardedSupported = true; // TEMP-FAKE
 export type RewardedOutcome = "earned" | "dismissed" | "unavailable";
 export function showRewardedAd(): Promise<RewardedOutcome> {
-  return Promise.resolve("unavailable");
+  return new Promise((r) => setTimeout(() => r("earned"), 800)); // TEMP-FAKE
 }

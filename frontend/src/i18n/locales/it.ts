@@ -859,6 +859,7 @@ export const it: Catalog = {
   "schedule.locked.body": "L'anno in corso resta visibile. L'abbonamento apre tutto il piano di ammortamento: mese per mese, fino all'ultima rata, e quanto costa il prestito in totale.",
   "schedule.locked.count": "Restano {n} anni da scoprire, mese per mese, fino all'ultima rata.",
   "schedule.reward.cta": "Guarda un video: piano completo per 24 ore",
+  "coach.reward.cta": "Guarda un video: consigli del Coach per 24 ore",
   "schedule.reward.or": "oppure scegli un piano, senza pubblicità",
   "schedule.reward.none": "Nessun video disponibile al momento. Riprova più tardi.",
   "goals.quota.full": "Tutti i tuoi obiettivi sono occupati: creane altri",

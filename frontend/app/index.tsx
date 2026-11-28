@@ -477,11 +477,11 @@ export default function Index() {
   // fois avec le profil. Une abonnée Solo revenait de l'achat sur Budget et
   // voyait encore « 2 repères de plus avec une formule » jusqu'au relancement.
   const tier: Tier = forcedTier ?? paywall.tier;
-  // Publicité : formule gratuite seulement, sur Budget et Convertisseur, et
-  // jamais avant que le serveur ait dit le palier (un abonné ne doit pas voir
-  // passer une bannière au démarrage).
+  // Publicité : formule gratuite seulement, sur les quatre onglets, et jamais
+  // avant que le serveur ait dit le palier (un abonné ne doit pas voir passer
+  // une bannière au démarrage).
   const showsAds = tier === "free" && !paywall.loading;
-  const adsOn = showsAds && (tab === "budget" || tab === "converter");
+  const adsOn = showsAds;
   useEffect(() => {
     if (showsAds) preloadExportAd();
   }, [showsAds]);
@@ -1471,7 +1471,7 @@ export default function Index() {
         <Animated.View style={[{ flex: 1, width: screenW * 4, flexDirection: "row" }, swipeAnimStyle]}>
         {/* Écran Projets (onglet 2) */}
         <View style={{ width: screenW, position: "absolute", left: screenW, top: 0, bottom: 0 }}>
-          <EventsPanel />
+          <EventsPanel bottomExtra={adHeight} />
         </View>
 
         {/* Budget : premier écran, celui qu'on ouvre */}
@@ -1582,7 +1582,7 @@ export default function Index() {
               </TouchableOpacity>
             </View>
           </View>
-          <PremiumHomePanel onGoBudget={() => setTab("budget")} />
+          <PremiumHomePanel onGoBudget={() => setTab("budget")} bottomExtra={adHeight} />
         </View>
         </Animated.View>
         </GestureDetector>

@@ -32,6 +32,7 @@ import {
 } from "react-native";
 import { useLang } from "../contexts/LangContext";
 import { PlanCards } from "./PlanCards";
+import { RewardVideoButton } from "./RewardVideoButton";
 
 const TEXT_1 = "#FFFFFF";
 const TEXT_2 = "#94A3B8";
@@ -45,6 +46,7 @@ export function LockedOverlay({
   align = "center",
   cards = false,
   onPress,
+  reward,
 }: {
   titleKey: string;
   bodyKey: string;
@@ -71,6 +73,12 @@ export function LockedOverlay({
   cards?: boolean;
   /** Par défaut, envoie vers les formules. */
   onPress?: () => void;
+  /**
+   * Propose d'ouvrir la zone pour un temps contre une vidéo choisie. À
+   * l'appelant de ne le passer qu'à la formule gratuite, là où la publicité
+   * existe.
+   */
+  reward?: { labelKey: string; onEarned: () => void | Promise<void>; testID?: string };
 }) {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
@@ -103,6 +111,10 @@ export function LockedOverlay({
           </View>
           <Text style={styles.title}>{t(titleKey)}</Text>
           <Text style={styles.body}>{t(bodyKey)}</Text>
+
+          {reward ? (
+            <RewardVideoButton labelKey={reward.labelKey} onEarned={reward.onEarned} testID={reward.testID} />
+          ) : null}
 
           {cards ? (
             <View style={{ alignSelf: "stretch" }}>

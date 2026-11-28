@@ -859,6 +859,7 @@ export const es: Catalog = {
   "schedule.locked.body": "El año en curso sigue visible. La suscripción abre todo el cuadro de amortización: mes a mes, hasta la última cuota, y lo que cuesta el préstamo en total.",
   "schedule.locked.count": "Quedan {n} años por descubrir, mes a mes, hasta la última cuota.",
   "schedule.reward.cta": "Ver un vídeo: cuadro completo durante 24 horas",
+  "coach.reward.cta": "Ver un vídeo: consejos del Coach durante 24 horas",
   "schedule.reward.or": "o elige un plan, sin anuncios",
   "schedule.reward.none": "No hay ningún vídeo disponible por ahora. Inténtalo más tarde.",
   "goals.quota.full": "Todos tus objetivos están ocupados: crea más",

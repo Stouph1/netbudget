@@ -97,7 +97,14 @@ export function eventNeedsAttention(ev: EventProject, now: Date = new Date()): b
   return false;
 }
 
-export default function EventsPanel({ standalone = false }: { standalone?: boolean }) {
+export default function EventsPanel({
+  standalone = false,
+  bottomExtra = 0,
+}: {
+  standalone?: boolean;
+  /** Place prise par la bannière publicitaire au-dessus de la barre d'onglets. */
+  bottomExtra?: number;
+}) {
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { lang, t, tp } = useLang();
@@ -335,7 +342,7 @@ export default function EventsPanel({ standalone = false }: { standalone?: boole
     <ScrollView
       automaticallyAdjustKeyboardInsets
       keyboardDismissMode="interactive"
-      contentContainerStyle={{ padding: 20, paddingBottom: standalone ? 60 : scrollBottom }}
+      contentContainerStyle={{ padding: 20, paddingBottom: standalone ? 60 : scrollBottom + bottomExtra }}
       showsVerticalScrollIndicator={false}
     >
       {!standalone ? <Text style={styles.pageTitle}>{t("events.title")}</Text> : null}

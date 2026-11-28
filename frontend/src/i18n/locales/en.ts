@@ -859,6 +859,7 @@ export const en: Catalog = {
   "schedule.locked.body": "The current year stays visible. A subscription opens the whole schedule: month by month, down to the last payment, and what the loan costs in total.",
   "schedule.locked.count": "{n} more years to explore, month by month, down to the final payment.",
   "schedule.reward.cta": "Watch a video: full schedule for 24 hours",
+  "coach.reward.cta": "Watch a video: Coach advice for 24 hours",
   "schedule.reward.or": "or pick a plan, with no ads",
   "schedule.reward.none": "No video available right now. Try again later.",
   "goals.quota.full": "All your goals are in use — create more",

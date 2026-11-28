@@ -859,6 +859,7 @@ export const de: Catalog = {
   "schedule.locked.body": "Das laufende Jahr bleibt sichtbar. Das Abo öffnet den ganzen Tilgungsplan: Monat für Monat bis zur letzten Rate, und was der Kredit insgesamt kostet.",
   "schedule.locked.count": "{n} weitere Jahre warten — Monat für Monat, bis zur letzten Rate.",
   "schedule.reward.cta": "Video ansehen: vollständiger Plan für 24 Stunden",
+  "coach.reward.cta": "Video ansehen: Coach-Tipps für 24 Stunden",
   "schedule.reward.or": "oder wähle einen Tarif, ohne Werbung",
   "schedule.reward.none": "Gerade ist kein Video verfügbar. Versuch es später noch einmal.",
   "goals.quota.full": "Alle deine Ziele sind belegt — weitere anlegen",

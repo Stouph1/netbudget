@@ -859,6 +859,7 @@ export const ja: Catalog = {
   "schedule.locked.body": "今年の分はそのままご覧いただけます。ご登録いただくと、返済予定表のすべて——最後の一回まで月ごとに、そして利息を含めた総額——が開きます。",
   "schedule.locked.count": "残り{n}年分を、最後の一回まで月ごとにご覧いただけます。",
   "schedule.reward.cta": "動画を見る：24時間、返済予定表をすべて表示",
+  "coach.reward.cta": "動画を見る：24時間、コーチのアドバイスを表示",
   "schedule.reward.or": "または広告なしのプランを選ぶ",
   "schedule.reward.none": "現在、視聴できる動画がありません。後でもう一度お試しください。",
   "goals.quota.full": "目標の枠がすべて埋まりました — さらに作る",

@@ -28,6 +28,8 @@ import { countryOptions, FR_REGIONS } from "../../src/constants/geo";
 import { useLang } from "../../src/contexts/LangContext";
 import { useSession } from "../../src/contexts/SessionContext";
 import { usePaywall } from "../../src/hooks/usePaywall";
+import { rewardedSupported } from "../../src/lib/ads";
+import { useRewardPass } from "../../src/lib/rewardPass";
 import { LockedOverlay } from "../../src/components/LockedOverlay";
 import { SyncBanner } from "../../src/components/SyncBanner";
 import { InflationBanner, RealReturnLine } from "../../src/components/InflationNote";
@@ -471,8 +473,10 @@ export default function AdviceScreen() {
   // personne vient de répondre à douze questions et n'a aucun signe que ça a
   // servi à quelque chose.
   const [justFinished, setJustFinished] = useState(false);
+  // Une vidéo choisie ouvre la lecture des conseils pour 24 heures.
+  const coachPass = useRewardPass("coach");
   const adviceLocked =
-    !paywall.loading && !paywall.allows({ feature: "advice" });
+    !paywall.loading && !paywall.allows({ feature: "advice" }) && !coachPass.active;
   // ?onboard=1 (depuis l'inscription) : ouvre TOUJOURS le questionnaire,
   // jamais la liste — l'utilisateur continue de remplir naturellement.
   const { onboard } = useLocalSearchParams<{ onboard?: string }>();
@@ -1387,6 +1391,11 @@ export default function AdviceScreen() {
             bodyKey="coach.paywall.body"
             icon="award"
             cards
+            reward={
+              rewardedSupported && paywall.tier === "free"
+                ? { labelKey: "coach.reward.cta", onEarned: coachPass.grant, testID: "coach-reward" }
+                : undefined
+            }
           />
         </View>
       ) : null}

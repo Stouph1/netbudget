@@ -1,13 +1,14 @@
 // Accès offert pour 24 heures après une vidéo choisie par l'utilisateur.
 //
 // LOCAL ET LIMITÉ À LA LECTURE, exprès. Le laissez-passer n'ouvre que des
-// vues calculées sur l'appareil (l'échéancier complet d'un prêt) : rien n'est
+// vues calculées sur l'appareil (l'échéancier complet d'un prêt, la liste des
+// conseils du Coach) : rien n'est
 // créé pendant qu'il court, donc rien ne reste en trop quand il expire, et le
 // serveur — qui ne connaît que les vraies formules — n'a pas à le croire.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 
-export type PassFeature = "schedule";
+export type PassFeature = "schedule" | "coach";
 export const PASS_HOURS = 24;
 const key = (f: PassFeature) => `netbudget:pass:${f}`;
 

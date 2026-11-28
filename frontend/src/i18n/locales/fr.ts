@@ -914,6 +914,7 @@ export const fr: Catalog = {
   "schedule.locked.body": "L'année en cours reste visible. L'abonnement ouvre tout l'échéancier : mois par mois, jusqu'à la dernière mensualité, et ce que le crédit coûte au total.",
   "schedule.locked.count": "{n} années restent à découvrir, mois par mois, jusqu'à la dernière mensualité.",
   "schedule.reward.cta": "Voir une vidéo : échéancier complet pendant 24 h",
+  "coach.reward.cta": "Voir une vidéo : conseils du Coach pendant 24 h",
   "schedule.reward.or": "ou choisis une formule, sans publicité",
   "schedule.reward.none": "Aucune vidéo disponible pour le moment. Réessaie plus tard.",
   "goals.quota.full": "Tous tes objectifs sont utilisés — en créer d'autres",

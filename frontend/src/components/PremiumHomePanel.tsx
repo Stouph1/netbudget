@@ -89,9 +89,12 @@ function monthLabel(month: string, t: (key: string) => string): string {
 type Props = {
   // Naviguer vers le tab Budget (depuis le tab: setTab; depuis la route: back)
   onGoBudget?: () => void;
+  /** Place prise par la bannière publicitaire au-dessus de la barre d'onglets. */
+  bottomExtra?: number;
 };
 
 export default function PremiumHomePanel(_props: Props) {
+  const bottomExtra = _props.bottomExtra ?? 0;
   const GOLD = useAccent().main;
   const styles = useMemo(() => makeStyles(GOLD), [GOLD]);
   const { t, tp } = useLang();
@@ -290,7 +293,7 @@ export default function PremiumHomePanel(_props: Props) {
   if (!user) {
     return (
       <ScrollView
-      contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}
+      contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom + bottomExtra }}
       ref={tourScroll.ref}
       onScroll={tourScroll.onScroll}
       scrollEventThrottle={64}
@@ -411,7 +414,7 @@ export default function PremiumHomePanel(_props: Props) {
 
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom }}
+      contentContainerStyle={{ padding: 20, paddingBottom: scrollBottom + bottomExtra }}
       ref={tourScroll.ref}
       onScroll={tourScroll.onScroll}
       scrollEventThrottle={64}
